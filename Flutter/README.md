@@ -10,9 +10,8 @@
 ```yaml
   super_player:
     git:
-       url: 
-      ref: 
-      path:
+      url: https://github.com/tencentyun/SuperPlayer
+      path: Flutter
 ```
 
 然后更新依赖包
@@ -156,9 +155,8 @@ SuperPlayer是腾讯云开源的一款播放器组件，简单几行代码即可
 ```yaml
   super_player:
     git:
-      url: 
-      ref: 
-      path: 
+      url: https://github.com/tencentyun/SuperPlayer
+      path: Flutter
 ```
 
 然后更新依赖包
