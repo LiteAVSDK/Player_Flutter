@@ -1,0 +1,67 @@
+PODS:
+  - AFNetworking (4.0.1):
+    - AFNetworking/NSURLSession (= 4.0.1)
+    - AFNetworking/Reachability (= 4.0.1)
+    - AFNetworking/Security (= 4.0.1)
+    - AFNetworking/Serialization (= 4.0.1)
+    - AFNetworking/UIKit (= 4.0.1)
+  - AFNetworking/NSURLSession (4.0.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (4.0.1)
+  - AFNetworking/Security (4.0.1)
+  - AFNetworking/Serialization (4.0.1)
+  - AFNetworking/UIKit (4.0.1):
+    - AFNetworking/NSURLSession
+  - Flutter (1.0.0)
+  - Masonry (1.1.0)
+  - SDWebImage (5.10.4):
+    - SDWebImage/Core (= 5.10.4)
+  - SDWebImage/Core (5.10.4)
+  - super_player (0.0.1):
+    - Flutter
+    - SuperPlayer
+  - SuperPlayer (3.3.9):
+    - AFNetworking
+    - Masonry
+    - SDWebImage
+    - SuperPlayer/Player (= 3.3.9)
+  - SuperPlayer/Player (3.3.9):
+    - AFNetworking
+    - Masonry
+    - SDWebImage
+    - TXLiteAVSDK_Player
+  - TXLiteAVSDK_Player (8.5.10019)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - super_player (from `.symlinks/plugins/super_player/ios`)
+  - SuperPlayer/Player (= 3.3.9)
+
+SPEC REPOS:
+  trunk:
+    - AFNetworking
+    - Masonry
+    - SDWebImage
+    - SuperPlayer
+    - TXLiteAVSDK_Player
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  super_player:
+    :path: ".symlinks/plugins/super_player/ios"
+
+SPEC CHECKSUMS:
+  AFNetworking: 7864c38297c79aaca1500c33288e429c3451fdce
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
+  SDWebImage: c666b97e1fa9c64b4909816a903322018f0a9c84
+  super_player: e6214fc59e397e9ab0f1fe7f0ab9b5235c1a3b45
+  SuperPlayer: 4ee503ceebec15d9a743ddbbe27c48691902223b
+  TXLiteAVSDK_Player: adf9147a9f0cbca9a2597e75958146cbf09b0f7d
+
+PODFILE CHECKSUM: 5f4ccb0019ecd491de2aa1499f0998389baba11f
+
+COCOAPODS: 1.10.1

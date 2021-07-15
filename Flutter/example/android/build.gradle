@@ -1,0 +1,43 @@
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.0'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+ext {
+    compileSdkVersion = 28
+    buildToolsVersion = "28.0.3"
+    supportSdkVersion = "26.0.1"
+    minSdkVersion = 19
+    targetSdkVersion = 28
+    liteavSdk="com.tencent.liteav:LiteAVSDK_Player:latest.release"
+    imSdk = 'com.tencent.imsdk:imsdk:4.9.1'
+    versionCode = 1
+    versionName = "v1.0"
+    ndkAbi = 'armeabi'//,'armeabi-v7a', 'arm64-v8a'
+    aekit_version = '1.0.10-cloud'
+}
