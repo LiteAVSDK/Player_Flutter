@@ -1,3 +1,4 @@
+// @dart = 2.7
 part of SuperPlayer;
 
 class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue>, TXPlayerController {

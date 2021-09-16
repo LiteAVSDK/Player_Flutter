@@ -1,3 +1,4 @@
+// @dart = 2.7
 part of SuperPlayer;
 
 typedef void SuperPlatformViewCreatedCallback(SuperPlayerPlatformViewController controller);
