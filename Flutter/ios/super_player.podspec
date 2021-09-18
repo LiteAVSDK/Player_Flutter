@@ -16,7 +16,7 @@ player plugin.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'SuperPlayer'
+  s.dependency 'SuperPlayer/Professional'
   s.platform = :ios, '8.0'
   s.static_framework = true
 
