@@ -2,7 +2,7 @@
 #import "FTXLivePlayer.h"
 #import "FTXVodPlayer.h"
 #import "FTXTransformation.h"
-#import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
+#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
 
 @interface SuperPlayerPlugin ()
 
