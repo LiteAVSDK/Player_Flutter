@@ -47,9 +47,16 @@
     </dict>
 ```
 
-iOS原生采用`pod`方式进行依赖，编辑`podfile`文件，指定你的播放器版本
+iOS原生采用`pod`方式进行依赖，编辑`podfile`文件，指定你的播放器版本，默认是Player版，目前SuperPlayer只支持Player版和Professional版，且不能和TRTC或UGC等其他SDK共存。如果项目本来用了TRTC版则需要升级到Professional版才可以使用SuperPlayer
+
 ```xml
-pod 'SuperPlayer/Player', '3.3.9'
+pod 'SuperPlayer/Player', '3.4.5'//Player版
+```
+
+Professional版集成
+
+```
+pod 'SuperPlayer/Professional', '3.4.5'//Professional版
 ```
 
 如果不指定版本，默认会安装最新的`SuperPlayer`
