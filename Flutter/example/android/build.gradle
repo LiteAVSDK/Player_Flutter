@@ -34,7 +34,7 @@ ext {
     supportSdkVersion = "26.0.1"
     minSdkVersion = 19
     targetSdkVersion = 28
-    liteavSdk="com.tencent.liteav:LiteAVSDK_Player:latest.release"
+    liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:latest.release"
     imSdk = 'com.tencent.imsdk:imsdk:4.9.1'
     versionCode = 1
     versionName = "v1.0"

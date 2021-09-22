@@ -7,7 +7,7 @@
 
 #import "FTXVodPlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
-#import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
+#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
 #import <Flutter/Flutter.h>
