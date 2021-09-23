@@ -111,6 +111,7 @@ public class FullScreenPlayer extends AbsPlayer implements View.OnClickListener,
     private VideoQuality                        mDefaultVideoQuality;                   // 默认画质
     private List<VideoQuality>                  mVideoQualityList;                      // 画质列表
     private boolean                             mFirstShowQuality;                      // 是都是首次显示画质信息
+    private boolean                             mIsOpenGesture = true;                  // 是否开启手势
 
     public FullScreenPlayer(Context context) {
         super(context);
@@ -571,7 +572,7 @@ public class FullScreenPlayer extends AbsPlayer implements View.OnClickListener,
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mGestureDetector != null)
+        if (mIsOpenGesture && mGestureDetector != null)
             mGestureDetector.onTouchEvent(event);
 
         if (!mLockScreen) {
@@ -900,6 +901,11 @@ public class FullScreenPlayer extends AbsPlayer implements View.OnClickListener,
             mControllerCallback.onQualityChange(quality);
         }
         mVodQualityView.setVisibility(View.GONE);
+    }
+
+
+    public void disableGesture(boolean flag) {
+        this.mIsOpenGesture = !flag;
     }
 
     /**
