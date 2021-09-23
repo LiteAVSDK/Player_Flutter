@@ -863,4 +863,25 @@ public class SuperPlayerView extends RelativeLayout {
             TXCLog.e(TAG, Log.getStackTraceString(e));
         }
     }
+    public void disableGesture(boolean flag) {
+        if(null != mFullScreenPlayer) {
+            mFullScreenPlayer.disableGesture(flag);
+        }
+        if(null != mWindowPlayer) {
+            mWindowPlayer.disableGesture(flag);
+        }
+    }
+
+    public void setIsAutoPlay(boolean b) {
+        mSuperPlayer.setAutoPlay(b);
+    }
+
+    public void setStartTime(double startTime) {
+        mSuperPlayer.setStartTime((float) startTime);
+    }
+
+    public void setLoop(boolean b) {
+        mSuperPlayer.setLoop(b);
+    }
+
 }

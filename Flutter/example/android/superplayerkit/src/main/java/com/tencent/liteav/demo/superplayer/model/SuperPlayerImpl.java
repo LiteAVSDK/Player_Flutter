@@ -66,11 +66,13 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
     private String mCurrentPlayVideoURL;    // 当前播放的URL
 
     private int mSeekPos;                   // 记录切换硬解时的播放时间
+    private float mStartPos;                // 视频开始播放时间
 
     private long mReportLiveStartTime = -1; // 直播开始时间，用于上报使用时长
     private long mReportVodStartTime = -1;  // 点播开始时间，用于上报使用时长
     private long mMaxLiveProgressTime;      // 观看直播的最大时长
 
+    private boolean mIsAutoPlay = true;      // 是否自动播放
     private boolean mIsMultiBitrateStream;  // 是否是多码流url播放
     private boolean mIsPlayWithFileId;      // 是否是腾讯云fileId播放
     private boolean mDefaultQualitySet;     // 标记播放多码流url时是否设置过默认画质
@@ -419,8 +421,8 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
         }
         if (mVodPlayer != null) {
             mDefaultQualitySet = false;
-            mVodPlayer.setStartTime(0);
-            mVodPlayer.setAutoPlay(true);
+            mVodPlayer.setStartTime(mStartPos);
+            mVodPlayer.setAutoPlay(mIsAutoPlay);
             mVodPlayer.setVodListener(this);
             String drmType = "plain";
             if (mCurrentProtocol != null) {
@@ -898,4 +900,22 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
     public void setObserver(SuperPlayerObserver observer) {
         mObserver = observer;
     }
+
+    @Override
+    public void setLoop(boolean isLoop) {
+        mVodPlayer.setLoop(isLoop);
+    }
+
+    @Override
+    public void setStartTime(float startPos) {
+        this.mStartPos = startPos;
+        mVodPlayer.setStartTime(startPos);
+    }
+
+    @Override
+    public void setAutoPlay(boolean isAutoPlay) {
+        this.mIsAutoPlay = isAutoPlay;
+        mVodPlayer.setAutoPlay(isAutoPlay);
+    }
+    
 }
