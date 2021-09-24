@@ -16,6 +16,20 @@
 
 然后更新依赖包
 
+```yaml
+  flutter packages get
+```
+
+如果使用Professional版本，则`pubspec.yaml`中配置改为
+
+```yaml
+  super_player:
+    git:
+      url: https://github.com/tencentyun/SuperPlayer
+      path: Flutter
+      ref: Professional
+```
+
 添加原生配置
 
 ### 安卓配置

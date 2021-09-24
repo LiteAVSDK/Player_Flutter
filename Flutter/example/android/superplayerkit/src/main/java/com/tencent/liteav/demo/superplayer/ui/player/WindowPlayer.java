@@ -71,6 +71,7 @@ public class WindowPlayer extends AbsPlayer implements View.OnClickListener,
     private float                               mWaterMarkBmpX;                         // 水印x坐标
     private float                               mWaterMarkBmpY;                         // 水印y坐标
     private long                                mLastClickTime;                         // 上次点击事件的时间
+    private boolean                             mIsOpenGesture = true;                  // 是否开启手势
 
     public WindowPlayer(Context context) {
         super(context);
@@ -510,7 +511,7 @@ public class WindowPlayer extends AbsPlayer implements View.OnClickListener,
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mGestureDetector != null)
+        if (mIsOpenGesture && mGestureDetector != null)
             mGestureDetector.onTouchEvent(event);
 
         if (event.getAction() == MotionEvent.ACTION_UP && mVideoGestureDetector != null && mVideoGestureDetector.isVideoProgressModel()) {
@@ -635,5 +636,9 @@ public class WindowPlayer extends AbsPlayer implements View.OnClickListener,
                 break;
         }
         postDelayed(mHideViewRunnable, 7000);
+    }
+
+    public void disableGesture(boolean flag) {
+        this.mIsOpenGesture = !flag;
     }
 }

@@ -136,4 +136,22 @@ public interface SuperPlayer {
      * @param observer {@link SuperPlayerObserver}
      */
     void setObserver(SuperPlayerObserver observer);
+
+    /**
+     * 设置是否循环
+     * @param isLoop true循环，false不循环
+     */
+    void setLoop(boolean isLoop);
+
+    /**
+     * 设置开始时间
+     * @param startPos 开始时间
+     */
+    void setStartTime(float startPos);
+
+    /**
+     * 设置是否自动播放
+     * @param isAutoPlay true自动播放，false不自动播放
+     */
+    void setAutoPlay(boolean isAutoPlay);
 }
