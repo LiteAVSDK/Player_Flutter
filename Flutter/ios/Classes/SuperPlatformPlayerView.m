@@ -8,8 +8,12 @@
 #import "SuperPlatformPlayerView.h"
 #import "SuperPlayer.h"
 #import "FTXBasePlayer.h"
+#import "FTXPlayerEventSinkQueue.h"
 
-@interface SuperPlatformPlayerView ()<SuperPlayerDelegate>
+@interface SuperPlatformPlayerView ()<SuperPlayerDelegate, FlutterStreamHandler>
+{
+    FTXPlayerEventSinkQueue *_eventSink;
+}
 
 @property (nonatomic, strong) SuperPlayerView *realPlayerView;
 @property (nonatomic, strong) UIView *playerFatherView;
@@ -85,12 +89,13 @@
 {
     if (self = [self init]) {
         __weak typeof(self) weakSelf = self;
+        _eventSink = [FTXPlayerEventSinkQueue new];
         _methodChannel = [FlutterMethodChannel methodChannelWithName:[@"cloud.tencent.com/superPlayer/" stringByAppendingString:[NSString stringWithFormat:@"%@", @(viewId)]] binaryMessenger:[registrar messenger]];
         [_methodChannel setMethodCallHandler:^(FlutterMethodCall * _Nonnull call, FlutterResult  _Nonnull result) {
             [weakSelf handleMethodCall:call result:result];
         }];
         _eventChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/superPlayer/event/" stringByAppendingString:[NSString stringWithFormat:@"%@", @(viewId)]] binaryMessenger:[registrar messenger]];
-//        [_eventChannel setStreamHandler:self];
+        [_eventChannel setStreamHandler:self];
     }
     
     return self;
@@ -188,6 +193,21 @@
     self.realPlayerView.loop = bLoop;
 }
 
+#pragma mark - FlutterStreamHandler
+
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(FlutterEventSink)events
+{
+    [_eventSink setDelegate:events];
+    return nil;
+}
+
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments
+{
+    [_eventSink setDelegate:nil];
+    return nil;
+}
+
 #pragma mark -
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result
@@ -246,6 +266,8 @@
         [self.playerFatherView addSubview:_realPlayerView];
     }
     
+    
+    
     return _realPlayerView;
 }
 
@@ -270,7 +292,13 @@
 /// 全屏改变通知
 - (void)superPlayerFullScreenChanged:(SuperPlayerView *)player
 {
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
     
+    if (orientation == UIInterfaceOrientationPortrait) {
+        [_eventSink success:@"onStopFullScreenPlay"];
+    }else {
+        [_eventSink success:@"onStartFullScreenPlay"];
+    }
 }
 
 /// 播放开始通知
@@ -291,5 +319,67 @@
     
 }
 // 需要通知到父view的事件在此添加
+
+
++ (UINavigationController *)currentNavigationController
+{
+    UINavigationController *currentNav = [self getNearestNavigation:[self appRootViewController]];
+    do {
+        UINavigationController *subNav = [self getNearestNavigation:[currentNav.viewControllers lastObject]];
+        if (subNav) {
+            currentNav = subNav;
+        } else {
+            break;
+        }
+    } while (1) ;
+    
+    return currentNav;
+}
+
++ (UIViewController *)topViewController
+{
+    return [self topViewController:[self appRootViewController]];
+}
+
++ (UINavigationController *)getNearestNavigation:(UIViewController *)rootViewController
+{
+    if ([rootViewController isKindOfClass:[UINavigationController class]]) {
+        return (UINavigationController *)rootViewController;
+    }
+    if ([rootViewController isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *tabController = (UITabBarController *)rootViewController;
+        return [self getNearestNavigation:tabController.selectedViewController];
+    }
+    if (rootViewController.presentedViewController) {
+        return [self getNearestNavigation:rootViewController.presentedViewController];
+    }
+    return nil;
+}
+
++ (UIViewController *)topViewController:(UIViewController *)rootViewController
+{
+    if ([rootViewController isKindOfClass:[UINavigationController class]]) {
+        UINavigationController *navigationController = (UINavigationController *)rootViewController;
+        return [self topViewController:[navigationController.viewControllers lastObject]];
+    }
+    if ([rootViewController isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *tabController = (UITabBarController *)rootViewController;
+        return [self topViewController:tabController.selectedViewController];
+    }
+    if (rootViewController.presentedViewController) {
+        return [self topViewController:rootViewController.presentedViewController];
+    }
+    return rootViewController;
+}
+
+
++ (UIViewController *)appRootViewController
+{
+    UIViewController *root = [UIApplication sharedApplication].keyWindow.rootViewController;
+    if (!root) {
+        root = [UIApplication sharedApplication].delegate.window.rootViewController;
+    }
+    return root;
+}
 
 @end
