@@ -1,10 +1,7 @@
 package com.example.super_player;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.View;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -12,10 +9,7 @@ import com.tencent.liteav.demo.superplayer.SuperPlayerGlobalConfig;
 import com.tencent.liteav.demo.superplayer.SuperPlayerModel;
 import com.tencent.liteav.demo.superplayer.SuperPlayerVideoId;
 import com.tencent.liteav.demo.superplayer.SuperPlayerView;
-import com.tencent.liteav.demo.superplayer.model.SuperPlayer;
-import com.tencent.liteav.demo.superplayer.model.entity.SuperPlayerVideoIdV2;
 import com.tencent.rtmp.TXLiveBase;
-import com.tencent.rtmp.TXLiveConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,6 +140,22 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
             Map playConfig = call.argument("config");
             setPlayConfig(playConfig);
             result.success(null);
+        } else if(call.method.equals("disableGesture")) {
+            Boolean enable = call.argument("enable");
+            disableGesture(enable);
+            result.success(null);
+        } else if(call.method.equals("setIsAutoPlay")) {
+            Boolean enable = call.argument("isAutoPlay");
+            setIsAutoPlay(enable);
+            result.success(null);
+        } else if(call.method.equals("setStartTime")) {
+            Double startTime = call.argument("startTime");
+            setStartTime(startTime);
+            result.success(null);
+        } else if(call.method.equals("setLoop")) {
+            Boolean enable = call.argument("loop");
+            setLoop(enable);
+            result.success(null);
         } else {
             result.notImplemented();
         }
@@ -216,18 +226,22 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
     }
 
     public void setIsAutoPlay(boolean b) {
-
+        mSuperPlayerView.setIsAutoPlay(b);
     }
 
     public void setStartTime(double startTime) {
-
+        mSuperPlayerView.setStartTime(startTime);
     }
 
-    public void disableGesture(boolean b) {
-
+    /**
+     * 关闭所有手势
+     * @param flag true为关闭手势，false为开启手势
+     */
+    public void disableGesture(boolean flag) {
+        mSuperPlayerView.disableGesture(flag);
     }
 
     public void setLoop(boolean b) {
-
+        mSuperPlayerView.setLoop(b);
     }
 }
