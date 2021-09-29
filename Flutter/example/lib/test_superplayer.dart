@@ -115,23 +115,33 @@ class _TestSuperPlayerState extends State<TestSuperPlayer> {
             _playerController.setPlayConfig(_playerConfig);
             _playerController.onPlayerEventBroadcast.listen((event) {
               setState(() {
-                if (event == SuperPlayerViewEvent.onStartFullScreenPlay) {
-                  _isFullSceen = true;
-                  AutoOrientation.landscapeAutoMode();
+                String evtName = event["event"];
+                if (evtName == SuperPlayerViewEvent.onStartFullScreenPlay) {
+                  if (defaultTargetPlatform == TargetPlatform.android) {
+                    _isFullSceen = true;
+                    AutoOrientation.landscapeAutoMode();
 
-                  ///关闭状态栏，与底部虚拟操作按钮
-                  SystemChrome.setEnabledSystemUIOverlays([]);
-                } else {
-                  _isFullSceen = false;
+                    ///关闭状态栏，与底部虚拟操作按钮
+                    SystemChrome.setEnabledSystemUIOverlays([]);
+                  }
+                  print("onStartFullScreenPlay");
+                } else if (evtName == SuperPlayerViewEvent.onStopFullScreenPlay){
+                    if (defaultTargetPlatform == TargetPlatform.android) {
+                      _isFullSceen = false;
 
-                  /// 如果是全屏就切换竖屏
-                  AutoOrientation.portraitAutoMode();
+                      /// 如果是全屏就切换竖屏
+                      AutoOrientation.portraitAutoMode();
 
-                  ///显示状态栏，与底部虚拟操作按钮
-                  SystemChrome.setEnabledSystemUIOverlays(
-                      [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+                      ///显示状态栏，与底部虚拟操作按钮
+                      SystemChrome.setEnabledSystemUIOverlays(
+                          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+                    }
+                    print("onStopFullScreenPlay");
+                  } else if (evtName == SuperPlayerViewEvent.onSuperPlayerBackAction) {
+                    print("onSuperPlayerBackAction");
+                  }
                 }
-              });
+              );
             });
             _initPlayer.complete(true);
           },
