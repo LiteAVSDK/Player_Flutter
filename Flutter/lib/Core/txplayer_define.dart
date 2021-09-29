@@ -53,14 +53,12 @@ enum TXPlayerEvent{
 }
 
 abstract class SuperPlayerViewEvent{
-  static const onStartFullScreenPlay = "onStartFullScreenPlay"; // 进入全屏播放
-  static const onStopFullScreenPlay = "onStopFullScreenPlay"; // 退出全屏播放
-  static const onSuperPlayerBackAction = "onSuperPlayerBackAction"; // 窗口模式触发左上角返回按钮
-  static const onClickFloatCloseBtn = "onClickFloatCloseBtn"; // 浮窗模式触发关闭按钮
-  static const onStartFloatWindowPlay = "onStartFloatWindowPlay"; // 开始进入浮窗模式
-  static const onSuperPlayerDidStart = "onSuperPlayerDidStart"; // 播放开始通知
-  static const onSuperPlayerDidEnd = "onSuperPlayerDidEnd"; // 播放结束通知
-  static const onSuperPlayerPause = "onSuperPlayerPause"; // 播放暂停通知
+  static const onStartFullScreenPlay = "onStartFullScreenPlay";//进入全屏播放
+  static const onStopFullScreenPlay = "onStopFullScreenPlay";//退出全屏播放
+  static const onSuperPlayerDidStart = "onSuperPlayerDidStart";//播放开始通知
+  static const onSuperPlayerDidEnd = "onSuperPlayerDidEnd";//播放结束通知
+  static const onSuperPlayerError = "onSuperPlayerError";//播放错误通知
+  static const onSuperPlayerBackAction = "onSuperPlayerBackAction";//返回事件
 }
 
 class SuperPlayerUrl {

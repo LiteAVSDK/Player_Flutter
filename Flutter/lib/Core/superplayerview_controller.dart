@@ -4,9 +4,9 @@ part of SuperPlayer;
 class SuperPlayerPlatformViewController {
   MethodChannel _channel;
   StreamSubscription _eventSubscription;
-  final StreamController<String> _eventStreamController =
+  final StreamController<Map<dynamic, dynamic>> _eventStreamController =
   StreamController.broadcast();
-  Stream<String> get onPlayerEventBroadcast => _eventStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
 
   SuperPlayerPlatformViewController.init(int id) {
     _channel = new MethodChannel('cloud.tencent.com/superPlayer/$id');
@@ -18,21 +18,6 @@ class SuperPlayerPlatformViewController {
 
   _eventHandler(event) {
     if(event == null) return;
-
-    if(event is String) {
-      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-      print(event);
-      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-      switch(event) {
-        case SuperPlayerViewEvent.onStartFullScreenPlay:
-          break;
-        case SuperPlayerViewEvent.onStopFullScreenPlay:
-          break;
-        case SuperPlayerViewEvent.onSuperPlayerBackAction:
-          break;
-      }
-    }
-
     _eventStreamController.add(event);
   }
 
