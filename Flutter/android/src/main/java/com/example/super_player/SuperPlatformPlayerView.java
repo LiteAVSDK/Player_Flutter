@@ -1,6 +1,7 @@
 package com.example.super_player;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -12,8 +13,10 @@ import com.tencent.liteav.demo.superplayer.SuperPlayerView;
 import com.tencent.rtmp.TXLiveBase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -90,12 +93,12 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
 
     @Override
     public void onStartFullScreenPlay() {
-        mEventSink.success("onStartFullScreenPlay");
+        mEventSink.success(getParams("onStartFullScreenPlay", null));
     }
 
     @Override
     public void onStopFullScreenPlay() {
-        mEventSink.success("onStopFullScreenPlay");
+        mEventSink.success(getParams("onStopFullScreenPlay", null));
     }
 
     @Override
@@ -105,7 +108,7 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
 
     @Override
     public void onClickSmallReturnBtn() {
-
+        mEventSink.success(getParams("onSuperPlayerBackAction", null));
     }
 
     @Override
@@ -244,4 +247,22 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
     public void setLoop(boolean b) {
         mSuperPlayerView.setLoop(b);
     }
+
+    private Map<String, Object> getParams(String event, Bundle bundle) {
+        Map<String, Object> param = new HashMap();
+        if (!event.isEmpty()) {
+            param.put("event", event);
+        }
+
+        if (bundle != null && !bundle.isEmpty()) {
+            Set<String> keySet = bundle.keySet();
+            for (String key : keySet) {
+                Object val = bundle.get(key);
+                param.put(key, val);
+            }
+        }
+
+        return param;
+    }
+
 }
