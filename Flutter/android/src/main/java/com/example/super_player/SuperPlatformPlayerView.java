@@ -100,17 +100,32 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
 
     @Override
     public void onClickFloatCloseBtn() {
-
+        mEventSink.success("onClickFloatCloseBtn");
     }
 
     @Override
-    public void onClickSmallReturnBtn() {
-
+    public void onSuperPlayerBackAction() {
+        mEventSink.success("onSuperPlayerBackAction");
     }
 
     @Override
     public void onStartFloatWindowPlay() {
+        mEventSink.success("onStartFloatWindowPlay");
+    }
 
+    @Override
+    public void onSuperPlayerDidStart() {
+        mEventSink.success("onSuperPlayerDidStart");
+    }
+
+    @Override
+    public void onSuperPlayerDidEnd() {
+        mEventSink.success("onSuperPlayerDidEnd");
+    }
+
+    @Override
+    public void onSuperPlayerError() {
+        mEventSink.success("onSuperPlayerError");
     }
 
     @Override

@@ -18,6 +18,21 @@ class SuperPlayerPlatformViewController {
 
   _eventHandler(event) {
     if(event == null) return;
+
+    if(event is String) {
+      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+      print(event);
+      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+      switch(event) {
+        case SuperPlayerViewEvent.onStartFullScreenPlay:
+          break;
+        case SuperPlayerViewEvent.onStopFullScreenPlay:
+          break;
+        case SuperPlayerViewEvent.onSuperPlayerBackAction:
+          break;
+      }
+    }
+
     _eventStreamController.add(event);
   }
 
