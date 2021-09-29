@@ -446,7 +446,7 @@ public class SuperPlayerView extends RelativeLayout {
                     break;
                 case WINDOW:// 当前是窗口模式，返回退出播放器
                     if (mPlayerViewCallback != null) {
-                        mPlayerViewCallback.onClickSmallReturnBtn();
+                        mPlayerViewCallback.onSuperPlayerBackAction();
                     }
                     break;
                 case FLOAT:// 当前是悬浮窗，退出
@@ -628,12 +628,27 @@ public class SuperPlayerView extends RelativeLayout {
         /**
          * 点击小播放模式的返回按钮
          */
-        void onClickSmallReturnBtn();
+        void onSuperPlayerBackAction();
 
         /**
          * 开始悬浮窗播放
          */
         void onStartFloatWindowPlay();
+
+        /**
+         * 播放开始通知
+         */
+        void onSuperPlayerDidStart();
+
+        /**
+         * 播放结束通知
+         */
+        void onSuperPlayerDidEnd();
+
+        /**
+         * 播放错误通知
+         */
+        void onSuperPlayerError();
     }
 
     public void release() {
@@ -694,6 +709,9 @@ public class SuperPlayerView extends RelativeLayout {
             if (mWatcher != null) {
                 mWatcher.exitLoading();
             }
+            if(mPlayerViewCallback != null) {
+                mPlayerViewCallback.onSuperPlayerDidStart();
+            }
         }
 
         @Override
@@ -709,6 +727,9 @@ public class SuperPlayerView extends RelativeLayout {
             // 清空关键帧和视频打点信息
             if (mWatcher != null) {
                 mWatcher.stop();
+            }
+            if(null != mPlayerViewCallback) {
+                mPlayerViewCallback.onSuperPlayerDidEnd();
             }
         }
 
@@ -787,6 +808,9 @@ public class SuperPlayerView extends RelativeLayout {
         @Override
         public void onError(int code, String message) {
             showToast(message);
+            if(null != mPlayerViewCallback) {
+                mPlayerViewCallback.onSuperPlayerError();
+            }
         }
     };
 
