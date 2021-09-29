@@ -4,9 +4,9 @@ part of SuperPlayer;
 class SuperPlayerPlatformViewController {
   MethodChannel _channel;
   StreamSubscription _eventSubscription;
-  final StreamController<String> _eventStreamController =
+  final StreamController<Map<dynamic, dynamic>> _eventStreamController =
   StreamController.broadcast();
-  Stream<String> get onPlayerEventBroadcast => _eventStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
 
   SuperPlayerPlatformViewController.init(int id) {
     _channel = new MethodChannel('cloud.tencent.com/superPlayer/$id');

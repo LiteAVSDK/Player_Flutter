@@ -286,39 +286,49 @@
 /// 返回事件
 - (void)superPlayerBackAction:(SuperPlayerView *)player
 {
-    
+    [_eventSink success:[self getParamsWithEvent:@"onSuperPlayerBackAction" withParams:@{}]];
 }
 
 /// 全屏改变通知
 - (void)superPlayerFullScreenChanged:(SuperPlayerView *)player
 {
-    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-    
-    if (orientation == UIInterfaceOrientationPortrait) {
-        [_eventSink success:@"onStopFullScreenPlay"];
+    if (!player.isFullScreen) {
+        [_eventSink success:[self getParamsWithEvent:@"onStopFullScreenPlay" withParams:@{}]];
     }else {
-        [_eventSink success:@"onStartFullScreenPlay"];
+        [_eventSink success:[self getParamsWithEvent:@"onStartFullScreenPlay" withParams:@{}]];
     }
 }
 
 /// 播放开始通知
 - (void)superPlayerDidStart:(SuperPlayerView *)player;
 {
-    
+    [_eventSink success:[self getParamsWithEvent:@"onSuperPlayerDidStart" withParams:@{}]];
 }
 
 /// 播放结束通知
 - (void)superPlayerDidEnd:(SuperPlayerView *)player
 {
-    
+    [_eventSink success:[self getParamsWithEvent:@"onSuperPlayerDidEnd" withParams:@{}]];
 }
 
 /// 播放错误通知
 - (void)superPlayerError:(SuperPlayerView *)player errCode:(int)code errMessage:(NSString *)why;
 {
-    
+    [_eventSink success:[self getParamsWithEvent:@"onSuperPlayerError" withParams:@{
+        @"errCode":@(code),
+        @"errMessage":why
+    }]];
 }
 // 需要通知到父view的事件在此添加
+
+- (NSDictionary *)getParamsWithEvent:(NSString *)evtName withParams:(NSDictionary *)params
+{
+    NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:evtName forKey:@"event"];
+    if (params != nil && params.count != 0) {
+        [dict addEntriesFromDictionary:params];
+    }
+    return dict;
+}
 
 
 + (UINavigationController *)currentNavigationController
