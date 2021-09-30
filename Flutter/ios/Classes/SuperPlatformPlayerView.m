@@ -103,8 +103,17 @@
 
 - (void)dealloc
 {
+    [self destory];
+}
+
+- (void)destory
+{
     [_realPlayerView resetPlayer];
-    
+    [_eventChannel setStreamHandler:nil];
+    _realPlayerView = nil;
+    _eventChannel = nil;
+    _methodChannel = nil;
+    _eventSink = nil;
 }
 
 - (void)reloadView:(NSString *)url appId:(long)appId fileId:(NSString *)fileId psign:(NSString *)psign
@@ -242,6 +251,9 @@
     }else if ([@"setLoop" isEqualToString:call.method]) {
         BOOL loop = [args[@"loop"] boolValue];
         [self setLoop:loop];
+        result(nil);
+    }else if ([@"resetPlayer" isEqualToString:call.method]) {
+        [self destory];
         result(nil);
     }else {
         result(FlutterMethodNotImplemented);

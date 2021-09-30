@@ -44,6 +44,12 @@ class _TestSuperPlayerState extends State<TestSuperPlayer> {
     debugPrint("= initState = ${window.padding.top}, ${window.physicalSize.width}");
   }
 
+  @override
+  void dispose() {
+    _playerController.resetPlayer();
+    super.dispose();
+  }
+
   void onPressed(BuildContext context) {
     showDialog(
         context: context,

@@ -58,4 +58,8 @@ class SuperPlayerPlatformViewController {
     await _channel.invokeMethod("setLoop", {"loop": loop});
   }
 
+  Future<void> resetPlayer() async {
+    await _channel.invokeMethod("resetPlayer");
+  }
+
 }
