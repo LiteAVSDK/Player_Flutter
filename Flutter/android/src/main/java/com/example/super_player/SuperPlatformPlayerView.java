@@ -159,7 +159,10 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
             Boolean enable = call.argument("loop");
             setLoop(enable);
             result.success(null);
-        } else {
+        } else if(call.method.equals("resetPlayer")){
+            destory();
+            result.success(null);
+        }else {
             result.notImplemented();
         }
     }
@@ -263,6 +266,13 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
         }
 
         return param;
+    }
+
+    private void destory() {
+        mSuperPlayerView.resetPlayer();
+        mSuperPlayerView = null;
+        mMethodChannel.setMethodCallHandler(null);
+        mEventChannel.setStreamHandler(null);
     }
 
 }
