@@ -145,6 +145,8 @@ class _TestSuperPlayerState extends State<TestSuperPlayer> {
                     print("onStopFullScreenPlay");
                   } else if (evtName == SuperPlayerViewEvent.onSuperPlayerBackAction) {
                     print("onSuperPlayerBackAction");
+                  } else {
+                    print(evtName);
                   }
                 }
               );
