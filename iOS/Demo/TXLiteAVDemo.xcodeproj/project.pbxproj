@@ -34,7 +34,6 @@
 		4009238F1F4FCC6E009B882D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 40F853331EE8FC9B00EE47D7 /* Main.storyboard */; };
 		402A010424506F740037A219 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 402A010024506F740037A219 /* main.m */; };
 		4053392724654D2700A6B478 /* TCHttpUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 4053392524654D2700A6B478 /* TCHttpUtil.m */; };
-		4071CF5B24441578000B7707 /* TXLiteAVSDK_Player.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4071CF5924441578000B7707 /* TXLiteAVSDK_Player.framework */; };
 		40A1DEC22638412E0011E532 /* NSData+Common.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E8CAB6260B5C05001CF672 /* NSData+Common.m */; };
 		40A1DED8263841360011E532 /* NSDictionary+Common.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E8CAC5260B5C05001CF672 /* NSDictionary+Common.m */; };
 		40A1DEF52638413F0011E532 /* NSObject+CommonBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E8CAB3260B5C05001CF672 /* NSObject+CommonBlock.m */; };
@@ -44,7 +43,6 @@
 		40A1DF79263841950011E532 /* UIImage+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E8CAC3260B5C05001CF672 /* UIImage+Additions.m */; };
 		40A1DF8F2638419E0011E532 /* UIView+CustomAutoLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E8CABD260B5C05001CF672 /* UIView+CustomAutoLayout.m */; };
 		40A1DFA5263841AB0011E532 /* UIViewController+BackButtonHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E8CAB7260B5C05001CF672 /* UIViewController+BackButtonHandler.m */; };
-		40A7CFF02461102E00E792A5 /* SuperPlayer.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 40A7CFED2461102E00E792A5 /* SuperPlayer.bundle */; };
 		45D8449523B643A5001CD3A9 /* UGCUploadList.m in Sources */ = {isa = PBXBuildFile; fileRef = 45D8448C23B64395001CD3A9 /* UGCUploadList.m */; };
 		47642A9F261491B90020F1BA /* launchimage_en@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47642A99261491B90020F1BA /* launchimage_en@3x.png */; };
 		47642AA7261491B90020F1BA /* launchimage_en@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47642A9A261491B90020F1BA /* launchimage_en@2x.png */; };
@@ -156,10 +154,8 @@
 		40407ACA1F3035CA006C7301 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		4053392524654D2700A6B478 /* TCHttpUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TCHttpUtil.m; sourceTree = "<group>"; };
 		4053392624654D2700A6B478 /* TCHttpUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCHttpUtil.h; sourceTree = "<group>"; };
-		4071CF5924441578000B7707 /* TXLiteAVSDK_Player.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = TXLiteAVSDK_Player.framework; sourceTree = "<group>"; };
 		4071CF702444477A000B7707 /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		40A49D5E24598CD200BFCB18 /* UGCKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = UGCKit.xcodeproj; path = UGCKit/UGCKit.xcodeproj; sourceTree = "<group>"; };
-		40A7CFED2461102E00E792A5 /* SuperPlayer.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = SuperPlayer.bundle; path = SuperPlayer/Resource/SuperPlayer.bundle; sourceTree = "<group>"; };
 		40AA533524458EC800303EF7 /* TCBeautyPanel.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = TCBeautyPanel.xcodeproj; sourceTree = "<group>"; };
 		40AA539724459DF900303EF7 /* UGCKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = UGCKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		40F853221EE8FC7300EE47D7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -341,7 +337,6 @@
 				400922E21F4FCC6E009B882D /* AVFoundation.framework in Frameworks */,
 				400922E31F4FCC6E009B882D /* MediaPlayer.framework in Frameworks */,
 				400922E51F4FCC6E009B882D /* libiconv.tbd in Frameworks */,
-				4071CF5B24441578000B7707 /* TXLiteAVSDK_Player.framework in Frameworks */,
 				400922E61F4FCC6E009B882D /* libz.tbd in Frameworks */,
 				400922E71F4FCC6E009B882D /* libc++.tbd in Frameworks */,
 				400922E91F4FCC6E009B882D /* libresolv.tbd in Frameworks */,
@@ -397,7 +392,6 @@
 		405874162445AA10009B3503 /* SuperPlayerKit */ = {
 			isa = PBXGroup;
 			children = (
-				40A7CFED2461102E00E792A5 /* SuperPlayer.bundle */,
 				4030B1EC245563B200CF5926 /* SuperPlayer.podspec */,
 			);
 			path = SuperPlayerKit;
@@ -435,7 +429,6 @@
 		40F852FA1EE8FB3800EE47D7 = {
 			isa = PBXGroup;
 			children = (
-				45736E91243F5B2200F7F601 /* SDK */,
 				40F853051EE8FB3800EE47D7 /* TXLiteAVDemo */,
 				40F854FF1EE8FD2F00EE47D7 /* Frameworks */,
 				40F853041EE8FB3800EE47D7 /* Products */,
@@ -550,15 +543,6 @@
 				47258C0972C94E28C1B82D68 /* libPods-TXLiteAVDemo_Player.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		45736E91243F5B2200F7F601 /* SDK */ = {
-			isa = PBXGroup;
-			children = (
-				4071CF5924441578000B7707 /* TXLiteAVSDK_Player.framework */,
-			);
-			name = SDK;
-			path = ../SDK;
 			sourceTree = "<group>";
 		};
 		45D8448A23B63C77001CD3A9 /* UGCUpload */ = {
@@ -993,8 +977,8 @@
 				ORGANIZATIONNAME = Tencent;
 				TargetAttributes = {
 					400922A31F4FCC6E009B882D = {
-						DevelopmentTeam = 5GHU44CJHG;
-						ProvisioningStyle = Manual;
+						DevelopmentTeam = 2ZNSKQLPTK;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -1076,7 +1060,6 @@
 				47642A9F261491B90020F1BA /* launchimage_en@3x.png in Resources */,
 				47E8C8D9260AECC4001CF672 /* LivePlayerLocalized.strings in Resources */,
 				6BF315D4271E715300D4A72C /* ShortVideo.xcassets in Resources */,
-				40A7CFF02461102E00E792A5 /* SuperPlayer.bundle in Resources */,
 				47E8C898260AECC4001CF672 /* AppPortalLocalized.strings in Resources */,
 				C603F92D2603729D009E3AB2 /* InfoPlist.strings in Resources */,
 				400923631F4FCC6E009B882D /* Assets.xcassets in Resources */,
@@ -1121,10 +1104,12 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TXLiteAVDemo_Player/Pods-TXLiteAVDemo_Player-resources.sh",
 				"${PODS_ROOT}/MJRefresh/MJRefresh/MJRefresh.bundle",
+				"${PODS_ROOT}/../TXLiteAVDemo/SuperPlayerKit/SuperPlayer/Resource/SuperPlayer.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/MJRefresh.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SuperPlayer.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1314,16 +1299,12 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 5GHU44CJHG;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2ZNSKQLPTK;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/TXLiteAVDemo",
-					"$(PROJECT_DIR)/../SDK",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -1337,12 +1318,7 @@
 					PLAYER,
 					NOT_LOGIN,
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/../../sdk/liteav/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/TXLiteAVSDK_Player.framework/Headers",
-					"$(CONFIGURATION_BUILD_DIR)/TXLiteAVSDK_Player.framework/Headers",
-					"$(PROJECT_DIR)/../SDK/TXLiteAVSDK_Player.framework/Headers",
-				);
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = TXLiteAVDemo/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1355,7 +1331,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D COCOAPODS -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire/Alamofire.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/Material/Material.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/Motion/Motion.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/RxCocoa/RxCocoa.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/RxRelay/RxRelay.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/RxSwift/RxSwift.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/SnapKit/SnapKit.modulemap\" -Xcc -fmodule-map-file=\"${PODS_CONFIGURATION_BUILD_DIR}/Toast-Swift/Toast_Swift.modulemap\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tencent.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Wildcard Dev";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = NOT_LOGIN;
 				SWIFT_OBJC_BRIDGING_HEADER = "$(PROJECT_DIR)/TXLiteAVDemo/App/TXLiteAVDemo-Bridging-Header.h";
@@ -1379,11 +1355,7 @@
 				COPY_PHASE_STRIP = YES;
 				DEVELOPMENT_TEAM = FN2V63AD2J;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/TXLiteAVDemo",
-					"$(PROJECT_DIR)/../SDK",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -1397,12 +1369,7 @@
 					PLAYER,
 					NOT_LOGIN,
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/../../sdk/liteav/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/TXLiteAVSDK_Player.framework/Headers",
-					"$(CONFIGURATION_BUILD_DIR)/TXLiteAVSDK_Player.framework/Headers",
-					"$(PROJECT_DIR)/../SDK/TXLiteAVSDK_Player.framework/Headers",
-				);
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = TXLiteAVDemo/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_GENERATE_MAP_FILE = YES;
@@ -1453,7 +1420,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../SDK";
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1504,7 +1471,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../SDK";
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
