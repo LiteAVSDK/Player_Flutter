@@ -78,6 +78,18 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       case 2007:
         _changeState(TXPlayerState.buffering);
         break;
+      case 2009://下行视频分辨率改变
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          resizeVideoWidth = (event["videoWidth"]).toDouble();
+          resizeVideoHeight = (event["videoHeight"]).toDouble();
+          if(resizeVideoWidth > 0 && resizeVideoHeight > 0) {
+            videoLeft = (event["videoLeft"]).toDouble();
+            videoTop = (event["videoTop"]).toDouble();
+            videoRight = (event["videoRight"]).toDouble();
+            videoBottom = (event["videoBottom"]).toDouble();
+          }
+        }
+        break;
       case 2015://直播，切流成功（切流可以播放不同画面大小的视频）
         break;
       case -2301://disconnect
@@ -261,5 +273,12 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<int> get textureId  async {
     return _createTexture.future;
   }
+
+  double resizeVideoWidth = 0;
+  double resizeVideoHeight = 0;
+  double videoLeft = 0;
+  double videoTop = 0;
+  double videoRight = 0;
+  double videoBottom = 0;
 
 }
