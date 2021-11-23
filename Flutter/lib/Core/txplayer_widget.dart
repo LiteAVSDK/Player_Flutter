@@ -27,10 +27,39 @@ class _TXPlayerVideoState extends State<TXPlayerVideo> {
 
   @override
   Widget build(BuildContext context) {
-    return _textureId == -1
-        ? Container()
-        : Texture(
-            textureId: _textureId,
-          );
+    if ((defaultTargetPlatform == TargetPlatform.android) && (widget.controller.resizeVideoHeight > 0 && widget.controller.resizeVideoWidth > 0)) {
+      return _textureId == -1
+          ? Container()
+          : LayoutBuilder(builder: (context, constrains) {
+        var viewWidth = constrains.maxWidth;
+        var viewHeight = constrains.maxHeight;
+        var videoWidth = widget.controller.resizeVideoWidth;
+        var videoHeight = widget.controller.resizeVideoHeight;
+
+        double left = widget.controller.videoLeft * viewWidth/videoWidth;
+        double top = widget.controller.videoTop * viewHeight/videoHeight;
+        double right = widget.controller.videoRight * viewWidth/videoWidth;
+        double bottom = widget.controller.videoBottom * viewHeight/videoHeight;
+        return Stack(
+          children: [
+            Positioned(
+                top: top,
+                left: left,
+                right: right,
+                bottom: bottom,
+                child:Texture(
+                  textureId: _textureId,
+                )
+            )
+          ],
+        );
+      });
+    }else {
+      return _textureId == -1
+          ? Container()
+          : Texture(
+        textureId: _textureId,
+      );
+    }
   }
 }
