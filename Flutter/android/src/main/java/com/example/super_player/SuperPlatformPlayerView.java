@@ -24,13 +24,15 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.platform.PlatformView;
 
+import android.util.Log;
+
 public class SuperPlatformPlayerView implements PlatformView, MethodChannel.MethodCallHandler, SuperPlayerView.OnSuperPlayerViewCallback {
 
-    private SuperPlayerView mSuperPlayerView;
-    private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
-    private final MethodChannel mMethodChannel;
-    private final EventChannel mEventChannel;
-    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
+    private       SuperPlayerView                    mSuperPlayerView;
+    private       FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
+    private final MethodChannel                      mMethodChannel;
+    private final EventChannel                       mEventChannel;
+    private final FTXPlayerEventSink                 mEventSink = new FTXPlayerEventSink();
 
     public SuperPlatformPlayerView(Context context, Map<String, Object> params, int viewId, FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         super();
@@ -103,32 +105,32 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
 
     @Override
     public void onClickFloatCloseBtn() {
-        mEventSink.success(getParams("onClickFloatCloseBtn",null));
+        mEventSink.success(getParams("onClickFloatCloseBtn", null));
     }
 
     @Override
-    public void onSuperPlayerBackAction() {
+    public void onClickSmallReturnBtn() {
         mEventSink.success(getParams("onSuperPlayerBackAction", null));
     }
 
     @Override
     public void onStartFloatWindowPlay() {
-        mEventSink.success(getParams("onStartFloatWindowPlay",null));
+        mEventSink.success(getParams("onStartFloatWindowPlay", null));
     }
 
     @Override
-    public void onSuperPlayerDidStart() {
-        mEventSink.success(getParams("onSuperPlayerDidStart",null));
+    public void onPlaying() {
+        mEventSink.success(getParams("onSuperPlayerDidStart", null));
     }
 
     @Override
-    public void onSuperPlayerDidEnd() {
-        mEventSink.success(getParams("onSuperPlayerDidEnd",null));
+    public void onPlayEnd() {
+        mEventSink.success(getParams("onSuperPlayerDidEnd", null));
     }
 
     @Override
-    public void onSuperPlayerError() {
-        mEventSink.success(getParams("onSuperPlayerError",null));
+    public void onError(int code) {
+        mEventSink.success(getParams("onSuperPlayerError", null));
     }
 
     @Override
@@ -158,19 +160,19 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
             Map playConfig = call.argument("config");
             setPlayConfig(playConfig);
             result.success(null);
-        } else if(call.method.equals("disableGesture")) {
+        } else if (call.method.equals("disableGesture")) {
             Boolean enable = call.argument("enable");
             disableGesture(enable);
             result.success(null);
-        } else if(call.method.equals("setIsAutoPlay")) {
+        } else if (call.method.equals("setIsAutoPlay")) {
             Boolean enable = call.argument("isAutoPlay");
             setIsAutoPlay(enable);
             result.success(null);
-        } else if(call.method.equals("setStartTime")) {
+        } else if (call.method.equals("setStartTime")) {
             Double startTime = call.argument("startTime");
             setStartTime(startTime);
             result.success(null);
-        } else if(call.method.equals("setLoop")) {
+        } else if (call.method.equals("setLoop")) {
             Boolean enable = call.argument("loop");
             setLoop(enable);
             result.success(null);
@@ -223,7 +225,7 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
         if (playerModel.containsKey("multiVideoURLs")) {
             List<SuperPlayerModel.SuperPlayerURL> multiURLs = new ArrayList<SuperPlayerModel.SuperPlayerURL>();
             List<Map> mapURLs = (List<Map>) playerModel.get("multiVideoURLs");
-            for (Map e:mapURLs) {
+            for (Map e : mapURLs) {
                 SuperPlayerModel.SuperPlayerURL url = new SuperPlayerModel.SuperPlayerURL();
                 url.qualityName = (String) e.get("title");
                 url.url = (String) e.get("url");
@@ -241,6 +243,24 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
         prefs.playShiftDomain = (String) params.get("playShiftDomain");
         prefs.enableHWAcceleration = (boolean) params.get("hwAcceleration");
         prefs.renderMode = (int) params.get("renderMode");
+        prefs.mirror = (boolean) params.get("mirror");
+        prefs.mute = (boolean) params.get("mute");
+        prefs.enableLog = (boolean) params.get("enableLog");
+
+        int maxCacheItem = (int) params.get("maxCacheItem");
+        if (maxCacheItem > 0) {
+            prefs.maxCacheItem = maxCacheItem;
+        }
+        Map<String, String> headers = (Map<String, String>) params.get("headers");
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        prefs.headers = headers;
+
+        double playRate = (double)params.get("playRate");
+        if (playRate > 0) {
+            prefs.playRate = (float)playRate;
+        }
     }
 
     public void setIsAutoPlay(boolean b) {
@@ -253,6 +273,7 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
 
     /**
      * 关闭所有手势
+     *
      * @param flag true为关闭手势，false为开启手势
      */
     public void disableGesture(boolean flag) {

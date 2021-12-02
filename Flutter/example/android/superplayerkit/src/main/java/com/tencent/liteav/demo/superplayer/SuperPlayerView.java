@@ -53,12 +53,11 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 /**
- *
  * 超级播放器view
- *
+ * <p>
  * 具备播放器基本功能，此外还包括横竖屏切换、悬浮窗播放、画质切换、硬件加速、倍速播放、镜像播放、手势控制等功能，同时支持直播与点播
  * 使用方式极为简单，只需要在布局文件中引入并获取到该控件，通过{@link #playWithModel(SuperPlayerModel)}传入{@link SuperPlayerModel}即可实现视频播放
- *
+ * <p>
  * 1、播放视频{@link #playWithModel(SuperPlayerModel)}
  * 2、设置回调{@link #setPlayerViewCallback(OnSuperPlayerViewCallback)}
  * 3、controller回调实现{@link #mControllerCallback}
@@ -446,7 +445,7 @@ public class SuperPlayerView extends RelativeLayout {
                     break;
                 case WINDOW:// 当前是窗口模式，返回退出播放器
                     if (mPlayerViewCallback != null) {
-                        mPlayerViewCallback.onSuperPlayerBackAction();
+                        mPlayerViewCallback.onClickSmallReturnBtn();
                     }
                     break;
                 case FLOAT:// 当前是悬浮窗，退出
@@ -628,7 +627,7 @@ public class SuperPlayerView extends RelativeLayout {
         /**
          * 点击小播放模式的返回按钮
          */
-        void onSuperPlayerBackAction();
+        void onClickSmallReturnBtn();
 
         /**
          * 开始悬浮窗播放
@@ -636,19 +635,21 @@ public class SuperPlayerView extends RelativeLayout {
         void onStartFloatWindowPlay();
 
         /**
-         * 播放开始通知
+         * 开始播放回调
          */
-        void onSuperPlayerDidStart();
+        void onPlaying();
 
         /**
-         * 播放结束通知
+         * 播放结束
          */
-        void onSuperPlayerDidEnd();
+        void onPlayEnd();
 
         /**
-         * 播放错误通知
+         * 当播放失败的时候回调
+         *
+         * @param code
          */
-        void onSuperPlayerError();
+        void onError(int code);
     }
 
     public void release() {
@@ -709,9 +710,7 @@ public class SuperPlayerView extends RelativeLayout {
             if (mWatcher != null) {
                 mWatcher.exitLoading();
             }
-            if(mPlayerViewCallback != null) {
-                mPlayerViewCallback.onSuperPlayerDidStart();
-            }
+            notifyCallbackPlaying();
         }
 
         @Override
@@ -728,9 +727,7 @@ public class SuperPlayerView extends RelativeLayout {
             if (mWatcher != null) {
                 mWatcher.stop();
             }
-            if(null != mPlayerViewCallback) {
-                mPlayerViewCallback.onSuperPlayerDidEnd();
-            }
+            notifyCallbackPlayEnd();
         }
 
         @Override
@@ -759,7 +756,7 @@ public class SuperPlayerView extends RelativeLayout {
 
         @Override
         public void onSwitchStreamStart(boolean success, SuperPlayerDef.PlayerType playerType, VideoQuality quality) {
-            if(playerType == SuperPlayerDef.PlayerType.LIVE) {
+            if (playerType == SuperPlayerDef.PlayerType.LIVE) {
                 if (success) {
                     Toast.makeText(mContext, "正在切换到" + quality.title + "...", Toast.LENGTH_SHORT).show();
                 } else {
@@ -808,9 +805,7 @@ public class SuperPlayerView extends RelativeLayout {
         @Override
         public void onError(int code, String message) {
             showToast(message);
-            if(null != mPlayerViewCallback) {
-                mPlayerViewCallback.onSuperPlayerError();
-            }
+            notifyCallbackPlayError(code);
         }
     };
 
@@ -820,6 +815,33 @@ public class SuperPlayerView extends RelativeLayout {
 
     private void showToast(int resId) {
         Toast.makeText(mContext, resId, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * 通知播放开始，降低圈复杂度，单独提取成一个方法
+     */
+    private void notifyCallbackPlaying() {
+        if (mPlayerViewCallback != null) {
+            mPlayerViewCallback.onPlaying();
+        }
+    }
+
+    /**
+     * 通知播放结束，降低圈复杂度，单独提取成一个方法
+     */
+    private void notifyCallbackPlayEnd() {
+        if (mPlayerViewCallback != null) {
+            mPlayerViewCallback.onPlayEnd();
+        }
+    }
+
+    /**
+     * 通知播放错误，降低圈复杂度，单独提取成一个方法
+     */
+    private void notifyCallbackPlayError(int code) {
+        if (mPlayerViewCallback != null) {
+            mPlayerViewCallback.onError(code);
+        }
     }
 
     public static void save2MediaStore(Context context, Bitmap image) {
@@ -887,11 +909,12 @@ public class SuperPlayerView extends RelativeLayout {
             TXCLog.e(TAG, Log.getStackTraceString(e));
         }
     }
+
     public void disableGesture(boolean flag) {
-        if(null != mFullScreenPlayer) {
+        if (null != mFullScreenPlayer) {
             mFullScreenPlayer.disableGesture(flag);
         }
-        if(null != mWindowPlayer) {
+        if (null != mWindowPlayer) {
             mWindowPlayer.disableGesture(flag);
         }
     }
