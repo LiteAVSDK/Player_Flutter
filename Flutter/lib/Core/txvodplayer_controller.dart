@@ -78,6 +78,16 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
         _changeState(TXPlayerState.buffering);
         break;
       case 2009://下行视频分辨率改变
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          resizeVideoWidth = (event["videoWidth"]).toDouble();
+          resizeVideoHeight = (event["videoHeight"]).toDouble();
+          if(resizeVideoWidth > 0 && resizeVideoHeight > 0) {
+            videoLeft = (event["videoLeft"]).toDouble();
+            videoTop = (event["videoTop"]).toDouble();
+            videoRight = (event["videoRight"]).toDouble();
+            videoBottom = (event["videoBottom"]).toDouble();
+          }
+        }
         break;
       case 2013://点播加载完成
         break;
@@ -283,5 +293,12 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     _value = val;
     notifyListeners();
   }
+
+  double resizeVideoWidth = 0;
+  double resizeVideoHeight = 0;
+  double videoLeft = 0;
+  double videoTop = 0;
+  double videoRight = 0;
+  double videoBottom = 0;
 
 }
