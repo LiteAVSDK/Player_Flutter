@@ -1,22 +1,22 @@
-// @dart = 2.7
+
 part of SuperPlayer;
 
-class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue>, TXPlayerController {
-  int _playerId = -1;
+class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
+  int? _playerId = -1;
 
   final Completer<int> _initPlayer;
   final Completer<int> _createTexture;
   bool _isDisposed = false;
   bool _isNeedDisposed = false;
-  MethodChannel _channel;
-  TXPlayerValue _value;
-  TXPlayerState _state;
+  late MethodChannel _channel;
+  TXPlayerValue? _value;
+  TXPlayerState? _state;
 
-  TXPlayerState get playState => _state;
-  StreamSubscription _eventSubscription;
-  StreamSubscription _netSubscription;
+  TXPlayerState? get playState => _state;
+  StreamSubscription? _eventSubscription;
+  StreamSubscription? _netSubscription;
 
-  final StreamController<TXPlayerState> _stateStreamController =
+  final StreamController<TXPlayerState?> _stateStreamController =
   StreamController.broadcast();
 
   final StreamController<Map<dynamic, dynamic> > _eventStreamController =
@@ -25,7 +25,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   final StreamController<Map<dynamic, dynamic> > _netStatusStreamController =
   StreamController.broadcast();
 
-  Stream<TXPlayerState> get onPlayerState => _stateStreamController.stream;
+  Stream<TXPlayerState?> get onPlayerState => _stateStreamController.stream;
   Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
   Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _netStatusStreamController.stream;
 
@@ -33,7 +33,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       : _initPlayer = Completer(),
         _createTexture = Completer() {
     _value = TXPlayerValue.uninitialized();
-    _state = _value.state;
+    _state = _value!.state;
     _create();
   }
 
@@ -78,6 +78,16 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
         _changeState(TXPlayerState.buffering);
         break;
       case 2009://下行视频分辨率改变
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          resizeVideoWidth = (event["videoWidth"]).toDouble();
+          resizeVideoHeight = (event["videoHeight"]).toDouble();
+          if(resizeVideoWidth! > 0 && resizeVideoHeight! > 0) {
+            videoLeft = (event["videoLeft"]).toDouble();
+            videoTop = (event["videoTop"]).toDouble();
+            videoRight = (event["videoRight"]).toDouble();
+            videoBottom = (event["videoBottom"]).toDouble();
+          }
+        }
         break;
       case 2013://点播加载完成
         break;
@@ -118,8 +128,8 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   _errorHandler(error) {}
 
   _changeState(TXPlayerState playerState){
-    value = _value.copyWith(state: playerState);
-    _state = value.state;
+    value = _value!.copyWith(state: playerState);
+    _state = value!.state;
     _stateStreamController.add(_state);
   }
 
@@ -147,8 +157,8 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return _createTexture.future;
   }
 
-  Future<void> initialize({bool onlyAudio}) async{
-    if(_isNeedDisposed) return false;
+  Future<void> initialize({bool? onlyAudio}) async{
+    if(_isNeedDisposed) return;
     await _initPlayer.future;
     final textureId = await _channel.invokeMethod("init", {
       "onlyAudio": onlyAudio ?? false,
@@ -157,8 +167,8 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     _changeState(TXPlayerState.paused);
   }
 
-  Future<void> setIsAutoPlay({bool isAutoPlay}) async{
-    if(_isNeedDisposed) return false;
+  Future<void> setIsAutoPlay({bool? isAutoPlay}) async{
+    if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
   }
@@ -172,7 +182,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return result == 0;
   }
 
-  Future<bool> isPlaying() async {
+  Future<bool?> isPlaying() async {
     await _initPlayer.future;
     return await _channel.invokeMethod("isPlaying");
   }
@@ -214,7 +224,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _channel.invokeMethod("setRate", {"rate": rate});
   }
 
-  Future<List> getSupportedBitrates() async {
+  Future<List?> getSupportedBitrates() async {
     if(_isNeedDisposed) return [];
     await _initPlayer.future;
     return _channel.invokeMethod("getSupportedBitrates");
@@ -259,7 +269,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   void dispose() async{
     _isNeedDisposed = true;
     if(!_isDisposed){
-      await _eventSubscription.cancel();
+      await _eventSubscription!.cancel();
       _eventSubscription = null;
 
       await _release();
@@ -278,10 +288,17 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   get value => _value;
 
-  set value(TXPlayerValue val){
+  set value(TXPlayerValue? val){
     if (_value == val) return;
     _value = val;
     notifyListeners();
   }
+
+  double? resizeVideoWidth = 0;
+  double? resizeVideoHeight = 0;
+  double? videoLeft = 0;
+  double? videoTop = 0;
+  double? videoRight = 0;
+  double? videoBottom = 0;
 
 }

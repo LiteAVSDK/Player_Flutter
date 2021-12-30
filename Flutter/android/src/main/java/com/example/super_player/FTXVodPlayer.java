@@ -2,6 +2,7 @@ package com.example.super_player;
 
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -18,12 +19,9 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
 
-import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXLiveConstants;
-import com.tencent.rtmp.TXLivePlayConfig;
-import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXPlayerAuthBuilder;
 import com.tencent.rtmp.TXVodPlayer;
 
@@ -111,6 +109,29 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     @Override
     public void onPlayEvent(TXVodPlayer txVodPlayer, int i, Bundle bundle) {
+        if (i == TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION) {
+            String EVT_PARAM3 = bundle.getString("EVT_PARAM3");
+            if(!TextUtils.isEmpty(EVT_PARAM3)) {
+                String[] array = EVT_PARAM3.split(",");
+                if(array.length == 6) {
+                    //array = Crop(width,height,crop_left,crop_top,crop_right,crop_bottom)
+                    int videoWidth = Integer.parseInt(array[4]) - Integer.parseInt(array[2]) + 1;
+                    int videoHeight = Integer.parseInt(array[5]) - Integer.parseInt(array[3]) + 1;
+                    int videoLeft = 0 - Integer.parseInt(array[2]);
+                    int videoTop = 0 - Integer.parseInt(array[3]);
+                    int videoRight = Integer.parseInt(array[4]) + 1 - Integer.parseInt(array[0]);
+                    int videoBottom = Integer.parseInt(array[5]) + 1 - Integer.parseInt(array[1]);
+                    bundle.putInt("videoWidth", videoWidth);
+                    bundle.putInt("videoHeight", videoHeight);
+                    bundle.putInt("videoLeft", videoLeft);
+                    bundle.putInt("videoTop", videoTop);
+                    bundle.putInt("videoRight", videoRight);
+                    bundle.putInt("videoBottom", videoBottom);
+                    mEventSink.success(getParams(i, bundle));
+                    return;
+                }
+            }
+        }
         mEventSink.success(getParams(i, bundle));
     }
 

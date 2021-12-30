@@ -253,10 +253,15 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
             mVodPlayConfig.setCacheFolderPath(sdcardDir.getPath() + "/txcache");
         }
         mVodPlayConfig.setMaxCacheItems(config.maxCacheItem);
+        mVodPlayConfig.setHeaders(config.headers);
         mVodPlayer.setConfig(mVodPlayConfig);
         mVodPlayer.setRenderMode(config.renderMode);
         mVodPlayer.setVodListener(this);
         mVodPlayer.enableHardwareDecode(config.enableHWAcceleration);
+        mVodPlayer.setRate(config.playRate);
+        mVodPlayer.setMute(config.mute);
+        mVodPlayer.setMirror(config.mirror);
+        TXCLog.setConsoleEnabled(config.enableLog);
     }
 
     /**
@@ -268,11 +273,14 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
         mLivePlayer = new TXLivePlayer(context);
         SuperPlayerGlobalConfig config = SuperPlayerGlobalConfig.getInstance();
         mLivePlayConfig = new TXLivePlayConfig();
+        mLivePlayConfig.setHeaders(config.headers);
         mLivePlayer.setConfig(mLivePlayConfig);
         mLivePlayer.setRenderMode(config.renderMode);
         mLivePlayer.setRenderRotation(TXLiveConstants.RENDER_ROTATION_PORTRAIT);
         mLivePlayer.setPlayListener(this);
         mLivePlayer.enableHardwareDecode(config.enableHWAcceleration);
+        mLivePlayer.setMute(config.mute);
+        TXCLog.setConsoleEnabled(config.enableLog);
     }
 
     /**
