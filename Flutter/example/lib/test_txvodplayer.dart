@@ -14,7 +14,7 @@ class TestTXVodPlayer extends StatefulWidget {
   _TestTXPVodlayerState createState() => _TestTXPVodlayerState();
 }
 
-class _TestTXPVodlayerState extends State<TestTXVodPlayer> {
+class _TestTXPVodlayerState extends State<TestTXVodPlayer> with WidgetsBindingObserver{
 
   TXVodPlayerController _controller;
   double _aspectRatio = 0;
@@ -72,7 +72,26 @@ class _TestTXPVodlayerState extends State<TestTXVodPlayer> {
   void initState() {
     super.initState();
     init();
+    WidgetsBinding.instance?.addObserver(this);
     EasyLoading.show(status: 'loading...');
+  }
+
+  @override
+  Future didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    print("didChangeAppLifecycleState $state");
+    switch (state) {
+      case AppLifecycleState.inactive:
+        break;
+      case AppLifecycleState.resumed:
+        _controller.resume();
+        break;
+      case AppLifecycleState.paused:
+        _controller.pause();
+        break;
+      default:
+        break;
+    }
   }
 
   @override
@@ -269,6 +288,7 @@ class _TestTXPVodlayerState extends State<TestTXVodPlayer> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
     EasyLoading.dismiss();
   }
 

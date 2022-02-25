@@ -61,5 +61,17 @@ class SuperPlayerPlatformViewController {
   Future<void> resetPlayer() async {
     await _channel.invokeMethod("resetPlayer");
   }
+  Future<void> pause() async {
+    await _channel.invokeMethod("pause");
+  }
+
+  Future<void> resume() async {
+    await _channel.invokeMethod("resume");
+  }
+
+  Future<void> stop() async {
+    await _channel.invokeMethod("stop");
+  }
+
 
 }
