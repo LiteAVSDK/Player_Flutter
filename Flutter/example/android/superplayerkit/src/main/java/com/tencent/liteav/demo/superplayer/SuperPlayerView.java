@@ -28,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.tencent.liteav.basic.log.TXCLog;
+import com.tencent.liteav.demo.superplayer.model.ISuperPlayerListener;
 import com.tencent.liteav.demo.superplayer.model.SuperPlayer;
 import com.tencent.liteav.demo.superplayer.model.SuperPlayerImpl;
 import com.tencent.liteav.demo.superplayer.model.SuperPlayerObserver;
@@ -87,6 +88,7 @@ public class SuperPlayerView extends RelativeLayout {
     private OnSuperPlayerViewCallback mPlayerViewCallback;              // SuperPlayerView回调
     private NetWatcher                mWatcher;                         // 网络质量监视器
     private SuperPlayer               mSuperPlayer;
+    private ISuperPlayerListener mSuperPlayerListener;
 
     public SuperPlayerView(Context context) {
         super(context);
@@ -289,6 +291,18 @@ public class SuperPlayerView extends RelativeLayout {
      */
     public void setPlayerViewCallback(OnSuperPlayerViewCallback callback) {
         mPlayerViewCallback = callback;
+    }
+
+    /**
+     * 设置超级播放器中点播播放器和直播播放器的回调
+     *
+     * @param superPlayerListener
+     */
+    public void setSuperPlayerListener(ISuperPlayerListener superPlayerListener) {
+        mSuperPlayerListener = superPlayerListener;
+        if(mSuperPlayer != null) {
+            mSuperPlayer.setSuperPlayerListener(mSuperPlayerListener);
+        }
     }
 
     /**
@@ -929,6 +943,18 @@ public class SuperPlayerView extends RelativeLayout {
 
     public void setLoop(boolean b) {
         mSuperPlayer.setLoop(b);
+    }
+
+    public void pause() {
+        mSuperPlayer.pause();
+    }
+
+    public void resume() {
+        mSuperPlayer.resume();
+    }
+
+    public void stop() {
+        mSuperPlayer.stop();
     }
 
 }

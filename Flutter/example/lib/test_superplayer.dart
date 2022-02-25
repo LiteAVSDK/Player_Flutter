@@ -147,6 +147,8 @@ class _TestSuperPlayerState extends State<TestSuperPlayer> {
                     print("onSuperPlayerBackAction");
                   } else {
                     print(evtName);
+                    //final Map<dynamic, dynamic> map = event;
+                    //print(map);
                   }
                 }
               );

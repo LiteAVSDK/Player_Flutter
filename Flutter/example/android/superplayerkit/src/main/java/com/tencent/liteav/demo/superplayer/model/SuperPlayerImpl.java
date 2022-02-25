@@ -54,6 +54,7 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
     private TXVodPlayConfig   mVodPlayConfig;   // 点播播放器配置
     private TXLivePlayer      mLivePlayer;      // 直播播放器
     private TXLivePlayConfig  mLivePlayConfig;  // 直播播放器配置
+    private ISuperPlayerListener mSuperPlayerListener;
 
     private SuperPlayerModel    mCurrentModel;  // 当前播放的model
     private SuperPlayerObserver mObserver;
@@ -138,6 +139,9 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
             default:
                 break;
         }
+        if(mSuperPlayerListener != null){
+            mSuperPlayerListener.onLivePlayEvent(event, param);
+        }
     }
 
     /**
@@ -147,7 +151,9 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
      */
     @Override
     public void onNetStatus(Bundle bundle) {
-
+        if(mSuperPlayerListener != null){
+            mSuperPlayerListener.onLiveNetStatus(bundle);
+        }
     }
 
     /**
@@ -218,6 +224,9 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
             updatePlayerState(SuperPlayerDef.PlayerState.PAUSE);
             onError(SuperPlayerCode.VOD_PLAY_FAIL, param.getString(TXLiveConstants.EVT_DESCRIPTION));
         }
+        if(mSuperPlayerListener != null){
+            mSuperPlayerListener.onVodPlayEvent(player, event, param);
+        }
     }
 
     /**
@@ -228,7 +237,9 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
      */
     @Override
     public void onNetStatus(TXVodPlayer player, Bundle bundle) {
-
+        if(mSuperPlayerListener != null){
+            mSuperPlayerListener.onVodNetStatus(player, bundle);
+        }
     }
 
     private void initialize(Context context, TXCloudVideoView videoView) {
@@ -907,6 +918,11 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
     @Override
     public void setObserver(SuperPlayerObserver observer) {
         mObserver = observer;
+    }
+
+    @Override
+    public void setSuperPlayerListener(ISuperPlayerListener superPlayerListener) {
+        mSuperPlayerListener = superPlayerListener;
     }
 
     @Override
