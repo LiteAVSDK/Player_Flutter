@@ -155,7 +155,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> setIsAutoPlay({bool? isAutoPlay}) async{
     if(_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay" ?? false});
+    await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay":isAutoPlay ?? false});
   }
 
   Future<bool> stop({bool isNeedClear = true}) async {
