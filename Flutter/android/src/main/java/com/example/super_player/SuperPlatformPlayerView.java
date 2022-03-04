@@ -314,15 +314,15 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
     }
 
     public void setPause() {
-        mSuperPlayerView.pause();
+        mSuperPlayerView.onPause();
     }
 
     public void setResume() {
-        mSuperPlayerView.resume();
+        mSuperPlayerView.onResume();
     }
 
     public void setStop() {
-        mSuperPlayerView.stop();
+        mSuperPlayerView.resetPlayer();
     }
 
     private Map<String, Object> getParams(String event, Bundle bundle) {

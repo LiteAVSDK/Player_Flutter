@@ -945,16 +945,4 @@ public class SuperPlayerView extends RelativeLayout {
         mSuperPlayer.setLoop(b);
     }
 
-    public void pause() {
-        mSuperPlayer.pause();
-    }
-
-    public void resume() {
-        mSuperPlayer.resume();
-    }
-
-    public void stop() {
-        mSuperPlayer.stop();
-    }
-
 }
