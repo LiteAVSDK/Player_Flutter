@@ -10,7 +10,9 @@ import com.tencent.liteav.demo.superplayer.SuperPlayerGlobalConfig;
 import com.tencent.liteav.demo.superplayer.SuperPlayerModel;
 import com.tencent.liteav.demo.superplayer.SuperPlayerVideoId;
 import com.tencent.liteav.demo.superplayer.SuperPlayerView;
+import com.tencent.liteav.demo.superplayer.model.ISuperPlayerListener;
 import com.tencent.rtmp.TXLiveBase;
+import com.tencent.rtmp.TXVodPlayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,18 +28,21 @@ import io.flutter.plugin.platform.PlatformView;
 
 import android.util.Log;
 
-public class SuperPlatformPlayerView implements PlatformView, MethodChannel.MethodCallHandler, SuperPlayerView.OnSuperPlayerViewCallback {
+public class SuperPlatformPlayerView implements PlatformView, MethodChannel.MethodCallHandler, SuperPlayerView.OnSuperPlayerViewCallback, ISuperPlayerListener {
 
     private       SuperPlayerView                    mSuperPlayerView;
     private       FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
     private final MethodChannel                      mMethodChannel;
     private final EventChannel                       mEventChannel;
+    private final EventChannel mNetChannel;
     private final FTXPlayerEventSink                 mEventSink = new FTXPlayerEventSink();
+    final private FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
     public SuperPlatformPlayerView(Context context, Map<String, Object> params, int viewId, FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         super();
         mSuperPlayerView = new SuperPlayerView(context);
         mSuperPlayerView.setPlayerViewCallback(this);
+        mSuperPlayerView.setSuperPlayerListener(this);
         mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/superPlayer/" + viewId);
         mMethodChannel.setMethodCallHandler(this);
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/superPlayer/event/" + viewId);
@@ -90,6 +95,18 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
 //
 //        mPlayerModel = model;
 //        mSuperPlayerView.playWithModel(model);
+        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/superPlayer/net/" + viewId);
+        mNetChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+                mNetStatusSink.setEventSinkProxy(eventSink);
+            }
+
+            @Override
+            public void onCancel(Object o) {
+                mNetStatusSink.setEventSinkProxy(null);
+            }
+        });
     }
 
 
@@ -178,6 +195,15 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
             result.success(null);
         } else if(call.method.equals("resetPlayer")){
             destory();
+            result.success(null);
+        } else if(call.method.equals("pause")){
+            setPause();
+            result.success(null);
+        } else if(call.method.equals("resume")){
+            setResume();
+            result.success(null);
+        } else if(call.method.equals("stop")){
+            setStop();
             result.success(null);
         }else {
             result.notImplemented();
@@ -287,6 +313,18 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
         mSuperPlayerView.setLoop(b);
     }
 
+    public void setPause() {
+        mSuperPlayerView.onPause();
+    }
+
+    public void setResume() {
+        mSuperPlayerView.onResume();
+    }
+
+    public void setStop() {
+        mSuperPlayerView.resetPlayer();
+    }
+
     private Map<String, Object> getParams(String event, Bundle bundle) {
         Map<String, Object> param = new HashMap();
         if (!event.isEmpty()) {
@@ -311,4 +349,23 @@ public class SuperPlatformPlayerView implements PlatformView, MethodChannel.Meth
         mEventChannel.setStreamHandler(null);
     }
 
+    @Override
+    public void onVodPlayEvent(TXVodPlayer player, int event, Bundle param) {
+        mEventSink.success(getParams("onVodPlayEvent", param));
+    }
+
+    @Override
+    public void onVodNetStatus(TXVodPlayer player, Bundle status) {
+        mNetStatusSink.success(getParams("onVodNetStatus", status));
+    }
+
+    @Override
+    public void onLivePlayEvent(int event, Bundle param) {
+        mEventSink.success(getParams("onLivePlayEvent", param));
+    }
+
+    @Override
+    public void onLiveNetStatus(Bundle status) {
+        mNetStatusSink.success(getParams("onLiveNetStatus", status));
+    }
 }

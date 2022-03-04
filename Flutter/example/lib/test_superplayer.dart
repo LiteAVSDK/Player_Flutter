@@ -19,7 +19,7 @@ class TestSuperPlayer extends StatefulWidget {
   _TestSuperPlayerState createState() => _TestSuperPlayerState();
 }
 
-class _TestSuperPlayerState extends State<TestSuperPlayer> {
+class _TestSuperPlayerState extends State<TestSuperPlayer> with WidgetsBindingObserver{
   bool _liveSelected = true;//live is default
   var _currentModels = <SuperPlayerViewModel>[];
   SuperPlayerViewConfig _playerConfig = SuperPlayerViewConfig();
@@ -41,13 +41,33 @@ class _TestSuperPlayerState extends State<TestSuperPlayer> {
   void initState() {
     super.initState();
     _getLiveListData();
+    WidgetsBinding.instance?.addObserver(this);
     debugPrint("= initState = ${window.padding.top}, ${window.physicalSize.width}");
+  }
+
+  @override
+  Future didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    print("didChangeAppLifecycleState $state");
+    switch (state) {
+      case AppLifecycleState.inactive:
+        break;
+      case AppLifecycleState.resumed:
+        _playerController.resume();
+        break;
+      case AppLifecycleState.paused:
+        _playerController.pause();
+        break;
+      default:
+        break;
+    }
   }
 
   @override
   void dispose() {
     _playerController.resetPlayer();
     super.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
   }
 
   void onPressed(BuildContext context) {
@@ -147,6 +167,8 @@ class _TestSuperPlayerState extends State<TestSuperPlayer> {
                     print("onSuperPlayerBackAction");
                   } else {
                     print(evtName);
+                    //final Map<dynamic, dynamic> map = event;
+                    //print(map);
                   }
                 }
               );
