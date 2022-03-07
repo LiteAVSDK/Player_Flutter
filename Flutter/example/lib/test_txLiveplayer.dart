@@ -9,7 +9,7 @@ class TestTXLivePlayer extends StatefulWidget {
   _TestTXPLivelayerState createState() => _TestTXPLivelayerState();
 }
 
-class _TestTXPLivelayerState extends State<TestTXLivePlayer> {
+class _TestTXPLivelayerState extends State<TestTXLivePlayer> with WidgetsBindingObserver{
 
   TXLivePlayerController _controller;
   double _aspectRatio = 0;
@@ -70,7 +70,26 @@ class _TestTXPLivelayerState extends State<TestTXLivePlayer> {
   void initState() {
     super.initState();
     init();
+    WidgetsBinding.instance?.addObserver(this);
     EasyLoading.show(status: 'loading...');
+  }
+
+  @override
+  Future didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    print("didChangeAppLifecycleState $state");
+    switch (state) {
+      case AppLifecycleState.inactive:
+        break;
+      case AppLifecycleState.resumed:
+        _controller.resume();
+        break;
+      case AppLifecycleState.paused:
+        _controller.pause();
+        break;
+      default:
+        break;
+    }
   }
 
   @override
@@ -227,6 +246,7 @@ class _TestTXPLivelayerState extends State<TestTXLivePlayer> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
     EasyLoading.dismiss();
   }
 
