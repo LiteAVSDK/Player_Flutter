@@ -10,7 +10,7 @@
 #import "FTXBasePlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
 
-@interface SuperPlatformPlayerView ()<SuperPlayerDelegate, FlutterStreamHandler, SuperPlayerPlayListener>
+@interface SuperPlatformPlayerView ()<SuperPlayerDelegate, FlutterStreamHandler>
 {
     FTXPlayerEventSinkQueue *_eventSink;
 }
@@ -114,21 +114,6 @@
     _eventChannel = nil;
     _methodChannel = nil;
     _eventSink = nil;
-}
-
-- (void)pause
-{
-    [_realPlayerView pause];
-}
-
-- (void)resume
-{
-    [_realPlayerView resume];
-}
-
-- (void)stop
-{
-    [_realPlayerView resetPlayer];
 }
 
 - (void)reloadView:(NSString *)url appId:(long)appId fileId:(NSString *)fileId psign:(NSString *)psign
@@ -270,16 +255,7 @@
     }else if ([@"resetPlayer" isEqualToString:call.method]) {
         [self destory];
         result(nil);
-    }else if ([@"pause" isEqualToString:call.method]) {
-        [self pause];
-        result(nil);
-    }else if ([@"resume" isEqualToString:call.method]) {
-        [self resume];
-        result(nil);
-    }else if ([@"stop" isEqualToString:call.method]) {
-        [self stop];
-        result(nil);
-    } else {
+    }else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -299,7 +275,6 @@
         _realPlayerView = [SuperPlayerView new];
         _realPlayerView.delegate = self;
         _realPlayerView.fatherView = self.playerFatherView;
-        _realPlayerView.playListener = self;
         [self.playerFatherView addSubview:_realPlayerView];
     }
     
@@ -316,42 +291,6 @@
     }
     
     return _playerFatherView;
-}
-
-#pragma mark - SuperPlayerPlayListener
-
-/// 直播事件通知
-/// @param player 直播播放器
-/// @param EvtID 参见 TXLiveSDKEventDef.h
-/// @param param 参见 TXLiveSDKTypeDef.h
-- (void)onLivePlayEvent:(TXLivePlayer *)player event:(int)EvtID withParam:(NSDictionary *)param
-{
-    [_eventSink success:[self getParamsWithEvent:@"onLivePlayEvent" withParams:param]];
-}
-
-/// 直播网络状态通知
-/// @param player 直播播放器
-/// @param param 参见 TXLiveSDKTypeDef.h
-- (void)onLiveNetStatus:(TXLivePlayer *)player withParam:(NSDictionary *)param
-{
-    [_eventSink success:[self getParamsWithEvent:@"onLiveNetStatus" withParams:param]];
-}
-
-/// 点播事件通知
-/// @param player 点播播放器
-/// @param EvtID 参见TXLiveSDKTypeDef.h
-/// @param param 参见TXLiveSDKTypeDef.h
-- (void)onVodPlayEvent:(TXVodPlayer *)player event:(int)EvtID withParam:(NSDictionary *)param
-{
-    [_eventSink success:[self getParamsWithEvent:@"onVodPlayEvent" withParams:param]];
-}
-
-/// 点播网络状态通知
-/// @param player 点播播放器
-/// @param param 参见TXLiveSDKTypeDef.h
-- (void)onVodNetStatus:(TXVodPlayer *)player withParam:(NSDictionary *)param
-{
-    [_eventSink success:[self getParamsWithEvent:@"onVodNetStatus" withParams:param]];
 }
 
 #pragma mark - SuperPlayerDelegate
