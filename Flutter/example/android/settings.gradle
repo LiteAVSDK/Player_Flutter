@@ -1,7 +1,4 @@
-include ':common'
-project(':common').projectDir = new File('../../../SuperPlayer_Android/Demo/common')
 include ':superplayerkit'
-project(':superplayerkit').projectDir = new File('../../../SuperPlayer_Android/Demo/superplayerkit')
 include ':app'
 
 def localPropertiesFile = new File(rootProject.projectDir, "local.properties")

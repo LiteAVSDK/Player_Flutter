@@ -1,6 +1,0 @@
-[submodule "SuperPlayer_Android"]
-	path = SuperPlayer_Android
-	url = git@github.com:tencentyun/SuperPlayer_Android.git
-[submodule "SuperPlayer_iOS"]
-	path = SuperPlayer_iOS
-	url = git@github.com:tencentyun/SuperPlayer_iOS.git
