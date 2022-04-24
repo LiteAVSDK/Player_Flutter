@@ -355,11 +355,72 @@ static const int uninitialized = -1;
         int rotation = [args[@"rotation"] intValue];
         [self setRenderRotation:rotation];
         result(nil);
-    }else if([@"setMirror" isEqualToString:call.method]){
+    }
+    else if([@"setMirror" isEqualToString:call.method]){
         BOOL isMirror = [args[@"isMirror"] boolValue];
         [self setMirror:isMirror];
         result(nil);
-    }else {
+    }
+    else if([@"setConfig" isEqualToString:call.method]){
+        [self setPlayConfig:args];
+        result(nil);
+    }
+    else if([@"getCurrentPlaybackTime" isEqualToString:call.method]){
+        float time = [self getCurrentPlaybackTime];
+        result(@(time));
+    }
+    else if([@"getBufferDuration" isEqualToString:call.method]){
+//        BOOL r = [self getBufferDuration];
+//        result(@(r));
+        // IOS端未实现？ todo
+        result(FlutterMethodNotImplemented);
+    }
+    else if([@"getWidth" isEqualToString:call.method]){
+        int width = [self getWidth];
+        result(@(width));
+    }
+    else if([@"getHeight" isEqualToString:call.method]){
+        int height = [self getHeight];
+        result(@(height));
+    }
+    else if([@"setToken" isEqualToString:call.method]){
+        NSString *token = args[@"token"];
+        [self setToken:token];
+        result(nil);
+    }
+    else if([@"isLoop" isEqualToString:call.method]){
+        BOOL r = [self isLoop];
+        result(@(r));
+    }
+    else if([@"enableHardwareDecode" isEqualToString:call.method]){
+        BOOL enable = [args[@"enable"] boolValue];
+        BOOL r = [self enableHardwareDecode:enable];
+        result(@(r));
+    }
+    else if([@"snapshot" isEqualToString:call.method]){
+        [self snapShot:^(UIImage *image) {
+            if(image != nil) {
+                NSData *data = UIImagePNGRepresentation(image);
+                result(data);
+            } else {
+                result(nil);
+            }
+        }];
+    }
+    else if([@"setRequestAudioFocus" isEqualToString:call.method]){
+//        BOOL focus = [args[@"focus"] boolValue];
+//        setRequestAudioFocus IOS端未实现？
+        result(FlutterMethodNotImplemented);
+    }
+    else if([@"getBitrateIndex" isEqualToString:call.method]){
+        long index = [self getBitrateIndex];
+        result(@(index));
+    }
+    else if([@"getPlayableDuration" isEqualToString:call.method]){
+        float time = [self getCurrentPlaybackTime];
+        result(@(time));
+    }
+    else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -469,6 +530,136 @@ static const int uninitialized = -1;
     }
     
     return NO;
+}
+
+- (void)setPlayConfig:(NSDictionary *)args
+{
+    if (_txVodPlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
+        TXVodPlayConfig *playConfig = [[TXVodPlayConfig alloc] init];
+        playConfig.connectRetryCount = [args[@"config"][@"connectRetryCount"] intValue];
+        playConfig.connectRetryInterval = [args[@"config"][@"connectRetryInterval"] intValue];
+        playConfig.timeout = [args[@"config"][@"timeout"] intValue];
+        playConfig.maxCacheItems = [args[@"config"][@"maxCacheItems"] intValue];
+        playConfig.playerType = [args[@"config"][@"playerType"] intValue];
+        playConfig.connectRetryInterval = [args[@"config"][@"connectRetryInterval"] intValue];
+        playConfig.enableAccurateSeek = [args[@"config"][@"enableAccurateSeek"] boolValue];
+        playConfig.autoRotate = [args[@"config"][@"autoRotate"] boolValue];
+        playConfig.smoothSwitchBitrate = [args[@"config"][@"smoothSwitchBitrate"] boolValue];
+        playConfig.progressInterval = [args[@"config"][@"progressInterval"] intValue];
+        playConfig.maxBufferSize = [args[@"config"][@"maxBufferSize"] intValue];
+        playConfig.maxPreloadSize = [args[@"config"][@"maxPreloadSize"] intValue];
+        playConfig.firstStartPlayBufferTime = [args[@"config"][@"firstStartPlayBufferTime"] intValue];
+        playConfig.nextStartPlayBufferTime = [args[@"config"][@"nextStartPlayBufferTime"] intValue];
+        playConfig.enableRenderProcess = [args[@"config"][@"enableRenderProcess"] boolValue];
+        playConfig.preferredResolution = [args[@"config"][@"preferredResolution"] longValue];
+        
+        NSString *cachePath =  args[@"config"][@"cacheFolderPath"];
+        if(cachePath != nil && cachePath.length > 0) {
+            playConfig.cacheFolderPath = cachePath;
+        }
+        
+        NSString *overlayKey =  args[@"config"][@"overlayKey"];
+        if(overlayKey != nil && overlayKey.length > 0) {
+            playConfig.overlayKey = overlayKey;
+        }
+        
+        NSString *overlayIv =  args[@"config"][@"overlayIv"];
+        if(overlayIv != nil && overlayIv.length > 0) {
+            playConfig.overlayIv = overlayIv;
+        }
+        
+//        NSString *cacheMp4ExtName =  args[@"config"][@"cacheMp4ExtName"];
+        
+        NSDictionary *headers = args[@"config"][@"headers"];
+        if(headers != nil) {
+            playConfig.headers = headers;
+        }
+        
+        NSDictionary *extInfoMap = args[@"config"][@"extInfoMap"];
+        if(headers != nil) {
+            playConfig.extInfoMap = extInfoMap;
+        }
+        
+        _txVodPlayer.config = playConfig;
+    }
+}
+
+- (float)getCurrentPlaybackTime
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.currentPlaybackTime;
+    }
+    return 0;
+}
+
+- (float)getPlayableDuration
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.playableDuration;
+    }
+    return 0;
+}
+
+- (int)getWidth
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.width;
+    }
+    return 0;
+}
+
+- (int)getHeight
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.height;
+    }
+    return 0;
+}
+
+- (void)setToken:(NSString *)token
+{
+    if(_txVodPlayer != nil) {
+        _txVodPlayer.token = token;
+    }
+}
+
+- (BOOL)isLoop
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.loop;
+    }
+    return false;
+}
+
+- (BOOL)enableHardwareDecode:(BOOL)enable
+{
+    if(_txVodPlayer != nil) {
+        _txVodPlayer.enableHWAcceleration = enable;
+        return true;
+    }
+    return false;
+}
+
+- (void)snapShot:(void (^)(UIImage *))listener
+{
+    if(_txVodPlayer != nil) {
+        [_txVodPlayer snapshot:listener];
+    }
+}
+
+- (void)setRenderMode:(int)renderMode
+{
+    if(_txVodPlayer != nil) {
+        [_txVodPlayer setRenderMode:renderMode];
+    }
+}
+
+- (long)getBitrateIndex
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.bitrateIndex;
+    }
+    return -1;
 }
 
 @end

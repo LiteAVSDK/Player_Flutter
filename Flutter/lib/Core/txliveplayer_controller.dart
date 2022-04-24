@@ -142,6 +142,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return result == 0;
   }
 
+  /// 播放器初始化，创建共享纹理、初始化播放器
+  /// @param onlyAudio 是否是纯音频模式
   Future<void> initialize({bool? onlyAudio}) async{
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -152,12 +154,15 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _state = TXPlayerState.paused;
   }
 
+  /// 设置是否自动播放
   Future<void> setIsAutoPlay({bool? isAutoPlay}) async{
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay" ?? false});
   }
 
+  /// 停止播放
+  /// return 是否停止成功
   Future<bool> stop({bool isNeedClear = true}) async {
     if(_isNeedDisposed) return false;
     await _initPlayer.future;
@@ -167,11 +172,13 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return result == 0;
   }
 
+  /// 视频是否处于正在播放中
   Future<bool?> isPlaying() async {
     await _initPlayer.future;
     return await _channel.invokeMethod("isPlaying");
   }
 
+  /// 视频暂停，必须在播放器开始播放的时候调用
   Future<void> pause() async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -179,6 +186,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if(_state != TXPlayerState.paused) _changeState(TXPlayerState.paused);
   }
 
+  /// 继续播放，在暂停的时候调用
   Future<void> resume() async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -186,36 +194,36 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if(_state != TXPlayerState.playing) _changeState(TXPlayerState.playing);
   }
 
+  /// 设置直播模式，see TXPlayerLiveMode
   Future<void> setLiveMode(TXPlayerLiveMode mode) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setLiveMode", {"type": mode.index});
   }
 
+  /// 设置视频声音 0~100
   Future<void> setVolume(int volume) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setVolume", {"volume": volume});
   }
 
+  /// 设置是否静音
   Future<void> setMute(bool mute) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setMute", {"mute": mute});
   }
 
-  Future<void> setRenderRotation(int rotation) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _channel.invokeMethod("setRenderRotation", {"rotation": rotation});
-  }
-
+  /// 切换播放流
   Future<void> switchStream(String url) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("switchStream", {"url": url});
   }
 
+  /// 将视频播放进度定位到指定的进度进行播放
+  /// progress 要定位的视频时间，单位 秒
   Future<void> seek(double progress) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -228,6 +236,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _channel.invokeMethod("seek", {"appId": appId});
   }
 
+  /// 时移
   Future<void> prepareLiveSeek(String domain, int bizId) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
