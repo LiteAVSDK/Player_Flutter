@@ -1,5 +1,4 @@
 #import "SuperPlayerPlugin.h"
-#import "SuperPlatformPlayerViewFactory.h"
 #import "FTXLivePlayer.h"
 #import "FTXVodPlayer.h"
 #import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
@@ -18,7 +17,6 @@
             binaryMessenger:[registrar messenger]];
   SuperPlayerPlugin* instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
   [registrar addMethodCallDelegate:instance channel:channel];
-  [registrar registerViewFactory:[[SuperPlatformPlayerViewFactory alloc] initWithRegistrar:registrar] withId:@"super_player_view"];
 }
 
 - (instancetype)initWithRegistrar:

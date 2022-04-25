@@ -47,7 +47,7 @@ class _TestTXPVodlayerState extends State<TestTXVodPlayer>
         _supportedBitrates = await _controller.getSupportedBitrates();
       } else if (event["event"] == 2005) {
         _currentProgress = event["EVT_PLAY_PROGRESS"].toDouble();
-        double videoDuration = event['EVT_PLAY_DURATION_MS'].toDouble()/1000; // 总播放时长，转换后的单位 秒
+        double videoDuration = event['EVT_PLAY_DURATION'].toDouble(); // 总播放时长，转换后的单位 秒
 
         progressSliderKey.currentState.updatePorgess(_currentProgress/videoDuration, videoDuration);
       }

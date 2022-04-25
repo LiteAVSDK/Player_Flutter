@@ -43,7 +43,6 @@ class _TreePageState extends State<TreePage> {
 
     _datas = [
       TreeData([
-        TreeDatachild("超级播放器"),
         TreeDatachild("直播"),
         TreeDatachild("点播"),
       ], "播放器", false),
@@ -108,7 +107,7 @@ class _TreePageState extends State<TreePage> {
                 },
                 //展开内容
                 body: Container(
-                  height: 200,
+                  height: 150,
                   padding: EdgeInsets.symmetric(horizontal: 5.0),
                   child: ListView.builder(
                     itemCount: treeData.children.length,
@@ -156,12 +155,10 @@ class _TreePageState extends State<TreePage> {
           MaterialPageRoute(
             // ignore: missing_return
             builder: (context) {
-              if (i == 1) {
+              if (i == 0) {
                 return TestTXLivePlayer();
-              }else if (i == 2) {
+              }else if (i == 1) {
                 return TestTXVodPlayer();
-              }else {
-                return TestSuperPlayer();
               }
             }
           ),

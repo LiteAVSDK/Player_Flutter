@@ -76,7 +76,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
   @Override
   public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
     mActivityPluginBinding = binding;
-    mFlutterPluginBinding.getPlatformViewRegistry().registerViewFactory("super_player_view", new SuperPlatformViewFactory(mFlutterPluginBinding, binding.getActivity()));
   }
 
   @Override

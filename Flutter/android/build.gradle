@@ -27,15 +27,9 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
     }
-
-    // lines skipped
-    dependencies {
-        provided rootProject.findProject(":superplayerkit")
-    }
-
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(path: ':superplayerkit')
+    implementation rootProject.ext.liteavSdk
 }
