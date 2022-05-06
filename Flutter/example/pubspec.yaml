@@ -16,7 +16,7 @@ dependencies:
 
   flutter_easyloading: ^3.0.0
 
-  super_player:
+  flutter_super_player:
     # When depending on this package from a real application you should use:
     #   super_player: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints

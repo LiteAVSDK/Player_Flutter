@@ -60,25 +60,25 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     final Map<dynamic, dynamic> map = event;
     //debugPrint("= event = ${map.toString()}");
     switch(map["event"]){
-      case 2002:
+      case TXVodPlayEvent.PLAY_EVT_RTMP_STREAM_BEGIN:
         break;
-      case 2003:
+      case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
         if(_isNeedDisposed) return;
         if(_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
         break;
-      case 2004:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
         if(_isNeedDisposed) return;
         if(_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
         break;
-      case 2005://EVT_PLAY_PROGRESS
+      case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS://EVT_PLAY_PROGRESS
         break;
-      case 2006:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_END:
         _changeState(TXPlayerState.stopped);
         break;
-      case 2007:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
         _changeState(TXPlayerState.buffering);
         break;
-      case 2009://下行视频分辨率改变
+      case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION://下行视频分辨率改变
         if (defaultTargetPlatform == TargetPlatform.android) {
           resizeVideoWidth = (event["videoWidth"]).toDouble();
           resizeVideoHeight = (event["videoHeight"]).toDouble();
@@ -90,20 +90,20 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
           }
         }
         break;
-      case 2015://直播，切流成功（切流可以播放不同画面大小的视频）
+      case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC://直播，切流成功（切流可以播放不同画面大小的视频）
         break;
-      case -2301://disconnect
+      case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT://disconnect
         _changeState(TXPlayerState.failed);
         break;
-      case 2103://reconnect
+      case TXVodPlayEvent.PLAY_WARNING_RECONNECT://reconnect
         break;
-      case 3001://dnsFail
+      case TXVodPlayEvent.PLAY_WARNING_DNS_FAIL://dnsFail
         break;
-      case 3002://severConnFail
+      case TXVodPlayEvent.PLAY_WARNING_SEVER_CONN_FAIL://severConnFail
         break;
-      case 3003://shakeFail
+      case TXVodPlayEvent.PLAY_WARNING_SHAKE_FAIL://shakeFail
         break;
-      case -2307://failed
+      case TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL://failed
         _changeState(TXPlayerState.failed);
         break;
       default:

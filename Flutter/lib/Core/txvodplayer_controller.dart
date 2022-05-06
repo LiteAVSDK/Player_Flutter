@@ -66,27 +66,27 @@ class TXVodPlayerController extends ChangeNotifier
     if (event == null) return;
     final Map<dynamic, dynamic> map = event;
     switch (map["event"]) {
-      case 2002:
+      case TXVodPlayEvent.PLAY_EVT_RTMP_STREAM_BEGIN:
         break;
-      case 2003:
+      case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
         if (_isNeedDisposed) return;
         if (_state == TXPlayerState.buffering)
           _changeState(TXPlayerState.playing);
         break;
-      case 2004:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
         if (_isNeedDisposed) return;
         if (_state == TXPlayerState.buffering)
           _changeState(TXPlayerState.playing);
         break;
-      case 2005: //播放进度
+      case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS: //播放进度
         break;
-      case 2006:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_END:
         _changeState(TXPlayerState.stopped);
         break;
-      case 2007:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
         _changeState(TXPlayerState.buffering);
         break;
-      case 2009: //下行视频分辨率改变
+      case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION: //下行视频分辨率改变
         if (defaultTargetPlatform == TargetPlatform.android) {
           resizeVideoWidth = (event["videoWidth"]).toDouble();
           resizeVideoHeight = (event["videoHeight"]).toDouble();
@@ -98,26 +98,26 @@ class TXVodPlayerController extends ChangeNotifier
           }
         }
         break;
-      case 2013: //点播加载完成
+      case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: //点播加载完成
         break;
-      case 2014: //loading 结束
+      case TXVodPlayEvent.PLAY_EVT_VOD_LOADING_END: //loading 结束
         break;
-      case -2301:
+      case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT:
         _changeState(TXPlayerState.failed);
         break;
-      case -2303:
+      case TXVodPlayEvent.PLAY_ERR_FILE_NOT_FOUND:
         _changeState(TXPlayerState.failed);
         break;
-      case -2305:
+      case TXVodPlayEvent.PLAY_ERR_HLS_KEY:
         _changeState(TXPlayerState.failed);
         break;
-      case 2103:
+      case TXVodPlayEvent.PLAY_WARNING_RECONNECT:
         break;
-      case 3001:
+      case TXVodPlayEvent.PLAY_WARNING_DNS_FAIL:
         break;
-      case 3002:
+      case TXVodPlayEvent.PLAY_WARNING_SEVER_CONN_FAIL:
         break;
-      case 3003:
+      case TXVodPlayEvent.PLAY_WARNING_SHAKE_FAIL:
         break;
 
       default:

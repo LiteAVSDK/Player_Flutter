@@ -1,4 +1,4 @@
-name: super_player
+name: flutter_super_player
 description: player plugin.
 version: 0.0.1
 author:
@@ -28,7 +28,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.super_player
+        package: com.tencent.vod.flutter
         pluginClass: SuperPlayerPlugin
       ios:
         pluginClass: SuperPlayerPlugin

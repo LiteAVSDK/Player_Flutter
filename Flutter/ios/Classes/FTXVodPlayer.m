@@ -7,6 +7,7 @@
 
 #import "FTXVodPlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
+#import "FTXTransformation.h"
 #import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
@@ -17,7 +18,9 @@ static const int uninitialized = -1;
 @interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate>
 
 @end
-
+/**
+ 点播TXVodPlayer处理类
+ */
 @implementation FTXVodPlayer {
     TXVodPlayer *_txVodPlayer;
     FTXPlayerEventSinkQueue *_eventSink;
@@ -112,9 +115,6 @@ static const int uninitialized = -1;
         }
         
         if (_txVodPlayer != nil) {
-//            TXVodPlayConfig* config = [TXVodPlayConfig new];
-//            [config setPlayerPixelFormatType:kCVPixelFormatType_32BGRA];
-//            [_txVodPlayer setConfig:config];
             [_txVodPlayer setVideoProcessDelegate:self];
             _txVodPlayer.enableHWAcceleration = YES;
         }
@@ -322,7 +322,6 @@ static const int uninitialized = -1;
         [self setMute:mute];
         result(nil);
     }else if([@"setLiveMode" isEqualToString:call.method]){
-        
         result(nil);
     }else if([@"setLoop" isEqualToString:call.method]){
         BOOL loop = [args[@"loop"] boolValue];
@@ -370,9 +369,6 @@ static const int uninitialized = -1;
         result(@(time));
     }
     else if([@"getBufferDuration" isEqualToString:call.method]){
-//        BOOL r = [self getBufferDuration];
-//        result(@(r));
-        // IOS端未实现？ todo
         result(FlutterMethodNotImplemented);
     }
     else if([@"getWidth" isEqualToString:call.method]){
@@ -408,8 +404,6 @@ static const int uninitialized = -1;
         }];
     }
     else if([@"setRequestAudioFocus" isEqualToString:call.method]){
-//        BOOL focus = [args[@"focus"] boolValue];
-//        setRequestAudioFocus IOS端未实现？
         result(FlutterMethodNotImplemented);
     }
     else if([@"getBitrateIndex" isEqualToString:call.method]){
@@ -471,8 +465,6 @@ static const int uninitialized = -1;
                                              (void **)&_latestPixelBuffer)) {
         pixelBuffer = _latestPixelBuffer;
     }
-    
-    //CVPixelBufferRef pixelBuffer2 = [_glRender copyPixelBuffer];
     return pixelBuffer;
 }
 
@@ -535,52 +527,7 @@ static const int uninitialized = -1;
 - (void)setPlayConfig:(NSDictionary *)args
 {
     if (_txVodPlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
-        TXVodPlayConfig *playConfig = [[TXVodPlayConfig alloc] init];
-        playConfig.connectRetryCount = [args[@"config"][@"connectRetryCount"] intValue];
-        playConfig.connectRetryInterval = [args[@"config"][@"connectRetryInterval"] intValue];
-        playConfig.timeout = [args[@"config"][@"timeout"] intValue];
-        playConfig.maxCacheItems = [args[@"config"][@"maxCacheItems"] intValue];
-        playConfig.playerType = [args[@"config"][@"playerType"] intValue];
-        playConfig.connectRetryInterval = [args[@"config"][@"connectRetryInterval"] intValue];
-        playConfig.enableAccurateSeek = [args[@"config"][@"enableAccurateSeek"] boolValue];
-        playConfig.autoRotate = [args[@"config"][@"autoRotate"] boolValue];
-        playConfig.smoothSwitchBitrate = [args[@"config"][@"smoothSwitchBitrate"] boolValue];
-        playConfig.progressInterval = [args[@"config"][@"progressInterval"] intValue];
-        playConfig.maxBufferSize = [args[@"config"][@"maxBufferSize"] intValue];
-        playConfig.maxPreloadSize = [args[@"config"][@"maxPreloadSize"] intValue];
-        playConfig.firstStartPlayBufferTime = [args[@"config"][@"firstStartPlayBufferTime"] intValue];
-        playConfig.nextStartPlayBufferTime = [args[@"config"][@"nextStartPlayBufferTime"] intValue];
-        playConfig.enableRenderProcess = [args[@"config"][@"enableRenderProcess"] boolValue];
-        playConfig.preferredResolution = [args[@"config"][@"preferredResolution"] longValue];
-        
-        NSString *cachePath =  args[@"config"][@"cacheFolderPath"];
-        if(cachePath != nil && cachePath.length > 0) {
-            playConfig.cacheFolderPath = cachePath;
-        }
-        
-        NSString *overlayKey =  args[@"config"][@"overlayKey"];
-        if(overlayKey != nil && overlayKey.length > 0) {
-            playConfig.overlayKey = overlayKey;
-        }
-        
-        NSString *overlayIv =  args[@"config"][@"overlayIv"];
-        if(overlayIv != nil && overlayIv.length > 0) {
-            playConfig.overlayIv = overlayIv;
-        }
-        
-//        NSString *cacheMp4ExtName =  args[@"config"][@"cacheMp4ExtName"];
-        
-        NSDictionary *headers = args[@"config"][@"headers"];
-        if(headers != nil) {
-            playConfig.headers = headers;
-        }
-        
-        NSDictionary *extInfoMap = args[@"config"][@"extInfoMap"];
-        if(headers != nil) {
-            playConfig.extInfoMap = extInfoMap;
-        }
-        
-        _txVodPlayer.config = playConfig;
+        _txVodPlayer.config = [FTXTransformation transformToConfig:args];
     }
 }
 

@@ -23,7 +23,7 @@
 如果使用Professional版本，则`pubspec.yaml`中配置改为
 
 ```yaml
-  super_player:
+  flutter_super_player:
     git:
       url: https://github.com/tencentyun/SuperPlayer
       path: Flutter
@@ -47,8 +47,6 @@
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 ```
-
-安卓依赖原生播放器SDK，把目录下`example/android/superplayerkit`文件夹复制到你的工程目录下，在`setings.gradle` 插入 `include ':superplayerkit'`，当然，你也可以去官网搜索自己的合适版本进行导入。
 
 ### iOS配置
 

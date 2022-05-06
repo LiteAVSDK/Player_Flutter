@@ -1,12 +1,10 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'test_define.dart';
+import 'package:super_player_example/demo_txLiveplayer.dart';
+import 'package:super_player_example/demo_txvodplayer.dart';
 
-import 'package:super_player_example/test_txLiveplayer.dart';
-import 'package:super_player_example/test_txvodplayer.dart';
-import 'package:super_player_example/test_superplayer.dart';
+import 'demo_define.dart';
 
 class TreePage extends StatefulWidget {
   @override
@@ -35,16 +33,13 @@ class _TreePageState extends State<TreePage> {
       //当前位置==最大滑动范围 表示已经滑动到了底部
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        // YToast.show(context: context, msg: "滑动到了底部");
-        // do something
-        //getMoreData();
       }
     });
 
     _datas = [
       TreeData([
-        TreeDatachild("直播"),
-        TreeDatachild("点播"),
+        TreeDatachild("直播播放"),
+        TreeDatachild("点播播放"),
       ], "播放器", false),
     ];
 
@@ -125,9 +120,6 @@ class _TreePageState extends State<TreePage> {
         //下拉刷新回调
         onRefresh: () async {
           await Future.delayed(Duration(seconds: 2), () {
-            // YToast.show(context: context, msg: "下拉刷新");
-            // do something
-            //getData();
           });
         },
       ),
@@ -141,11 +133,11 @@ class _TreePageState extends State<TreePage> {
         child: ListTile(
           title: Text(
             treeData.children[i].name,
-            style: TextStyle(color: TestDefine.color_999),
+            style: TextStyle(color: DemoDefine.color_999),
           ),
           trailing: Icon(
             Icons.chevron_right,
-            color: TestDefine.color_999,
+            color: DemoDefine.color_999,
           ),
         ),
       ),
@@ -156,9 +148,9 @@ class _TreePageState extends State<TreePage> {
             // ignore: missing_return
             builder: (context) {
               if (i == 0) {
-                return TestTXLivePlayer();
+                return DemoTXLivePlayer();
               }else if (i == 1) {
-                return TestTXVodPlayer();
+                return DemoTXVodPlayer();
               }
             }
           ),
