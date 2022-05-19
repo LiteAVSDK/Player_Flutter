@@ -5,6 +5,8 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_super_player/super_player.dart';
 
 import 'ui/demo_inputdialog.dart';
+import 'ui/demo_volume_slider.dart';
+import 'ui/demo_video_slider_view.dart';
 
 class DemoTXLivePlayer extends StatefulWidget {
   @override
@@ -16,8 +18,14 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   TXLivePlayerController _controller;
   double _aspectRatio = 0;
   double _progress = 0.0;
-  String _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
+  int _volume = 100;
+  bool _isMute = false;
+  String _url =
+      "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
   bool _isStop = true;
+  double _maxLiveProgressTime = 0;
+
+  GlobalKey<VideoSliderState> progressSliderKey = GlobalKey();
 
   Future<void> init() async {
     if (!mounted) return;
@@ -27,6 +35,9 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     _controller.onPlayerEventBroadcast.listen((event) {//订阅事件分发
       if(event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
+        _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
+        progressSliderKey.currentState.updatePorgess(1, _maxLiveProgressTime);
+
       }else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN || event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {//首帧出现
         _isStop = false;
         EasyLoading.dismiss();
@@ -54,7 +65,6 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     _controller.onPlayerState.listen((event) {//订阅状态变化
       debugPrint("播放状态 ${event.name}");
     });
-
 
     await SuperPlayerPlugin.setConsoleEnabled(true);
     await _controller.initialize();
@@ -91,150 +101,175 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage("images/ic_new_vod_bg.png"),
-              fit: BoxFit.cover,
-            )
-        ),
-        child: Scaffold(
+      decoration: BoxDecoration(
+          image: DecorationImage(
+        image: AssetImage("images/ic_new_vod_bg.png"),
+        fit: BoxFit.cover,
+      )),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            title: const Text('直播'),
-          ),
-          body:SafeArea(
-            child: Column(
-              children: [
-                Container(
-                  height: 150,
-                  color: Colors.black,
-                  child: Center(
-                    child: _aspectRatio>0?AspectRatio(
-                      aspectRatio: _aspectRatio,
-                      child: TXPlayerVideo(controller: _controller),
-                    ):Container(),
-                  ),
-                ),
-                Expanded(
-                    child: GridView.count(
-                      crossAxisSpacing: 10.0,
-                      mainAxisSpacing: 30.0,
-                      padding: EdgeInsets.all(10.0),
-                      crossAxisCount: 3,
-                      childAspectRatio: 2,
-                      children: [
-                        new GestureDetector(
-                          onTap: () async {
-                            if (_isStop) {
-                              EasyLoading.showError('已经停止播放, 请重新播放');
-                              return;
-                            }
-                            _controller.resume();
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            alignment: Alignment.center,
-                            child: Text(
-                              "继续播放",
-                              style: TextStyle(fontSize: 18, color: Colors.blue),
-                            ),
-                          ),
-                        ),
-                        new GestureDetector(
-                          onTap: () async {
-                            if (_isStop) {
-                              EasyLoading.showError('已经停止播放, 请重新播放');
-                              return;
-                            }
-                            _controller.pause();
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            alignment: Alignment.center,
-                            child: Text(
-                              "暂停播放",
-                              style: TextStyle(fontSize: 18, color: Colors.blue),
-                            ),
-                          ),
-                        ),
-                        new GestureDetector(
-                          onTap: () async {
-                            _isStop = true;
-                            _controller.stop();
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            alignment: Alignment.center,
-                            child: Text(
-                              "停止播放",
-                              style: TextStyle(fontSize: 18, color: Colors.blue),
-                            ),
-                          ),
-                        ),
-                        new GestureDetector(
-                          onTap: () async {
-                            _controller.play(_url, playType: TXPlayType.LIVE_FLV);
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            alignment: Alignment.center,
-                            child: Text(
-                              "重新播放",
-                              style: TextStyle(fontSize: 18, color: Colors.blue),
-                            ),
-                          ),
-                        ),
-                        new GestureDetector(
-                          onTap: () async {
-                            if (_isStop) {
-                              EasyLoading.showError('已经停止播放，请重新播放');
-                              return;
-                            }
-
-                            if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv") {
-                              _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
-                              _controller.switchStream(_url);
-                            }else {
-                              _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv";
-                              _controller.switchStream(_url);
-                            }
-
-                            EasyLoading.show(status: 'loading...');
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            alignment: Alignment.center,
-                            child: Text(
-                              "清晰度切换",
-                              style: TextStyle(fontSize: 18, color:Colors.blue),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                ),
-                Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          height: 100,
-                          child: IconButton(
-                              icon: new Image.asset(
-                                  'images/addp.png'
-                              ),
-                              onPressed: () => {
-                                onPressed()
-                              }),
+          title: const Text('直播'),
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 250,
+                color: Colors.black,
+                child: Center(
+                  child: _aspectRatio > 0
+                      ? AspectRatio(
+                          aspectRatio: _aspectRatio,
+                          child: TXPlayerVideo(controller: _controller),
                         )
-                      ],
-                    )
+                      : Container(),
                 ),
-              ],
-            ),
+              ),
+              VideoSliderView(_controller, progressSliderKey),
+              Expanded(
+                  child: GridView.count(
+                crossAxisSpacing: 10.0,
+                mainAxisSpacing: 30.0,
+                padding: EdgeInsets.all(10.0),
+                crossAxisCount: 3,
+                childAspectRatio: 2,
+                children: [
+                  new GestureDetector(
+                    onTap: () async {
+                      if (_isStop) {
+                        EasyLoading.showError('已经停止播放, 请重新播放');
+                        return;
+                      }
+                      _controller.resume();
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "继续播放",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                  new GestureDetector(
+                    onTap: () async {
+                      if (_isStop) {
+                        EasyLoading.showError('已经停止播放, 请重新播放');
+                        return;
+                      }
+                      _controller.pause();
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "暂停播放",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                  new GestureDetector(
+                    onTap: () async {
+                      _isStop = true;
+                      _controller.stop();
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "停止播放",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                  new GestureDetector(
+                    onTap: () async {
+                      _controller.play(_url, playType: TXPlayType.LIVE_FLV);
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "重新播放",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                  new GestureDetector(
+                    onTap: () async {
+                      if (_isStop) {
+                        EasyLoading.showError('已经停止播放，请重新播放');
+                        return;
+                      }
+
+                      if (_url ==
+                          "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv") {
+                        _url =
+                            "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
+                        _controller.switchStream(_url);
+                      } else {
+                        _url =
+                            "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv";
+                        _controller.switchStream(_url);
+                      }
+
+                      EasyLoading.show(status: 'loading...');
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "清晰度切换",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                  new GestureDetector(
+                    onTap: () async {
+                      _controller.setMute(!_isMute);
+                      _isMute = !_isMute;
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "设置静音",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                  new GestureDetector(
+                      onTap: () {
+                        onClickVolume();
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Text(
+                          "调整音量",
+                          style: TextStyle(fontSize: 18, color: Colors.blue),
+                        ),
+                      ),
+                    ),
+                ],
+              )),
+              Expanded(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    height: 100,
+                    child: IconButton(
+                        icon: new Image.asset('images/addp.png'),
+                        onPressed: () => {onPressed()}),
+                  )
+                ],
+              )),
+            ],
           ),
         ),
+      ),
     );
   }
 
@@ -247,14 +282,28 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   }
 
   void onPressed() {
-    showDialog(context: context, builder: (context) {
-      return DemoInputDialog("", 0, "", (String url, int appId, String fileId) {
-        _url = url;
-        _controller.stop();
-        if (url.isNotEmpty) {
-          _controller.play(url);
-        }
-      }, showFileEdited:false);
-    });
+    showDialog(
+        context: context,
+        builder: (context) {
+          return DemoInputDialog("", 0, "",
+              (String url, int appId, String fileId) {
+            _url = url;
+            _controller.stop();
+            if (url.isNotEmpty) {
+              _controller.play(url);
+            }
+          }, showFileEdited: false);
+        });
+  }
+
+  void onClickVolume() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return DemoVolumeSlider(_volume, (int result) {
+            _volume = result;
+            _controller.setVolume(_volume);
+          });
+        });
   }
 }

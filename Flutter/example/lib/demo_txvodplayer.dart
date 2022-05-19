@@ -6,6 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'ui/demo_volume_slider.dart';
 import 'ui/demo_speed_slider.dart';
 import 'ui/demo_bitrate_checkbox.dart';
+import 'ui/demo_video_slider_view.dart';
 
 class DemoTXVodPlayer extends StatefulWidget {
   @override
@@ -119,7 +120,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
           child: Column(
             children: [
               Container(
-                height: 150,
+                height: 220,
                 color: Colors.black,
                 child: Center(
                   child: _aspectRatio > 0
@@ -419,69 +420,4 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
           });
         });
   }
-}
-
-class VideoSliderView extends StatefulWidget {
-
-  final TXVodPlayerController _controller;
-
-  VideoSliderView(this._controller,Key key):super(key: key);
-
-  @override
-  State<StatefulWidget> createState() {
-    return VideoSliderState();
-  }
-}
-
-class VideoSliderState extends State<VideoSliderView> {
-
-  double _currentProgress = 0.0;
-  double _videoDuration = 0.0;
-
-  bool isSliding = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Theme(
-        data: ThemeData(
-            sliderTheme: SliderThemeData(
-              trackHeight: 2,
-              thumbColor: Color(0xFFFF4640),
-              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 4),
-              overlayColor: Colors.white,
-              overlayShape: RoundSliderOverlayShape(overlayRadius: 10),
-              activeTrackColor: Color(0xFFFF4640),
-              inactiveTrackColor: Color(0xFFBBBBBB),
-            )),
-        child: Slider(
-          min: 0,
-          max: 1,
-          value: _currentProgress,
-          onChanged: (double value) {
-            isSliding = true;
-            setState(() {
-              _currentProgress = value;
-            });
-          },
-          onChangeEnd: (double value) {
-            setState(() {
-              isSliding = false;
-              _currentProgress = value;
-              widget._controller.seek(_currentProgress * _videoDuration);
-              print("_currentProgress:$_currentProgress,_videoDuration:"
-                  "$_videoDuration,currentDuration:${_currentProgress * _videoDuration}");
-            });
-          },
-        ));
-  }
-
-  void updatePorgess(double progress,double totalDuration) {
-    if(!isSliding) {
-      setState(() {
-        _currentProgress = progress;
-        _videoDuration = totalDuration;
-      });
-    }
-  }
-
 }

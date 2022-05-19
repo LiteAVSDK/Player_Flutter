@@ -156,13 +156,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             setMute(mute);
             result.success(null);
         }else if (call.method.equals("seek")) {
-            double progress = call.argument("progress");
-            seek((float) progress);
-            result.success(null);
+            result.notImplemented();
         }else if (call.method.equals("setRate")) {
-            double rate = call.argument("rate");
-            setRate((float) rate);
-            result.success(null);
+            result.notImplemented();
         }else if(call.method.equals("setVolume")) {
             Integer volume = call.argument("volume");
             setVolume(volume);
@@ -184,11 +180,11 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             setAppID(appId);
             result.success(null);
         }else if(call.method.equals("prepareLiveSeek")) {
-            String domain = call.argument("domain");
-            int bizId = call.argument("bizId");
-            int r = prepareLiveSeek(domain, bizId);
+            result.notImplemented();
+        }else if(call.method.equals("resumeLive")) {
+            int r = resumeLive();
             result.success(r);
-        } else {
+        }else {
             result.notImplemented();
         }
     }
@@ -332,6 +328,20 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         }
         
         return Uninitialized;
+    }
+
+    private int resumeLive() {
+        if (mLivePlayer != null) {
+            return mLivePlayer.resumeLive;
+        }
+
+        return Uninitialized;
+    }
+
+    private void setRenderMode(int renderMode) {
+        if (mLivePlayer != null) {
+            mLivePlayer.setRenderMode(renderMode);
+        }
     }
 
     private Map<String, Object> getParams(int event, Bundle bundle) {

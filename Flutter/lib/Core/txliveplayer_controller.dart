@@ -230,19 +230,37 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _channel.invokeMethod("seek", {"progress": progress});
   }
 
+  /// 设置appId
   Future<void> setAppID(int appId) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("seek", {"appId": appId});
   }
 
-  /// 时移
+  /// 时移 暂不支持
+  @deprecated
   Future<void> prepareLiveSeek(String domain, int bizId) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("prepareLiveSeek", {"domain":domain, "bizId":bizId});
   }
 
+  /// 停止时移播放，返回直播
+  Future<int> resumeLive() async {
+    if(_isNeedDisposed) return 0;
+    await _initPlayer.future;
+    return await _channel.invokeMethod("resumeLive");
+  }
+
+  /// 设置播放速率,暂不支持
+  @deprecated
+  Future<void> setRate(double rate) async {
+    if(_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _channel.invokeMethod("setRate", {"rate":rate});
+  }
+
+  /// 释放播放器资源占用
   Future<void> _release() async {
     await _initPlayer.future;
     // await _channel.invokeMethod("destory");
