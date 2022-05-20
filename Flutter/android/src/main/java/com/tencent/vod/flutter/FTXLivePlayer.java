@@ -332,7 +332,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     private int resumeLive() {
         if (mLivePlayer != null) {
-            return mLivePlayer.resumeLive;
+            return mLivePlayer.resumeLive();
         }
 
         return Uninitialized;
