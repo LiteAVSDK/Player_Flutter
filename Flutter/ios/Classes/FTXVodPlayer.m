@@ -7,6 +7,7 @@
 
 #import "FTXVodPlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
+#import "FTXTransformation.h"
 #import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
@@ -17,7 +18,9 @@ static const int uninitialized = -1;
 @interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate>
 
 @end
-
+/**
+ 点播TXVodPlayer处理类
+ */
 @implementation FTXVodPlayer {
     TXVodPlayer *_txVodPlayer;
     FTXPlayerEventSinkQueue *_eventSink;
@@ -112,9 +115,6 @@ static const int uninitialized = -1;
         }
         
         if (_txVodPlayer != nil) {
-//            TXVodPlayConfig* config = [TXVodPlayConfig new];
-//            [config setPlayerPixelFormatType:kCVPixelFormatType_32BGRA];
-//            [_txVodPlayer setConfig:config];
             [_txVodPlayer setVideoProcessDelegate:self];
             _txVodPlayer.enableHWAcceleration = YES;
         }
@@ -322,7 +322,6 @@ static const int uninitialized = -1;
         [self setMute:mute];
         result(nil);
     }else if([@"setLiveMode" isEqualToString:call.method]){
-        
         result(nil);
     }else if([@"setLoop" isEqualToString:call.method]){
         BOOL loop = [args[@"loop"] boolValue];
@@ -344,8 +343,8 @@ static const int uninitialized = -1;
         [self setBitrateIndex:index];
         result(nil);
     }else if([@"setStartTime" isEqualToString:call.method]) {
-        float startTime = [args[@"startTime"] floatValue];
-        [self setStartTime:startTime];
+//        float startTime = [args[@"startTime"] floatValue];
+//        [self setStartTime:startTime];
         result(nil);
     }else if([@"setAudioPlayoutVolume" isEqualToString:call.method]) {
         int volume = [args[@"volume"] intValue];
@@ -355,11 +354,71 @@ static const int uninitialized = -1;
         int rotation = [args[@"rotation"] intValue];
         [self setRenderRotation:rotation];
         result(nil);
-    }else if([@"setMirror" isEqualToString:call.method]){
+    }
+    else if([@"setMirror" isEqualToString:call.method]){
         BOOL isMirror = [args[@"isMirror"] boolValue];
         [self setMirror:isMirror];
         result(nil);
-    }else {
+    }
+    else if([@"setConfig" isEqualToString:call.method]){
+        [self setPlayConfig:args];
+        result(nil);
+    }
+    else if([@"getCurrentPlaybackTime" isEqualToString:call.method]){
+        float time = [self getCurrentPlaybackTime];
+        result(@(time));
+    }
+    else if([@"getBufferDuration" isEqualToString:call.method]){
+        result(FlutterMethodNotImplemented);
+    }
+    else if([@"getWidth" isEqualToString:call.method]){
+        int width = [self getWidth];
+        result(@(width));
+    }
+    else if([@"getHeight" isEqualToString:call.method]){
+        int height = [self getHeight];
+        result(@(height));
+    }
+    else if([@"setToken" isEqualToString:call.method]){
+        NSString *token = args[@"token"];
+        [self setToken:token];
+        result(nil);
+    }
+    else if([@"isLoop" isEqualToString:call.method]){
+        BOOL r = [self isLoop];
+        result(@(r));
+    }
+    else if([@"enableHardwareDecode" isEqualToString:call.method]){
+        BOOL enable = [args[@"enable"] boolValue];
+        BOOL r = [self enableHardwareDecode:enable];
+        result(@(r));
+    }
+    else if([@"snapshot" isEqualToString:call.method]){
+        [self snapShot:^(UIImage *image) {
+            if(image != nil) {
+                NSData *data = UIImagePNGRepresentation(image);
+                result(data);
+            } else {
+                result(nil);
+            }
+        }];
+    }
+    else if([@"setRequestAudioFocus" isEqualToString:call.method]){
+        result(FlutterMethodNotImplemented);
+    }
+    else if([@"getBitrateIndex" isEqualToString:call.method]){
+        long index = [self getBitrateIndex];
+        result(@(index));
+    }
+    else if([@"getPlayableDuration" isEqualToString:call.method]){
+        float time = [self getCurrentPlaybackTime];
+        result(@(time));
+    }
+    else if([@"getDuration" isEqualToString:call.method]){
+        float time = [self getDuration];
+        result(@(time));
+    }
+    else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -410,8 +469,6 @@ static const int uninitialized = -1;
                                              (void **)&_latestPixelBuffer)) {
         pixelBuffer = _latestPixelBuffer;
     }
-    
-    //CVPixelBufferRef pixelBuffer2 = [_glRender copyPixelBuffer];
     return pixelBuffer;
 }
 
@@ -469,6 +526,99 @@ static const int uninitialized = -1;
     }
     
     return NO;
+}
+
+- (void)setPlayConfig:(NSDictionary *)args
+{
+    if (_txVodPlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
+        _txVodPlayer.config = [FTXTransformation transformToConfig:args];
+    }
+}
+
+- (float)getCurrentPlaybackTime
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.currentPlaybackTime;
+    }
+    return 0;
+}
+
+- (float)getDuration
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.duration;
+    }
+    return 0;
+}
+
+- (float)getPlayableDuration
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.playableDuration;
+    }
+    return 0;
+}
+
+- (int)getWidth
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.width;
+    }
+    return 0;
+}
+
+- (int)getHeight
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.height;
+    }
+    return 0;
+}
+
+- (void)setToken:(NSString *)token
+{
+    if(_txVodPlayer != nil) {
+        _txVodPlayer.token = token;
+    }
+}
+
+- (BOOL)isLoop
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.loop;
+    }
+    return false;
+}
+
+- (BOOL)enableHardwareDecode:(BOOL)enable
+{
+    if(_txVodPlayer != nil) {
+        _txVodPlayer.enableHWAcceleration = enable;
+        return true;
+    }
+    return false;
+}
+
+- (void)snapShot:(void (^)(UIImage *))listener
+{
+    if(_txVodPlayer != nil) {
+        [_txVodPlayer snapshot:listener];
+    }
+}
+
+- (void)setRenderMode:(int)renderMode
+{
+    if(_txVodPlayer != nil) {
+        [_txVodPlayer setRenderMode:renderMode];
+    }
+}
+
+- (long)getBitrateIndex
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.bitrateIndex;
+    }
+    return -1;
 }
 
 @end

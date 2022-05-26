@@ -1,7 +1,7 @@
 #import "SuperPlayerPlugin.h"
-#import "SuperPlatformPlayerViewFactory.h"
 #import "FTXLivePlayer.h"
 #import "FTXVodPlayer.h"
+#import "FTXTransformation.h"
 #import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
 
 @interface SuperPlayerPlugin ()
@@ -14,11 +14,10 @@
 @implementation SuperPlayerPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
-      methodChannelWithName:@"super_player"
+      methodChannelWithName:@"flutter_super_player"
             binaryMessenger:[registrar messenger]];
   SuperPlayerPlugin* instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
   [registrar addMethodCallDelegate:instance channel:channel];
-  [registrar registerViewFactory:[[SuperPlatformPlayerViewFactory alloc] initWithRegistrar:registrar] withId:@"super_player_view"];
 }
 
 - (instancetype)initWithRegistrar:
@@ -58,7 +57,23 @@
       BOOL enabled = [args[@"enabled"] boolValue];
       [TXLiveBase setConsoleEnabled:enabled];
       result(nil);
-  }else {
+  }else if([@"setGlobalMaxCacheSize" isEqualToString:call.method]){
+      NSDictionary *args = call.arguments;
+      int size = [args[@"size"] intValue];
+      [FTXTransformation setMaxCacheItemSize:size];
+      result(nil);
+  }else if([@"setGlobalCacheFolderPath" isEqualToString:call.method]){
+      NSDictionary *args = call.arguments;
+      NSString* path = args[@"path"];
+      [FTXTransformation setCacheFolder:path];
+      result(nil);
+  }else if([@"setGlobalLicense" isEqualToString:call.method]) {
+      NSDictionary *args = call.arguments;
+      NSString *licenceUrl = args[@"licenceUrl"];
+      NSString *licenceKey = args[@"licenceKey"];
+      [TXLiveBase setLicenceURL:licenceUrl key:licenceKey];
+  }
+  else {
     result(FlutterMethodNotImplemented);
   }
 }

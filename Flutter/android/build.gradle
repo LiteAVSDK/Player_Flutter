@@ -1,5 +1,6 @@
-group 'com.example.super_player'
-version '1.0'
+group 'com.tencent.vod.flutter'
+apply from:'config.gradle'
+version '1.0.1'
 
 buildscript {
     repositories {
@@ -21,21 +22,46 @@ rootProject.allprojects {
 
 apply plugin: 'com.android.library'
 
+
 android {
+    //获取local.properties配置文件
+    def localProperties = new Properties()
+    def localPropertiesFile = rootProject.file('local.properties')
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.withReader('UTF-8') { reader ->
+            localProperties.load(reader)
+        }
+    }
+    //获取flutter的sdk路径
+    def flutterRoot = localProperties.getProperty('flutter.sdk')
+    if (flutterRoot == null) {
+        throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+    }
+
+
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
     }
 
-    // lines skipped
     dependencies {
-        provided rootProject.findProject(":superplayerkit")
+        compileOnly 'androidx.annotation:annotation:1.2.0'
+        //此处仅处理因插件项目内报红显示的处理方式
+        compileOnly files("$flutterRoot/bin/cache/artifacts/engine/android-arm/flutter.jar")
     }
+}
 
+/**
+ * 判断客户是否有自定义liteavSdk版本，如果未定义则默认使用config.gradle配置的最新版本。
+ * 这里判断，不为null、不为空字符串
+ */
+def liteavSdk = rootProject.ext.liteavSdk
+if(rootProject.ext.liteavSdkCustom) {
+    liteavSdk = rootProject.ext.liteavSdkCustom
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(path: ':superplayerkit')
+    implementation liteavSdk
 }

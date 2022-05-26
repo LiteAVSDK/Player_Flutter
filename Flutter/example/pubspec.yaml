@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  auto_orientation: ^2.0.0
+  auto_orientation: ^2.2.1
 
   flutter_easyloading: ^3.0.0
 
@@ -35,7 +35,7 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# The following section is specific to Flutter.
+# The following section is specific to Fluttfler.
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -43,6 +43,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - images/superplayer_ic_vod_pause_normal.png
+    - images/superplayer_ic_vod_play_normal.png
+    - images/superplayer_bottom_shadow.png
+    - images/superplayer_ic_vod_fullscreen.png
+    - images/superplayer_top_shadow.png
+    - images/superplayer_btn_back_play.png
     - images/ic_new_vod_bg.png
     - images/addp.png
   # To add assets to your application, add an assets section, like this:

@@ -1,6 +1,6 @@
 name: super_player
 description: player plugin.
-version: 0.0.1
+version: 1.0.1
 author:
 homepage:
 
@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  auto_orientation: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -28,7 +30,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.super_player
+        package: com.tencent.vod.flutter
         pluginClass: SuperPlayerPlugin
       ios:
         pluginClass: SuperPlayerPlugin

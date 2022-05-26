@@ -60,25 +60,25 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     final Map<dynamic, dynamic> map = event;
     //debugPrint("= event = ${map.toString()}");
     switch(map["event"]){
-      case 2002:
+      case TXVodPlayEvent.PLAY_EVT_RTMP_STREAM_BEGIN:
         break;
-      case 2003:
+      case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
         if(_isNeedDisposed) return;
         if(_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
         break;
-      case 2004:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
         if(_isNeedDisposed) return;
         if(_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
         break;
-      case 2005://EVT_PLAY_PROGRESS
+      case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS://EVT_PLAY_PROGRESS
         break;
-      case 2006:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_END:
         _changeState(TXPlayerState.stopped);
         break;
-      case 2007:
+      case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
         _changeState(TXPlayerState.buffering);
         break;
-      case 2009://下行视频分辨率改变
+      case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION://下行视频分辨率改变
         if (defaultTargetPlatform == TargetPlatform.android) {
           resizeVideoWidth = (event["videoWidth"]).toDouble();
           resizeVideoHeight = (event["videoHeight"]).toDouble();
@@ -90,20 +90,20 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
           }
         }
         break;
-      case 2015://直播，切流成功（切流可以播放不同画面大小的视频）
+      case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC://直播，切流成功（切流可以播放不同画面大小的视频）
         break;
-      case -2301://disconnect
+      case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT://disconnect
         _changeState(TXPlayerState.failed);
         break;
-      case 2103://reconnect
+      case TXVodPlayEvent.PLAY_WARNING_RECONNECT://reconnect
         break;
-      case 3001://dnsFail
+      case TXVodPlayEvent.PLAY_WARNING_DNS_FAIL://dnsFail
         break;
-      case 3002://severConnFail
+      case TXVodPlayEvent.PLAY_WARNING_SEVER_CONN_FAIL://severConnFail
         break;
-      case 3003://shakeFail
+      case TXVodPlayEvent.PLAY_WARNING_SHAKE_FAIL://shakeFail
         break;
-      case -2307://failed
+      case TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL://failed
         _changeState(TXPlayerState.failed);
         break;
       default:
@@ -142,6 +142,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return result == 0;
   }
 
+  /// 播放器初始化，创建共享纹理、初始化播放器
+  /// @param onlyAudio 是否是纯音频模式
   Future<void> initialize({bool? onlyAudio}) async{
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -152,12 +154,15 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _state = TXPlayerState.paused;
   }
 
+  /// 设置是否自动播放
   Future<void> setIsAutoPlay({bool? isAutoPlay}) async{
     if(_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay" ?? false});
+    await _channel.invokeMethod("setIsAutoPlay",  {"isAutoPlay": isAutoPlay ?? false});
   }
 
+  /// 停止播放
+  /// return 是否停止成功
   Future<bool> stop({bool isNeedClear = true}) async {
     if(_isNeedDisposed) return false;
     await _initPlayer.future;
@@ -167,11 +172,13 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return result == 0;
   }
 
+  /// 视频是否处于正在播放中
   Future<bool?> isPlaying() async {
     await _initPlayer.future;
     return await _channel.invokeMethod("isPlaying");
   }
 
+  /// 视频暂停，必须在播放器开始播放的时候调用
   Future<void> pause() async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -179,6 +186,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if(_state != TXPlayerState.paused) _changeState(TXPlayerState.paused);
   }
 
+  /// 继续播放，在暂停的时候调用
   Future<void> resume() async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
@@ -186,54 +194,73 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if(_state != TXPlayerState.playing) _changeState(TXPlayerState.playing);
   }
 
+  /// 设置直播模式，see TXPlayerLiveMode
   Future<void> setLiveMode(TXPlayerLiveMode mode) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setLiveMode", {"type": mode.index});
   }
 
+  /// 设置视频声音 0~100
   Future<void> setVolume(int volume) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setVolume", {"volume": volume});
   }
 
+  /// 设置是否静音
   Future<void> setMute(bool mute) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setMute", {"mute": mute});
   }
 
-  Future<void> setRenderRotation(int rotation) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _channel.invokeMethod("setRenderRotation", {"rotation": rotation});
-  }
-
+  /// 切换播放流
   Future<void> switchStream(String url) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("switchStream", {"url": url});
   }
 
+  /// 将视频播放进度定位到指定的进度进行播放
+  /// progress 要定位的视频时间，单位 秒
   Future<void> seek(double progress) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("seek", {"progress": progress});
   }
 
+  /// 设置appId
   Future<void> setAppID(int appId) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("seek", {"appId": appId});
   }
 
+  /// 时移 暂不支持
+  @deprecated
   Future<void> prepareLiveSeek(String domain, int bizId) async {
     if(_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("prepareLiveSeek", {"domain":domain, "bizId":bizId});
   }
 
+  /// 停止时移播放，返回直播
+  Future<int> resumeLive() async {
+    if(_isNeedDisposed) return 0;
+    await _initPlayer.future;
+    return await _channel.invokeMethod("resumeLive");
+  }
+
+  /// 设置播放速率,暂不支持
+  @deprecated
+  Future<void> setRate(double rate) async {
+    if(_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _channel.invokeMethod("setRate", {"rate":rate});
+  }
+
+  /// 释放播放器资源占用
   Future<void> _release() async {
     await _initPlayer.future;
     // await _channel.invokeMethod("destory");

@@ -14,7 +14,7 @@ packages:
       name: auto_orientation
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -148,7 +148,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "1.0.1"
   term_glyph:
     dependency: transitive
     description:
