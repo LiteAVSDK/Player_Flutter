@@ -42,7 +42,7 @@ class FTXVodPlayConfig {
   // 是否允许加载后渲染后处理服务,默认开启，开启后超分插件如果存在，默认加载
   bool enableRenderProcess = true;
   // 优先播放的分辨率，preferredResolution = width * height
-  int preferredResolution = -1;
+  int preferredResolution =  720 * 1280;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
@@ -64,7 +64,7 @@ class FTXVodPlayConfig {
     json["overlayIv"] = overlayIv;
     json["extInfoMap"] = extInfoMap;
     json["enableRenderProcess"] = enableRenderProcess;
-    json["preferredResolution"] = preferredResolution;
+    json["preferredResolution"] = preferredResolution.toString();
     return json;
   }
 }

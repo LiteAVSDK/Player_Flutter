@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/demo_txLiveplayer.dart';
 import 'package:super_player_example/demo_txvodplayer.dart';
 
@@ -40,6 +41,7 @@ class _TreePageState extends State<TreePage> {
       TreeData([
         TreeDatachild("直播播放"),
         TreeDatachild("点播播放"),
+        TreeDatachild("超级播放器"),
       ], "播放器", false),
     ];
 
@@ -102,7 +104,7 @@ class _TreePageState extends State<TreePage> {
                 },
                 //展开内容
                 body: Container(
-                  height: 150,
+                  height: 200,
                   padding: EdgeInsets.symmetric(horizontal: 5.0),
                   child: ListView.builder(
                     itemCount: treeData.children.length,
@@ -151,6 +153,8 @@ class _TreePageState extends State<TreePage> {
                 return DemoTXLivePlayer();
               }else if (i == 1) {
                 return DemoTXVodPlayer();
+              } else if(i == 2) {
+                return DemoSuperplayer();
               }
             }
           ),

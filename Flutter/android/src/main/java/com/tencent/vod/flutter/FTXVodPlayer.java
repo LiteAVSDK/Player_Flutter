@@ -265,6 +265,12 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         } else if (call.method.equals("getPlayableDuration")) {
             float time = getPlayableDuration();
             result.success(time);
+        } else if (call.method.equals("getDuration")) {
+            float duration = 0;
+            if(null != mVodPlayer) {
+                duration = mVodPlayer.getDuration();
+            }
+            result.success(duration);
         } else {
             result.notImplemented();
         }
@@ -287,7 +293,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
             if (mVodPlayer != null) {
                 mVodPlayer.setSurface(mSurface);
-                mVodPlayer.enableHardwareDecode(false);
+                mVodPlayer.enableHardwareDecode(true);
             }
         }
     }

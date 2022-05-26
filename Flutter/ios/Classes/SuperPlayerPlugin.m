@@ -67,7 +67,13 @@
       NSString* path = args[@"path"];
       [FTXTransformation setCacheFolder:path];
       result(nil);
-  }else {
+  }else if([@"setGlobalLicense" isEqualToString:call.method]) {
+      NSDictionary *args = call.arguments;
+      NSString *licenceUrl = args[@"licenceUrl"];
+      NSString *licenceKey = args[@"licenceKey"];
+      [TXLiveBase setLicenceURL:licenceUrl key:licenceKey];
+  }
+  else {
     result(FlutterMethodNotImplemented);
   }
 }

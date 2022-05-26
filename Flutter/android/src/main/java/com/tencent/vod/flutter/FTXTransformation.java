@@ -109,8 +109,9 @@ public class FTXTransformation {
             playConfig.mEnableRenderProcess = enableRenderProcess;
         }
 
-        Long preferredResolution = (Long) config.get("preferredResolution");
-        if (null != preferredResolution) {
+        String preferredResolutionStr = (String) config.get("preferredResolution");
+        if (null != preferredResolutionStr) {
+            long preferredResolution = Long.parseLong(preferredResolutionStr);
             playConfig.setPreferredResolution(preferredResolution);
         }
 

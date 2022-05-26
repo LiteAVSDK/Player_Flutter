@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:flutter_super_player/super_player.dart';
+import 'package:super_player/super_player.dart';
 import 'ui/demo_inputdialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'ui/demo_volume_slider.dart';

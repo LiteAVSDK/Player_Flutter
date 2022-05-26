@@ -1,7 +1,6 @@
 part of SuperPlayer;
 
-class TXVodPlayerController extends ChangeNotifier
-    implements ValueListenable<TXPlayerValue?>, TXPlayerController {
+class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
   int? _playerId = -1;
 
   final Completer<int> _initPlayer;
@@ -16,25 +15,20 @@ class TXVodPlayerController extends ChangeNotifier
   StreamSubscription? _eventSubscription;
   StreamSubscription? _netSubscription;
 
-  final StreamController<TXPlayerState?> _stateStreamController =
-      StreamController.broadcast();
+  final StreamController<TXPlayerState?> _stateStreamController = StreamController.broadcast();
 
-  final StreamController<Map<dynamic, dynamic>> _eventStreamController =
-      StreamController.broadcast();
+  final StreamController<Map<dynamic, dynamic>> _eventStreamController = StreamController.broadcast();
 
-  final StreamController<Map<dynamic, dynamic>> _netStatusStreamController =
-      StreamController.broadcast();
+  final StreamController<Map<dynamic, dynamic>> _netStatusStreamController = StreamController.broadcast();
 
   /// 播放状态监听，@see TXPlayerState
   Stream<TXPlayerState?> get onPlayerState => _stateStreamController.stream;
 
   /// 播放事件监听，see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
-  Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast =>
-      _eventStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
 
   /// 点播播放器网络状态回调，see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
-  Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast =>
-      _netStatusStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _netStatusStreamController.stream;
 
   TXVodPlayerController()
       : _initPlayer = Completer(),
@@ -47,14 +41,12 @@ class TXVodPlayerController extends ChangeNotifier
   Future<void> _create() async {
     _playerId = await SuperPlayerPlugin.createVodPlayer();
     _channel = MethodChannel("cloud.tencent.com/txvodplayer/$_playerId");
-    _eventSubscription =
-        EventChannel("cloud.tencent.com/txvodplayer/event/$_playerId")
-            .receiveBroadcastStream("event")
-            .listen(_eventHandler, onError: _errorHandler);
-    _netSubscription =
-        EventChannel("cloud.tencent.com/txvodplayer/net/$_playerId")
-            .receiveBroadcastStream("net")
-            .listen(_netHandler, onError: _errorHandler);
+    _eventSubscription = EventChannel("cloud.tencent.com/txvodplayer/event/$_playerId")
+        .receiveBroadcastStream("event")
+        .listen(_eventHandler, onError: _errorHandler);
+    _netSubscription = EventChannel("cloud.tencent.com/txvodplayer/net/$_playerId")
+        .receiveBroadcastStream("net")
+        .listen(_netHandler, onError: _errorHandler);
     _initPlayer.complete(_playerId);
   }
 
@@ -70,13 +62,11 @@ class TXVodPlayerController extends ChangeNotifier
         break;
       case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
         if (_isNeedDisposed) return;
-        if (_state == TXPlayerState.buffering)
-          _changeState(TXPlayerState.playing);
+        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
         break;
       case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
         if (_isNeedDisposed) return;
-        if (_state == TXPlayerState.buffering)
-          _changeState(TXPlayerState.playing);
+        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
         break;
       case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS: //播放进度
         break;
@@ -88,13 +78,15 @@ class TXVodPlayerController extends ChangeNotifier
         break;
       case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION: //下行视频分辨率改变
         if (defaultTargetPlatform == TargetPlatform.android) {
-          resizeVideoWidth = (event["videoWidth"]).toDouble();
-          resizeVideoHeight = (event["videoHeight"]).toDouble();
-          if (resizeVideoWidth! > 0 && resizeVideoHeight! > 0) {
-            videoLeft = (event["videoLeft"]).toDouble();
-            videoTop = (event["videoTop"]).toDouble();
-            videoRight = (event["videoRight"]).toDouble();
-            videoBottom = (event["videoBottom"]).toDouble();
+          double? videoWidth = (event["videoWidth"]);
+          double? videoHeight = (event["videoHeight"]);
+          if ((videoWidth != null && videoWidth > 0) && (videoHeight != null && videoHeight > 0)) {
+            resizeVideoWidth = videoWidth;
+            resizeVideoHeight = videoHeight;
+            videoLeft = event["videoLeft"];
+            videoTop = event["videoTop"];
+            videoRight = event["videoRight"];
+            videoBottom = event["videoBottom"];
           }
         }
         break;
@@ -141,7 +133,6 @@ class TXVodPlayerController extends ChangeNotifier
     _stateStreamController.add(_state);
   }
 
-
   /// 通过url开始播放视频
   /// @param url : 视频播放地址
   /// return 是否播放成功
@@ -162,8 +153,7 @@ class TXVodPlayerController extends ChangeNotifier
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
 
-    final result =
-        await _channel.invokeMethod("startPlayWithParams", params.toJson());
+    final result = await _channel.invokeMethod("startPlayWithParams", params.toJson());
     return result == 0;
   }
 
@@ -189,8 +179,7 @@ class TXVodPlayerController extends ChangeNotifier
   Future<void> setIsAutoPlay({bool? isAutoPlay}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel
-        .invokeMethod("setIsAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
+    await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
   }
 
   /// 停止播放
@@ -198,8 +187,7 @@ class TXVodPlayerController extends ChangeNotifier
   Future<bool> stop({bool isNeedClear = true}) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    final result =
-        await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
+    final result = await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
     _changeState(TXPlayerState.stopped);
     return result == 0;
   }
@@ -349,10 +337,10 @@ class TXVodPlayerController extends ChangeNotifier
   }
 
   /// 设置播放视频的token
-  Future<void> setToken(String token) async {
+  Future<void> setToken(String? token) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setToken", {"token": token});
+    await _channel.invokeMethod("setToken", {"token": token ?? ""});
   }
 
   /// 当前播放的视频是否循环播放
@@ -367,6 +355,13 @@ class TXVodPlayerController extends ChangeNotifier
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
     return await _channel.invokeMethod("enableHardwareDecode", {"enable": enable});
+  }
+
+  /// 获取总时长
+  Future<double> getDuration() async {
+    if (_isNeedDisposed) return 0;
+    await _initPlayer.future;
+    return await _channel.invokeMethod("getDuration");
   }
 
   /// 废弃controller
@@ -397,6 +392,14 @@ class TXVodPlayerController extends ChangeNotifier
     if (_value == val) return;
     _value = val;
     notifyListeners();
+  }
+
+  Future<void> _switchScreenIOS(bool toFullScreen) async {
+    if (toFullScreen) {
+      await _channel.invokeMethod("orientationToLandscape");
+    } else {
+      await _channel.invokeMethod("orientationToPortrait");
+    }
   }
 
   double? resizeVideoWidth = 0;

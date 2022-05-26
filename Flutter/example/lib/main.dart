@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_super_player/super_player.dart';
+import 'package:super_player/super_player.dart';
 
 import 'ui/treePage.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 
@@ -23,6 +24,15 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+    initPlayerLicense();
+    LogUtils.logOpen = true;
+  }
+
+  /// set player license
+  Future<void> initPlayerLicense() async{
+    String licenceURL = ""; // 获取到的 licence url
+    String licenceKey = ""; // 获取到的 licence key
+    await SuperPlayerPlugin.setGlobalLicense(licenceURL, licenceKey);
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

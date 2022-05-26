@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_super_player/super_player.dart';
+import 'package:super_player/super_player.dart';
 
 /// 进度条widget
 class VideoSliderView extends StatefulWidget {

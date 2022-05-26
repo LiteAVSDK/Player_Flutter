@@ -11,6 +11,7 @@ class TXPlayerVideo extends StatefulWidget {
 }
 
 class _TXPlayerVideoState extends State<TXPlayerVideo> {
+  static const TAG = "TXPlayerVideo";
   int _textureId = -1;
 
   @override
@@ -19,7 +20,7 @@ class _TXPlayerVideoState extends State<TXPlayerVideo> {
 
     widget.controller.textureId.then((val) {
       setState(() {
-        print("_textureId = $val");
+        LogUtils.d(TAG, "_textureId = $val");
         _textureId = val;
       });
     });

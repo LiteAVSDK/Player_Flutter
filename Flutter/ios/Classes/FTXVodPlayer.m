@@ -343,8 +343,8 @@ static const int uninitialized = -1;
         [self setBitrateIndex:index];
         result(nil);
     }else if([@"setStartTime" isEqualToString:call.method]) {
-        float startTime = [args[@"startTime"] floatValue];
-        [self setStartTime:startTime];
+//        float startTime = [args[@"startTime"] floatValue];
+//        [self setStartTime:startTime];
         result(nil);
     }else if([@"setAudioPlayoutVolume" isEqualToString:call.method]) {
         int volume = [args[@"volume"] intValue];
@@ -412,6 +412,10 @@ static const int uninitialized = -1;
     }
     else if([@"getPlayableDuration" isEqualToString:call.method]){
         float time = [self getCurrentPlaybackTime];
+        result(@(time));
+    }
+    else if([@"getDuration" isEqualToString:call.method]){
+        float time = [self getDuration];
         result(@(time));
     }
     else {
@@ -535,6 +539,14 @@ static const int uninitialized = -1;
 {
     if(_txVodPlayer != nil) {
         return _txVodPlayer.currentPlaybackTime;
+    }
+    return 0;
+}
+
+- (float)getDuration
+{
+    if(_txVodPlayer != nil) {
+        return _txVodPlayer.duration;
     }
     return 0;
 }

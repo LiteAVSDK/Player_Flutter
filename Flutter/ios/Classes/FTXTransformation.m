@@ -31,7 +31,9 @@
     playConfig.firstStartPlayBufferTime = [args[@"config"][@"firstStartPlayBufferTime"] intValue];
     playConfig.nextStartPlayBufferTime = [args[@"config"][@"nextStartPlayBufferTime"] intValue];
     playConfig.enableRenderProcess = [args[@"config"][@"enableRenderProcess"] boolValue];
-    playConfig.preferredResolution = [args[@"config"][@"preferredResolution"] longValue];
+    
+    NSString *preferredResolutionStr = args[@"config"][@"preferredResolution"];
+    playConfig.preferredResolution = [preferredResolutionStr longLongValue];
     
     if(maxCacheItems > 0) {
         playConfig.maxCacheItems = maxCacheItems;
