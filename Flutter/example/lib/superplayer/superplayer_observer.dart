@@ -1,4 +1,4 @@
-part of SuperPlayer;
+part of demo_super_player_lib;
 
 /// superplayer's bridge between widget and controller
 class _SuperPlayerObserver {

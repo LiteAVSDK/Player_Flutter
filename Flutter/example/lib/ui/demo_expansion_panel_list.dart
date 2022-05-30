@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-
 import 'demo_define.dart';
 
 class DemoExpansionPanelList extends StatefulWidget {
@@ -8,13 +7,11 @@ class DemoExpansionPanelList extends StatefulWidget {
 }
 
 class _DemoExpansionPanelListState extends State<DemoExpansionPanelList> {
-  List<int> mList;   //组成一个int类型数组，用来控制索引
-  List<ExpandStateBean> expandStateList;  //开展开的状态列表,ExpandStateBean是自定义的类
+  List<int> mList = [];   //组成一个int类型数组，用来控制索引
+  List<ExpandStateBean> expandStateList = [];  //开展开的状态列表,ExpandStateBean是自定义的类
 
   //构造方法，调用这个类的时候自动执行
   _DemoExpansionPanelListState(){
-    mList=new List();
-    expandStateList=new List();
     //遍历两个List进行赋值
     for(int i=0;i<1;i++){
       mList.add(i);

@@ -8,13 +8,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.8.2"
-  auto_orientation:
-    dependency: "direct main"
-    description:
-      name: auto_orientation
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.2.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -81,15 +74,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.7.0"
-  orientation_ios:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: b197aae166e61df8d8c334351ab2a601b1dd7f0c
-      url: "https://github.com/yangyangFeng/orientation_ios.git"
-    source: git
-    version: "1.0.2"
   path:
     dependency: transitive
     description:

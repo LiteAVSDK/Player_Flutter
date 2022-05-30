@@ -1,4 +1,4 @@
-part of SuperPlayer;
+part of demo_super_player_lib;
 
 final double topBottomOffset = -2;
 
@@ -493,7 +493,9 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      child: SuperPlayerView(widget._playController, viewKey: widget.key),
+      child: Scaffold(
+        body: SuperPlayerView(widget._playController, viewKey: widget.key),
+      ),
       onWillPop: _onFullScreenWillPop,
     );
   }

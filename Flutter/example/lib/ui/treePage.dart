@@ -15,7 +15,7 @@ class TreePage extends StatefulWidget {
 }
 
 class _TreePageState extends State<TreePage> {
-  List<TreeData> _datas = List();
+  List<TreeData> _datas = [];
   ScrollController _scrollController = ScrollController();
   int _panelIndex = 0; //展开下标
   List<IconData> _icons = [
@@ -153,7 +153,7 @@ class _TreePageState extends State<TreePage> {
                 return DemoTXLivePlayer();
               }else if (i == 1) {
                 return DemoTXVodPlayer();
-              } else if(i == 2) {
+              } else {
                 return DemoSuperplayer();
               }
             }

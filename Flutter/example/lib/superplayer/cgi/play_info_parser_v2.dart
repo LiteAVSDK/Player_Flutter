@@ -1,4 +1,4 @@
-part of SuperPlayer;
+part of demo_super_player_lib;
 
 /// v2 request data parser
 class PlayInfoParserV2 implements PlayInfoParser {
@@ -64,19 +64,19 @@ class PlayInfoParserV2 implements PlayInfoParser {
     }
     int version = root['version'];
     if (version == 2) {
-      coverUrl = root['coverInfo']['coverUrl'];
+      coverUrl = root['coverInfo']['coverUrl'] ?? "";
 
       Map<String, dynamic> videInfoRoot = root['videoInfo'];
 
       defaultVideoClassification =
-          root['playerInfo']['defaultVideoClassification'];
+          root['playerInfo']['defaultVideoClassification'] ?? "";
       _parseVideoClassificationList(root['playerInfo']);
 
       imageSpriteInfo = _parseImageSpriteInfo(root['imageSpriteInfo']);
       keyFrameDescInfo = _parseKeyFrameDescInfo(root['keyFrameDescInfo']);
 
-      duration = videInfoRoot['sourceVideo']['duration'];
-      name = videInfoRoot['basicInfo']['name'];
+      duration = videInfoRoot['sourceVideo']['duration'] ?? 0;
+      name = videInfoRoot['basicInfo']['name'] ?? "";
 
       _parseMastPlayInfo(videInfoRoot);
       _parseTranscodeList(videInfoRoot);
@@ -86,7 +86,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
     }
   }
 
-  List<PlayKeyFrameDescInfo>? _parseKeyFrameDescInfo(Map<String,dynamic> keyFrameDescInfo) {
+  List<PlayKeyFrameDescInfo>? _parseKeyFrameDescInfo(dynamic keyFrameDescInfo) {
     if(null != keyFrameDescInfo && keyFrameDescInfo.isNotEmpty) {
       List<dynamic> keyFrameDescList = keyFrameDescInfo['keyFrameDescList'];
       if(keyFrameDescList.isNotEmpty) {
@@ -104,7 +104,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
     return null;
   }
 
-  PlayImageSpriteInfo? _parseImageSpriteInfo(Map<String,dynamic> imageSpriteInfo) {
+  PlayImageSpriteInfo? _parseImageSpriteInfo(dynamic imageSpriteInfo) {
     if(null != imageSpriteInfo && imageSpriteInfo.isNotEmpty) {
       List<dynamic> imageSpriteList = imageSpriteInfo['imageSpriteList'];
       if(imageSpriteList.isNotEmpty) {
@@ -124,17 +124,17 @@ class PlayInfoParserV2 implements PlayInfoParser {
   }
 
   void _parseVideoClassificationList(Map<String, dynamic> playerInfoRoot) {
-    List<dynamic> videoClassificationRoot = playerInfoRoot['videoClassification'];
     List<VideoClassification> classList = [];
-    if(null != videoClassificationRoot) {
+    if(null != playerInfoRoot['videoClassification']) {
+      List<dynamic> videoClassificationRoot = playerInfoRoot['videoClassification'];
       for(Map<String, dynamic> object in videoClassificationRoot) {
         VideoClassification classification = new VideoClassification();
         classification.id =object["id"];
         classification.name = object["name"];
 
         List<int> definitionList = [];
-        List<dynamic> array =  object['definitionList'];
-        if(null != array) {
+        if(null != object['definitionList']) {
+          List<dynamic> array =  object['definitionList'];
           for(int definition in array) {
             definitionList.add(definition);
           }
@@ -148,16 +148,16 @@ class PlayInfoParserV2 implements PlayInfoParser {
 
 
   void _parseMastPlayInfo(Map<String, dynamic> videInfoRoot) {
-    Map<String, dynamic> masterPlayRoot = videInfoRoot['masterPlayList'];
-    if (null != masterPlayRoot) {
+    if (null != videInfoRoot['masterPlayList']) {
+      Map<String, dynamic> masterPlayRoot = videInfoRoot['masterPlayList'];
       masterPlayList = PlayInfoStream();
       masterPlayList?.url = masterPlayRoot['url'];
     }
   }
 
   void _parseTranscodeList(Map<String, dynamic> videInfoRoot) {
-    List<dynamic> transcodeListRoot = videInfoRoot['transcodeList'];
-    if (null != transcodeListRoot) {
+    if (null != videInfoRoot['transcodeList']) {
+      List<dynamic> transcodeListRoot = videInfoRoot['transcodeList'];
       List<PlayInfoStream> streamList = _parseStreamList(transcodeListRoot);
       for(PlayInfoStream stream in streamList) {
         if(videoClassificationList.isNotEmpty) {

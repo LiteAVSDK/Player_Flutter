@@ -1,4 +1,4 @@
-part of SuperPlayer;
+part of demo_super_player_lib;
 
 enum SuperPlayerState {
   INIT,       // 初始状态

@@ -15,7 +15,7 @@ class DemoTXVodPlayer extends StatefulWidget {
 
 class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
     with WidgetsBindingObserver {
-  TXVodPlayerController _controller;
+  late TXVodPlayerController _controller;
   double _aspectRatio = 0;
   double _currentProgress = 0.0;
   bool _isMute = false;
@@ -37,19 +37,19 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
 
     _controller = TXVodPlayerController();
     _controller.onPlayerState.listen((val) {
-      debugPrint("播放状态 ${val.name}");
+      debugPrint("播放状态 ${val?.name}");
     });
 
     _controller.onPlayerEventBroadcast.listen((event) async {
       //订阅状态变化
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN || event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
-        _supportedBitrates = await _controller.getSupportedBitrates();
+        _supportedBitrates = (await _controller.getSupportedBitrates())!;
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
 
-        progressSliderKey.currentState.updatePorgess(_currentProgress/videoDuration, videoDuration);
+        progressSliderKey.currentState?.updatePorgess(_currentProgress/videoDuration, videoDuration);
       }
     });
 
@@ -294,7 +294,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
                     ),
                     new GestureDetector(
                       onTap: () async {
-                        TXPlayerState state = _controller.playState;
+                        TXPlayerState? state = _controller.playState;
                         if (state != TXPlayerState.disposed &&
                             state != TXPlayerState.stopped) {
                           enableHardware = !enableHardware;

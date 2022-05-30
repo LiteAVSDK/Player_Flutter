@@ -578,7 +578,11 @@ static const int uninitialized = -1;
 - (void)setToken:(NSString *)token
 {
     if(_txVodPlayer != nil) {
-        _txVodPlayer.token = token;
+        if(token && token.length > 0) {
+            _txVodPlayer.token = token;
+        } else {
+            _txVodPlayer.token = nil;
+        }
     }
 }
 

@@ -15,7 +15,7 @@ class DemoTXLivePlayer extends StatefulWidget {
 
 class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver{
 
-  TXLivePlayerController _controller;
+  late TXLivePlayerController _controller;
   double _aspectRatio = 0;
   double _progress = 0.0;
   int _volume = 100;
@@ -36,7 +36,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       if(event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
         _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
-        progressSliderKey.currentState.updatePorgess(1, _maxLiveProgressTime);
+        progressSliderKey.currentState?.updatePorgess(1, _maxLiveProgressTime);
 
       }else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN || event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {//首帧出现
         _isStop = false;
@@ -63,7 +63,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     });
 
     _controller.onPlayerState.listen((event) {//订阅状态变化
-      debugPrint("播放状态 ${event.name}");
+      debugPrint("播放状态 ${event!.name}");
     });
 
     await SuperPlayerPlugin.setConsoleEnabled(true);
