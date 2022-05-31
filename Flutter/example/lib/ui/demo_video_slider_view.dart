@@ -49,10 +49,10 @@ class VideoSliderState extends State<VideoSliderView> {
               isSliding = false;
               _currentProgress = value;
               if (widget._controller is TXVodPlayerController) {
-                TXVodPlayerController controller = widget._controller;
+                TXVodPlayerController controller = widget._controller as TXVodPlayerController;
                 controller.seek(_currentProgress * _videoDuration);
               } else if (widget._controller is TXLivePlayerController) {
-                TXLivePlayerController controller = widget._controller;
+                TXLivePlayerController controller = widget._controller as TXLivePlayerController;
                 controller.seek(_currentProgress * _videoDuration);
               }
               

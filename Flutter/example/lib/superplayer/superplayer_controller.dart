@@ -1,5 +1,4 @@
-part of SuperPlayer;
-
+part of demo_super_player_lib;
 /// superplayer play controller
 class SuperPlayerController {
   static const TAG = "SuperPlayerController";
@@ -51,7 +50,7 @@ class SuperPlayerController {
   void _initVodPlayer() async {
     _vodPlayerController = new TXVodPlayerController();
     await _vodPlayerController?.initialize();
-    _vodPlayerController?.onPlayerEventBroadcast.listen((event) async {
+    _vodPlayerController?.onPlayerEventBroadcast?.listen((event) async {
       int eventCode = event['event'];
       switch (eventCode) {
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared

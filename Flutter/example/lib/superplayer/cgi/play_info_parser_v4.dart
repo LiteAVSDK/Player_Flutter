@@ -1,4 +1,4 @@
-part of SuperPlayer;
+part of demo_super_player_lib;
 
 /// v4 request data parser
 class PlayInfoParserV4 implements PlayInfoParser {
@@ -50,52 +50,52 @@ class PlayInfoParserV4 implements PlayInfoParser {
     Map<String, dynamic> media = root['media'];
     mRequestContext = root['context'];
     if (media.isNotEmpty) {
-      Map<String, dynamic> basicInfo = media['basicInfo'];
-      if (null != basicInfo) {
-        name = basicInfo['name'];
-        description = basicInfo['description'];
-        coverUrl = basicInfo['coverUrl'];
-        duration = basicInfo['duration'];
+      if (null != media['basicInfo']) {
+        Map<String, dynamic> basicInfo = media['basicInfo'];
+        name = basicInfo['name'] ?? "";
+        description = basicInfo['description'] ?? "";
+        coverUrl = basicInfo['coverUrl'] ?? "";
+        duration = basicInfo['duration'] ?? "";
       }
       String audioVideoType = media['audioVideoType'];
       if (audioVideoType == 'AdaptiveDynamicStream') {
-        Map<String, dynamic> streamingInfo = media['streamingInfo'];
-        if (null != streamingInfo) {
-          Map<String, dynamic> plainOutputRoot = streamingInfo['plainOutput'];
-          if (null != plainOutputRoot) {
-            _url = plainOutputRoot['url'];
+        if (null != media['streamingInfo']) {
+          Map<String, dynamic> streamingInfo = media['streamingInfo'];
+          if (null != streamingInfo['plainOutput']) {
+            Map<String, dynamic> plainOutputRoot = streamingInfo['plainOutput'];
+            _url = plainOutputRoot['url'] ?? "";
             _parseSubStreams(plainOutputRoot['subStreams']);
           }
-          List<dynamic> drmoutInfo = streamingInfo['drmOutput'];
-          if (null != drmoutInfo) {
+          if (null != streamingInfo['drmOutput']) {
+            List<dynamic> drmoutInfo = streamingInfo['drmOutput'];
             encryptedStreamingInfoList = [];
             for (Map<String, dynamic> drmout in drmoutInfo) {
               EncryptedStreamingInfo info = new EncryptedStreamingInfo();
-              drmType = drmout['type'];
+              drmType = drmout['type'] ?? "";
               info.drmType = drmType;
               info.url = drmout['url'];
               encryptedStreamingInfoList.add(info);
               _parseSubStreams(drmout['subStreams']);
             }
           }
-          token = streamingInfo["drmToken"];
+          token = streamingInfo["drmToken"] ?? "";
         }
       } else if (audioVideoType == 'Transcode') {
         Map<String, dynamic> transcodeInfo = media['transcodeInfo'];
         if (transcodeInfo.isNotEmpty) {
-          _url = transcodeInfo['url'];
+          _url = transcodeInfo['url'] ?? "";
         }
       } else if (audioVideoType == 'Original') {
         Map<String, dynamic> originalInfo = media['originalInfo'];
         if (originalInfo.isNotEmpty) {
-          _url = originalInfo['url'];
+          _url = originalInfo['url'] ?? "";
         }
       }
 
-      Map<String, dynamic> imageSpriteInfoJson = media['imageSpriteInfo'];
-      if (null != imageSpriteInfoJson) {
+      if (null != media['imageSpriteInfo']) {
+        Map<String, dynamic> imageSpriteInfoJson = media['imageSpriteInfo'];
         imageSpriteInfo = PlayImageSpriteInfo();
-        imageSpriteInfo?.webVttUrl = imageSpriteInfoJson['webVttUrl'];
+        imageSpriteInfo?.webVttUrl = imageSpriteInfoJson['webVttUrl'] ?? "";
         List<String> imageUrls = imageSpriteInfoJson['imageUrls'];
         imageSpriteInfo?.imageUrls = imageUrls;
       }
@@ -104,10 +104,11 @@ class PlayInfoParserV4 implements PlayInfoParser {
     }
   }
 
-  _parseSubStreams(List<dynamic> substreams) {
+  _parseSubStreams(dynamic substreams) {
     if (null != substreams) {
+      List<dynamic> substreamList = substreams;
       resolutionNameList = [];
-      for (Map<String, dynamic> substream in substreams) {
+      for (Map<String, dynamic> substream in substreamList) {
         ResolutionName resolutionName = ResolutionName();
         resolutionName.width = substream['width'];
         resolutionName.height = substream['height'];
@@ -119,8 +120,8 @@ class PlayInfoParserV4 implements PlayInfoParser {
   }
 
   _parseKeyFrameDescList(Map<String, dynamic> media) {
-    Map<String, dynamic> keyFrameDescInfoJson = media['keyFrameDescInfo'];
-    if (null != keyFrameDescInfoJson) {
+    if (null != media['keyFrameDescInfo']) {
+      Map<String, dynamic> keyFrameDescInfoJson = media['keyFrameDescInfo'];
       keyFrameDescInfo = [];
       List<Map<String, dynamic>> keyFrameDescList = keyFrameDescInfoJson['keyFrameDescList'];
       for (Map<String, dynamic> keyFrameDesc in keyFrameDescList) {

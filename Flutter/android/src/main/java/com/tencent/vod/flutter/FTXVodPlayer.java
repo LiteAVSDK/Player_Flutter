@@ -503,7 +503,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     void setToken(String token) {
         if (mVodPlayer != null) {
-            mVodPlayer.setToken(token);
+            if(TextUtils.isEmpty(token)) {
+                mVodPlayer.setToken(null);
+            } else {
+                mVodPlayer.setToken(token);
+            }
         }
     }
 

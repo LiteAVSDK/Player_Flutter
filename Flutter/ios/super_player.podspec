@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version          = '1.0.1'
+  s.version          = '1.0.2'
   s.summary          = 'player plugin.'
   s.description      = <<-DESC
 player plugin.
@@ -17,7 +17,7 @@ player plugin.
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'TXLiteAVSDK_Player'
-  s.platform = :ios, '8.0'
+  s.platform = :ios, '9.0'
   s.static_framework = true
 
   # Flutter.framework does not contain a i386 slice.

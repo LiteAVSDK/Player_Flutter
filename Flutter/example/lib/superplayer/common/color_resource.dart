@@ -1,5 +1,4 @@
-part of SuperPlayer;
-
+part of demo_super_player_lib;
 /// colors resource
 class ColorResource {
   static const COLOR_MAIN_THEME = 0xFFFF4C58;

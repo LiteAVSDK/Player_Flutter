@@ -1,4 +1,4 @@
-part of SuperPlayer;
+part of demo_super_player_lib;
 
 class _VideoTitleView extends StatefulWidget {
 

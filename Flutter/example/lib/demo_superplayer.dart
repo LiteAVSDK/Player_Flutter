@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/ui/demo_inputdialog.dart';
+import 'superplayer/demo_superplayer_lib.dart';
 
 /// flutter superplayer demo
 class DemoSuperplayer extends StatefulWidget {
@@ -12,7 +13,7 @@ class DemoSuperplayer extends StatefulWidget {
 class _DemoSuperplayerState extends State<DemoSuperplayer> {
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
-  SuperPlayerController _controller;
+  late SuperPlayerController _controller;
 
   @override
   void initState() {
@@ -78,7 +79,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
 
   Widget _getPlayArea() {
     return Container(
-      height: 230,
+      height: 220,
       child: SuperPlayerView(_controller),
     );
   }
@@ -128,7 +129,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
               model.videoURL = url;
             } else if (appId != 0 && fileId.isNotEmpty) {
               model.videoId = new SuperPlayerVideoId();
-              model.videoId.fileId = fileId;
+              model.videoId!.fileId = fileId;
             } else {
               EasyLoading.showError("请输入播放地址!");
               return;
@@ -151,7 +152,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     SuperPlayerModel model = SuperPlayerModel();
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId.fileId = "8602268011437356984";
+    model.videoId!.fileId = "8602268011437356984";
     model.title = "云点播";
     model.playAction = playAction;
     models.add(model);
@@ -159,35 +160,35 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId.fileId = "5285890781763144364";
+    model.videoId!.fileId = "5285890781763144364";
     model.playAction = playAction;
     models.add(model);
 
     model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId.fileId = "4564972819219071568";
+    model.videoId!.fileId = "4564972819219071568";
     model.playAction = playAction;
     models.add(model);
 
     model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId.fileId = "4564972819219071668";
+    model.videoId!.fileId = "4564972819219071668";
     model.playAction = playAction;
     models.add(model);
 
     model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId.fileId = "4564972819219071679";
+    model.videoId!.fileId = "4564972819219071679";
     model.playAction = playAction;
     models.add(model);
 
     model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId.fileId = "4564972819219081699";
+    model.videoId!.fileId = "4564972819219081699";
     model.playAction = playAction;
     models.add(model);
 
@@ -203,7 +204,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
 
     setState(() {
       if (videoModels.isNotEmpty) {
-        _controller.playWithModel(videoModels[0]);
+        playCurrentModel(videoModels[0]);
       } else {
         EasyLoading.showError("video list request error");
       }

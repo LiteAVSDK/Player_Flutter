@@ -1,6 +1,6 @@
 name: super_player
 description: player plugin.
-version: 1.0.1
+version: 1.0.2
 author:
 homepage:
 
@@ -11,8 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  auto_orientation: ^2.0.0
 
 dev_dependencies:
   flutter_test:

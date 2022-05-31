@@ -9,7 +9,7 @@ class DemoInputDialog extends StatefulWidget {
   int appId = 0;
   String fileId = "";
   DemoInputDialogFinishCallback callback;
-  bool showFileEdited;
+  bool showFileEdited = true;
 
   DemoInputDialog(this.url, this.appId, this.fileId, this.callback, {bool showFileEdited = true}) : super () {this.showFileEdited = showFileEdited;}
 
@@ -18,9 +18,9 @@ class DemoInputDialog extends StatefulWidget {
 }
 
 class _DemoInputDialogState extends State<DemoInputDialog> {
-  TextEditingController _urlController;
-  TextEditingController _appIdController;
-  TextEditingController _fileIdController;
+  late TextEditingController _urlController;
+  late TextEditingController _appIdController;
+  late TextEditingController _fileIdController;
 
   @override
   void initState() {

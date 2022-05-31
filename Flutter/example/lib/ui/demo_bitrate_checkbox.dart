@@ -36,12 +36,12 @@ class _DemoBitrateCheckboxState extends State<DemoBitrateCheckbox> {
                   Text("码率$s", style: TextStyle(color: Colors.white),),
                   Theme(data: ThemeData(
                     unselectedWidgetColor: Colors.white,),
-                    child: Radio(
+                    child: Radio<int> (
                       value: e["index"],
                       groupValue: this.widget.index,
                       onChanged: (value) {
                         setState(() {
-                          this.widget.index = value;
+                          this.widget.index = value!;
                         });
                       },
                     ),
