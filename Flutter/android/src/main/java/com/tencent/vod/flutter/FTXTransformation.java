@@ -106,7 +106,7 @@ public class FTXTransformation {
 
         Boolean enableRenderProcess = (Boolean) config.get("enableRenderProcess");
         if(null != enableRenderProcess) {
-            playConfig.mEnableRenderProcess = enableRenderProcess;
+            playConfig.setEnableRenderProcess(enableRenderProcess);
         }
 
         String preferredResolutionStr = (String) config.get("preferredResolution");
