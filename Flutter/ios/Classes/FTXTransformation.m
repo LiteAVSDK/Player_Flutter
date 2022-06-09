@@ -27,13 +27,13 @@
     playConfig.smoothSwitchBitrate = [args[@"config"][@"smoothSwitchBitrate"] boolValue];
     playConfig.progressInterval = [args[@"config"][@"progressInterval"] intValue];
     playConfig.maxBufferSize = [args[@"config"][@"maxBufferSize"] intValue];
-    playConfig.maxPreloadSize = [args[@"config"][@"maxPreloadSize"] intValue];
+//    playConfig.maxPreloadSize = [args[@"config"][@"maxPreloadSize"] intValue];
     playConfig.firstStartPlayBufferTime = [args[@"config"][@"firstStartPlayBufferTime"] intValue];
     playConfig.nextStartPlayBufferTime = [args[@"config"][@"nextStartPlayBufferTime"] intValue];
-    playConfig.enableRenderProcess = [args[@"config"][@"enableRenderProcess"] boolValue];
+//    playConfig.enableRenderProcess = [args[@"config"][@"enableRenderProcess"] boolValue];
     
-    NSString *preferredResolutionStr = args[@"config"][@"preferredResolution"];
-    playConfig.preferredResolution = [preferredResolutionStr longLongValue];
+//    NSString *preferredResolutionStr = args[@"config"][@"preferredResolution"];
+//    playConfig.preferredResolution = [preferredResolutionStr longLongValue];
     
     if(maxCacheItems > 0) {
         playConfig.maxCacheItems = maxCacheItems;
