@@ -116,7 +116,7 @@ pod 'TXLiteAVSDK_Professional' 	//Professional版
 
 ### 集成过程中常见问题
 
-执行`flutter doctor`命令检查运行环境，知道出现”No issues found!“。
+执行`flutter doctor`命令检查运行环境，直到出现”No issues found!“。
 
 执行`flutter pub get`确保所有依赖的组件都已更新成功。
 
