@@ -25,6 +25,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     initPlatformState();
     initPlayerLicense();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     LogUtils.logOpen = true;
   }
 

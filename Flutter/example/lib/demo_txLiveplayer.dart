@@ -13,10 +13,9 @@ class DemoTXLivePlayer extends StatefulWidget {
   _DemoTXLivelayerState createState() => _DemoTXLivelayerState();
 }
 
-class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver{
-
+class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver {
   late TXLivePlayerController _controller;
-  double _aspectRatio = 0;
+  double _aspectRatio = 16.0 / 9.0;
   double _progress = 0.0;
   int _volume = 100;
   bool _isMute = false;
@@ -32,22 +31,31 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
 
     _controller = TXLivePlayerController();
 
-    _controller.onPlayerEventBroadcast.listen((event) {//订阅事件分发
-      if(event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
+    _controller.onPlayerEventBroadcast.listen((event) {
+      //订阅事件分发
+      if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
         _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
         progressSliderKey.currentState?.updatePorgess(1, _maxLiveProgressTime);
-
-      }else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN || event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {//首帧出现
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN ||
+          event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
+        //首帧出现
         _isStop = false;
         EasyLoading.dismiss();
-      }else if (event["event"] == TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {//切换流成功
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
+        //切换流成功
         EasyLoading.dismiss();
         if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv") {
           EasyLoading.showSuccess('切换到1080p!');
-        }else {
+        } else {
           EasyLoading.showSuccess('切换到480p!');
         }
+      } else if (event["event"] == TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL) {
+        EasyLoading.dismiss();
+        EasyLoading.showError("切流失败");
+        switchUrl();
+      }else if(event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
+        LogUtils.w("PLAY_EVT_CHANGE_RESOLUTION", event);
       }
     });
 
@@ -55,14 +63,15 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       double w = (event[TXVodNetEvent.NET_STATUS_VIDEO_WIDTH]).toDouble();
       double h = (event[TXVodNetEvent.NET_STATUS_VIDEO_HEIGHT]).toDouble();
 
-      if(w > 0 && h > 0) {
+      if (w > 0 && h > 0) {
         setState(() {
           _aspectRatio = 1.0 * w / h;
         });
       }
     });
 
-    _controller.onPlayerState.listen((event) {//订阅状态变化
+    _controller.onPlayerState.listen((event) {
+      //订阅状态变化
       debugPrint("播放状态 ${event!.name}");
     });
 
@@ -98,6 +107,14 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     }
   }
 
+  void switchUrl() {
+    if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv") {
+      _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
+    } else {
+      _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -116,7 +133,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
           child: Column(
             children: [
               Container(
-                height: 250,
+                height: 220,
                 color: Colors.black,
                 child: Center(
                   child: _aspectRatio > 0
@@ -203,17 +220,8 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                         EasyLoading.showError('已经停止播放，请重新播放');
                         return;
                       }
-
-                      if (_url ==
-                          "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv") {
-                        _url =
-                            "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
-                        _controller.switchStream(_url);
-                      } else {
-                        _url =
-                            "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv";
-                        _controller.switchStream(_url);
-                      }
+                      switchUrl();
+                      _controller.switchStream(_url);
 
                       EasyLoading.show(status: 'loading...');
                     },
@@ -241,17 +249,17 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                     ),
                   ),
                   new GestureDetector(
-                      onTap: () {
-                        onClickVolume();
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        child: Text(
-                          "调整音量",
-                          style: TextStyle(fontSize: 18, color: Colors.blue),
-                        ),
+                    onTap: () {
+                      onClickVolume();
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "调整音量",
+                        style: TextStyle(fontSize: 18, color: Colors.blue),
                       ),
                     ),
+                  ),
                 ],
               )),
               Expanded(
@@ -260,9 +268,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                 children: [
                   Container(
                     height: 100,
-                    child: IconButton(
-                        icon: new Image.asset('images/addp.png'),
-                        onPressed: () => {onPressed()}),
+                    child: IconButton(icon: new Image.asset('images/addp.png'), onPressed: () => {onPressed()}),
                   )
                 ],
               )),
@@ -285,8 +291,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "",
-              (String url, int appId, String fileId) {
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId) {
             _url = url;
             _controller.stop();
             if (url.isNotEmpty) {

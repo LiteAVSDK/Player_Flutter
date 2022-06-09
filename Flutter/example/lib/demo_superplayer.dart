@@ -26,13 +26,9 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     _controller.onSimplePlayerEventBroadcast.listen((event) {
       String evtName = event["event"];
       if (evtName == SuperPlayerViewEvent.onStartFullScreenPlay) {
-        setState(() {
-          _isFullScreen = true;
-        });
+
       } else if (evtName == SuperPlayerViewEvent.onStopFullScreenPlay) {
-        setState(() {
-          _isFullScreen = false;
-        });
+
       } else {
         print(evtName);
       }

@@ -14,6 +14,7 @@
 #import <Flutter/Flutter.h>
 
 static const int uninitialized = -1;
+static const int CODE_ON_RECEIVE_FIRST_FRAME = 2003;
 
 @interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate>
 
@@ -37,6 +38,9 @@ static const int uninitialized = -1;
     id<FlutterPluginRegistrar> _registrar;
     id<FlutterTextureRegistry> _textureRegistry;
 }
+
+
+BOOL volatile isStop = false;
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
 {
@@ -182,6 +186,7 @@ static const int uninitialized = -1;
 - (BOOL)stopPlay
 {
     if (_txVodPlayer != nil) {
+        isStop = true;
         return [_txVodPlayer stopPlay];
     }
     return NO;
@@ -240,7 +245,7 @@ static const int uninitialized = -1;
 - (NSArray *)supportedBitrates
 {
     if (_txVodPlayer != nil) {
-        NSArray *itemList = _txVodPlayer.supportedBitrates;
+        NSArray *itemList = [_txVodPlayer supportedBitrates];
         NSMutableArray *bitrates = @[].mutableCopy;
         for (TXBitrateItem *item in itemList) {
             [bitrates addObject:@{@"index": @(item.index), @"width": @(item.width), @"height": @(item.height), @"bitrate": @(item.bitrate)}];
@@ -343,8 +348,8 @@ static const int uninitialized = -1;
         [self setBitrateIndex:index];
         result(nil);
     }else if([@"setStartTime" isEqualToString:call.method]) {
-//        float startTime = [args[@"startTime"] floatValue];
-//        [self setStartTime:startTime];
+        float startTime = [args[@"startTime"] floatValue];
+        [self setStartTime:startTime];
         result(nil);
     }else if([@"setAudioPlayoutVolume" isEqualToString:call.method]) {
         int volume = [args[@"volume"] intValue];
@@ -469,13 +474,21 @@ static const int uninitialized = -1;
                                              (void **)&_latestPixelBuffer)) {
         pixelBuffer = _latestPixelBuffer;
     }
-    return pixelBuffer;
+    if(isStop && nil != pixelBuffer) {
+        isStop = false;
+        [_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{}]];
+    }
+    return isStop ? nil : pixelBuffer;
 }
 
 #pragma mark - TXVodPlayListener
 
 - (void)onPlayEvent:(TXVodPlayer *)player event:(int)EvtID withParam:(NSDictionary*)param
 {
+    // 交给flutter共享纹理处理首帧事件返回时机
+    if(EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
+        return;
+    }
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
 }
 
@@ -509,7 +522,7 @@ static const int uninitialized = -1;
         _lastBuffer = CVPixelBufferRetain(pixelBuffer);
         CFRetain(pixelBuffer);
     }
-
+    
     CVPixelBufferRef newBuffer = pixelBuffer;
 
     CVPixelBufferRef old = _latestPixelBuffer;

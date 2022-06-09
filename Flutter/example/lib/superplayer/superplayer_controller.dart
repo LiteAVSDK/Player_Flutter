@@ -89,7 +89,16 @@ class SuperPlayerController {
           }
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
-          _updatePlayerState(SuperPlayerState.LOADING);
+          if (playerState == SuperPlayerState.PAUSE) {
+            _updatePlayerState(SuperPlayerState.PAUSE);
+          } else {
+            _updatePlayerState(SuperPlayerState.LOADING);
+          }
+          break;
+        case TXVodPlayEvent.PLAY_EVT_VOD_LOADING_END:
+          if (playerState == SuperPlayerState.LOADING) {
+            _updatePlayerState(SuperPlayerState.PLAYING);
+          }
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN: // PLAY_EVT_PLAY_BEGIN
           if (_needToPause) {
@@ -107,6 +116,7 @@ class SuperPlayerController {
             seek(_seekPos);
             _changeHWAcceleration = false;
           }
+
           _updatePlayerState(SuperPlayerState.PLAYING);
           _observer?.onRcvFirstIframe();
           break;
@@ -114,24 +124,18 @@ class SuperPlayerController {
           _updatePlayerState(SuperPlayerState.END);
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS:
-          dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS_MS];
-          dynamic duration = event[TXVodPlayEvent.EVT_PLAY_DURATION_MS];
-          if(null != progress) {
-            currentDuration = (progress / 1000).toInt(); // 当前时间，转换后的单位 秒
+          dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS];
+          dynamic duration = event[TXVodPlayEvent.EVT_PLAY_DURATION];
+          if (null != progress) {
+            currentDuration = progress.toInt(); // 当前时间，转换后的单位 秒
           }
-          if(null != duration) {
-            videoDuration = (duration / 1000).toInt(); // 总播放时长，转换后的单位 秒
+          if (null != duration) {
+            videoDuration = duration.toInt(); // 总播放时长，转换后的单位 秒
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration);
           }
           break;
-      }
-      if (eventCode < 0) {
-        _stopPlay();
-        _updatePlayerState(SuperPlayerState.PAUSE);
-        _observer?.onError(SuperPlayerCode.VOD_PLAY_FAIL, event[TXVodPlayEvent.EVT_DESCRIPTION]);
-        _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerError);
       }
       _eventStreamController.add(event);
     });
@@ -164,10 +168,10 @@ class SuperPlayerController {
   void playWithModel(SuperPlayerModel videoModel) {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
+    resetPlayer();
     if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       _playWithModelInner(videoModel);
     } else {
-      resetPlayer();
       _observer?.onNewVideoPlay();
     }
   }
@@ -277,7 +281,7 @@ class SuperPlayerController {
       if (_currentProtocol != null) {
         LogUtils.d(TAG, "TOKEN: ${_currentProtocol!.getToken()}");
         await _vodPlayerController?.setToken(_currentProtocol!.getToken());
-        if(_currentProtocol!.getDRMType() != null && _currentProtocol!.getDRMType()!.isNotEmpty) {
+        if (_currentProtocol!.getDRMType() != null && _currentProtocol!.getDRMType()!.isNotEmpty) {
           drmType = _currentProtocol!.getDRMType()!;
         }
       } else {
@@ -286,14 +290,14 @@ class SuperPlayerController {
       if (videoModel!.videoId != null && videoModel!.appId != 0) {
         Uri uri = Uri.parse(url);
         String query = uri.query;
-        if(query == null || query.isEmpty) {
+        if (query == null || query.isEmpty) {
           query = "";
         } else {
           query = query + "&";
           if (query.contains("spfileid") || query.contains("spdrmtype") || query.contains("spappid")) {
             LogUtils.d(TAG, "url contains superplay key. $query");
           }
-          query += "spfileid=${videoModel!.videoId!.fileId}""&spdrmtype=$drmType&spappid=${videoModel!.appId}";
+          query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
         }
       }
       LogUtils.d(TAG, "play url:$url");
@@ -316,11 +320,11 @@ class SuperPlayerController {
   }
 
   /// 继续播放视频
-  void resume()  {
+  void resume() {
     if (playerType == SuperPlayerType.VOD) {
       _needToResume = true;
       if (isPrepared) {
-         _vodPlayerController?.resume();
+        _vodPlayerController?.resume();
       }
     } else {
       // todo implements live player
@@ -413,13 +417,14 @@ class SuperPlayerController {
   void resetPlayer() async {
     isPrepared = false;
     _needToResume = false;
+    _needToPause = false;
     currentDuration = 0;
     videoDuration = 0;
     currentQuality = null;
     currentQualiyList?.clear();
     _currentProtocol = null;
 
-    await _vodPlayerController?.stop(isNeedClear: false);
+    await _vodPlayerController?.stop(isNeedClear: true);
 
     _updatePlayerState(SuperPlayerState.INIT);
   }
@@ -435,7 +440,7 @@ class SuperPlayerController {
 
   /// return true : 执行了退出全屏等操作，消耗了返回事件  false：未消耗事件
   bool onBackPress() {
-    if(null != _vodPlayerController && _isFullScreen) {
+    if (null != _vodPlayerController && _isFullScreen) {
       _observer?.onSysBackPress();
       return true;
     }
@@ -454,7 +459,7 @@ class SuperPlayerController {
         if (videoQuality.url.isNotEmpty) {
           // url stream need manual seek
           double currentTime = await _vodPlayerController!.getCurrentPlaybackTime();
-          await _vodPlayerController?.stop(isNeedClear: true);
+          await _vodPlayerController?.stop(isNeedClear: false);
           LogUtils.d(TAG, "onQualitySelect quality.url:${videoQuality.url}");
           await _vodPlayerController?.setStartTime(currentTime);
           await _vodPlayerController?.startPlay(videoQuality.url);
@@ -476,7 +481,7 @@ class SuperPlayerController {
       bool? isPlaying = await _vodPlayerController?.isPlaying();
       // resume when not playing.if isPlaying is null,not resume
       if (!(isPlaying ?? true)) {
-        _vodPlayerController?.resume();
+        resume();
       }
     } else {
       // todo implements live player
