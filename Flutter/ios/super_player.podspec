@@ -1,10 +1,10 @@
 #
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html.
-# Run `pod lib lint super_player.podspec` to validate before publishing.
+# Run `pod lib lint flutter_super_player.podspec` to validate before publishing.
 #
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version          = '0.0.1'
+  s.version          = '1.0.2'
   s.summary          = 'player plugin.'
   s.description      = <<-DESC
 player plugin.
@@ -16,8 +16,8 @@ player plugin.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'SuperPlayer/Professional'
-  s.platform = :ios, '8.0'
+  s.dependency 'TXLiteAVSDK_Professional','9.5.11504'
+  s.platform = :ios, '9.0'
   s.static_framework = true
 
   # Flutter.framework does not contain a i386 slice.

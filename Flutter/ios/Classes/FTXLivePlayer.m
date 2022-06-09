@@ -150,11 +150,12 @@ static const int uninitialized = -1;
     }
 }
 
-- (void)seek:(float)progress
+- (int)seek:(float)progress
 {
     if (_txLivePlayer != nil) {
-        [_txLivePlayer seek:progress];
+        return [_txLivePlayer seek:progress];
     }
+    return uninitialized;
 }
 
 - (int)startPlay:(NSString *)url type:(TX_Enum_PlayType)playType
@@ -247,6 +248,26 @@ static const int uninitialized = -1;
     return uninitialized;
 }
 
+- (int)resumeLive {
+    if (_txLivePlayer != nil) {
+        return [_txLivePlayer resumeLive];
+    }
+    
+    return uninitialized;
+}
+
+- (void)setRate:(float)rate {
+    if (_txLivePlayer != nil) {
+       [_txLivePlayer setRate:rate];
+    }
+}
+
+- (void)setRenderMode:(int)renderMode {
+    if (_txLivePlayer != nil) {
+       [_txLivePlayer setRenderMode:renderMode];
+    }
+}
+
 #pragma mark -
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result
@@ -301,16 +322,16 @@ static const int uninitialized = -1;
         NSString *url = args[@"url"];
         [self switchStream:url];
     }else if ([@"seek" isEqualToString:call.method]) {
-        double progress = [args[@"progress"] floatValue];
-        [self seek:progress];
-        result(nil);
+        result(FlutterMethodNotImplemented);
     }else if ([@"setAppID" isEqualToString:call.method]) {
         [self setAppID:args[@"appId"]];
         result(nil);
     }else if ([@"prepareLiveSeek" isEqualToString:call.method]) {
-        NSString *domain = args[@"domain"];
-        NSInteger bizId = [args[@"bizId"] intValue];
-        int r = [self prepareLiveSeek:domain bizId:bizId];
+        result(FlutterMethodNotImplemented);
+    }else if([@"setRate" isEqualToString:call.method]) {
+        result(FlutterMethodNotImplemented);
+    }else if([@"resumeLive" isEqualToString:call.method]) {
+        int r = [self resumeLive];
         result(@(r));
     }else {
       result(FlutterMethodNotImplemented);

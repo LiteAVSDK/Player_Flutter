@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
@@ -12,10 +12,16 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 
+/**
+ *  在此处可以更换需要的SDK版本，替换为专业版为 com.tencent.liteav:LiteAVSDK_Professional:latest.release
+ *  其中 latest.release 可指定为自己需要的版本号，例如 "com.tencent.liteav:LiteAVSDK_Player:9.5.29035" ，版本号写成 latest.release 则默认使用最新版本。
+ *  如果赋值为空字符串或者null，则sdk中默认依赖com.tencent.liteav:LiteAVSDK_Player的最新版本
+ */
+rootProject.ext.liteavSdkCustom=""
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
@@ -26,18 +32,4 @@ subprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-ext {
-    compileSdkVersion = 28
-    buildToolsVersion = "28.0.3"
-    supportSdkVersion = "26.0.1"
-    minSdkVersion = 19
-    targetSdkVersion = 28
-    liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:latest.release"
-    imSdk = 'com.tencent.imsdk:imsdk:4.9.1'
-    versionCode = 1
-    versionName = "v1.0"
-    ndkAbi = 'armeabi'//,'armeabi-v7a', 'arm64-v8a'
-    aekit_version = '1.0.10-cloud'
 }
