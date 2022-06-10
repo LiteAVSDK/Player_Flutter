@@ -87,7 +87,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     }
 
     @Override
-    public void destory() {
+    public void destroy() {
         if (mLivePlayer != null) {
             mLivePlayer.stopPlay(true);
             mLivePlayer = null;
@@ -203,7 +203,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         Log.d(TAG, "startPlay:");
         if (mLivePlayer != null) {
             mLivePlayer.setSurface(mSurface);
-            mLivePlayer.enableHardwareDecode(true);
             mLivePlayer.setPlayListener(this);
             TXLivePlayConfig config = new TXLivePlayConfig();
             config.setEnableMessage(true);

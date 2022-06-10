@@ -1,9 +1,4 @@
-//
-//  FTXVodPlayer.m
-//  super_player
-//
-//  Created by Zhirui Ou on 2021/3/15.
-//
+// Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "FTXVodPlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
@@ -120,7 +115,6 @@ BOOL volatile isStop = false;
         
         if (_txVodPlayer != nil) {
             [_txVodPlayer setVideoProcessDelegate:self];
-            _txVodPlayer.enableHWAcceleration = YES;
         }
     }
 }

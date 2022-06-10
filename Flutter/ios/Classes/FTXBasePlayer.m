@@ -1,9 +1,4 @@
-//
-//  FTXBasePlayer.m
-//  super_player
-//
-//  Created by Zhirui Ou on 2021/3/23.
-//
+// Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "FTXBasePlayer.h"
 #import <stdatomic.h>

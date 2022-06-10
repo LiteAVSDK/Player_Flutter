@@ -16,7 +16,7 @@ public class FTXBasePlayer {
         mPlayerId = mAtomicId.incrementAndGet();
     }
 
-    public void destory() {
+    public void destroy() {
 
     }
 

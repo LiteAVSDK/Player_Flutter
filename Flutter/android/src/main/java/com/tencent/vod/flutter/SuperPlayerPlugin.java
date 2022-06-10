@@ -61,7 +61,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             Integer playerId = call.argument("playerId");
             FTXBasePlayer player = mPlayers.get(playerId);
             if (player != null) {
-                player.destory();
+                player.destroy();
                 mPlayers.remove(playerId);
             }
             result.success(null);
