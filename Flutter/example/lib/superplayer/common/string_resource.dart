@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 /// string resource
@@ -10,4 +11,9 @@ class StringResource {
   static const QUALITY_FHD2 = "超清";
   static const QUALITY_2K = "2K";
   static const QUALITY_4K = "4k";
+
+  static const VOICE_LABEL = "声音";
+  static const BRIGHTNESS_LABEL = "亮度";
+  static const MULITIPE_SPEED_PLAY_LABEL = "多倍速播放";
+  static const HARDWARE_ACCE_LABEL = "硬件加速";
 }

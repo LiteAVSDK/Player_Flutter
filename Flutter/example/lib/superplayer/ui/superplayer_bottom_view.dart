@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 /// slider
@@ -123,16 +124,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
   Widget _getSlider() {
     return Expanded(
       child: Theme(
-          data: ThemeData(
-              sliderTheme: SliderThemeData(
-            trackHeight: 2,
-            thumbColor: Color(ColorResource.COLOR_MAIN_THEME),
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 4),
-            overlayColor: Colors.white,
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 10),
-            activeTrackColor: Color(ColorResource.COLOR_MAIN_THEME),
-            inactiveTrackColor: Color(ColorResource.COLOR_GRAY),
-          )),
+          data: ThemeResource.getCommonSliderTheme(),
           child: Slider(
             min: 0,
             max: 1,

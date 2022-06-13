@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 /// superplayer play controller
 class SuperPlayerController {
@@ -32,6 +33,7 @@ class SuperPlayerController {
   bool _isMultiBitrateStream = false; // 是否是多码流url播放
   bool _changeHWAcceleration = false; // 切换硬解后接收到第一个关键帧前的标记位
   bool _isFullScreen = false;
+  bool _isOpenHWAcceleration = true;
   final BuildContext _context;
 
   int currentDuration = 0;
@@ -42,6 +44,7 @@ class SuperPlayerController {
   double startPos = 0;
   double videoWidth = 0;
   double videoHeight = 0;
+  double currentPlayRate = 1.0;
 
   SuperPlayerController(this._context) {
     _initVodPlayer();
@@ -271,11 +274,11 @@ class SuperPlayerController {
     if (null != _vodPlayerController) {
       await _vodPlayerController?.setStartTime(startPos);
       if (_playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
-        await _vodPlayerController?.setIsAutoPlay(isAutoPlay: false);
+        await _vodPlayerController?.setAutoPlay(isAutoPlay: false);
         _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
       } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY ||
           _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
-        await _vodPlayerController?.setIsAutoPlay(isAutoPlay: true);
+        await _vodPlayerController?.setAutoPlay(isAutoPlay: true);
       }
       String drmType = "plain";
       if (_currentProtocol != null) {
@@ -496,6 +499,7 @@ class SuperPlayerController {
 
   /// 开关硬解编码播放
   Future<void> enableHardwareDecode(bool enable) async {
+    _isOpenHWAcceleration = enable;
     if (playerType == SuperPlayerType.VOD) {
       if (null != _vodPlayerController) {
         await _vodPlayerController?.enableHardwareDecode(enable);
@@ -515,6 +519,11 @@ class SuperPlayerController {
     } else {
       // todo implements live player
     }
+  }
+
+  Future<void> setPlayRate(double rate) async {
+    currentPlayRate = rate;
+    _vodPlayerController?.setRate(rate);
   }
 
   /// 获得当前播放器状态

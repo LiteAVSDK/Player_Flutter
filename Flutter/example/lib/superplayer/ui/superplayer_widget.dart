@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 final double topBottomOffset = 0;
@@ -39,6 +40,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late _VideoTitleController _titleViewController;
   late _SuperPlayerFullScreenController _fullScreenController;
   late _CoverViewController _coverViewController;
+  late _MoreViewController _moreViewController;
 
   /// init
   Timer _controlViewTimer = Timer(Duration(milliseconds: _controlViewShowTime), () {});
@@ -47,13 +49,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   GlobalKey<_QualityListViewState> _qualityListKey = GlobalKey();
   GlobalKey<_VideoTitleViewState> _videoTitleKey = GlobalKey();
   GlobalKey<_SuperPlayerCoverViewState> _coverViewKey = GlobalKey();
-  GlobalKey<TXPlayerVideoState> _playerKey = GlobalKey();
+  GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     // ios need landscapeRight,android need landscapeLeft
-    if(defaultTargetPlatform == TargetPlatform.iOS) {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
       landscapeOrientation = DeviceOrientation.landscapeRight;
     } else {
       landscapeOrientation = DeviceOrientation.landscapeLeft;
@@ -61,12 +63,19 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _playController = widget._controller;
     WidgetsBinding.instance?.addObserver(this);
     _fullScreenController = _SuperPlayerFullScreenController(_updateState);
-    _titleViewController = _VideoTitleController(_onTapBack);
+    _titleViewController = _VideoTitleController(_onTapBack, () {
+      _moreViewKey.currentState?.toggleShowMoreView();
+    });
     _bottomViewController = _BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView);
     _coverViewController = _CoverViewController(_onDoubleTapVideo, _onSingleTapVideo);
     _qualitListViewController = _QualityListViewController((quality) {
       _playController.switchStream(quality);
     });
+    _moreViewController = _MoreViewController(
+        () => _playController._isOpenHWAcceleration,
+        () => _playController.currentPlayRate,
+        (value) => _playController.enableHardwareDecode(value),
+        (playRate) => _playController.setPlayRate(playRate));
     _playController.onPlayerNetStatusBroadcast.listen((event) {
       dynamic wd = (event["VIDEO_WIDTH"]);
       dynamic hd = (event["VIDEO_HEIGHT"]);
@@ -262,11 +271,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
             _getQualityView(),
             _getStartOrResumeBtn(),
             _getQualityListView(),
+            _getMoreMenuView(),
             _getLoading(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _getMoreMenuView() {
+    return SuperPlayerMoreView(_moreViewController, key: _moreViewKey);
   }
 
   Widget _getQualityView() {
@@ -332,7 +346,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     return InkWell(
       onDoubleTap: _onDoubleTapVideo,
       onTap: _onSingleTapVideo,
-      child: TXPlayerVideo(controller: _playController._vodPlayerController!, key: _playerKey),
+      child: TXPlayerVideo(controller: _playController._vodPlayerController!),
     );
   }
 
@@ -343,7 +357,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         top: topBottomOffset,
         left: 0,
         right: 0,
-        child: _VideoTitleView(_titleViewController, _playController._getPlayName(), _videoTitleKey),
+        child: _VideoTitleView(_titleViewController, _isFullScreen, _playController._getPlayName(), _videoTitleKey),
       ),
     );
   }
@@ -351,6 +365,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _onSingleTapVideo() {
     if (_isShowControlView) {
       hideControlView();
+      _moreViewKey.currentState?.hideShowMoreView();
     } else {
       showControlView(true);
     }
@@ -417,8 +432,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
       AutoOrientation.portraitAutoMode();
+      /// 隐藏moreView
+      _moreViewKey.currentState?.hideShowMoreView();
     }
     _videoBottomKey.currentState?.updateFullScreen(_isFullScreen);
+    _videoTitleKey.currentState?.updateFullScreen(_isFullScreen);
   }
 
   void _onControlFullScreen() {
@@ -546,4 +564,3 @@ class _SuperPlayerFullScreenController {
 
   _SuperPlayerFullScreenController(this.onExitFullScreen);
 }
-

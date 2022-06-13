@@ -175,10 +175,11 @@ class _TestState extends State<Test> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-            height: 220,
-            color: Colors.black,
-            child: AspectRatio(aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _controller)));
+    return Scaffold(
+            body: Container(
+                    height: 220,
+                    color: Colors.black,
+                    child: AspectRatio(aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _controller))));
   }
 }
 ```

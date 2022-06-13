@@ -246,7 +246,6 @@ BOOL volatile isStop = false;
         }
         return bitrates;
     }
-    
     return @[];
 }
 
@@ -294,7 +293,7 @@ BOOL volatile isStop = false;
         BOOL onlyAudio = [args[@"onlyAudio"] boolValue];
         NSNumber* textureId = [self createPlayer:onlyAudio];
         result(textureId);
-    }else if([@"setIsAutoPlay" isEqualToString:call.method]) {
+    }else if([@"setAutoPlay" isEqualToString:call.method]) {
         BOOL isAutoPlay = [args[@"isAutoPlay"] boolValue];
         [self setIsAutoPlay:isAutoPlay];
         result(nil);

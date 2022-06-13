@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 package com.tencent.vod.flutter;
 
 import android.graphics.Bitmap;
@@ -173,7 +174,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             boolean onlyAudio = call.argument("onlyAudio");
             long id = init(onlyAudio);
             result.success(id);
-        } else if (call.method.equals("setIsAutoPlay")) {
+        } else if (call.method.equals("setAutoPlay")) {
             boolean loop = call.argument("isAutoPlay");
             setIsAutoPlay(loop);
             result.success(null);

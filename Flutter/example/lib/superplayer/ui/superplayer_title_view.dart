@@ -1,23 +1,27 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 class _VideoTitleView extends StatefulWidget {
-
   final String _title;
   final _VideoTitleController _controller;
+  final bool initIsFullScreen;
 
-  _VideoTitleView(this._controller ,this._title, GlobalKey<_VideoTitleViewState> key):super(key: key);
+  _VideoTitleView(this._controller, this.initIsFullScreen, this._title, GlobalKey<_VideoTitleViewState> key)
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _VideoTitleViewState();
 }
 
 class _VideoTitleViewState extends State<_VideoTitleView> {
-
   String _title = "";
+  bool _isFullScreen = false;
+
   @override
   void initState() {
     super.initState();
     _title = widget._title;
+    _isFullScreen = widget.initIsFullScreen;
   }
 
   @override
@@ -39,10 +43,25 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
           Text(
             _title,
             style: TextStyle(fontSize: 11, color: Colors.white),
-          )
+          ),
+          Expanded(child: SizedBox()),
+          Visibility(
+              visible: _isFullScreen,
+              child: InkWell(
+                onTap: _onTapMore,
+                child: Image(
+                  width: 30,
+                  height: 30,
+                  image: AssetImage("images/superplayer_ic_vod_more_normal.png"),
+                ),
+              ))
         ],
       ),
     );
+  }
+
+  void _onTapMore() {
+    widget._controller._onTapMore();
   }
 
   void _onTapBackBtn() {
@@ -50,15 +69,23 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
   }
 
   void updateTitle(String name) {
-    if(mounted) {
+    if (mounted) {
       setState(() {
         _title = name;
       });
     }
   }
+
+  void updateFullScreen(bool showFullScreen) {
+    setState(() {
+      _isFullScreen = showFullScreen;
+    });
+  }
 }
 
 class _VideoTitleController {
   Function _onTapBack;
-  _VideoTitleController(this._onTapBack);
+  Function _onTapMore;
+
+  _VideoTitleController(this._onTapBack, this._onTapMore);
 }

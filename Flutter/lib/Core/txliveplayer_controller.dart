@@ -1,4 +1,4 @@
-
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
 class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {

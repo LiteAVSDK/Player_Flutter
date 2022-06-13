@@ -44,6 +44,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - images/superplayer_ic_vod_more_normal.png
+    - images/superplayer_ic_light_max.png
+    - images/superplayer_ic_light_min.png
+    - images/superplayer_ic_volume_max.png
+    - images/superplayer_ic_volume_min.png
     - images/superplayer_ic_vod_pause_normal.png
     - images/superplayer_ic_vod_play_normal.png
     - images/superplayer_bottom_shadow.png

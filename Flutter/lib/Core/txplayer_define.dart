@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
 class TXPlayerValue {
@@ -80,6 +81,12 @@ abstract class TXVodPlayEvent {
   static const EVT_PLAY_DURATION = "EVT_PLAY_DURATION"; // 播放总长
   static const EVT_PLAYABLE_DURATION_MS = "EVT_PLAYABLE_DURATION_MS"; // 点播可播放时长（毫秒）
   static const EVT_PLAYABLE_RATE = "EVT_PLAYABLE_RATE"; //播放速率
+
+
+  /// superplayer plugin volume evnet
+  static const EVENT_VOLUME_CHANGED = 0x01; // 音量变化
+  static const EVENT_AUDIO_FOCUS_PAUSE = 0x02; // 失去音量输出播放焦点 only for android
+  static const EVENT_AUDIO_FOCUS_PLAY = 0x03; // 获得音量输出焦点 only for android
 }
 
 abstract class TXVodNetEvent {
