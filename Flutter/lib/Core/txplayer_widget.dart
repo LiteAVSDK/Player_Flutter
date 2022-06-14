@@ -20,11 +20,13 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
   void initState() {
     super.initState();
 
-    widget.controller.textureId.then((val) {
-      setState(() {
-        LogUtils.d(TAG, "_textureId = $val");
-        _textureId = val;
-      });
+    widget.controller.textureId.then((newTextureId) {
+      if (_textureId != newTextureId) {
+        setState(() {
+          LogUtils.d(TAG, "_textureId = $newTextureId");
+          _textureId = newTextureId;
+        });
+      }
     });
   }
 
@@ -51,18 +53,15 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
                       left: left,
                       right: right,
                       bottom: bottom,
-                      child: Texture(
-                        textureId: _textureId,
-                      ))
+                      child: Texture(textureId: _textureId)
+                  )
                 ],
               );
             });
     } else {
       return _textureId == -1
           ? Container()
-          : Texture(
-              textureId: _textureId,
-            );
+          : Texture(textureId: _textureId);
     }
   }
 }
