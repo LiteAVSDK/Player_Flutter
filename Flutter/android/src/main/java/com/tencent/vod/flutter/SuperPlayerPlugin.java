@@ -215,6 +215,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         } else if (call.method.equals("requestAudioFocus")) {
             requestAudioFocus();
             result.success(null);
+        } else if (call.method.equals("setLogLevel")) {
+            Integer logLevel = call.argument("logLevel");
+            TXLiveBase.setLogLevel(logLevel);
+            result.success(null);
         } else {
             result.notImplemented();
         }

@@ -155,6 +155,11 @@ SuperPlayerPlugin* instance;
     } else if ([@"requestAudioFocus" isEqualToString:call.method]) {
         // only for android
         result(nil);
+    } else if([@"setLogLevel" isEqualToString:call.method]) {
+        NSDictionary *args = call.arguments;
+        int logLevel = [args[@"logLevel"] intValue];
+        [TXLiveBase setLogLevel:logLevel];
+        result(nil);
     } else {
         result(FlutterMethodNotImplemented);
     }

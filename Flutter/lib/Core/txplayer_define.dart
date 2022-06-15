@@ -139,6 +139,16 @@ enum TXPlayerEvent {
   progress // 进度
 }
 
+class TXLogLevel {
+  static const int LOG_LEVEL_VERBOSE   = 0;      // 输出所有级别的log
+  static const int LOG_LEVEL_DEBUG     = 1;      // 输出 DEBUG,INFO,WARNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_INFO      = 2;      // 输出 INFO,WARNNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_WARN      = 3;      // 输出WARNNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_ERROR     = 4;      // 输出ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_FATAL     = 5;      // 只输出FATAL 级别的log
+  static const int LOG_LEVEL_NULL      = 6;      // 不输出任何sdk log
+}
+
 class TXPlayerAuthParams {
   int appId = 0;
   String fileId = "";

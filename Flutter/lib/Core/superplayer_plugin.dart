@@ -75,6 +75,11 @@ class SuperPlayerPlugin {
     return await _channel.invokeMethod("setGlobalLicense", {"licenceUrl": licenceUrl, "licenceKey": licenceKey});
   }
 
+  /// 设置log输出级别 [TXLogLevel]
+  static Future<void> setLogLevel(int logLevel) async {
+    return await _channel.invokeMethod("setLogLevel", {"logLevel": logLevel});
+  }
+
   /// 修改当前界面亮度
   static Future<void> setBrightness(double brightness) async {
     return await _channel.invokeMethod("setBrightness", {"brightness": brightness});
