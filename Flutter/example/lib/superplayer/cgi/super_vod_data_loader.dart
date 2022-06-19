@@ -14,8 +14,11 @@ class SuperVodDataLoader {
     String field = model.videoId != null
         ? (model.videoId as SuperPlayerVideoId).fileId
         : "";
+    String psign = model.videoId != null
+        ? (model.videoId as SuperPlayerVideoId).psign
+        : "";
     var url = _BASE_URL + "/$appId/$field";
-    var query = makeQueryString(null, null, -1, null);
+    var query = PlayInfoProtocol.makeQueryString(null, psign, null);
     if (query != null) {
       url = url + "?" + query;
     }
@@ -30,7 +33,7 @@ class SuperVodDataLoader {
     int code = root['code'];
     String message = root['message'];
     String warning = root['warning'];
-    LogUtils.d(TAG, "_getVodListData,code=$code,message=$message,warning=$warning");
+    LogUtils.d(TAG, "_getVodListData,code=($code, ${PlayInfoProtocol.GETPLAYINFOV4_ERROR_CODE_MAP[code]}),message=$message,warning=$warning");
     if (code != 0) {
       return;
     }
@@ -80,27 +83,5 @@ class SuperVodDataLoader {
     if(model.title == null || model.title.isEmpty) {
       model.title = newTitle;
     }
-  }
-
-  /// make fileId request url
-  String makeQueryString(String? timeout, String? us, int exper, String? sign) {
-    var str = new StringBuffer();
-    if (timeout != null) {
-      str.write("t=" + timeout + "&");
-    }
-    if (us != null) {
-      str.write("us=" + us + "&");
-    }
-    if (sign != null) {
-      str.write("sign=" + sign + "&");
-    }
-    if (exper >= 0) {
-      str.write("exper=$exper" + "&");
-    }
-    String result = str.toString();
-    if (result.length > 1) {
-      result = result.substring(0, result.length - 1);
-    }
-    return result;
   }
 }

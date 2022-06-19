@@ -33,7 +33,7 @@ class PlayInfoProtocol {
     int code = root['code'];
     String message = root['message'];
     String warning = root['warning'];
-    LogUtils.d(TAG, "_getVodListData,code=$code,message=$message,warning=$warning");
+    LogUtils.d(TAG, "_getVodListData,code=($code, ${PlayInfoProtocol.GETPLAYINFOV4_ERROR_CODE_MAP[code]}),message=$message,warning=$warning");
     if (code != 0) {
       onError(code, message);
       return;
@@ -67,7 +67,7 @@ class PlayInfoProtocol {
     return null;
   }
 
-  String makeQueryString(String? pcfg, String? psign, String? content) {
+  static String makeQueryString(String? pcfg, String? psign, String? content) {
     String result = "";
     if (null != pcfg) {
       result += "pcfg=$pcfg&";
@@ -138,4 +138,24 @@ class PlayInfoProtocol {
   String? getDRMType() {
     return null == _playInfoParser ? null : _playInfoParser?.drmType;
   }
+  // getplayinfo/v4错误码
+  // http状态码 200 403
+  // 403一般鉴权信息不通过或者请求不合法
+  // 状态码为200的时候才会有http body
+  // code错误码[1000-2000)请求有问题，
+  // code错误码[2000-3000)服务端错误，可发起重试
+  static Map<int, String> GETPLAYINFOV4_ERROR_CODE_MAP = {
+    0 : 'success',
+    1001 : '文件不存在',
+    1002 : '试看时长不合法',
+    1003 : 'pcfg不唯一',
+    1004 : 'license过期',
+    1005 : '没有自适应码流',
+    1006 : '请求格式不合法',
+    1007 : '用户存在',
+    1008 : '没带防盗链信息',
+    1009 : 'psign检查失败',
+    1010 : '其他错误',
+    2001 : '内部错误',
+  };
 }

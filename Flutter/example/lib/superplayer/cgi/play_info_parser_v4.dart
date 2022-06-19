@@ -96,9 +96,13 @@ class PlayInfoParserV4 implements PlayInfoParser {
       if (null != media['imageSpriteInfo']) {
         Map<String, dynamic> imageSpriteInfoJson = media['imageSpriteInfo'];
         imageSpriteInfo = PlayImageSpriteInfo();
-        imageSpriteInfo?.webVttUrl = imageSpriteInfoJson['webVttUrl'] ?? "";
-        List<String> imageUrls = imageSpriteInfoJson['imageUrls'];
-        imageSpriteInfo?.imageUrls = imageUrls;
+        if (imageSpriteInfoJson != null) {
+          imageSpriteInfo?.webVttUrl = imageSpriteInfoJson['webVttUrl'] ?? "";
+          List<String> imageUrls = imageSpriteInfoJson['imageUrls'] == null
+              ? List.empty()
+              : imageSpriteInfoJson['imageUrls'].cast<String>();
+          imageSpriteInfo?.imageUrls = imageUrls;
+        }
       }
 
       _parseKeyFrameDescList(media);
