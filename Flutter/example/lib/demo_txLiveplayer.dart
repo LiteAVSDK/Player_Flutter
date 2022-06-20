@@ -292,7 +292,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "", (String url, int appId, String fileId) {
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId,String pSign) {
             _url = url;
             _controller.stop();
             if (url.isNotEmpty) {

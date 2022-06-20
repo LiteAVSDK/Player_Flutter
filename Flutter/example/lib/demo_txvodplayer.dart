@@ -383,7 +383,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
         context: context,
         builder: (context) {
           return DemoInputDialog("", 0, "",
-                  (String url, int appId, String fileId) {
+                  (String url, int appId, String fileId,String pSign) {
                 _url = url;
                 _appId = appId;
                 _fileId = fileId;

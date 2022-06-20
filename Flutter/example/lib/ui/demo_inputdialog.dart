@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 typedef void DemoInputDialogFinishCallback(
-    String url, int appId, String fileId);
+    String url, int appId, String fileId,String pSign);
 
 class DemoInputDialog extends StatefulWidget {
   String url = "";
@@ -10,8 +10,10 @@ class DemoInputDialog extends StatefulWidget {
   String fileId = "";
   DemoInputDialogFinishCallback callback;
   bool showFileEdited = true;
+  bool needPisgn = false;
 
-  DemoInputDialog(this.url, this.appId, this.fileId, this.callback, {bool showFileEdited = true}) : super () {this.showFileEdited = showFileEdited;}
+  DemoInputDialog(this.url, this.appId, this.fileId, this.callback, {bool showFileEdited = true, bool needPisgn = false})
+      : super () {this.showFileEdited = showFileEdited;this.needPisgn = needPisgn;}
 
   @override
   _DemoInputDialogState createState() => _DemoInputDialogState();
@@ -21,6 +23,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
   late TextEditingController _urlController;
   late TextEditingController _appIdController;
   late TextEditingController _fileIdController;
+  late TextEditingController _pSignController;
 
   @override
   void initState() {
@@ -30,6 +33,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
     _appIdController = TextEditingController(
         text: widget.appId > 0 ? widget.appId.toString() : null);
     _fileIdController = TextEditingController(text: widget.fileId);
+    _pSignController = TextEditingController(text: "");
   }
 
   _buildActionWidget(BuildContext context) {
@@ -43,7 +47,8 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
               _appIdController.text.isNotEmpty
                   ? int.parse(_appIdController.text)
                   : 0,
-              _fileIdController.text);
+              _fileIdController.text,
+              _pSignController.text);
           }, // 关闭对话框
       ),
       // Padding(padding: EdgeInsets.only(left: 15)),
@@ -125,6 +130,30 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                         icon: Icon(Icons.close),
                         onPressed: () {
                           _fileIdController.clear();
+                        })),
+                onChanged: (text) {
+                  // _fileId = text;
+                },
+              )),
+        ):Container(),
+        widget.needPisgn?Padding(padding: EdgeInsets.only(bottom: 15)):Container(),
+        widget.needPisgn?Container(
+          color: Colors.white,
+          child: Theme(
+              data: new ThemeData(primaryColor: Colors.green),
+              child: TextField(
+                minLines: 1,
+                maxLines: 10,
+                controller: _pSignController,
+                cursorColor: Colors.green,
+                decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0)), borderSide: BorderSide(color: Colors.green.withOpacity(0.4), width: 3.0)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0)), borderSide: BorderSide(color: Colors.green, width: 4.0)),
+                    labelText:"请输入pSign", labelStyle: TextStyle(color: Colors.grey),
+                    suffixIcon: IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          _pSignController.clear();
                         })),
                 onChanged: (text) {
                   // _fileId = text;
