@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
+// Copyright (c) 2022 Tencent. All rights reserved.
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 typedef void TestBitrateCheckboxFinishCallback(
     int value);

@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     initPlatformState();
     initPlayerLicense();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     LogUtils.logOpen = true;
   }
 

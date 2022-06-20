@@ -1,0 +1,35 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
+part of demo_super_player_lib;
+
+/// 样式资源
+class ThemeResource {
+  /// 获得通用进度条样式
+  static ThemeData getCommonSliderTheme() {
+    return ThemeData(
+        sliderTheme: SliderThemeData(
+      trackHeight: 2,
+      thumbColor: Color(ColorResource.COLOR_MAIN_THEME),
+      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 4),
+      overlayColor: Colors.white,
+      overlayShape: RoundSliderOverlayShape(overlayRadius: 10),
+      activeTrackColor: Color(ColorResource.COLOR_MAIN_THEME),
+      inactiveTrackColor: Color(ColorResource.COLOR_GRAY),
+    ));
+  }
+
+  static TextStyle getCommonLabelTextStyle() {
+    return TextStyle(fontSize: 14, color: Colors.white);
+  }
+
+  static TextStyle getCheckedLabelTextStyle() {
+    return TextStyle(fontSize: 14, color: Color(ColorResource.COLOR_MAIN_THEME));
+  }
+
+  static TextStyle getCommonTextStyle() {
+    return TextStyle(fontSize: 13, color: Colors.white);
+  }
+
+  static TextStyle getCheckedTextStyle() {
+    return TextStyle(fontSize: 13, color: Color(ColorResource.COLOR_MAIN_THEME));
+  }
+}

@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 /// v2 request data parser
@@ -58,7 +59,6 @@ class PlayInfoParserV2 implements PlayInfoParser {
     int code = root['code'];
     String message = root['message'];
     String warning = root['warning'];
-    LogUtils.d(TAG, "_getVodListData,code=$code,message=$message,warning=$warning");
     if (code != 0) {
       return;
     }

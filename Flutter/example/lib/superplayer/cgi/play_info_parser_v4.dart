@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 /// v4 request data parser
@@ -95,9 +96,13 @@ class PlayInfoParserV4 implements PlayInfoParser {
       if (null != media['imageSpriteInfo']) {
         Map<String, dynamic> imageSpriteInfoJson = media['imageSpriteInfo'];
         imageSpriteInfo = PlayImageSpriteInfo();
-        imageSpriteInfo?.webVttUrl = imageSpriteInfoJson['webVttUrl'] ?? "";
-        List<String> imageUrls = imageSpriteInfoJson['imageUrls'];
-        imageSpriteInfo?.imageUrls = imageUrls;
+        if (imageSpriteInfoJson != null) {
+          imageSpriteInfo?.webVttUrl = imageSpriteInfoJson['webVttUrl'] ?? "";
+          List<String> imageUrls = imageSpriteInfoJson['imageUrls'] == null
+              ? List.empty()
+              : imageSpriteInfoJson['imageUrls'].cast<String>();
+          imageSpriteInfo?.imageUrls = imageUrls;
+        }
       }
 
       _parseKeyFrameDescList(media);

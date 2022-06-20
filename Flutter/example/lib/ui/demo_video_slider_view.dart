@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 import 'package:flutter/material.dart';
 import 'package:super_player/super_player.dart';
 

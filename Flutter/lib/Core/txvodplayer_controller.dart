@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
 class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
@@ -145,7 +146,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return result == 0;
   }
 
-  /// 通过field播放视频
+  /// 通过fileld播放视频
   /// @params : TXPlayerAuthParams
   /// return 是否播放成功
   Future<bool> startPlayWithParams(TXPlayerAuthParams params) async {
@@ -176,10 +177,10 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置是否自动播放
-  Future<void> setIsAutoPlay({bool? isAutoPlay}) async {
+  Future<void> setAutoPlay({bool? isAutoPlay}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
+    await _channel.invokeMethod("setAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
   }
 
   /// 停止播放
@@ -392,14 +393,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     if (_value == val) return;
     _value = val;
     notifyListeners();
-  }
-
-  Future<void> _switchScreenIOS(bool toFullScreen) async {
-    if (toFullScreen) {
-      await _channel.invokeMethod("orientationToLandscape");
-    } else {
-      await _channel.invokeMethod("orientationToPortrait");
-    }
   }
 
   double? resizeVideoWidth = 0;

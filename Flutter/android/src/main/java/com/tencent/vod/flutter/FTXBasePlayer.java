@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 package com.tencent.vod.flutter;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,7 +17,7 @@ public class FTXBasePlayer {
         mPlayerId = mAtomicId.incrementAndGet();
     }
 
-    public void destory() {
+    public void destroy() {
 
     }
 
