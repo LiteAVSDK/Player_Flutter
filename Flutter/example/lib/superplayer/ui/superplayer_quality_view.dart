@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
 class QualityListView extends StatefulWidget {
@@ -48,8 +49,8 @@ class _QualityListViewState extends State<QualityListView> {
                           _qualityList![index].title,
                           textAlign: TextAlign.center,
                           style: _currentQuality == _qualityList![index]
-                              ? TextStyle(fontSize: 12, color: Color(ColorResource.COLOR_MAIN_THEME))
-                              : TextStyle(fontSize: 12, color: Colors.white),
+                              ? ThemeResource.getCheckedTextStyle()
+                              : ThemeResource.getCommonTextStyle(),
                         ),
                       ),
                     );

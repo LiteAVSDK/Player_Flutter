@@ -1,4 +1,4 @@
-
+// Copyright (c) 2022 Tencent. All rights reserved.
 library SuperPlayer;
 
 import 'dart:async';

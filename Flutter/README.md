@@ -175,10 +175,17 @@ class _TestState extends State<Test> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-            height: 220,
-            color: Colors.black,
-            child: AspectRatio(aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _controller)));
+    return Scaffold(
+            body: Container(
+                    height: 220,
+                    color: Colors.black,
+                    child: AspectRatio(aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _controller))));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
 ```
@@ -300,6 +307,13 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     model.playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
     model.title = "腾讯云音视频";
     _controller.playWithModel(model);
+  }
+
+  @override
+  void dispose() {
+    // must invoke when page exit.
+    _controller.releasePlayer();
+    super.dispose();
   }
 }
 ```

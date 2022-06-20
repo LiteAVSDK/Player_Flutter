@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 library demo_super_player_lib;
 
 import 'dart:async';
@@ -8,6 +9,7 @@ import 'dart:math';
 
 import 'package:auto_orientation/auto_orientation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:super_player/super_player.dart';
 
@@ -25,5 +27,8 @@ part 'ui/superplayer_bottom_view.dart';
 part 'ui/superplayer_quality_view.dart';
 part 'ui/superplayer_title_view.dart';
 part 'ui/superplayer_widget.dart';
+part 'ui/superplayer_cover_view.dart';
+part 'ui/superplayer_more_view.dart';
 part 'common/color_resource.dart';
 part 'common/string_resource.dart';
+part 'common/theme_resource.dart';
