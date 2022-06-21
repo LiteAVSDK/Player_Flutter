@@ -17,6 +17,7 @@ player plugin.
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'TXLiteAVSDK_Player','9.5.29040'
+  s.ios.framework = ['MobileCoreServices']
   s.platform = :ios, '9.0'
   s.static_framework = true
 

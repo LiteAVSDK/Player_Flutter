@@ -138,6 +138,11 @@ class PlayInfoProtocol {
   String? getDRMType() {
     return null == _playInfoParser ? null : _playInfoParser?.drmType;
   }
+
+  static String? getV4ErrorCodeDescription(int errorCode) {
+    return GETPLAYINFOV4_ERROR_CODE_MAP[errorCode];
+  }
+
   // getplayinfo/v4错误码
   // http状态码 200 403
   // 403一般鉴权信息不通过或者请求不合法
