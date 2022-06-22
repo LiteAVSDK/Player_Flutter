@@ -65,10 +65,10 @@ SuperPlayerPlugin* instance;
     _eventSink = [FTXPlayerEventSinkQueue new];
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
-
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(systemVolumeDidChangeNoti:)
                                                  name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
-
+ 
     return self;
 }
 

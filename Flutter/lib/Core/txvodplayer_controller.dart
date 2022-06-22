@@ -147,15 +147,14 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 通过fileld播放视频
-  /// @params : TXPlayerAuthParams
+  /// @params : 见[TXPlayInfoParams]
   /// return 是否播放成功
-  Future<bool> startPlayWithParams(TXPlayerAuthParams params) async {
+  Future<void> startPlayWithParams(TXPlayInfoParams params) async {
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
 
-    final result = await _channel.invokeMethod("startPlayWithParams", params.toJson());
-    return result == 0;
+    await _channel.invokeMethod("startPlayWithParams", params.toJson());
   }
 
   /// 共享纹理id，原生层的纹理准备好之后，会将纹理id传递回来。

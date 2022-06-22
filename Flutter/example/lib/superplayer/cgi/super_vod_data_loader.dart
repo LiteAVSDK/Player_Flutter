@@ -33,7 +33,7 @@ class SuperVodDataLoader {
     int code = root['code'];
     String message = root['message'];
     String warning = root['warning'];
-    LogUtils.d(TAG, "_getVodListData,code=($code, ${PlayInfoProtocol.GETPLAYINFOV4_ERROR_CODE_MAP[code]}),message=$message,warning=$warning");
+    LogUtils.d(TAG, "_getVodListData,code=($code, ${PlayInfoProtocol.getV4ErrorCodeDescription(code)}),message=$message,warning=$warning");
     if (code != 0) {
       return;
     }
