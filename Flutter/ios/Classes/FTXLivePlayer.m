@@ -104,7 +104,7 @@ static const int uninitialized = -1;
         
         if (_txLivePlayer != nil) {
             TXLivePlayConfig *config = [TXLivePlayConfig new];
-            [config setPlayerPixelFormatType:kCVPixelFormatType_32BGRA];
+            [config setPlayerPixelFormatType:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange];
             [_txLivePlayer setConfig:config];
             [_txLivePlayer setVideoProcessDelegate:self];
         }
