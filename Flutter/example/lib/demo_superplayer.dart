@@ -156,16 +156,6 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     models.add(model);
 
     model = SuperPlayerModel();
-    model.appId = 1254432039;
-    model.title = "为什么贫穷（fileId+psign播放）";
-    model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = '5285890816303742312';
-    model.videoId!.psign =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTI1NDQzMjAzOSwiZmlsZUlkIjoiNTI4NTg5MDgxNjMwMzc0MjMxMiIsImN1cnJlbnRUaW1lU3RhbXAiOjE2MTcyNTc0ODMsInBjZmciOiJiYXNpY0RybVByZXNldCIsInVybEFjY2Vzc0luZm8iOnt9LCJkcm1MaWNlbnNlSW5mbyI6e319.2H1t9dKPpdA41a8t1WwI631OWC18HGl60ccBDLylCKE';
-    model.playAction = playAction;
-    models.add(model);
-
-    model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "4564972819219071568";
