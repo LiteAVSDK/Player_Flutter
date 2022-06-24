@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
@@ -26,13 +27,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     _controller.onSimplePlayerEventBroadcast.listen((event) {
       String evtName = event["event"];
       if (evtName == SuperPlayerViewEvent.onStartFullScreenPlay) {
-        setState(() {
-          _isFullScreen = true;
-        });
       } else if (evtName == SuperPlayerViewEvent.onStopFullScreenPlay) {
-        setState(() {
-          _isFullScreen = false;
-        });
       } else {
         print(evtName);
       }
@@ -122,7 +117,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "", (String url, int appId, String fileId) {
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign) {
             SuperPlayerModel model = new SuperPlayerModel();
             model.appId = appId;
             if (url.isNotEmpty) {
@@ -130,13 +125,16 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
             } else if (appId != 0 && fileId.isNotEmpty) {
               model.videoId = new SuperPlayerVideoId();
               model.videoId!.fileId = fileId;
+              if (pSign.isNotEmpty) {
+                model.videoId!.psign = pSign;
+              }
             } else {
               EasyLoading.showError("请输入播放地址!");
               return;
             }
 
             playCurrentModel(model);
-          });
+          }, needPisgn: true);
         });
   }
 
@@ -153,14 +151,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "8602268011437356984";
-    model.title = "云点播";
-    model.playAction = playAction;
-    models.add(model);
-
-    model = SuperPlayerModel();
-    model.appId = 1252463788;
-    model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = "5285890781763144364";
+    model.title = "云点播（fileId播放）";
     model.playAction = playAction;
     models.add(model);
 
@@ -215,6 +206,8 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   void dispose() {
     // must invoke when page exit.
     _controller.releasePlayer();
+    // restore page brightness
+    SuperPlayerPlugin.restorePageBrightness();
     super.dispose();
   }
 }

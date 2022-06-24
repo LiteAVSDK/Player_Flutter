@@ -1,9 +1,4 @@
-//
-//  FTXVodPlayer.m
-//  super_player
-//
-//  Created by Zhirui Ou on 2021/3/15.
-//
+// Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "FTXVodPlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
@@ -14,6 +9,7 @@
 #import <Flutter/Flutter.h>
 
 static const int uninitialized = -1;
+static const int CODE_ON_RECEIVE_FIRST_FRAME = 2003;
 
 @interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate>
 
@@ -37,6 +33,9 @@ static const int uninitialized = -1;
     id<FlutterPluginRegistrar> _registrar;
     id<FlutterTextureRegistry> _textureRegistry;
 }
+
+
+BOOL volatile isStop = false;
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
 {
@@ -116,7 +115,6 @@ static const int uninitialized = -1;
         
         if (_txVodPlayer != nil) {
             [_txVodPlayer setVideoProcessDelegate:self];
-            _txVodPlayer.enableHWAcceleration = YES;
         }
     }
 }
@@ -148,32 +146,17 @@ static const int uninitialized = -1;
     return uninitialized;
 }
 
+
 - (int)startPlayWithParams:(NSDictionary *)params
 {
     if (_txVodPlayer != nil) {
         TXPlayerAuthParams *p = [TXPlayerAuthParams new];
-        NSString *timeout = params[@"timeout"];
-        NSString *us = params[@"us"];
-        NSString *sign = params[@"sign"];
-        int exper = [params[@"exper"] intValue];
-        
         p.appId = [params[@"appId"] unsignedIntValue];
-        
         p.fileId = params[@"fileId"];
-        if (timeout.length > 0) {
-            p.timeout = timeout;
+        NSString *psign = params[@"psign"];
+        if (psign.length > 0) {
+            p.sign = params[@"psign"];
         }
-        if (exper != 0) {
-            p.exper = exper;
-        }
-        if (us.length > 0) {
-            p.us = us;
-        }
-        if (sign.length > 0) {
-            p.sign = params[@"sign"];
-        }
-
-        p.https = [params[@"https"] boolValue];
         return [_txVodPlayer startPlayWithParams:p];
     }
     return uninitialized;
@@ -182,6 +165,7 @@ static const int uninitialized = -1;
 - (BOOL)stopPlay
 {
     if (_txVodPlayer != nil) {
+        isStop = true;
         return [_txVodPlayer stopPlay];
     }
     return NO;
@@ -240,14 +224,13 @@ static const int uninitialized = -1;
 - (NSArray *)supportedBitrates
 {
     if (_txVodPlayer != nil) {
-        NSArray *itemList = _txVodPlayer.supportedBitrates;
+        NSArray *itemList = [_txVodPlayer supportedBitrates];
         NSMutableArray *bitrates = @[].mutableCopy;
         for (TXBitrateItem *item in itemList) {
             [bitrates addObject:@{@"index": @(item.index), @"width": @(item.width), @"height": @(item.height), @"bitrate": @(item.bitrate)}];
         }
         return bitrates;
     }
-    
     return @[];
 }
 
@@ -295,7 +278,7 @@ static const int uninitialized = -1;
         BOOL onlyAudio = [args[@"onlyAudio"] boolValue];
         NSNumber* textureId = [self createPlayer:onlyAudio];
         result(textureId);
-    }else if([@"setIsAutoPlay" isEqualToString:call.method]) {
+    }else if([@"setAutoPlay" isEqualToString:call.method]) {
         BOOL isAutoPlay = [args[@"isAutoPlay"] boolValue];
         [self setIsAutoPlay:isAutoPlay];
         result(nil);
@@ -343,8 +326,8 @@ static const int uninitialized = -1;
         [self setBitrateIndex:index];
         result(nil);
     }else if([@"setStartTime" isEqualToString:call.method]) {
-//        float startTime = [args[@"startTime"] floatValue];
-//        [self setStartTime:startTime];
+        float startTime = [args[@"startTime"] floatValue];
+        [self setStartTime:startTime];
         result(nil);
     }else if([@"setAudioPlayoutVolume" isEqualToString:call.method]) {
         int volume = [args[@"volume"] intValue];
@@ -469,13 +452,21 @@ static const int uninitialized = -1;
                                              (void **)&_latestPixelBuffer)) {
         pixelBuffer = _latestPixelBuffer;
     }
-    return pixelBuffer;
+    if(isStop && nil != pixelBuffer) {
+        isStop = false;
+        [_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{}]];
+    }
+    return isStop ? nil : pixelBuffer;
 }
 
 #pragma mark - TXVodPlayListener
 
 - (void)onPlayEvent:(TXVodPlayer *)player event:(int)EvtID withParam:(NSDictionary*)param
 {
+    // 交给flutter共享纹理处理首帧事件返回时机
+    if(EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
+        return;
+    }
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
 }
 
@@ -509,7 +500,7 @@ static const int uninitialized = -1;
         _lastBuffer = CVPixelBufferRetain(pixelBuffer);
         CFRetain(pixelBuffer);
     }
-
+    
     CVPixelBufferRef newBuffer = pixelBuffer;
 
     CVPixelBufferRef old = _latestPixelBuffer;

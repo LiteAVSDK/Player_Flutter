@@ -1,9 +1,4 @@
-//
-//  FTXLivePlayer.m
-//  super_player
-//
-//  Created by Zhirui Ou on 2021/3/15.
-//
+// Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "FTXLivePlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
@@ -109,10 +104,9 @@ static const int uninitialized = -1;
         
         if (_txLivePlayer != nil) {
             TXLivePlayConfig *config = [TXLivePlayConfig new];
-            [config setPlayerPixelFormatType:kCVPixelFormatType_32BGRA];
+            [config setPlayerPixelFormatType:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange];
             [_txLivePlayer setConfig:config];
             [_txLivePlayer setVideoProcessDelegate:self];
-            _txLivePlayer.enableHWAcceleration = YES;
         }
     }
 }

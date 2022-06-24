@@ -1,5 +1,7 @@
 ## 腾讯云播放器SDK Flutter插件
 
+简体中文| [English](./README-EN.md)
+
 ## 工程目录结构说明
 
 本目录包含腾讯云播放器SDK Flutter 插件 和 Demo 源代码，主要演示接口如何调用以及最基本的功能。
@@ -116,7 +118,7 @@ pod 'TXLiteAVSDK_Professional' 	//Professional版
 
 ### 集成过程中常见问题
 
-执行`flutter doctor`命令检查运行环境，知道出现”No issues found!“。
+执行`flutter doctor`命令检查运行环境，直到出现”No issues found!“。
 
 执行`flutter pub get`确保所有依赖的组件都已更新成功。
 
@@ -175,10 +177,17 @@ class _TestState extends State<Test> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-            height: 220,
-            color: Colors.black,
-            child: AspectRatio(aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _controller)));
+    return Scaffold(
+            body: Container(
+                    height: 220,
+                    color: Colors.black,
+                    child: AspectRatio(aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _controller))));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
 ```
@@ -300,6 +309,13 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     model.playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
     model.title = "腾讯云音视频";
     _controller.playWithModel(model);
+  }
+
+  @override
+  void dispose() {
+    // must invoke when page exit.
+    _controller.releasePlayer();
+    super.dispose();
   }
 }
 ```

@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
 class TXPlayerValue {
@@ -80,6 +81,14 @@ abstract class TXVodPlayEvent {
   static const EVT_PLAY_DURATION = "EVT_PLAY_DURATION"; // 播放总长
   static const EVT_PLAYABLE_DURATION_MS = "EVT_PLAYABLE_DURATION_MS"; // 点播可播放时长（毫秒）
   static const EVT_PLAYABLE_RATE = "EVT_PLAYABLE_RATE"; //播放速率
+  static const  String EVT_IMAGESPRIT_WEBVTTURL   = "EVT_IMAGESPRIT_WEBVTTURL";     // 雪碧图web vtt描述文件下载URL
+  static const  String EVT_IMAGESPRIT_IMAGEURL_LIST  = "EVT_IMAGESPRIT_IMAGEURL_LIST"; // 雪碧图图片下载URL
+  static const  String EVT_DRM_TYPE  = "EVT_DRM_TYPE";                 // 加密类型
+
+  /// superplayer plugin volume evnet
+  static const EVENT_VOLUME_CHANGED = 0x01; // 音量变化
+  static const EVENT_AUDIO_FOCUS_PAUSE = 0x02; // 失去音量输出播放焦点 only for android
+  static const EVENT_AUDIO_FOCUS_PLAY = 0x03; // 获得音量输出焦点 only for android
 }
 
 abstract class TXVodNetEvent {
@@ -132,25 +141,31 @@ enum TXPlayerEvent {
   progress // 进度
 }
 
-class TXPlayerAuthParams {
-  int appId = 0;
-  String fileId = "";
-  String timeout = "";
-  int exper = 0;
-  String us = "";
-  String sign = "";
-  bool https = false;
+class TXLogLevel {
+  static const int LOG_LEVEL_VERBOSE   = 0;      // 输出所有级别的log
+  static const int LOG_LEVEL_DEBUG     = 1;      // 输出 DEBUG,INFO,WARNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_INFO      = 2;      // 输出 INFO,WARNNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_WARN      = 3;      // 输出WARNNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_ERROR     = 4;      // 输出ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_FATAL     = 5;      // 只输出FATAL 级别的log
+  static const int LOG_LEVEL_NULL      = 6;      // 不输出任何sdk log
+}
+
+class TXPlayInfoParams {
+  final int appId;          // Tencent Cloud video appId, required
+  final String fileId;      // Tencent Cloud video fileId, required
+  final String? psign;      // encent cloud video encryption signature, required for encrypted video
+
+  const TXPlayInfoParams(
+      {required this.appId,
+        required this.fileId,
+        this.psign});
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
     json["appId"] = appId;
     json["fileId"] = fileId;
-    json["timeout"] = timeout;
-    json["exper"] = exper;
-    json["us"] = us;
-    json["sign"] = sign;
-    json["https"] = https;
-
+    json["psign"] = psign;
     return json;
   }
 }

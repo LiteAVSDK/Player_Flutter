@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 #import <Foundation/Foundation.h>
 #import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
 

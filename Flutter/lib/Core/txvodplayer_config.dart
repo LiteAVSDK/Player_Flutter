@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
 /// TXVodPlayer config
@@ -8,8 +9,8 @@ class FTXVodPlayConfig {
   int connectRetryInterval = 3;
   // 播放器连接超时时间
   int timeout = 10;
-  // 播放器类型,0 点播，1 直播，2 直播回看
-  int playerType = 0;
+  // 仅iOS平台生效 [PlayerType]
+  int playerType = PlayerType.THUMB_PLAYER;
   // 自定义http headers
   Map<String, String> headers = {};
   // 是否精确seek，默认true
@@ -67,4 +68,10 @@ class FTXVodPlayConfig {
     json["preferredResolution"] = preferredResolution.toString();
     return json;
   }
+}
+
+/// 仅iOS平台有效
+class PlayerType {
+  static const int AVPLAYER = 0; // 系统播放
+  static const int THUMB_PLAYER = 1; // ThumbPlayer播放器
 }

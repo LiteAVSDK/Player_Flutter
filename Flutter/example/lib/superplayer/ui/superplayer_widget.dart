@@ -1,6 +1,8 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
-final double topBottomOffset = -2;
+final double topBottomOffset = 0;
+DeviceOrientation landscapeOrientation = DeviceOrientation.landscapeLeft;
 
 /// superplayer view widget
 class SuperPlayerView extends StatefulWidget {
@@ -18,6 +20,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late SuperPlayerController _playController;
   bool _isFullScreen = false;
   bool _isPlaying = false;
+  bool _isLoading = true;
+  bool _isShowCover = true;
 
   double _radioWidth = 0;
   double _radioHeight = 0;
@@ -27,7 +31,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   double _videoWidth = 0;
   double _videoHeight = 0;
 
-  bool _isShowCover = true;
   bool _isShowControlView = false;
   bool _isShowQualityView = false;
   bool _isShowQualityListView = false;
@@ -36,6 +39,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late _QualityListViewController _qualitListViewController;
   late _VideoTitleController _titleViewController;
   late _SuperPlayerFullScreenController _fullScreenController;
+  late _CoverViewController _coverViewController;
+  late _MoreViewController _moreViewController;
 
   /// init
   Timer _controlViewTimer = Timer(Duration(milliseconds: _controlViewShowTime), () {});
@@ -43,18 +48,34 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   GlobalKey<_VideoBottomViewState> _videoBottomKey = GlobalKey();
   GlobalKey<_QualityListViewState> _qualityListKey = GlobalKey();
   GlobalKey<_VideoTitleViewState> _videoTitleKey = GlobalKey();
+  GlobalKey<_SuperPlayerCoverViewState> _coverViewKey = GlobalKey();
+  GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    // ios need landscapeRight,android need landscapeLeft
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      landscapeOrientation = DeviceOrientation.landscapeRight;
+    } else {
+      landscapeOrientation = DeviceOrientation.landscapeLeft;
+    }
     _playController = widget._controller;
     WidgetsBinding.instance?.addObserver(this);
     _fullScreenController = _SuperPlayerFullScreenController(_updateState);
-    _titleViewController = _VideoTitleController(_onTapBack);
+    _titleViewController = _VideoTitleController(_onTapBack, () {
+      _moreViewKey.currentState?.toggleShowMoreView();
+    });
     _bottomViewController = _BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView);
+    _coverViewController = _CoverViewController(_onDoubleTapVideo, _onSingleTapVideo);
     _qualitListViewController = _QualityListViewController((quality) {
       _playController.switchStream(quality);
     });
+    _moreViewController = _MoreViewController(
+        () => _playController._isOpenHWAcceleration,
+        () => _playController.currentPlayRate,
+        (value) => _playController.enableHardwareDecode(value),
+        (playRate) => _playController.setPlayRate(playRate));
     _playController.onPlayerNetStatusBroadcast.listen((event) {
       dynamic wd = (event["VIDEO_WIDTH"]);
       dynamic hd = (event["VIDEO_HEIGHT"]);
@@ -70,20 +91,19 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _registerObserver() {
     _playController._observer = _SuperPlayerObserver(() {
-      // onVodPrepare
+      // onNewVideoPlay
       _isFullScreen = false;
-      _isShowCover = true;
       _isPlaying = false;
       _isShowControlView = false;
-    }, () {
-      // onNewVideoPlay
       _isShowCover = true;
+      _isLoading = true;
+    }, () {
+      // onPlayPrepare
+      _isShowCover = true;
+      _coverViewKey.currentState?.showCover(_playController.videoModel!);
       _togglePlayStateView(false);
     }, (name) {
-      // onPlayBegin
-      if (!_isPlaying) {
-        _togglePlayStateView(true);
-      }
+      _togglePlayStateView(true);
       if (_isShowControlView) {
         _videoTitleKey.currentState?.updateTitle(name);
       }
@@ -96,14 +116,14 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _togglePlayStateView(false);
     }, () {
       // onRcvFirstIframe
-      if (_isShowCover) {
-        setState(() {
-          _isShowCover = false;
-        });
-      }
+      _coverViewKey.currentState?.hideCover();
     }, () {
       // onPlayLoading
-      _isPlaying = false;
+      if (!_isPlaying) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
     }, (current, duration) {
       // onPlayProgress
       _videoBottomKey.currentState?.updateDuration(current, duration);
@@ -144,16 +164,24 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       case SuperPlayerState.PLAYING:
         _isPlaying = true;
         _isShowCover = false;
+        _isLoading = false;
         break;
       case SuperPlayerState.END:
       case SuperPlayerState.PAUSE:
         _isPlaying = false;
         _isShowCover = false;
+        _isLoading = false;
         break;
       case SuperPlayerState.INIT:
       case SuperPlayerState.LOADING:
         _isPlaying = false;
+        _isLoading = true;
         break;
+    }
+    if (_isFullScreen) {
+      SystemChrome.setPreferredOrientations([landscapeOrientation]);
+    } else {
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }
   }
 
@@ -175,6 +203,17 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         // 页面从后台回来
         // 不更新状态，直接resume
         _playController._vodPlayerController?.resume();
+        // 从后台回来之后，如果手机横竖屏状态发生更改，被改为竖屏，那么这里根据判断切换横屏
+        if (_isFullScreen && defaultTargetPlatform == TargetPlatform.iOS) {
+          Orientation currentOrientation = MediaQuery.of(context).orientation;
+          bool isLandscape = currentOrientation == Orientation.landscape;
+          if (!isLandscape) {
+            ///关闭状态栏，与RootViewController底部虚拟操作按钮
+            SystemChrome.setPreferredOrientations([landscapeOrientation]);
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+            AutoOrientation.landscapeAutoMode();
+          }
+        }
       } else if (state == AppLifecycleState.inactive) {
         // 页面退到后台
         // 不更新状态，直接pause
@@ -232,10 +271,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
             _getQualityView(),
             _getStartOrResumeBtn(),
             _getQualityListView(),
+            _getMoreMenuView(),
+            _getLoading(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _getMoreMenuView() {
+    return SuperPlayerMoreView(_moreViewController, key: _moreViewKey);
   }
 
   Widget _getQualityView() {
@@ -262,10 +307,24 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     );
   }
 
+  Widget _getLoading() {
+    return Center(
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Visibility(
+            visible: _isLoading,
+            child: CircularProgressIndicator(
+              color: Colors.grey,
+            )),
+      ),
+    );
+  }
+
   Widget _getStartOrResumeBtn() {
     return Center(
       child: Visibility(
-        visible: !_isPlaying,
+        visible: !_isPlaying && !_isLoading,
         maintainState: false,
         child: InkWell(
           onTap: _onTapPlayControl,
@@ -280,36 +339,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   }
 
   Widget _getCover() {
-    bool hasCover = false;
-    String coverUrl = "";
-    if (null != _playController.videoModel) {
-      SuperPlayerModel model = _playController.videoModel!;
-      // custom cover is preferred
-      if (model.customeCoverUrl.isNotEmpty) {
-        coverUrl = model.customeCoverUrl;
-        hasCover = true;
-      } else if (model.coverUrl.isNotEmpty) {
-        coverUrl = model.coverUrl;
-        hasCover = true;
-      }
-    }
-
-    return Visibility(
-      visible: _isShowCover,
-      child: Positioned.fill(
-          top: topBottomOffset,
-          bottom: topBottomOffset,
-          left: 0,
-          right: 0,
-          child: InkWell(
-            onDoubleTap: _onDoubleTapVideo,
-            onTap: _onSingleTapVideo,
-            child: Container(
-                decoration: hasCover
-                    ? BoxDecoration(image: DecorationImage(image: NetworkImage(coverUrl), fit: BoxFit.fill))
-                    : BoxDecoration(color: Colors.transparent)),
-          )),
-    );
+    return SuperPlayerCoverView(_coverViewController, _coverViewKey, _isShowCover ? _playController.videoModel : null);
   }
 
   Widget _getPlayer() {
@@ -327,7 +357,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         top: topBottomOffset,
         left: 0,
         right: 0,
-        child: _VideoTitleView(_titleViewController, _playController._getPlayName(), _videoTitleKey),
+        child: _VideoTitleView(_titleViewController, _isFullScreen, _playController._getPlayName(), _videoTitleKey),
       ),
     );
   }
@@ -335,6 +365,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _onSingleTapVideo() {
     if (_isShowControlView) {
       hideControlView();
+      _moreViewKey.currentState?.hideShowMoreView();
     } else {
       showControlView(true);
     }
@@ -398,10 +429,14 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       Navigator.of(context).pop();
 
       ///显示状态栏，与底部虚拟操作按钮
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
       AutoOrientation.portraitAutoMode();
+      /// 隐藏moreView
+      _moreViewKey.currentState?.hideShowMoreView();
     }
     _videoBottomKey.currentState?.updateFullScreen(_isFullScreen);
+    _videoTitleKey.currentState?.updateFullScreen(_isFullScreen);
   }
 
   void _onControlFullScreen() {
@@ -427,9 +462,12 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _togglePlayStateView(bool playing) {
     if (mounted) {
       setState(() {
+        if (playing) {
+          _isLoading = false;
+        }
         _isPlaying = playing;
-        _videoBottomKey.currentState?.updatePlayState(playing);
       });
+      _videoBottomKey.currentState?.updatePlayState(playing);
     }
   }
 
@@ -485,7 +523,9 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
   @override
   void initState() {
     super.initState();
+
     ///关闭状态栏，与底部虚拟操作按钮
+    SystemChrome.setPreferredOrientations([landscapeOrientation]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     AutoOrientation.landscapeAutoMode();
   }
@@ -493,9 +533,16 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      child: Scaffold(
-        body: SuperPlayerView(widget._playController, viewKey: widget.key),
-      ),
+      child: MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          removeBottom: true,
+          removeLeft: true,
+          removeRight: true,
+          child: Scaffold(
+            body:
+                Container(width: double.infinity, child: SuperPlayerView(widget._playController, viewKey: widget.key)),
+          )),
       onWillPop: _onFullScreenWillPop,
     );
   }

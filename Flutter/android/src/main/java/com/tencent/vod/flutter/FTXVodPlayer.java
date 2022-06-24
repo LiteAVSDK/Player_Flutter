@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 package com.tencent.vod.flutter;
 
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.rtmp.TXPlayInfoParams;
 import com.tencent.rtmp.TXPlayerAuthBuilder;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
@@ -50,6 +52,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     private static final int                                 Uninitialized = -101;
     private              TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
+    private boolean mEnableHardwareDecode = true;
+    private boolean mHardwareDecodeFail = false;
+
 
     public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         super();
@@ -87,7 +92,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
 
     @Override
-    public void destory() {
+    public void destroy() {
         if (mVodPlayer != null) {
             mVodPlayer.stopPlay(true);
             mVodPlayer = null;
@@ -114,8 +119,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     }
 
     @Override
-    public void onPlayEvent(TXVodPlayer txVodPlayer, int i, Bundle bundle) {
-        if (i == TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION) {
+    public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
+        if (event == TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION) {
             String EVT_PARAM3 = bundle.getString("EVT_PARAM3");
             if (!TextUtils.isEmpty(EVT_PARAM3)) {
                 String[] array = EVT_PARAM3.split(",");
@@ -132,13 +137,32 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
                     bundle.putInt("videoTop", videoTop);
                     bundle.putInt("videoRight", videoRight);
                     bundle.putInt("videoBottom", videoBottom);
-                    mEventSink.success(getParams(i, bundle));
+                    mEventSink.success(getParams(event, bundle));
                     return;
                 }
             }
+
+            int width = bundle.getInt(TXLiveConstants.EVT_PARAM1, 0);
+            int height = bundle.getInt(TXLiveConstants.EVT_PARAM2, 0);
+            if (!mEnableHardwareDecode || mHardwareDecodeFail) {
+                setDefaultBufferSizeForSoftDecode(width, height);
+            }
+        } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
+            mHardwareDecodeFail = true;
         }
-        mEventSink.success(getParams(i, bundle));
+        mEventSink.success(getParams(event, bundle));
     }
+
+    // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
+    private void setDefaultBufferSizeForSoftDecode(int width, int height) {
+        mSurfaceTextureEntry.surfaceTexture().setDefaultBufferSize(width, height);
+        if (mSurface != null) {
+            mSurface.release();
+        }
+        mSurface = new Surface(mSurfaceTextureEntry.surfaceTexture());
+        mVodPlayer.setSurface(mSurface);
+    }
+
 
     @Override
     public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
@@ -151,7 +175,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             boolean onlyAudio = call.argument("onlyAudio");
             long id = init(onlyAudio);
             result.success(id);
-        } else if (call.method.equals("setIsAutoPlay")) {
+        } else if (call.method.equals("setAutoPlay")) {
             boolean loop = call.argument("isAutoPlay");
             setIsAutoPlay(loop);
             result.success(null);
@@ -160,8 +184,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             int r = startPlay(url);
             result.success(r);
         } else if (call.method.equals("startPlayWithParams")) {
-            int r = startPlayWithParams(call);
-            result.success(r);
+            startPlayWithParams(call);
+            result.success(null);
         } else if (call.method.equals("stop")) {
             Boolean isNeedClear = call.argument("isNeedClear");
             int r = stopPlay(isNeedClear);
@@ -285,6 +309,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }
 
+
     void setPlayer(boolean onlyAudio) {
         if (!onlyAudio) {
             mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
@@ -293,7 +318,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
             if (mVodPlayer != null) {
                 mVodPlayer.setSurface(mSurface);
-                mVodPlayer.enableHardwareDecode(true);
             }
         }
     }
@@ -305,43 +329,21 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         return Uninitialized;
     }
 
-    int startPlayWithParams(MethodCall call) {
+    void startPlayWithParams(MethodCall call) {
         if (mVodPlayer != null) {
-            TXPlayerAuthBuilder builder = new TXPlayerAuthBuilder();
             int appId = call.argument("appId");
-            builder.setAppId(appId);
             String fileId = call.argument("fileId");
-            builder.setFileId(fileId);
-            String timeout = call.argument("timeout");
-            if (!timeout.isEmpty()) {
-                builder.setTimeout(timeout);
-            }
-            int exper = call.argument("exper");
-            builder.setExper(exper);
-
-            String us = call.argument("us");
-            if (!us.isEmpty()) {
-                builder.setUs(us);
-            }
-
-            String sign = call.argument("sign");
-            if (!sign.isEmpty()) {
-                builder.setSign(sign);
-            }
-
-            boolean https = call.argument("https");
-            builder.setHttps(https);
-
-            return mVodPlayer.startPlay(builder);
-
+            String psign = call.argument("psign");
+            TXPlayInfoParams playInfoParams = new TXPlayInfoParams(appId, fileId, psign);
+            mVodPlayer.startPlay(playInfoParams);
         }
-        return Uninitialized;
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
         if (mVodPlayer != null) {
             return mVodPlayer.stopPlay(isNeedClearLastImg);
         }
+        mHardwareDecodeFail = false;
         return Uninitialized;
     }
 
@@ -520,6 +522,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     boolean enableHardwareDecode(boolean enable) {
         if (mVodPlayer != null) {
+            mEnableHardwareDecode = enable;
             return mVodPlayer.enableHardwareDecode(enable);
         }
         return false;
