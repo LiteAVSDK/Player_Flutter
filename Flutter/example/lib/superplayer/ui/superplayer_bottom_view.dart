@@ -18,11 +18,14 @@ class _VideoBottomViewState extends State<VideoBottomView> {
   static const TAG = "VideoBottomView";
 
   double _currentProgress = 0;
+  double _playableProgress = 0;
   int _currentDuration = 0;
   int _videoDuration = 0;
+  double _bufferedDuration = 0;
   bool _showFullScreenBtn = true;
   bool _isPlayMode = false;
   bool _isShowQuality = false; // only showed on fullscreen mode
+  bool _isOnDraging = false;
   VideoQuality? _currentQuality;
 
   @override
@@ -123,26 +126,31 @@ class _VideoBottomViewState extends State<VideoBottomView> {
 
   Widget _getSlider() {
     return Expanded(
-      child: Theme(
-          data: ThemeResource.getCommonSliderTheme(),
-          child: Slider(
-            min: 0,
-            max: 1,
-            value: _currentProgress,
-            onChanged: (double value) {
-              setState(() {
-                _currentProgress = value;
-              });
-            },
-            onChangeEnd: (double value) {
-              setState(() {
-                _currentProgress = value;
-                widget._playerController.seek(_currentProgress * _videoDuration);
-                LogUtils.d(TAG,
-                    "_currentProgress:$_currentProgress,_videoDuration:$_videoDuration,currentDuration:${_currentProgress * _videoDuration}");
-              });
-            },
-          )),
+      child: VideoSlider(
+        min: 0,
+        max: 1,
+        value: _currentProgress,
+        bufferedValue: _playableProgress,
+        activeColor: Color(ColorResource.COLOR_MAIN_THEME),
+        inactiveColor: Color(ColorResource.COLOR_GRAY),
+        sliderColor: Color(ColorResource.COLOR_MAIN_THEME),
+        sliderOutterColor: Colors.white,
+        progressHeight: 2,
+        sliderRadius: 4,
+        sliderOutterRadius: 10,
+        onDragUpdate: (value) {
+          _isOnDraging = true;
+        },
+        onDragEnd: (value) {
+          setState(() {
+            _isOnDraging = false;
+            _currentProgress = value;
+            widget._playerController.seek(_currentProgress * _videoDuration);
+            LogUtils.d(TAG,
+                "_currentProgress:$_currentProgress,_videoDuration:$_videoDuration,currentDuration:${_currentProgress * _videoDuration}");
+          });
+        },
+      ),
     );
   }
 
@@ -158,12 +166,16 @@ class _VideoBottomViewState extends State<VideoBottomView> {
     widget._controller.onTapQuality();
   }
 
-  void updateDuration(int duration, int videoDuration) {
-    if (duration != _currentDuration || _videoDuration != videoDuration) {
+  void updateDuration(int duration, int videoDuration, double bufferedDration) {
+    if (_isOnDraging) {
+      return;
+    }
+    if (duration != _currentDuration || _videoDuration != videoDuration || _bufferedDuration != bufferedDration) {
       if (duration <= videoDuration) {
         setState(() {
           _currentDuration = duration;
           _videoDuration = videoDuration;
+          _bufferedDuration = bufferedDration;
           _fixProgress();
         });
       }
@@ -172,16 +184,29 @@ class _VideoBottomViewState extends State<VideoBottomView> {
 
   void _fixProgress() {
     // provent division zero problem
-    if(_videoDuration == 0) {
+    if (_videoDuration == 0) {
       _currentProgress = 0;
     } else {
       _currentProgress = _currentDuration / _videoDuration;
     }
-    if(_currentProgress < 0) {
+    if (_currentProgress < 0) {
       _currentProgress = 0;
     }
-    if(_currentProgress > 1) {
+    if (_currentProgress > 1) {
       _currentProgress = 1;
+    }
+
+    if (_bufferedDuration == 0) {
+      _playableProgress = 0;
+    } else {
+      _playableProgress = _bufferedDuration / _videoDuration;
+    }
+
+    if (_playableProgress < 0) {
+      _playableProgress = 0;
+    }
+    if (_playableProgress > 1) {
+      _playableProgress = 1;
     }
   }
 

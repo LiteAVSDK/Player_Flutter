@@ -29,6 +29,7 @@ part 'ui/superplayer_title_view.dart';
 part 'ui/superplayer_widget.dart';
 part 'ui/superplayer_cover_view.dart';
 part 'ui/superplayer_more_view.dart';
+part 'ui/superplayer_video_slider.dart';
 part 'common/color_resource.dart';
 part 'common/string_resource.dart';
 part 'common/theme_resource.dart';

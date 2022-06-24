@@ -14,7 +14,6 @@ import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXPlayInfoParams;
-import com.tencent.rtmp.TXPlayerAuthBuilder;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
 
@@ -50,20 +49,63 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     private TXVodPlayer mVodPlayer;
 
-    private static final int                                 Uninitialized = -101;
+    private static final int                                 Uninitialized         = -101;
     private              TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
-    private boolean mEnableHardwareDecode = true;
-    private boolean mHardwareDecodeFail = false;
+    private              boolean                             mEnableHardwareDecode = true;
+    private              boolean                             mHardwareDecodeFail   = false;
 
+    private final FTXPIPManager             mPipManager;
+    private       FTXPIPManager.PipParams   mPipParams;
+    private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
+        @Override
+        public void onPlayBack() {
+            boolean isPlaying = isPlaying();
+            if (isPlaying) {
+                float backPlayTime = getCurrentPlaybackTime() - 10;
+                if (backPlayTime < 0) {
+                    backPlayTime = 0;
+                }
+                seek(backPlayTime);
+            }
+        }
 
-    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
+        @Override
+        public void onResumeOrPlay() {
+            boolean isPlaying = isPlaying();
+            if (isPlaying) {
+                pause();
+            } else {
+                resume();
+            }
+            // isPlaying取反，点击暂停/播放之后，播放状态会变化
+            mPipManager.updatePipActions(!isPlaying, mPipParams);
+        }
+
+        @Override
+        public void onPlayForward() {
+            boolean isPlaying = isPlaying();
+            if (isPlaying) {
+                float forwardPlayTime = getCurrentPlaybackTime() + 10;
+                float duration = mVodPlayer.getDuration();
+                if (forwardPlayTime > duration) {
+                    forwardPlayTime = duration;
+                }
+                seek(forwardPlayTime);
+            }
+        }
+    };
+
+    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
         super();
+        mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;
 
-        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txvodplayer/" + super.getPlayerId());
+        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
+                ".com/txvodplayer/" + super.getPlayerId());
         mMethodChannel.setMethodCallHandler(this);
 
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txvodplayer/event/" + super.getPlayerId());
+        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
+                ".com/txvodplayer/event/" + super.getPlayerId());
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -76,7 +118,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             }
         });
 
-        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txvodplayer/net/" + super.getPlayerId());
+        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
+                ".com/txvodplayer/net/" + super.getPlayerId());
         mNetChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -116,6 +159,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         mMethodChannel.setMethodCallHandler(null);
         mEventChannel.setStreamHandler(null);
         mNetChannel.setStreamHandler(null);
+        if (null != mPipManager) {
+            mPipManager.releaseCallback(getPlayerId());
+        }
     }
 
     @Override
@@ -149,6 +195,10 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             }
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
             mHardwareDecodeFail = true;
+        } else if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
+            if (null != mPipManager && mPipManager.isInPipMode()) {
+                mPipManager.updatePipActions(false, mPipParams);
+            }
         }
         mEventSink.success(getParams(event, bundle));
     }
@@ -291,10 +341,21 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             result.success(time);
         } else if (call.method.equals("getDuration")) {
             float duration = 0;
-            if(null != mVodPlayer) {
+            if (null != mVodPlayer) {
                 duration = mVodPlayer.getDuration();
             }
             result.success(duration);
+        } else if (call.method.equals("enterPictureInPictureMode")) {
+            String playBackAssetPath = call.argument("backIcon");
+            String playResumeAssetPath = call.argument("playIcon");
+            String playPauseAssetPath = call.argument("pauseIcon");
+            String playForwardAssetPath = call.argument("forwardIcon");
+            mPipManager.addCallback(getPlayerId(), pipCallback);
+            mPipParams = new FTXPIPManager.PipParams(playBackAssetPath, playResumeAssetPath,
+                    playPauseAssetPath,
+                    playForwardAssetPath, getPlayerId());
+            int pipResult = mPipManager.enterPip(isPlaying(), mPipParams);
+            result.success(pipResult);
         } else {
             result.notImplemented();
         }
@@ -399,10 +460,10 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     List<?> getSupportedBitrates() {
         if (mVodPlayer != null) {
             ArrayList<TXBitrateItem> bitrates = mVodPlayer.getSupportedBitrates();
-            ArrayList<Map<Object,Object>> jsons = new ArrayList<>();
+            ArrayList<Map<Object, Object>> jsons = new ArrayList<>();
             for (TXBitrateItem item :
                     bitrates) {
-                Map<Object,Object> map = new HashMap<>();
+                Map<Object, Object> map = new HashMap<>();
                 map.put("bitrate", item.bitrate);
                 map.put("width", item.width);
                 map.put("height", item.height);
@@ -444,7 +505,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         }
     }
 
-    void setPlayConfig(Map<Object,Object> config) {
+    void setPlayConfig(Map<Object, Object> config) {
         if (mVodPlayer != null) {
             TXVodPlayConfig playConfig = FTXTransformation.transformToConfig(config);
             mVodPlayer.setConfig(playConfig);
@@ -505,7 +566,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     void setToken(String token) {
         if (mVodPlayer != null) {
-            if(TextUtils.isEmpty(token)) {
+            if (TextUtils.isEmpty(token)) {
                 mVodPlayer.setToken(null);
             } else {
                 mVodPlayer.setToken(token);

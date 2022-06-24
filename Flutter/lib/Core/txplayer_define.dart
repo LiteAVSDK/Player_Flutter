@@ -81,14 +81,24 @@ abstract class TXVodPlayEvent {
   static const EVT_PLAY_DURATION = "EVT_PLAY_DURATION"; // 播放总长
   static const EVT_PLAYABLE_DURATION_MS = "EVT_PLAYABLE_DURATION_MS"; // 点播可播放时长（毫秒）
   static const EVT_PLAYABLE_RATE = "EVT_PLAYABLE_RATE"; //播放速率
-  static const  String EVT_IMAGESPRIT_WEBVTTURL   = "EVT_IMAGESPRIT_WEBVTTURL";     // 雪碧图web vtt描述文件下载URL
-  static const  String EVT_IMAGESPRIT_IMAGEURL_LIST  = "EVT_IMAGESPRIT_IMAGEURL_LIST"; // 雪碧图图片下载URL
-  static const  String EVT_DRM_TYPE  = "EVT_DRM_TYPE";                 // 加密类型
+  static const String EVT_IMAGESPRIT_WEBVTTURL = "EVT_IMAGESPRIT_WEBVTTURL"; // 雪碧图web vtt描述文件下载URL
+  static const String EVT_IMAGESPRIT_IMAGEURL_LIST = "EVT_IMAGESPRIT_IMAGEURL_LIST"; // 雪碧图图片下载URL
+  static const String EVT_DRM_TYPE = "EVT_DRM_TYPE"; // 加密类型
 
-  /// superplayer plugin volume evnet
-  static const EVENT_VOLUME_CHANGED = 0x01; // 音量变化
-  static const EVENT_AUDIO_FOCUS_PAUSE = 0x02; // 失去音量输出播放焦点 only for android
-  static const EVENT_AUDIO_FOCUS_PLAY = 0x03; // 获得音量输出焦点 only for android
+  /// superplayer plugin volume event
+  static const EVENT_VOLUME_CHANGED = 1; // 音量变化
+  static const EVENT_AUDIO_FOCUS_PAUSE = 2; // 失去音量输出播放焦点 only for android
+  static const EVENT_AUDIO_FOCUS_PLAY = 3; // 获得音量输出焦点 only for android
+  /// pip event
+  static const    EVENT_PIP_MODE_ALREADY_ENTER    = 1; // 已经进入画中画模式
+  static const    EVENT_PIP_MODE_ALREADY_EXIT     = 2; // 已经退出画中画模式
+  static const    EVENT_PIP_MODE_REQUEST_START    = 3; // 开始请求进入画中画模式
+  static const    EVENT_PIP_MODE_UI_STATE_CHANGED = 4; // pip UI状态发生变动，only support android > 31
+
+  static const NO_ERROR = 0;
+  static const ERROR_PIP_LOWER_VERSION        = -101; // pip 错误，android版本过低
+  static const ERROR_PIP_DENIED_PERMISSION    = -102; // pip 错误，画中画权限关闭/设备不支持画中画
+  static const ERROR_PIP_ACTIVITY_DESTROYED   = -103; // pip 错误，当前界面已销毁
 }
 
 abstract class TXVodNetEvent {
@@ -106,9 +116,12 @@ abstract class TXVodNetEvent {
   static const NET_STATUS_VIDEO_DROP = "VIDEO_DROP"; // 推流：发送端视频丢帧数(有用:实时推流有丢帧逻辑)   拉流：接收端视频丢帧数（未用：播放端有视频加速，不丢帧）
   static const NET_STATUS_V_SUM_CACHE_SIZE = "V_SUM_CACHE_SIZE"; // 拉流专用：接收端已接收但未渲染的视频帧数（包括JitterBuffer和解码器两部分缓存）
   static const NET_STATUS_V_DEC_CACHE_SIZE = "V_DEC_CACHE_SIZE"; // 拉流专用：接收端解码器里缓存的视频帧数
-  static const NET_STATUS_AV_PLAY_INTERVAL = "AV_PLAY_INTERVAL"; // 拉流专用：视频当前渲染帧的timestamp和音频当前播放帧的timestamp的差值，标示当时音画同步的状态
-  static const NET_STATUS_AV_RECV_INTERVAL = "AV_RECV_INTERVAL"; // 拉流专用：jitterbuffer最新收到的视频帧和音频帧的timestamp的差值，标示当时jitterbuffer收包同步的状态
-  static const NET_STATUS_AUDIO_CACHE_THRESHOLD = "AUDIO_CACHE_THRESHOLD"; // 拉流专用：播放端音频缓存时长阀值，单位：秒，当缓存的音频时长大于该阀值时会触发jitterbuffer的加速播放，以保证播放时延
+  static const NET_STATUS_AV_PLAY_INTERVAL =
+      "AV_PLAY_INTERVAL"; // 拉流专用：视频当前渲染帧的timestamp和音频当前播放帧的timestamp的差值，标示当时音画同步的状态
+  static const NET_STATUS_AV_RECV_INTERVAL =
+      "AV_RECV_INTERVAL"; // 拉流专用：jitterbuffer最新收到的视频帧和音频帧的timestamp的差值，标示当时jitterbuffer收包同步的状态
+  static const NET_STATUS_AUDIO_CACHE_THRESHOLD =
+      "AUDIO_CACHE_THRESHOLD"; // 拉流专用：播放端音频缓存时长阀值，单位：秒，当缓存的音频时长大于该阀值时会触发jitterbuffer的加速播放，以保证播放时延
   static const NET_STATUS_AUDIO_BLOCK_TIME = "AUDIO_BLOCK_TIME"; // 拉流专用：音频卡顿时长，单位ms
   static const NET_STATUS_AUDIO_INFO = "AUDIO_PLAY_INFO"; // 当前流的音频信息，包括采样率信息和声道数信息
   static const NET_STATUS_NET_JITTER = "NET_JITTER"; // 网络抖动情况，数值越大表示抖动越大，网络越不稳定
@@ -142,24 +155,21 @@ enum TXPlayerEvent {
 }
 
 class TXLogLevel {
-  static const int LOG_LEVEL_VERBOSE   = 0;      // 输出所有级别的log
-  static const int LOG_LEVEL_DEBUG     = 1;      // 输出 DEBUG,INFO,WARNING,ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_INFO      = 2;      // 输出 INFO,WARNNING,ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_WARN      = 3;      // 输出WARNNING,ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_ERROR     = 4;      // 输出ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_FATAL     = 5;      // 只输出FATAL 级别的log
-  static const int LOG_LEVEL_NULL      = 6;      // 不输出任何sdk log
+  static const int LOG_LEVEL_VERBOSE = 0; // 输出所有级别的log
+  static const int LOG_LEVEL_DEBUG = 1; // 输出 DEBUG,INFO,WARNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_INFO = 2; // 输出 INFO,WARNNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_WARN = 3; // 输出WARNNING,ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_ERROR = 4; // 输出ERROR 和 FATAL 级别的log
+  static const int LOG_LEVEL_FATAL = 5; // 只输出FATAL 级别的log
+  static const int LOG_LEVEL_NULL = 6; // 不输出任何sdk log
 }
 
 class TXPlayInfoParams {
-  final int appId;          // Tencent Cloud video appId, required
-  final String fileId;      // Tencent Cloud video fileId, required
-  final String? psign;      // encent cloud video encryption signature, required for encrypted video
+  final int appId; // Tencent Cloud video appId, required
+  final String fileId; // Tencent Cloud video fileId, required
+  final String? psign; // encent cloud video encryption signature, required for encrypted video
 
-  const TXPlayInfoParams(
-      {required this.appId,
-        required this.fileId,
-        this.psign});
+  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign});
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
