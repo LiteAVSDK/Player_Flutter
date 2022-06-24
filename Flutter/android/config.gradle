@@ -10,9 +10,4 @@ rootProject.ext {
      */
     liteavSdk="com.tencent.liteav:LiteAVSDK_Player:latest.release"
 //    liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:latest.release"
-    imSdk = 'com.tencent.imsdk:imsdk:4.9.1'
-    versionCode = 1
-    versionName = "v1.0"
-    ndkAbi = 'armeabi'//,'armeabi-v7a', 'arm64-v8a'
-    aekit_version = '1.0.10-cloud'
 }

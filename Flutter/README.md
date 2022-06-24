@@ -1,5 +1,7 @@
 ## 腾讯云播放器SDK Flutter插件
 
+简体中文| [English](./README-EN.md)
+
 ## 工程目录结构说明
 
 本目录包含腾讯云播放器SDK Flutter 插件 和 Demo 源代码，主要演示接口如何调用以及最基本的功能。

@@ -149,7 +149,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                 decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0)), borderSide: BorderSide(color: Colors.green.withOpacity(0.4), width: 3.0)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0)), borderSide: BorderSide(color: Colors.green, width: 4.0)),
-                    labelText:"请输入pSign", labelStyle: TextStyle(color: Colors.grey),
+                    labelText:"请输入pSign(加密视频必填）", labelStyle: TextStyle(color: Colors.grey),
                     suffixIcon: IconButton(
                         icon: Icon(Icons.close),
                         onPressed: () {

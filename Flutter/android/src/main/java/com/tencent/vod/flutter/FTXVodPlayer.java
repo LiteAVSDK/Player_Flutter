@@ -13,6 +13,7 @@ import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.rtmp.TXPlayInfoParams;
 import com.tencent.rtmp.TXPlayerAuthBuilder;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
@@ -183,8 +184,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             int r = startPlay(url);
             result.success(r);
         } else if (call.method.equals("startPlayWithParams")) {
-            int r = startPlayWithParams(call);
-            result.success(r);
+            startPlayWithParams(call);
+            result.success(null);
         } else if (call.method.equals("stop")) {
             Boolean isNeedClear = call.argument("isNeedClear");
             int r = stopPlay(isNeedClear);
@@ -328,37 +329,14 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         return Uninitialized;
     }
 
-    int startPlayWithParams(MethodCall call) {
+    void startPlayWithParams(MethodCall call) {
         if (mVodPlayer != null) {
-            TXPlayerAuthBuilder builder = new TXPlayerAuthBuilder();
             int appId = call.argument("appId");
-            builder.setAppId(appId);
             String fileId = call.argument("fileId");
-            builder.setFileId(fileId);
-            String timeout = call.argument("timeout");
-            if (!timeout.isEmpty()) {
-                builder.setTimeout(timeout);
-            }
-            int exper = call.argument("exper");
-            builder.setExper(exper);
-
-            String us = call.argument("us");
-            if (!us.isEmpty()) {
-                builder.setUs(us);
-            }
-
-            String sign = call.argument("sign");
-            if (!sign.isEmpty()) {
-                builder.setSign(sign);
-            }
-
-            boolean https = call.argument("https");
-            builder.setHttps(https);
-
-            return mVodPlayer.startPlay(builder);
-
+            String psign = call.argument("psign");
+            TXPlayInfoParams playInfoParams = new TXPlayInfoParams(appId, fileId, psign);
+            mVodPlayer.startPlay(playInfoParams);
         }
-        return Uninitialized;
     }
 
     int stopPlay(boolean isNeedClearLastImg) {

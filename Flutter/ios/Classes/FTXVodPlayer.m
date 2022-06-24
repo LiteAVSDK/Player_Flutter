@@ -146,32 +146,17 @@ BOOL volatile isStop = false;
     return uninitialized;
 }
 
+
 - (int)startPlayWithParams:(NSDictionary *)params
 {
     if (_txVodPlayer != nil) {
         TXPlayerAuthParams *p = [TXPlayerAuthParams new];
-        NSString *timeout = params[@"timeout"];
-        NSString *us = params[@"us"];
-        NSString *sign = params[@"sign"];
-        int exper = [params[@"exper"] intValue];
-        
         p.appId = [params[@"appId"] unsignedIntValue];
-        
         p.fileId = params[@"fileId"];
-        if (timeout.length > 0) {
-            p.timeout = timeout;
+        NSString *psign = params[@"psign"];
+        if (psign.length > 0) {
+            p.sign = params[@"psign"];
         }
-        if (exper != 0) {
-            p.exper = exper;
-        }
-        if (us.length > 0) {
-            p.us = us;
-        }
-        if (sign.length > 0) {
-            p.sign = params[@"sign"];
-        }
-
-        p.https = [params[@"https"] boolValue];
         return [_txVodPlayer startPlayWithParams:p];
     }
     return uninitialized;

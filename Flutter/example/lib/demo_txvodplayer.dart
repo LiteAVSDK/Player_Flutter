@@ -53,6 +53,8 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
 
         progressSliderKey.currentState?.updatePorgess(_currentProgress / videoDuration, videoDuration);
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC) {
+        String? playUrl = event[TXVodPlayEvent.EVT_PLAY_URL]?.toString();
       }
     });
 
@@ -390,12 +392,11 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
                 if (url.isNotEmpty) {
                   _controller.startPlay(url);
                 } else if (appId != 0 && fileId.isNotEmpty) {
-                  TXPlayerAuthParams params = TXPlayerAuthParams();
-                  params.appId = appId;
-                  params.fileId = fileId;
+                  TXPlayInfoParams params = TXPlayInfoParams(appId: _appId,
+                    fileId: _fileId, psign: pSign != null ? pSign : "");
                   _controller.startPlayWithParams(params);
                 }
-              });
+              }, needPisgn: true);
         });
   }
 
