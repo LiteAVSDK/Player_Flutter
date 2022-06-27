@@ -438,14 +438,18 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           pauseIcon: "images/ic_pip_play_pause.png",
           forwardIcon: "images/superplayer_ic_vod_play_next.png");
       if (null != result) {
-        if (result == TXVodPlayEvent.ERROR_PIP_LOWER_VERSION) {
-          LogUtils.e(TAG, "enterPip failed,because android version is too low,Minimum supported version is android 24");
-        } else if (result == TXVodPlayEvent.ERROR_PIP_DENIED_PERMISSION) {
-          LogUtils.e(TAG, "enterPip failed,because PIP feature is disabled or device not support");
-        } else if (result == TXVodPlayEvent.ERROR_PIP_ACTIVITY_DESTROYED) {
-          LogUtils.e(TAG, "enterPip failed,because activity is destroyed");
-        } else {
-          LogUtils.e(TAG, "enterPip failed,unkonw error");
+        String failedStr = "";
+        if(result != TXVodPlayEvent.NO_ERROR) {
+          if (result == TXVodPlayEvent.ERROR_PIP_LOWER_VERSION) {
+            failedStr = "enterPip failed,because android version is too low,Minimum supported version is android 24";
+          } else if (result == TXVodPlayEvent.ERROR_PIP_DENIED_PERMISSION) {
+            failedStr = "enterPip failed,because PIP feature is disabled or device not support";
+          } else if (result == TXVodPlayEvent.ERROR_PIP_ACTIVITY_DESTROYED) {
+            failedStr = "enterPip failed,because activity is destroyed";
+          } else {
+            failedStr = "enterPip failed,unkonw error";
+          }
+          LogUtils.e(TAG, failedStr);
         }
       } else {
         LogUtils.e(TAG, "enterPip failed, vodPlayer is release");

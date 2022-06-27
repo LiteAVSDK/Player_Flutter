@@ -140,7 +140,11 @@ class SuperPlayerPlugin {
 
   /// 当前设备是否支持画中画模式
   /// @return [TXVodPlayEvent]
-  static Future<bool> isDeviceSupportPip() async {
+  ///  0 可开启画中画模式
+  ///  -101  android版本过低
+  ///  -102  画中画权限关闭/设备不支持画中画
+  ///  -103  当前界面已销毁
+  static Future<int> isDeviceSupportPip() async {
     return await _channel.invokeMethod("isDeviceSupportPip");
   }
 
