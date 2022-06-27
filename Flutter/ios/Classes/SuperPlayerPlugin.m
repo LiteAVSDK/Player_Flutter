@@ -97,14 +97,28 @@ SuperPlayerPlugin* instance;
         result(nil);
     }else if([@"setGlobalMaxCacheSize" isEqualToString:call.method]){
         NSDictionary *args = call.arguments;
-        int size = [args[@"size"] intValue];
-        [FTXTransformation setMaxCacheItemSize:size];
+        NSInteger maxCacheItemSize = [args[@"size"] integerValue];
+        if (maxCacheItemSize > 0) {
+            [TXPlayerGlobalSetting setMaxCacheSize:maxCacheItemSize];
+        }
         result(nil);
     }else if([@"setGlobalCacheFolderPath" isEqualToString:call.method]){
         NSDictionary *args = call.arguments;
-        NSString* path = args[@"path"];
-        [FTXTransformation setCacheFolder:path];
-        result(nil);
+        NSString* postfixPath = args[@"postfixPath"];
+        if(postfixPath != nil && postfixPath.length > 0) {
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString *documentDirectory = [[paths objectAtIndex:0] stringByAppendingString:@"/"];
+            NSString *preloadDataPath = [documentDirectory stringByAppendingPathComponent:postfixPath];
+            if (![[NSFileManager defaultManager] fileExistsAtPath:preloadDataPath]) {
+                NSError *error = nil;
+                [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
+                [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
+            }
+            result([NSNumber numberWithBool:true]);
+        } else {
+            result([NSNumber numberWithBool:false]);
+        }
+        
     }else if([@"setGlobalLicense" isEqualToString:call.method]) {
         NSDictionary *args = call.arguments;
         NSString *licenceUrl = args[@"licenceUrl"];

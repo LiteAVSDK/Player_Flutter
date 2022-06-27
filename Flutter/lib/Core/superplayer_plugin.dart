@@ -84,7 +84,9 @@ class SuperPlayerPlugin {
   ///  @开启方式：全局生效，在使用播放器开启。开启此功能需要配置两个参数：本地缓存目录及缓存大小。
   ///
   /// 该缓存路径默认设置到app沙盒目录下，postfixPath只需要传递相对缓存目录即可，不需要传递整个绝对路径。
-  /// e.g. postfixPath = 'testCache'，Android 平台：视频将会缓存到sdcard的Android/data/your-pkg-name/files/testCache 目录。
+  /// e.g. postfixPath = 'testCache'
+  /// Android 平台：视频将会缓存到sdcard的Android/data/your-pkg-name/files/testCache 目录。
+  /// iOS 平台：视频将会缓存到沙盒的Documents/testCache 目录。
   /// @param postfixPath 缓存目录
   /// @return true 设置成功 false 设置失败
   static Future<bool> setGlobalCacheFolderPath(String postfixPath) async {
