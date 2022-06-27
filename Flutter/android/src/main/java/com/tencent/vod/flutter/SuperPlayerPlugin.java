@@ -53,6 +53,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     private ActivityPluginBinding      mActivityPluginBinding;
     private SparseArray<FTXBasePlayer> mPlayers;
 
+    private FTXDownloadManager mFTXDownloadManager;
+
     private FTXAudioManager mTxAudioManager;
     private FTXPIPManager   mTxPipManager;
 
@@ -89,6 +91,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
                 mEventSink.setEventSinkProxy(null);
             }
         });
+        mFTXDownloadManager = new FTXDownloadManager(mFlutterPluginBinding);
     }
 
     @Override
@@ -198,6 +201,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
+        mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
     }
 

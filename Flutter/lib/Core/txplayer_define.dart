@@ -99,6 +99,10 @@ abstract class TXVodPlayEvent {
   static const ERROR_PIP_LOWER_VERSION        = -101; // pip 错误，android版本过低
   static const ERROR_PIP_DENIED_PERMISSION    = -102; // pip 错误，画中画权限关闭/设备不支持画中画
   static const ERROR_PIP_ACTIVITY_DESTROYED   = -103; // pip 错误，当前界面已销毁
+
+  /// 视频下载相关事件
+  static const int EVENT_PREDOWNLOAD_ON_COMPLETE = 200;  // 视频预下载完成
+  static const int EVENT_PREDOWNLOAD_ON_ERROR = 201;  // 视频预下载出错
 }
 
 abstract class TXVodNetEvent {
@@ -179,3 +183,8 @@ class TXPlayInfoParams {
     return json;
   }
 }
+
+//视频预下载事件回调Listener
+typedef FTXPredownlodOnCompleteListener = void Function(int taskId, String url);
+typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int code, String msg);
+

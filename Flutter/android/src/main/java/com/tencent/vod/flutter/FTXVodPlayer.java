@@ -183,7 +183,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
                     bundle.putInt("videoTop", videoTop);
                     bundle.putInt("videoRight", videoRight);
                     bundle.putInt("videoBottom", videoBottom);
-                    mEventSink.success(getParams(event, bundle));
+                    mEventSink.success(CommonUtil.getParams(event, bundle));
                     return;
                 }
             }
@@ -200,7 +200,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
                 mPipManager.updatePipActions(false, mPipParams);
             }
         }
-        mEventSink.success(getParams(event, bundle));
+        mEventSink.success(CommonUtil.getParams(event, bundle));
     }
 
     // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
@@ -216,7 +216,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     @Override
     public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
-        mNetStatusSink.success(getParams(0, bundle));
+        mNetStatusSink.success(CommonUtil.getParams(0, bundle));
     }
 
     @Override
@@ -510,23 +510,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             TXVodPlayConfig playConfig = FTXTransformation.transformToConfig(config);
             mVodPlayer.setConfig(playConfig);
         }
-    }
-
-    private Map<String, Object> getParams(int event, Bundle bundle) {
-        Map<String, Object> param = new HashMap<>();
-        if (event != 0) {
-            param.put("event", event);
-        }
-
-        if (bundle != null && !bundle.isEmpty()) {
-            Set<String> keySet = bundle.keySet();
-            for (String key : keySet) {
-                Object val = bundle.get(key);
-                param.put(key, val);
-            }
-        }
-
-        return param;
     }
 
     float getCurrentPlaybackTime() {

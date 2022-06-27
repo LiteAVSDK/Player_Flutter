@@ -7,6 +7,7 @@
 #import "FTXEvent.h"
 #import "FTXAudioManager.h"
 #import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
+#import "FTXDownloadManager.h"
 
 @interface SuperPlayerPlugin ()<FlutterStreamHandler>
 
@@ -20,6 +21,7 @@
     FlutterEventChannel *_eventChannel;
     FTXPlayerEventSinkQueue *_eventSink;
     FTXAudioManager *audioManager;
+    FTXDownloadManager *_FTXDownloadManager;
 }
 
 SuperPlayerPlugin* instance;
@@ -35,6 +37,9 @@ SuperPlayerPlugin* instance;
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     if(nil != instance) {
         [instance destory];
+    }
+    if (nil != _FTXDownloadManager) {
+        [_FTXDownloadManager destroy];
     }
 }
 
@@ -54,9 +59,8 @@ SuperPlayerPlugin* instance;
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
     
-    
     [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification"  object:nil];
- 
+     _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
     return self;
 }
 

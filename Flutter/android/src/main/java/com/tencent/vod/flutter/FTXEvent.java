@@ -18,6 +18,12 @@ public class FTXEvent {
      */
     public static final int EVENT_AUDIO_FOCUS_PLAY  = 3;
 
+    // 视频预下载完成
+    public static final int EVENT_PREDOWNLOAD_ON_COMPLETE = 200;
+
+    // 视频预下载出错
+    public static final int EVENT_PREDOWNLOAD_ON_ERROR = 201;
+
     public static final int    NO_ERROR                       = 0;
     /**
      * pip 事件
@@ -40,4 +46,5 @@ public class FTXEvent {
     public static final int    ERROR_PIP_DENIED_PERMISSION    = -102;
     // pip 错误，当前界面已销毁
     public static final int    ERROR_PIP_ACTIVITY_DESTROYED   = -103;
+
 }
