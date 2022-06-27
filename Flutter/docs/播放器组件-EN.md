@@ -1,4 +1,4 @@
-English| [简体中文](./超级播放器.md)
+English| [简体中文](./播放器组件.md)
 
 ## SDK Download
 
