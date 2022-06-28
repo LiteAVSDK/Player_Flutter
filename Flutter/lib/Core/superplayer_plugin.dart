@@ -143,4 +143,9 @@ class SuperPlayerPlugin {
   static Future<bool> isDeviceSupportPip() async {
     return await _channel.invokeMethod("isDeviceSupportPip");
   }
+
+  /// 获取依赖Native端的 LiteAVSDK 的版本
+  static Future<String?> getLiteAVSDKVersion() async {
+    return await _channel.invokeMethod('getLiteAVSDKVersion');
+  }
 }

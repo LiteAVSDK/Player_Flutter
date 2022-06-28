@@ -166,6 +166,8 @@ SuperPlayerPlugin* instance;
         int logLevel = [args[@"logLevel"] intValue];
         [TXLiveBase setLogLevel:logLevel];
         result(nil);
+    }  else if([@"getLiteAVSDKVersion" isEqualToString:call.method]) {
+        result([TXLiveBase getSDKVersionStr]);
     } else {
         result(FlutterMethodNotImplemented);
     }

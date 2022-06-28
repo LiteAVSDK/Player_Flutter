@@ -179,6 +179,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             result.success(null);
         } else if (call.method.equals("isDeviceSupportPip")) {
             result.success(mTxPipManager.isSupportDevice());
+        } else if (call.method.equals("getLiteAVSDKVersion")) {
+            result.success(TXLiveBase.getSDKVersionStr());
         } else {
             result.notImplemented();
         }

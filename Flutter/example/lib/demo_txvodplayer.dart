@@ -118,7 +118,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: const Text('点播'),
+          title: const Text('点播播放'),
         ),
         body: SafeArea(
             child: Container(

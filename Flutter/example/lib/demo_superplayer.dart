@@ -50,7 +50,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
                 ? null
                 : AppBar(
                     backgroundColor: Colors.transparent,
-                    title: const Text('SuperPlayer'),
+                    title: const Text('播放器组件'),
                   ),
             body: SafeArea(
               child: Builder(
