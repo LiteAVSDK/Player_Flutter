@@ -205,12 +205,15 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
     private void setDefaultBufferSizeForSoftDecode(int width, int height) {
-        mSurfaceTextureEntry.surfaceTexture().setDefaultBufferSize(width, height);
-        if (mSurface != null) {
-            mSurface.release();
+        if (mSurfaceTextureEntry!= null && mSurfaceTextureEntry.surfaceTexture() != null) {
+            SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
+            surfaceTexture.setDefaultBufferSize(width, height);
+            if (mSurface != null) {
+                mSurface.release();
+            }
+            mSurface = new Surface(surfaceTexture);
+            mVodPlayer.setSurface(mSurface);
         }
-        mSurface = new Surface(mSurfaceTextureEntry.surfaceTexture());
-        mVodPlayer.setSurface(mSurface);
     }
 
 
