@@ -53,7 +53,6 @@ public class FTXFlutterPipActivity extends FlutterActivity {
                 @Override
                 public void onListen(Object arguments, EventChannel.EventSink events) {
                     mEventSink = events;
-                    events.success(arguments);
                 }
 
                 @Override
