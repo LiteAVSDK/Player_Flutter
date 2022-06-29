@@ -1,5 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
+
 /// superplayer play controller
 class SuperPlayerController {
   static const TAG = "SuperPlayerController";
@@ -11,6 +12,7 @@ class SuperPlayerController {
 
   /// simple event,see SuperPlayerViewEvent
   Stream<Map<dynamic, dynamic>> get onSimplePlayerEventBroadcast => _simpleEventStreamController.stream;
+
   /// player net status,see TXVodNetEvent
   Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _playerNetStatusStreamController.stream;
 
@@ -53,7 +55,7 @@ class SuperPlayerController {
   void _initVodPlayer() async {
     _vodPlayerController = new TXVodPlayerController();
     await _vodPlayerController?.initialize();
-    _vodPlayerController?.onPlayerEventBroadcast?.listen((event) async {
+    _vodPlayerController?.onPlayerEventBroadcast.listen((event) async {
       int eventCode = event['event'];
       switch (eventCode) {
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
@@ -136,7 +138,7 @@ class SuperPlayerController {
             videoDuration = duration.toInt(); // 总播放时长，转换后的单位 秒
           }
           if (videoDuration != 0) {
-            _observer?.onPlayProgress(currentDuration, videoDuration);
+            _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
           }
           break;
       }
@@ -197,20 +199,25 @@ class SuperPlayerController {
   }
 
   Future<void> _sendRequest() async {
-    _currentProtocol?.sendRequest((protocol, resultModel) {
+    _currentProtocol?.sendRequest((protocol, resultModel) async {
       // onSuccess
       if (videoModel != resultModel) {
         return;
       }
       _playModeVideo(protocol);
       _updatePlayerType(SuperPlayerType.VOD);
-      _observer?.onPlayProgress(0, resultModel.duration);
+      _observer?.onPlayProgress(0, resultModel.duration, await getPlayableDuration());
       _observer?.onVideoImageSpriteAndKeyFrameChanged(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
     }, (errCode, message) {
       // onError
       _observer?.onError(SuperPlayerCode.VOD_REQUEST_FILE_ID_FAIL, "播放视频文件失败 code = $errCode msg = $message");
       _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerError);
     });
+  }
+
+  Future<double> getPlayableDuration() async {
+    double? playableDuration = await _vodPlayerController?.getPlayableDuration();
+    return playableDuration ?? 0;
   }
 
   void _playModeVideo(PlayInfoProtocol protocol) {
@@ -495,6 +502,18 @@ class SuperPlayerController {
   /// 配置播放器
   Future<void> setPlayConfig(FTXVodPlayConfig config) async {
     await _vodPlayerController?.setConfig(config);
+  }
+
+  /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
+  /// <h1>
+  /// 由于android系统限制，传递的图标大小不得超过1M，否则无法显示
+  /// </h1>
+  /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
+  /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
+  Future<int?> enterPictureInPictureMode(
+      {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
+    return _vodPlayerController?.enterPictureInPictureMode(
+        backIcon: backIcon, playIcon: playIcon, pauseIcon: pauseIcon, forwardIcon: forwardIcon);
   }
 
   /// 开关硬解编码播放

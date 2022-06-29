@@ -7,6 +7,8 @@
 #import "FTXEvent.h"
 #import <MediaPlayer/MediaPlayer.h>
 #import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
+#import "FTXAudioManager.h"
+#import "FTXDownloadManager.h"
 
 @interface SuperPlayerPlugin ()<FlutterStreamHandler>
 
@@ -17,12 +19,12 @@
 
 @implementation SuperPlayerPlugin {
     float orginBrightness;
-    MPVolumeView *volumeView;
     FlutterEventChannel *_eventChannel;
     FTXPlayerEventSinkQueue *_eventSink;
+    FTXAudioManager *audioManager;
+    FTXDownloadManager *_FTXDownloadManager;
 }
 
-static UISlider *_volumeSlider;
 SuperPlayerPlugin* instance;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -37,6 +39,9 @@ SuperPlayerPlugin* instance;
     if(nil != instance) {
         [instance destory];
     }
+    if (nil != _FTXDownloadManager) {
+        [_FTXDownloadManager destroy];
+    }
 }
 
 - (instancetype)initWithRegistrar:
@@ -49,26 +54,14 @@ SuperPlayerPlugin* instance;
     // light componet init
     orginBrightness = [UIScreen mainScreen].brightness;
     // volume componet init
-    CGRect frame    = CGRectMake(0, -100, 10, 0);
-    volumeView = [[MPVolumeView alloc] initWithFrame:frame];
-    volumeView.hidden = YES;
-    [volumeView sizeToFit];
-    // 单例slider
-    _volumeSlider = nil;
-    for (UIView *view in [volumeView subviews]) {
-        if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
-            _volumeSlider = (UISlider *)view;
-            break;
-        }
-    }
+    audioManager = [[FTXAudioManager alloc] init];
     // volume event stream
     _eventSink = [FTXPlayerEventSinkQueue new];
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(systemVolumeDidChangeNoti:)
-                                                 name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
- 
+    [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification"  object:nil];
+     _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
     return self;
 }
 
@@ -105,14 +98,28 @@ SuperPlayerPlugin* instance;
         result(nil);
     }else if([@"setGlobalMaxCacheSize" isEqualToString:call.method]){
         NSDictionary *args = call.arguments;
-        int size = [args[@"size"] intValue];
-        [FTXTransformation setMaxCacheItemSize:size];
+        NSInteger maxCacheItemSize = [args[@"size"] integerValue];
+        if (maxCacheItemSize > 0) {
+            [TXPlayerGlobalSetting setMaxCacheSize:maxCacheItemSize];
+        }
         result(nil);
     }else if([@"setGlobalCacheFolderPath" isEqualToString:call.method]){
         NSDictionary *args = call.arguments;
-        NSString* path = args[@"path"];
-        [FTXTransformation setCacheFolder:path];
-        result(nil);
+        NSString* postfixPath = args[@"postfixPath"];
+        if(postfixPath != nil && postfixPath.length > 0) {
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString *documentDirectory = [[paths objectAtIndex:0] stringByAppendingString:@"/"];
+            NSString *preloadDataPath = [documentDirectory stringByAppendingPathComponent:postfixPath];
+            if (![[NSFileManager defaultManager] fileExistsAtPath:preloadDataPath]) {
+                NSError *error = nil;
+                [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
+                [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
+            }
+            result([NSNumber numberWithBool:true]);
+        } else {
+            result([NSNumber numberWithBool:false]);
+        }
+        
     }else if([@"setGlobalLicense" isEqualToString:call.method]) {
         NSDictionary *args = call.arguments;
         NSString *licenceUrl = args[@"licenceUrl"];
@@ -137,7 +144,7 @@ SuperPlayerPlugin* instance;
         NSNumber *brightness = [NSNumber numberWithFloat:[UIScreen mainScreen].brightness];
         result(brightness);
     } else if([@"getSystemVolume" isEqualToString:call.method]) {
-        NSNumber *volume = [NSNumber numberWithFloat:[self getVolume]];
+        NSNumber *volume = [NSNumber numberWithFloat:[audioManager getVolume]];
         result(volume);
     } else if([@"setSystemVolume" isEqualToString:call.method]) {
         NSNumber *volume = call.arguments[@"volume"];
@@ -147,7 +154,7 @@ SuperPlayerPlugin* instance;
         if (volume.floatValue > 1) {
             volume = [NSNumber numberWithFloat:1];
         }
-        [self setVolume:volume.floatValue];
+        [audioManager setVolume:volume.floatValue];
         result(nil);
     } else if ([@"abandonAudioFocus" isEqualToString:call.method]) {
         // only for android
@@ -160,26 +167,11 @@ SuperPlayerPlugin* instance;
         int logLevel = [args[@"logLevel"] intValue];
         [TXLiveBase setLogLevel:logLevel];
         result(nil);
+    }  else if([@"getLiteAVSDKVersion" isEqualToString:call.method]) {
+        result([TXLiveBase getSDKVersionStr]);
     } else {
         result(FlutterMethodNotImplemented);
     }
-}
-
--(float)getVolume{
-    return _volumeSlider.value > 0 ? _volumeSlider.value : [[AVAudioSession sharedInstance]outputVolume];
-}
-
-- (void)setVolume:(float)value {
-    // 需要设置 showsVolumeSlider 为 YES
-    volumeView.showsVolumeSlider = YES;
-    [_volumeSlider setValue:value animated:NO];
-    [_volumeSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
-    [_volumeSlider sizeToFit];
-}
-
-// 是否显示右边音量的UI
-- (void)setVolumeUIVisible:(BOOL)volumeUIVisible {
-    volumeView.hidden = !volumeUIVisible;
 }
 
 + (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
@@ -193,10 +185,7 @@ SuperPlayerPlugin* instance;
 
 -(void) destory
 {
-    // destory volume view
-    [volumeView removeFromSuperview];
-    // destory volume observer
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
+    [audioManager destory:self name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
 }
 
 #pragma mark - FlutterStreamHandler

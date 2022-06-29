@@ -357,6 +357,20 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return await _channel.invokeMethod("enableHardwareDecode", {"enable": enable});
   }
 
+  /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
+  /// <h1>
+  /// 由于android系统限制，传递的图标大小不得超过1M，否则无法显示
+  /// </h1>
+  /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
+  /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
+  Future<int> enterPictureInPictureMode(
+      {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
+    if (_isNeedDisposed) return -1;
+    await _initPlayer.future;
+    return await _channel.invokeMethod("enterPictureInPictureMode",
+        {"backIcon": backIcon, "playIcon": playIcon, "pauseIcon": pauseIcon, "forwardIcon": forwardIcon});
+  }
+
   /// 获取总时长
   Future<double> getDuration() async {
     if (_isNeedDisposed) return 0;

@@ -16,9 +16,11 @@ class SuperPlayerView extends StatefulWidget {
 
 class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObserver {
   static final int _controlViewShowTime = 7000;
+  static const TAG = "SuperPlayerViewState";
 
   late SuperPlayerController _playController;
   bool _isFullScreen = false;
+  bool _isFloatingMode = false;
   bool _isPlaying = false;
   bool _isLoading = true;
   bool _isShowCover = true;
@@ -101,19 +103,19 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onPlayPrepare
       _isShowCover = true;
       _coverViewKey.currentState?.showCover(_playController.videoModel!);
-      _togglePlayStateView(false);
+      _togglePlayUIState(false);
     }, (name) {
-      _togglePlayStateView(true);
+      _togglePlayUIState(true);
       if (_isShowControlView) {
         _videoTitleKey.currentState?.updateTitle(name);
       }
     }, () {
       //onPlayPause
-      _togglePlayStateView(false);
+      _togglePlayUIState(false);
     }, () {
       // onPlayStop
       showControlView(false);
-      _togglePlayStateView(false);
+      _togglePlayUIState(false);
     }, () {
       // onRcvFirstIframe
       _coverViewKey.currentState?.hideCover();
@@ -124,9 +126,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _isLoading = true;
         });
       }
-    }, (current, duration) {
+    }, (current, duration, playableDuration) {
       // onPlayProgress
-      _videoBottomKey.currentState?.updateDuration(current, duration);
+      _videoBottomKey.currentState?.updateDuration(current, duration, playableDuration);
     }, (position) {
       // onSeek
     }, (success, playerType, quality) {
@@ -135,7 +137,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onSwitchStreamEnd
     }, (code, msg) {
       // onError
-      _togglePlayStateView(false);
+      _togglePlayUIState(false);
     }, (playerType) {
       // onPlayerTypeChange
     }, (controller, url) {
@@ -154,6 +156,36 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, () {
       // onDispose
       _playController._observer = null; // close observer
+    });
+    SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+      int eventCode = event["event"];
+      if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
+        // exit floatingMode
+        Navigator.of(context).pop();
+        _isFloatingMode = false;
+        if (_isPlaying) {
+          // pause play when exit PIP, prevent user just close PIP, but not back to app
+          _playController._vodPlayerController?.pause();
+        }
+      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
+        // EVENT_PIP_MODE_ALREADY_ENTER 的状态变化有滞后性，进入PIP之后才会通知，这里需要监听EVENT_PIP_MODE_REQUEST_START,
+        // 在即将进入PIP模式下就要开始进行PIP模式的UI准备
+        // enter floatingMode
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+          return SuperPlayerFloatView(_playController, _aspectRatio);
+        }));
+        _isFloatingMode = true;
+      }
+    });
+    SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+      int eventCode = event["event"];
+      if (_isFloatingMode && _isPlaying) {
+        if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PAUSE) {
+          _onPause();
+        } else if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PLAY) {
+          _onResume();
+        }
+      }
     });
   }
 
@@ -198,7 +230,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_isPlaying) {
+    if (_isPlaying && !_isFloatingMode) {
       if (state == AppLifecycleState.resumed) {
         // 页面从后台回来
         // 不更新状态，直接resume
@@ -235,17 +267,29 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     Orientation currentOrientation = MediaQuery.of(context).orientation;
     bool isLandscape = currentOrientation == Orientation.landscape;
     Size size = MediaQuery.of(context).size;
-    if (_isFullScreen) {
-      _radioWidth = isLandscape ? size.width : size.height;
-      _radioHeight = isLandscape ? size.height : size.width;
-      _aspectRatio = _radioWidth / _radioHeight;
-    } else {
-      double playerWidth = isLandscape ? size.height : size.width;
-      if (_videoWidth <= 0 || _videoHeight <= 0) {
+    // 当有视频宽高数据的时候，按照 全屏：高度为基准，计算宽度。 非全屏：宽度为基准，计算高度的方式进行宽高计算
+    // 当没有视频宽高数据的时候，按照 全屏：等于屏幕宽高。 非全屏：16:9 的方式进行宽高计算
+    if (_videoWidth <= 0 || _videoHeight <= 0) {
+      if (_isFullScreen) {
+        _radioWidth = isLandscape ? size.width : size.height;
+        _radioHeight = isLandscape ? size.height : size.width;
+        _aspectRatio = _radioWidth / _radioHeight;
+      } else {
         _radioWidth = 0;
         _radioHeight = 0;
         _aspectRatio = 16.0 / 9.0;
+      }
+    } else {
+      if (_isFullScreen) {
+        double playerHeight = isLandscape ? size.width : size.height;
+        // remain height
+        double videoRadio = _videoWidth / _videoHeight;
+        _radioHeight = playerHeight;
+        _radioWidth = playerHeight * videoRadio;
+
+        _aspectRatio = _radioWidth / _radioHeight;
       } else {
+        double playerWidth = isLandscape ? size.height : size.width;
         // remain width
         double videoRadio = _videoWidth / _videoHeight;
         _radioWidth = playerWidth;
@@ -259,21 +303,40 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: AspectRatio(
-        aspectRatio: _aspectRatio,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            _getPlayer(),
-            _getTitleArea(),
-            _getCover(),
-            _getBottomView(),
-            _getQualityView(),
-            _getStartOrResumeBtn(),
-            _getQualityListView(),
-            _getMoreMenuView(),
-            _getLoading(),
-          ],
+      child: Center(
+          child: Stack(
+        children: [
+          _getPlayer(),
+          _getTitleArea(),
+          _getPipEnterView(),
+          _getCover(),
+          _getBottomView(),
+          _getQualityView(),
+          _getStartOrResumeBtn(),
+          _getQualityListView(),
+          _getMoreMenuView(),
+          _getLoading(),
+        ],
+      )),
+    );
+  }
+
+  Widget _getPipEnterView() {
+    return Visibility(
+      visible: _isShowControlView && !_isFullScreen && Platform.isAndroid, // PIP 暂时只支持Android
+      child: Positioned(
+        right: 10,
+        top: 0,
+        bottom: 0,
+        child: Center(
+          child: InkWell(
+            onTap: _onEnterPipMode,
+            child: Image(
+              width: 30,
+              height: 30,
+              image: AssetImage("images/ic_pip_play_icon.png"),
+            ),
+          ),
         ),
       ),
     );
@@ -346,7 +409,12 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     return InkWell(
       onDoubleTap: _onDoubleTapVideo,
       onTap: _onSingleTapVideo,
-      child: TXPlayerVideo(controller: _playController._vodPlayerController!),
+      highlightColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      child: Center(
+        child: AspectRatio(
+            aspectRatio: _aspectRatio, child: TXPlayerVideo(controller: _playController._vodPlayerController!)),
+      ),
     );
   }
 
@@ -360,6 +428,33 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         child: _VideoTitleView(_titleViewController, _isFullScreen, _playController._getPlayName(), _videoTitleKey),
       ),
     );
+  }
+
+  void _onEnterPipMode() async {
+    if (!_isFloatingMode) {
+      int? result = await _playController.enterPictureInPictureMode(
+          backIcon: "images/superplayer_ic_vod_play_pre.png",
+          playIcon: "images/ic_pip_play_normal.png",
+          pauseIcon: "images/ic_pip_play_pause.png",
+          forwardIcon: "images/superplayer_ic_vod_play_next.png");
+      if (null != result) {
+        String failedStr = "";
+        if(result != TXVodPlayEvent.NO_ERROR) {
+          if (result == TXVodPlayEvent.ERROR_PIP_LOWER_VERSION) {
+            failedStr = "enterPip failed,because android version is too low,Minimum supported version is android 24";
+          } else if (result == TXVodPlayEvent.ERROR_PIP_DENIED_PERMISSION) {
+            failedStr = "enterPip failed,because PIP feature is disabled or device not support";
+          } else if (result == TXVodPlayEvent.ERROR_PIP_ACTIVITY_DESTROYED) {
+            failedStr = "enterPip failed,because activity is destroyed";
+          } else {
+            failedStr = "enterPip failed,unkonw error";
+          }
+          LogUtils.e(TAG, failedStr);
+        }
+      } else {
+        LogUtils.e(TAG, "enterPip failed, vodPlayer is release");
+      }
+    }
   }
 
   void _onSingleTapVideo() {
@@ -376,7 +471,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     showControlView(true);
   }
 
-  void _onTapBack() {
+  void _onTapBack() async {
     if (_isFullScreen) {
       _onControlFullScreen();
     }
@@ -386,14 +481,18 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _onTapPlayControl() {
     setState(() {
       if (_isPlaying) {
-        _playController.pause();
-        _isPlaying = false;
+        _onPause();
       } else {
         _onResume();
         _isPlaying = true;
       }
       _videoBottomKey.currentState?.updatePlayState(_isPlaying);
     });
+  }
+
+  void _onPause() {
+    _playController.pause();
+    _isPlaying = false;
   }
 
   void _onResume() {
@@ -432,6 +531,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
       AutoOrientation.portraitAutoMode();
+
       /// 隐藏moreView
       _moreViewKey.currentState?.hideShowMoreView();
     }
@@ -459,7 +559,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
   }
 
-  void _togglePlayStateView(bool playing) {
+  void _togglePlayUIState(bool playing) {
     if (mounted) {
       setState(() {
         if (playing) {
@@ -540,8 +640,10 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
           removeLeft: true,
           removeRight: true,
           child: Scaffold(
-            body:
-                Container(width: double.infinity, child: SuperPlayerView(widget._playController, viewKey: widget.key)),
+            body: Container(
+                decoration: BoxDecoration(color: Colors.black),
+                width: double.infinity,
+                child: SuperPlayerView(widget._playController, viewKey: widget.key)),
           )),
       onWillPop: _onFullScreenWillPop,
     );
@@ -563,4 +665,141 @@ class _SuperPlayerFullScreenController {
   Function onExitFullScreen;
 
   _SuperPlayerFullScreenController(this.onExitFullScreen);
+}
+
+class SuperPlayerFloatView extends StatefulWidget {
+  final SuperPlayerController _controller;
+  final double initAspectRatio;
+
+  SuperPlayerFloatView(this._controller, this.initAspectRatio);
+
+  @override
+  State<StatefulWidget> createState() => _SuperPlayerFloatState();
+}
+
+class _SuperPlayerFloatState extends State<SuperPlayerFloatView> {
+  double _currentProgress = 0;
+  int _videoDuration = 0;
+  int _currentDuration = 0;
+  double _aspectRatio = 16.0 / 9.0;
+  double _videoWidth = 0;
+  double _videoHeight = 0;
+
+  StreamSubscription? streamSubscription;
+  StreamSubscription? sizeStreamSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _aspectRatio = widget.initAspectRatio;
+    streamSubscription = widget._controller._vodPlayerController?.onPlayerEventBroadcast.listen((event) {
+      int eventCode = event['event'];
+      if (eventCode == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
+        updateDuration(widget._controller.currentDuration, widget._controller.videoDuration);
+      }
+    });
+    sizeStreamSubscription = widget._controller.onPlayerNetStatusBroadcast.listen((event) {
+      dynamic wd = (event["VIDEO_WIDTH"]);
+      dynamic hd = (event["VIDEO_HEIGHT"]);
+      if (null != wd && null != hd) {
+        double w = wd.toDouble();
+        double h = hd.toDouble();
+        _calculateSize(w, h);
+      }
+    });
+  }
+
+  void _calculateSize(double videoWidth, double videoHeight) {
+    if ((0 != videoWidth && 0 != videoHeight) && (_videoWidth != videoWidth && _videoHeight != videoHeight)) {
+      _videoWidth = videoWidth;
+      _videoHeight = videoHeight;
+
+      Size size = MediaQuery.of(context).size;
+      double playerHeight = size.height;
+      // remain height
+      double videoRadio = _videoWidth / _videoHeight;
+      double radioHeight = playerHeight;
+      double radioWidth = playerHeight * videoRadio;
+
+      _aspectRatio = radioWidth / radioHeight;
+
+      setState(() {});
+    }
+  }
+
+  void updateDuration(int duration, int videoDuration) {
+    if (duration != _currentDuration || _videoDuration != videoDuration) {
+      if (duration <= videoDuration) {
+        setState(() {
+          _currentDuration = duration;
+          _videoDuration = videoDuration;
+          _fixProgress();
+        });
+      }
+    }
+  }
+
+  void _fixProgress() {
+    // provent division zero problem
+    if (_videoDuration == 0) {
+      _currentProgress = 0;
+    } else {
+      _currentProgress = _currentDuration / _videoDuration;
+    }
+    if (_currentProgress < 0) {
+      _currentProgress = 0;
+    }
+    if (_currentProgress > 1) {
+      _currentProgress = 1;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: AspectRatio(
+                  aspectRatio: _aspectRatio,
+                  child: TXPlayerVideo(controller: widget._controller._vodPlayerController!),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _getSlider(),
+              )
+            ],
+          )),
+    );
+  }
+
+  Widget _getSlider() {
+    return Theme(
+        data: ThemeResource.getMiniSliderTheme(),
+        child: Slider(
+          min: 0,
+          max: 1,
+          value: _currentProgress,
+          onChanged: (double value) {
+            setState(() {
+              _currentProgress = value;
+            });
+          },
+        ));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // 移除的时候，解除对进度事件的订阅
+    streamSubscription?.cancel();
+    sizeStreamSubscription?.cancel();
+  }
 }

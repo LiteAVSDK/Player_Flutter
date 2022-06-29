@@ -20,12 +20,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+  String? _liteAVSdkVersion = 'Unknown';
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
     initPlayerLicense();
+    _getflutterSdkVersion();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     LogUtils.logOpen = true;
   }
@@ -57,6 +59,13 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> _getflutterSdkVersion() async {
+    String? liteavSdkVersion = await SuperPlayerPlugin.getLiteAVSDKVersion();
+    setState(() {
+      _liteAVSdkVersion = liteavSdkVersion;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -71,13 +80,24 @@ class _MyAppState extends State<MyApp> {
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
-            title: const Text('腾讯视频云', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),),
+            title: const Text('腾讯云Flutter播放器', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),),
           ),
           body: Builder(
               builder: (context) {
                 return Container(
                   color: Colors.transparent,
-                  child: TreePage(),
+                  child: Stack(
+                    children: [
+                      TreePage(),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: new EdgeInsets.all(20.0) ,
+                          child: Text('LiteAVSDKVersion: ${_liteAVSdkVersion}'),
+                        )
+                      ),
+                    ],
+                  ),
                 );
               }
           ),

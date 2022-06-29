@@ -8,7 +8,4 @@ static int maxCacheItems = -1;
 
 + (TXVodPlayConfig *)transformToConfig:(NSDictionary*)map;
 
-+ (void)setCacheFolder:(NSString*)path;
-+ (void)setMaxCacheItemSize:(int)size;
-
 @end
