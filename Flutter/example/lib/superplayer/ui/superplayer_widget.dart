@@ -323,7 +323,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   Widget _getPipEnterView() {
     return Visibility(
-      visible: _isShowControlView && !_isFullScreen,
+      visible: _isShowControlView && !_isFullScreen && Platform.isAndroid, // PIP 暂时只支持Android
       child: Positioned(
         right: 10,
         top: 0,
