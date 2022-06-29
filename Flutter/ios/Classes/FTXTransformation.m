@@ -2,18 +2,7 @@
 #import <Foundation/Foundation.h>
 #import "FTXTransformation.h"
 
-
-
 @implementation FTXTransformation
-+ (void)setMaxCacheItemSize:(int)size
-{
-    maxCacheItems = size;
-}
-
-+ (void)setCacheFolder:(NSString *)path
-{
-    cacheFolder = path;
-}
 
 + (TXVodPlayConfig *)transformToConfig:(NSDictionary *)args
 {
@@ -35,13 +24,6 @@
     
     NSString *preferredResolutionStr = args[@"config"][@"preferredResolution"];
     playConfig.preferredResolution = [preferredResolutionStr longLongValue];
-    
-    if(maxCacheItems > 0) {
-        playConfig.maxCacheItems = maxCacheItems;
-    }
-    if(cacheFolder != nil && cacheFolder.length > 0) {
-        playConfig.cacheFolderPath = cacheFolder;
-    }
     
     NSString *overlayKey =  args[@"config"][@"overlayKey"];
     if(overlayKey != nil && overlayKey.length > 0) {

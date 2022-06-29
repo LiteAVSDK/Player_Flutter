@@ -8,13 +8,43 @@ public class FTXEvent {
     /*
     音量变化
      */
-    public static final int EVENT_VOLUME_CHANGED = 0x01;
+    public static final int EVENT_VOLUME_CHANGED    = 1;
     /*
     失去音量输出播放焦点
      */
-    public static final int EVENT_AUDIO_FOCUS_PAUSE = 0x02;
+    public static final int EVENT_AUDIO_FOCUS_PAUSE = 2;
     /*
     获得音量输出焦点
      */
-    public static final int EVENT_AUDIO_FOCUS_PLAY = 0x03;
+    public static final int EVENT_AUDIO_FOCUS_PLAY  = 3;
+
+    // 视频预下载完成
+    public static final int EVENT_PREDOWNLOAD_ON_COMPLETE = 200;
+
+    // 视频预下载出错
+    public static final int EVENT_PREDOWNLOAD_ON_ERROR = 201;
+
+    public static final int    NO_ERROR                       = 0;
+    /**
+     * pip 事件
+     */
+    // pip广播action
+    public final static String ACTION_PIP_PLAY_CONTROL        = "vodPlayControl";
+    // pip 操作
+    public static final String EXTRA_NAME_PLAY_OP             = "vodPlayOp";
+    // pip需要操作的播放器
+    public static final String EXTRA_NAME_PLAYER_ID           = "vodPlayerId";
+    // 进度回退
+    public static final int    EXTRA_PIP_PLAY_BACK            = 101;
+    // 继续/暂停
+    public static final int    EXTRA_PIP_PLAY_RESUME_OR_PAUSE = 102;
+    // 进度前进
+    public static final int    EXTRA_PIP_PLAY_FORWARD         = 103;
+    // pip 错误，android版本过低
+    public static final int    ERROR_PIP_LOWER_VERSION        = -101;
+    // pip 错误，画中画权限关闭/设备不支持画中画
+    public static final int    ERROR_PIP_DENIED_PERMISSION    = -102;
+    // pip 错误，当前界面已销毁
+    public static final int    ERROR_PIP_ACTIVITY_DESTROYED   = -103;
+
 }

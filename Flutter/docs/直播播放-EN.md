@@ -1,4 +1,4 @@
-English| [简体中文](./直播播放器.md)
+English| [简体中文](./直播播放.md)
 
 ## Basics
 

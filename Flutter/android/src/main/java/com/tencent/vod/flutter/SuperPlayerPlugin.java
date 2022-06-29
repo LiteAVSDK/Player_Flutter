@@ -5,15 +5,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.Window;
 import android.view.WindowManager;
@@ -23,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -58,53 +53,21 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     private ActivityPluginBinding      mActivityPluginBinding;
     private SparseArray<FTXBasePlayer> mPlayers;
 
-    private AudioManager      mAudioManager;
-    private AudioFocusRequest mFocusRequest;
-    private AudioAttributes   mAudioAttributes;
-    private int               volumeUIFlag = 0;
+    private FTXDownloadManager mFTXDownloadManager;
 
-    AudioManager.OnAudioFocusChangeListener afChangeListener =
-            new AudioManager.OnAudioFocusChangeListener() {
-                public void onAudioFocusChange(int focusChange) {
-                    if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                        //长时间丢失焦点,当其他应用申请的焦点为AUDIOFOCUS_GAIN时，会触发此回调事件
-                        //例如播放QQ音乐，网易云音乐等
-                        //此时应当暂停音频并释放音频相关的资源。
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                onAudioFocusPause();
-                            }
-                        });
-                    } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                        //短暂性丢失焦点，当其他应用申请AUDIOFOCUS_GAIN_TRANSIENT或AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE时，会触发此回调事件
-                        //例如播放短视频，拨打电话等。
-                        //通常需要暂停音乐播放
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                onAudioFocusPause();
-                            }
-                        });
-                    } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                        //短暂性丢失焦点并作降音处理，当其他应用申请AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK时，会触发此回调事件
-                        //通常需要降低音量
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                onAudioFocusPause();
-                            }
-                        });
-                    } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                        //当其他应用申请焦点之后又释放焦点会触发此回调
-                        //可重新播放音乐
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                onAudioFocusPlay();
-                            }
-                        });
-                    }
+    private FTXAudioManager mTxAudioManager;
+    private FTXPIPManager   mTxPipManager;
+
+    private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
+            new FTXAudioManager.AudioFocusChangeListener() {
+                @Override
+                public void onAudioFocusPause() {
+                    onHandleAudioFocusPause();
+                }
+
+                @Override
+                public void onAudioFocusPlay() {
+                    onHandleAudioFocusPlay();
                 }
             };
 
@@ -114,7 +77,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_super_player");
         channel.setMethodCallHandler(this);
         mPlayers = new SparseArray();
-
+        initAudioManagerIfNeed();
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
                 ".com/playerPlugin/event");
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
@@ -128,6 +91,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
                 mEventSink.setEventSinkProxy(null);
             }
         });
+        mFTXDownloadManager = new FTXDownloadManager(mFlutterPluginBinding);
     }
 
     @Override
@@ -135,7 +99,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         if (call.method.equals("getPlatformVersion")) {
             result.success("Android " + android.os.Build.VERSION.RELEASE);
         } else if (call.method.equals("createVodPlayer")) {
-            FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding);
+            FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
             int playerId = player.getPlayerId();
             mPlayers.append(playerId, player);
             result.success(playerId);
@@ -163,11 +127,16 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             }
             result.success(null);
         } else if (call.method.equals("setGlobalCacheFolderPath")) {
-            String path = call.argument("path");
-            if (!TextUtils.isEmpty(path)) {
-                TXPlayerGlobalSetting.setCacheFolderPath(path);
+            String postfixPath = call.argument("postfixPath");
+            boolean configResult = false;
+            if (!TextUtils.isEmpty(postfixPath)) {
+                File sdcardDir = mFlutterPluginBinding.getApplicationContext().getExternalFilesDir(null);
+                if (null != sdcardDir) {
+                    TXPlayerGlobalSetting.setCacheFolderPath(sdcardDir.getPath() + File.separator + postfixPath);
+                    configResult = true;
+                }
             }
-            result.success(null);
+            result.success(configResult);
         } else if (call.method.equals("setGlobalLicense")) {
             String licenceUrl = call.argument("licenceUrl");
             String licenceKey = call.argument("licenceKey");
@@ -193,61 +162,56 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             WindowManager.LayoutParams params = window.getAttributes();
             result.success(params.screenBrightness);
         } else if (call.method.equals("getSystemVolume")) {
-            result.success(getSystemCurrentVolume());
+            result.success(mTxAudioManager.getSystemCurrentVolume());
         } else if (call.method.equals("setSystemVolume")) {
-            initAudioManagerIfNeed();
             Double volume = call.argument("volume");
-            if (null != volume) {
-                if (volume < 0) {
-                    volume = 0d;
-                }
-                if (volume > 1) {
-                    volume = 1d;
-                }
-                int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-                int newVolume = (int) (volume * maxVolume);
-                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, volumeUIFlag);
-            }
+            mTxAudioManager.setSystemVolume(volume);
             result.success(null);
         } else if (call.method.equals("abandonAudioFocus")) {
-            abandonAudioFocus();
+            mTxAudioManager.abandonAudioFocus();
             result.success(null);
         } else if (call.method.equals("requestAudioFocus")) {
-            requestAudioFocus();
+            mTxAudioManager.requestAudioFocus();
             result.success(null);
         } else if (call.method.equals("setLogLevel")) {
             Integer logLevel = call.argument("logLevel");
             TXLiveBase.setLogLevel(logLevel);
             result.success(null);
+        } else if (call.method.equals("isDeviceSupportPip")) {
+            result.success(mTxPipManager.isSupportDevice());
+        } else if (call.method.equals("getLiteAVSDKVersion")) {
+            result.success(TXLiveBase.getSDKVersionStr());
         } else {
             result.notImplemented();
         }
     }
 
     private void initAudioManagerIfNeed() {
-        if (null == mAudioManager) {
-            mAudioManager =
-                    (AudioManager) mFlutterPluginBinding.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        if (null == mTxAudioManager) {
+            mTxAudioManager = new FTXAudioManager(mFlutterPluginBinding.getApplicationContext());
+            mTxAudioManager.addAudioFocusChangedListener(audioFocusChangeListener);
         }
     }
 
-    private void setVolumeUIVisible(boolean visible) {
-        if (visible) {
-            volumeUIFlag = AudioManager.FLAG_SHOW_UI;
-        } else {
-            volumeUIFlag = 0;
+    private void initPipManagerIfNeed() {
+        if (null == mTxPipManager) {
+            mTxPipManager = new FTXPIPManager(mTxAudioManager, mActivityPluginBinding.getActivity(),
+                    mFlutterPluginBinding.getFlutterAssets());
         }
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
+        mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
     }
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         mActivityPluginBinding = binding;
+        initAudioManagerIfNeed();
+        initPipManagerIfNeed();
         registerReceiver();
     }
 
@@ -261,59 +225,17 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
 
     @Override
     public void onDetachedFromActivity() {
+        if (null != mTxPipManager) {
+            mTxPipManager.releaseReceiver();
+        }
         unregisterReceiver();
     }
 
-    private float getSystemCurrentVolume() {
-        initAudioManagerIfNeed();
-        int curVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        return (float) curVolume / maxVolume;
-    }
-
-    void abandonAudioFocus() {
-        initAudioManagerIfNeed();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (mFocusRequest != null) {
-                mAudioManager.abandonAudioFocusRequest(mFocusRequest);
-            }
-        } else {
-            if (afChangeListener != null) {
-                mAudioManager.abandonAudioFocus(afChangeListener);
-            }
-        }
-    }
-
-    void requestAudioFocus() {
-        initAudioManagerIfNeed();
-        int result;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (mFocusRequest == null) {
-                if (mAudioAttributes == null) {
-                    mAudioAttributes = new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_GAME)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .build();
-                }
-                mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                        .setAudioAttributes(mAudioAttributes)
-                        .setAcceptsDelayedFocusGain(true)
-                        .setOnAudioFocusChangeListener(afChangeListener)
-                        .build();
-            }
-            result = mAudioManager.requestAudioFocus(mFocusRequest);
-        } else {
-            result = mAudioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC,
-                    AudioManager.AUDIOFOCUS_GAIN);
-        }
-        Log.e(TAG, "requestAudioFocus result:" + result);
-    }
-
-    void onAudioFocusPause() {
+    void onHandleAudioFocusPause() {
         mEventSink.success(getParams(FTXEvent.EVENT_AUDIO_FOCUS_PAUSE, null));
     }
 
-    void onAudioFocusPlay() {
+    void onHandleAudioFocusPlay() {
         mEventSink.success(getParams(FTXEvent.EVENT_AUDIO_FOCUS_PLAY, null));
     }
 
@@ -323,6 +245,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
      * @return
      */
     public void registerReceiver() {
+        // volume receiver
         mVolumeBroadcastReceiver = new VolumeBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
@@ -334,6 +257,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
      */
     public void unregisterReceiver() {
         try {
+            mTxAudioManager.removeAudioFocusChangedListener(audioFocusChangeListener);
             mActivityPluginBinding.getActivity().unregisterReceiver(mVolumeBroadcastReceiver);
         } catch (Exception e) {
             e.printStackTrace();

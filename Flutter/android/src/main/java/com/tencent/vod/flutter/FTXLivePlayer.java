@@ -116,12 +116,12 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     @Override
     public void onPlayEvent(int i, Bundle bundle) {
-        mEventSink.success(getParams(i, bundle));
+        mEventSink.success(CommonUtil.getParams(i, bundle));
     }
 
     @Override
     public void onNetStatus(Bundle bundle) {
-        mNetStatusSink.success(getParams(0, bundle));
+        mNetStatusSink.success(CommonUtil.getParams(0, bundle));
     }
 
     @Override
@@ -342,22 +342,5 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         if (mLivePlayer != null) {
             mLivePlayer.setRenderMode(renderMode);
         }
-    }
-
-    private Map<String, Object> getParams(int event, Bundle bundle) {
-        Map<String, Object> param = new HashMap();
-        if (event != 0) {
-            param.put("event", event);
-        }
-
-        if (bundle != null && !bundle.isEmpty()) {
-            Set<String> keySet = bundle.keySet();
-            for (String key : keySet) {
-                Object val = bundle.get(key);
-                param.put(key, val);
-            }
-        }
-
-        return param;
     }
 }

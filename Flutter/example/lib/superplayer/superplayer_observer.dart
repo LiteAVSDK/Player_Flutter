@@ -8,7 +8,7 @@ class _SuperPlayerObserver {
   Function onPlayPause;
   Function onPlayStop;
   Function onPlayLoading;
-  Function(int current, int duration) onPlayProgress;
+  Function(int current, int duration,double playableDuration) onPlayProgress;
   Function(double position) onSeek;
   Function(bool success, SuperPlayerType playerType, VideoQuality quality) onSwitchStreamStart;
   Function(bool success, SuperPlayerType playerType, VideoQuality quality) onSwitchStreamEnd;
@@ -42,5 +42,5 @@ class _SuperPlayerObserver {
       this.onVideoQualityListChange,
       this.onVideoImageSpriteAndKeyFrameChanged,
       this.onSysBackPress,
-      this.onDispose);
+      this.onDispose,);
 }

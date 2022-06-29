@@ -42,31 +42,10 @@ class _TreePageState extends State<TreePage> {
       TreeData([
         TreeDatachild("直播播放"),
         TreeDatachild("点播播放"),
-        TreeDatachild("超级播放器"),
+        TreeDatachild("播放器组件"),
       ], "播放器", false),
     ];
-
-    // getHttp();
   }
-
-  // void getHttp() async {
-  //   try {
-  //     var response = await HttpUtil().get(Api.TREE);
-  //     Map userMap = json.decode(response.toString());
-  //     var treeEntity = TreeEntity.fromJson(userMap);
-  //
-  //     //遍历赋值isExpanded标识，默认全部合并
-  //     for (int i = 0; i < treeEntity.data.length; i++) {
-  //       treeEntity.data[i].isExpanded = false;
-  //     }
-  //
-  //     setState(() {
-  //       _datas = treeEntity.data;
-  //     });
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
