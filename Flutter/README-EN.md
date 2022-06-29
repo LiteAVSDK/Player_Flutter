@@ -23,13 +23,13 @@ The Player SDK is a subproduct of RT-Cube, which provides VOD and live players b
 
 This project provides the VOD and live player SDKs which you can use to set up your own playback services.
 
-- [VOD player SDK](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%82%B9%E6%92%AD%E6%92%AD%E6%94%BE%E5%99%A8.md): `TXVodPlayerController` encapsulates the APIs of the VOD player SDKs for Android and iOS. You can integrate it to develop your VOD service. For the detailed code sample, see `DemoTXVodPlayer`.
+- [VOD player SDK](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%82%B9%E6%92%AD%E6%92%AD%E6%94%BE-EN.md): `TXVodPlayerController` encapsulates the APIs of the VOD player SDKs for Android and iOS. You can integrate it to develop your VOD service. For the detailed code sample, see `DemoTXVodPlayer`.
 
-- [Live player SDK](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%9B%B4%E6%92%AD%E6%92%AD%E6%94%BE%E5%99%A8.md): `TXLivePlayerController` encapsulates the APIs of the live player SDKs for Android and iOS. You can integrate it to develop your live playback service. For the detailed code sample, see `DemoTXLivePlayer`.
+- [Live player SDK](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%9B%B4%E6%92%AD%E6%92%AD%E6%94%BE-EN.md): `TXLivePlayerController` encapsulates the APIs of the live player SDKs for Android and iOS. You can integrate it to develop your live playback service. For the detailed code sample, see `DemoTXLivePlayer`.
 
 To reduce the connection costs, the Superplayer component (player with UIs) is provided in `example`. You can set up your own video playback service based on a few lines of simple code. You can apply the Superplayer code to your project and adjust UI and interaction details based on your project requirements.
 
-- [Superplayer component](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E8%B6%85%E7%BA%A7%E6%92%AD%E6%94%BE%E5%99%A8.md): `SuperPlayerController` is the Superplayer component, which combines the VOD and live player SDKs. It is currently in beta testing, and its features are being optimized. For the detailed code sample, see `DemoSuperplayer`.
+- [Superplayer component](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E6%92%AD%E6%94%BE%E5%99%A8%E7%BB%84%E4%BB%B6-EN.md): `SuperPlayerController` is the Superplayer component, which combines the VOD and live player SDKs. It is currently in beta testing, and its features are being optimized. For the detailed code sample, see `DemoSuperplayer`.
 
 ## Intended Audience
 
