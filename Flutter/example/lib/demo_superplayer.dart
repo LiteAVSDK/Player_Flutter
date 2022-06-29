@@ -50,7 +50,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
                 ? null
                 : AppBar(
                     backgroundColor: Colors.transparent,
-                    title: const Text('SuperPlayer'),
+                    title: const Text('播放器组件'),
                   ),
             body: SafeArea(
               child: Builder(
@@ -74,6 +74,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
 
   Widget _getPlayArea() {
     return Container(
+      decoration: BoxDecoration(color: Colors.black),
       height: 220,
       child: SuperPlayerView(_controller),
     );
@@ -92,15 +93,21 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
 
   Widget _buildVideoItem(SuperPlayerModel playModel) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ListTile(
-            leading: Image.network(playModel.coverUrl),
+            leading: Image.network(
+              playModel.coverUrl,
+              width: 100,
+              height: 60,
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+            ),
             title: new Text(
               playModel.title,
               style: TextStyle(color: Colors.white),
             ),
-            onTap: () => playCurrentModel(playModel)),
+            onTap: () => playCurrentModel(playModel),
+        horizontalTitleGap: 10,),
         Divider()
       ],
     );

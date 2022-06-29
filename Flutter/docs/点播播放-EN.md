@@ -1,4 +1,4 @@
-English| [简体中文](./点播播放器.md)
+English| [简体中文](./点播播放.md)
 
 ## SDK Download
 

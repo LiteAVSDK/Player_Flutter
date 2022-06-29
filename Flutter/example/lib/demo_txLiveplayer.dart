@@ -128,7 +128,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: const Text('直播'),
+          title: const Text('直播播放'),
         ),
         body: SafeArea(
           child: Column(
