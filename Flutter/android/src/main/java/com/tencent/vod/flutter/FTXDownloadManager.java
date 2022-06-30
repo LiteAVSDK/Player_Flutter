@@ -100,6 +100,5 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler{
     public void destroy() {
         mMethodChannel.setMethodCallHandler(null);
         mEventChannel.setStreamHandler(null);
-        mMainHandler.getLooper().quitSafely();
     }
 }
