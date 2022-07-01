@@ -73,7 +73,8 @@ class SuperPlayerPlugin {
     return await _channel.invokeMethod('releasePlayer', {"playerId": playerId});
   }
 
-  /// 设置全局最大缓存文件个数
+  /// 设置播放引擎的最大缓存大小。设置后会根据设定值自动清理Cache目录的文件
+  /// @param size 最大缓存大小（单位：MB)
   static Future<void> setGlobalMaxCacheSize(int size) async {
     return await _channel.invokeMethod('setGlobalMaxCacheSize', {"size": size});
   }
