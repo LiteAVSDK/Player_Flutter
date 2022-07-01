@@ -44,6 +44,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late _CoverViewController _coverViewController;
   late _MoreViewController _moreViewController;
 
+  StreamSubscription? _volumeSubscription;
+  StreamSubscription? _pipSubscription;
+
   /// init
   Timer _controlViewTimer = Timer(Duration(milliseconds: _controlViewShowTime), () {});
 
@@ -63,7 +66,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       landscapeOrientation = DeviceOrientation.landscapeLeft;
     }
     _playController = widget._controller;
-    WidgetsBinding.instance?.addObserver(this);
     _fullScreenController = _SuperPlayerFullScreenController(_updateState);
     _titleViewController = _VideoTitleController(_onTapBack, () {
       _moreViewKey.currentState?.toggleShowMoreView();
@@ -85,6 +87,37 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         double w = wd.toDouble();
         double h = hd.toDouble();
         _calculateSize(w, h);
+      }
+    });
+    // only register listen once
+    _pipSubscription = SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+      int eventCode = event["event"];
+      if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
+        // exit floatingMode
+        Navigator.of(context).pop();
+        _isFloatingMode = false;
+        if (_isPlaying) {
+          // pause play when exit PIP, prevent user just close PIP, but not back to app
+          _playController._vodPlayerController?.pause();
+        }
+      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
+        // EVENT_PIP_MODE_ALREADY_ENTER 的状态变化有滞后性，进入PIP之后才会通知，这里需要监听EVENT_PIP_MODE_REQUEST_START,
+        // 在即将进入PIP模式下就要开始进行PIP模式的UI准备
+        // enter floatingMode
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+          return SuperPlayerFloatView(_playController, _aspectRatio);
+        }));
+        _isFloatingMode = true;
+      }
+    });
+    _volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+      int eventCode = event["event"];
+      if (_isFloatingMode && _isPlaying) {
+        if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PAUSE) {
+          _onPause();
+        } else if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PLAY) {
+          _onResume();
+        }
       }
     });
     _registerObserver();
@@ -157,36 +190,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onDispose
       _playController._observer = null; // close observer
     });
-    SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
-      int eventCode = event["event"];
-      if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
-        // exit floatingMode
-        Navigator.of(context).pop();
-        _isFloatingMode = false;
-        if (_isPlaying) {
-          // pause play when exit PIP, prevent user just close PIP, but not back to app
-          _playController._vodPlayerController?.pause();
-        }
-      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
-        // EVENT_PIP_MODE_ALREADY_ENTER 的状态变化有滞后性，进入PIP之后才会通知，这里需要监听EVENT_PIP_MODE_REQUEST_START,
-        // 在即将进入PIP模式下就要开始进行PIP模式的UI准备
-        // enter floatingMode
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-          return SuperPlayerFloatView(_playController, _aspectRatio);
-        }));
-        _isFloatingMode = true;
-      }
-    });
-    SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
-      int eventCode = event["event"];
-      if (_isFloatingMode && _isPlaying) {
-        if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PAUSE) {
-          _onPause();
-        } else if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PLAY) {
-          _onResume();
-        }
-      }
-    });
+    WidgetsBinding.instance?.addObserver(this);
   }
 
   void _initPlayerState() {
@@ -433,10 +437,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _onEnterPipMode() async {
     if (!_isFloatingMode) {
       int? result = await _playController.enterPictureInPictureMode(
-          backIcon: "images/superplayer_ic_vod_play_pre.png",
+          backIcon: "images/ic_pip_play_replay.png",
           playIcon: "images/ic_pip_play_normal.png",
           pauseIcon: "images/ic_pip_play_pause.png",
-          forwardIcon: "images/superplayer_ic_vod_play_next.png");
+          forwardIcon: "images/ic_pip_play_forward.png");
       if (null != result) {
         String failedStr = "";
         if(result != TXVodPlayEvent.NO_ERROR) {
@@ -523,6 +527,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       Navigator.of(context).push(MaterialPageRoute(builder: (context) {
         return SuperPlayerFullScreenView(_playController, _fullScreenController);
       }));
+      WidgetsBinding.instance?.removeObserver(this);
     } else {
       // exit fullscreen widget
       Navigator.of(context).pop();
@@ -605,6 +610,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
+    _pipSubscription?.cancel();
+    _volumeSubscription?.cancel();
     super.dispose();
   }
 }

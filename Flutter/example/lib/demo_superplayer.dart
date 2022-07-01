@@ -1,4 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
@@ -15,6 +17,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
   late SuperPlayerController _controller;
+  StreamSubscription? simpleEventSubscription;
 
   @override
   void initState() {
@@ -24,7 +27,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     // 如果不配置preferredResolution，则在播放多码率视频的时候优先播放720 * 1280分辨率的码率
     config.preferredResolution = 720 * 1280;
     _controller.setPlayConfig(config);
-    _controller.onSimplePlayerEventBroadcast.listen((event) {
+    simpleEventSubscription = _controller.onSimplePlayerEventBroadcast.listen((event) {
       String evtName = event["event"];
       if (evtName == SuperPlayerViewEvent.onStartFullScreenPlay) {
       } else if (evtName == SuperPlayerViewEvent.onStopFullScreenPlay) {
@@ -213,6 +216,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   void dispose() {
     // must invoke when page exit.
     _controller.releasePlayer();
+    simpleEventSubscription?.cancel();
     // restore page brightness
     SuperPlayerPlugin.restorePageBrightness();
     super.dispose();
