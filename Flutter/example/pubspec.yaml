@@ -47,8 +47,8 @@ flutter:
     - images/ic_pip_play_icon.png
     - images/ic_pip_play_normal.png
     - images/ic_pip_play_pause.png
-    - images/superplayer_ic_vod_play_next.png
-    - images/superplayer_ic_vod_play_pre.png
+    - images/ic_pip_play_forward.png
+    - images/ic_pip_play_replay.png
     - images/superplayer_ic_vod_more_normal.png
     - images/superplayer_ic_light_max.png
     - images/superplayer_ic_light_min.png
