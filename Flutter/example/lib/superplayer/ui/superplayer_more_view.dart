@@ -20,6 +20,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   bool _isOpenAccelerate = true;
   String _currentRate = "";
   Map<String, double> playRateStr = {"1.0x": 1.0, "1.25x": 1.25, "1.5x": 1.5, "2.0x": 2.0};
+  StreamSubscription? volumeSubscription;
 
   @override
   void initState() {
@@ -37,10 +38,12 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
     }
     _isOpenAccelerate = widget.controller.getAccelerateIsOpen();
     // regist system volume changed event
-    SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+    volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
       int code = event["event"];
-      if (code == TXVodPlayEvent.EVENT_VOLUME_CHANGED) {
-        refreshVolume();
+      if(mounted) {
+        if (code == TXVodPlayEvent.EVENT_VOLUME_CHANGED) {
+          refreshVolume();
+        }
       }
     });
     _initData();
@@ -238,6 +241,12 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
         _isShowMoreView = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    volumeSubscription?.cancel();
   }
 }
 

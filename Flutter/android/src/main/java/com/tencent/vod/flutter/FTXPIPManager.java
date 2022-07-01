@@ -193,7 +193,7 @@ public class FTXPIPManager {
             backData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
             Intent backIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(backData);
             PendingIntent preIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_BACK, backIntent,
-                    PendingIntent.FLAG_IMMUTABLE);
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             RemoteAction preAction = new RemoteAction(getBackIcon(params), "skipPre", "skip pre", preIntent);
 
             // resume or pause
@@ -204,7 +204,7 @@ public class FTXPIPManager {
                     new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
             Icon playIcon = isPlaying ? getPauseIcon(params) : getPlayIcon(params);
             PendingIntent playIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE,
-                    playOrPauseIntent, PendingIntent.FLAG_IMMUTABLE);
+                    playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             RemoteAction playOrPauseAction = new RemoteAction(playIcon, "playOrPause", "play Or Pause", playIntent);
 
             // forward
@@ -214,7 +214,7 @@ public class FTXPIPManager {
             Intent forwardIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(forwardData);
             PendingIntent nextIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_FORWARD,
                     forwardIntent,
-                    PendingIntent.FLAG_IMMUTABLE);
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             RemoteAction nextAction = new RemoteAction(getForwardIcon(params), "skipNext", "skip next", nextIntent);
 
             List<RemoteAction> actions = new ArrayList<>();

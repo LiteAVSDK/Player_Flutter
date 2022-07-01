@@ -31,6 +31,8 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
   double _rate = 1.0;
   bool enableHardware = true;
   int volume = 80;
+  StreamSubscription? playEventSubscription;
+  StreamSubscription? playNetEventSubscription;
 
   GlobalKey<VideoSliderState> progressSliderKey = GlobalKey();
 
@@ -42,7 +44,10 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
     });
     LogUtils.logOpen = true;
 
-    _controller.onPlayerEventBroadcast.listen((event) async {
+    SuperPlayerPlugin.setGlobalMaxCacheSize(200);
+    SuperPlayerPlugin.setGlobalCacheFolderPath("postfixPath");
+
+    playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
       //订阅状态变化
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN ||
           event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
@@ -58,7 +63,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
       }
     });
 
-    _controller.onPlayerNetStatusBroadcast.listen((event) async {
+    playNetEventSubscription = _controller.onPlayerNetStatusBroadcast.listen((event) async {
       //订阅状态变化
       double w = (event[TXVodNetEvent.NET_STATUS_VIDEO_WIDTH]).toDouble();
       double h = (event[TXVodNetEvent.NET_STATUS_VIDEO_HEIGHT]).toDouble();
@@ -374,6 +379,8 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
 
   @override
   void dispose() {
+    playNetEventSubscription?.cancel();
+    playEventSubscription?.cancel();
     _controller.dispose();
     super.dispose();
     WidgetsBinding.instance?.removeObserver(this);

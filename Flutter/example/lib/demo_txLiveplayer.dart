@@ -24,6 +24,9 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
   bool _isStop = true;
   double _maxLiveProgressTime = 0;
+  StreamSubscription? playEventSubscription;
+  StreamSubscription? playNetEventSubscription;
+  StreamSubscription? playerStateEventSubscription;
 
   GlobalKey<VideoSliderState> progressSliderKey = GlobalKey();
 
@@ -32,7 +35,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
 
     _controller = TXLivePlayerController();
 
-    _controller.onPlayerEventBroadcast.listen((event) {
+    playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) {
       //订阅事件分发
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
@@ -60,7 +63,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       }
     });
 
-    _controller.onPlayerNetStatusBroadcast.listen((event) {
+    playNetEventSubscription =  _controller.onPlayerNetStatusBroadcast.listen((event) {
       double w = (event[TXVodNetEvent.NET_STATUS_VIDEO_WIDTH]).toDouble();
       double h = (event[TXVodNetEvent.NET_STATUS_VIDEO_HEIGHT]).toDouble();
 
@@ -71,7 +74,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       }
     });
 
-    _controller.onPlayerState.listen((event) {
+    playerStateEventSubscription = _controller.onPlayerState.listen((event) {
       //订阅状态变化
       debugPrint("播放状态 ${event!.name}");
     });
@@ -282,6 +285,9 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
 
   @override
   void dispose() {
+    playerStateEventSubscription?.cancel();
+    playEventSubscription?.cancel();
+    playNetEventSubscription?.cancel();
     _controller.dispose();
     super.dispose();
     WidgetsBinding.instance?.removeObserver(this);
