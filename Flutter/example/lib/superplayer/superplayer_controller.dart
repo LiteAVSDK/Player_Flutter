@@ -307,11 +307,15 @@ class SuperPlayerController {
           if (query.contains("spfileid") || query.contains("spdrmtype") || query.contains("spappid")) {
             LogUtils.d(TAG, "url contains superplay key. $query");
           }
-          query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
         }
+        query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
+        Uri newUri = Uri(path: url, query: query);
+        LogUtils.d(TAG, 'playVodURL: newurl =  ${Uri.decodeFull(newUri.toString())}  ;url=  $url');
+        await _vodPlayerController?.startPlay(Uri.decodeFull(newUri.toString()));
+      } else {
+        LogUtils.d(TAG, "playVodURL url:$url");
+        await _vodPlayerController?.startPlay(url);
       }
-      LogUtils.d(TAG, "play url:$url");
-      await _vodPlayerController?.startPlay(url);
     }
   }
 
