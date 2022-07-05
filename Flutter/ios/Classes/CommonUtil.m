@@ -4,13 +4,6 @@
 
 @implementation CommonUtil
 
-NSDictionary *DOWNLOAD_STATE_MAP = @{
-    const @(TXVodDownloadMediaInfoStateInit):@(EVENT_DOWNLOAD_START)
-    ,@(TXVodDownloadMediaInfoStateStart):@(EVENT_DOWNLOAD_PROGRESS)
-    ,@(TXVodDownloadMediaInfoStateStop):@(EVENT_DOWNLOAD_STOP)
-    ,@(TXVodDownloadMediaInfoStateError):@(EVENT_DOWNLOAD_ERROR)
-    ,@(TXVodDownloadMediaInfoStateFinish): @(EVENT_DOWNLOAD_FINISH)};
-
 + (int)getCacheVideoQuality:(int)width height:(int)pHeight{
     int minValue = MIN(width, pHeight);
     int cacheQualityIndex;
