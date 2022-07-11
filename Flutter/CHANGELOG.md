@@ -20,5 +20,6 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - 播放器组件（superplayer）用Dart重写，方便自定义集成
 - 修复通过appId 、fileId和 psign 播放失败问题
 
-- set Android TXLiteAVSDK_Professional to 10.2.0.11131
-- set iOS TXLiteAVSDK_Professional to 10.2.11418
+- set Android TXLiteAVSDK_Professional to 10.2.0.11131，tag：release_player_v1.0.2
+- set iOS TXLiteAVSDK_Professional to 10.2.11418， tag：release_pro_v1.0.2
+
