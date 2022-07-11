@@ -90,27 +90,51 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       }
     });
     // only register listen once
-    _pipSubscription = SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+    _pipSubscription =
+        SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
         // exit floatingMode
-        Navigator.of(context).pop();
-        _isFloatingMode = false;
-        if (_isPlaying) {
-          // pause play when exit PIP, prevent user just close PIP, but not back to app
-          _playController._vodPlayerController?.pause();
+        if (Platform.isAndroid) {
+          Navigator.of(context).pop();
+          if (_isPlaying) {
+            // pause play when exit PIP, prevent user just close PIP, but not back to app
+            _playController._vodPlayerController?.pause();
+          }
+        } else if (Platform.isIOS) {
+          EasyLoading.dismiss();
         }
+        _isFloatingMode = false;
       } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
         // EVENT_PIP_MODE_ALREADY_ENTER 的状态变化有滞后性，进入PIP之后才会通知，这里需要监听EVENT_PIP_MODE_REQUEST_START,
         // 在即将进入PIP模式下就要开始进行PIP模式的UI准备
         // enter floatingMode
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-          return SuperPlayerFloatView(_playController, _aspectRatio);
-        }));
+        if (Platform.isAndroid) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+            return SuperPlayerFloatView(_playController, _aspectRatio);
+          }));
+        } else if (Platform.isIOS) {
+          EasyLoading.showToast(StringResource.OPEN_PIP);
+        }
         _isFloatingMode = true;
+      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_ENTER) {
+        if (Platform.isIOS) {
+          EasyLoading.dismiss();
+        }
+      } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) {
+        if (Platform.isIOS) {
+          EasyLoading.showToast(StringResource.CLOSE_PIP);
+        }
+      } else {
+        if (Platform.isIOS) {
+          EasyLoading.showToast(StringResource.ERROR_PIP);
+        }
+        _isFloatingMode = false;
+        print('$eventCode');
       }
     });
-    _volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+    _volumeSubscription =
+        SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (_isFloatingMode && _isPlaying) {
         if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PAUSE) {
@@ -327,7 +351,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   Widget _getPipEnterView() {
     return Visibility(
-      visible: _isShowControlView && !_isFullScreen && Platform.isAndroid, // PIP 暂时只支持Android
+      visible: _isShowControlView && !_isFullScreen,
       child: Positioned(
         right: 10,
         top: 0,

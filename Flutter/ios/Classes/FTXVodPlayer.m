@@ -7,11 +7,17 @@
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
 #import <Flutter/Flutter.h>
+#import <AVKit/AVKit.h>
+#import "FTXEvent.h"
 
 static const int uninitialized = -1;
-static const int CODE_ON_RECEIVE_FIRST_FRAME = 2003;
+static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 @interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate>
+
+@property (nonatomic, strong) UIView *txPipView;
+@property (nonatomic, assign) BOOL hasEnteredPipMode;
+@property (nonatomic, assign) BOOL restoreUI;
 
 @end
 /**
@@ -44,6 +50,8 @@ BOOL volatile isStop = false;
         _lastBuffer = nil;
         _latestPixelBuffer = nil;
         _textureId = -1;
+        self.hasEnteredPipMode = NO;
+        self.restoreUI = NO;
         _eventSink = [FTXPlayerEventSinkQueue new];
         _netStatusSink = [FTXPlayerEventSinkQueue new];
         
@@ -68,6 +76,10 @@ BOOL volatile isStop = false;
     [self stopPlay];
     [_txVodPlayer removeVideoWidget];
     _txVodPlayer = nil;
+    
+    self.txPipView = nil;
+    _hasEnteredPipMode = NO;
+    _restoreUI = NO;
     
     if (_textureId >= 0) {
         [_textureRegistry unregisterTexture:_textureId];
@@ -128,6 +140,7 @@ BOOL volatile isStop = false;
         _txVodPlayer.vodDelegate = self;
         [self setupPlayerWithBool:onlyAudio];
     }
+
     return [NSNumber numberWithLongLong:_textureId];
 }
 
@@ -401,6 +414,10 @@ BOOL volatile isStop = false;
         float time = [self getDuration];
         result(@(time));
     }
+    else if ([@"enterPictureInPictureMode" isEqualToString:call.method]) {
+        int ret = [self enterPictureInPictureMode];
+        result(@(ret));
+    }
     else {
         result(FlutterMethodNotImplemented);
     }
@@ -447,6 +464,10 @@ BOOL volatile isStop = false;
 
 - (CVPixelBufferRef _Nullable)copyPixelBuffer
 {
+    if (self.hasEnteredPipMode) {
+        return [self getPipImagePixelBuffer];
+    }
+
     CVPixelBufferRef pixelBuffer = _latestPixelBuffer;
     while (!OSAtomicCompareAndSwapPtrBarrier(pixelBuffer, nil,
                                              (void **)&_latestPixelBuffer)) {
@@ -464,9 +485,10 @@ BOOL volatile isStop = false;
 - (void)onPlayEvent:(TXVodPlayer *)player event:(int)EvtID withParam:(NSDictionary*)param
 {
     // 交给flutter共享纹理处理首帧事件返回时机
-    if(EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
+    if (EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
         return;
     }
+    
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
 }
 
@@ -517,6 +539,36 @@ BOOL volatile isStop = false;
     }
     
     return NO;
+}
+
+#pragma mark - Private Method
+
+/**
+ 判断当前语言是否是简体中文
+ */
+- (BOOL)isCurrentLanguageHans
+{
+    NSArray *languages = [NSLocale preferredLanguages];
+    NSString *currentLanguage = [languages objectAtIndex:0];
+    if ([currentLanguage isEqualToString:@"zh-Hans-CN"])
+    {
+        return YES;
+    }
+    
+    return NO;
+}
+
+- (CVPixelBufferRef)getPipImagePixelBuffer
+{
+    NSString *imagePath;
+    if ([self isCurrentLanguageHans]) {
+        imagePath = [[NSBundle mainBundle] pathForResource:@"pictureInpicture_zh" ofType:@"jpg"];
+    } else {
+        imagePath = [[NSBundle mainBundle] pathForResource:@"pictureInpicture_en" ofType:@"jpg"];
+    }
+
+    UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+    return [self CVPixelBufferRefFromUiImage:image];
 }
 
 - (void)setPlayConfig:(NSDictionary *)args
@@ -614,6 +666,182 @@ BOOL volatile isStop = false;
         return _txVodPlayer.bitrateIndex;
     }
     return -1;
+}
+
+- (int)enterPictureInPictureMode {
+    if (_hasEnteredPipMode) {
+        return ERROR_IOS_PIP_IS_RUNNING;
+    }
+    
+    if (![TXVodPlayer isSupportPictureInPicture]) {
+        return ERROR_IOS_PIP_DEVICE_NOT_SUPPORT;
+    }
+        
+    if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipRequestStart)]) {
+        [self.delegate onPlayerPipRequestStart];
+    }
+    
+    UIViewController* flutterVC = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    [flutterVC.view addSubview:self.txPipView];
+    [_txVodPlayer setupVideoWidget:self.txPipView insertIndex:0];
+    [_txVodPlayer enterPictureInPicture];
+    
+    return NO_ERROR;
+}
+
+- (UIView *)txPipView {
+    if (!_txPipView) {
+        _txPipView = [[UIView alloc] initWithFrame:CGRectZero];
+        _txPipView.hidden = YES;
+    }
+    return _txPipView;
+}
+
+#pragma mark - 画中画代理
+- (void)onPlayer:(TXVodPlayer *)player pictureInPictureStateDidChange:(TX_VOD_PLAYER_PIP_STATE)pipState withParam:(NSDictionary *)param {
+    if (pipState == TX_VOD_PLAYER_PIP_STATE_DID_START) {
+        self.hasEnteredPipMode = YES;
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStart)]) {
+            [self.delegate onPlayerPipStateDidStart];
+        }
+    }
+    
+    if (pipState == TX_VOD_PLAYER_PIP_STATE_WILL_STOP) {
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateWillStop)]) {
+            [self.delegate onPlayerPipStateWillStop];
+        }
+    }
+    
+    if (pipState == TX_VOD_PLAYER_PIP_STATE_DID_STOP) {
+        self.hasEnteredPipMode = NO;
+        if (self.restoreUI) {
+            [self->_txVodPlayer resume];
+            self.restoreUI = NO;
+        } else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+                    [self->_txVodPlayer resume];
+                }
+                [player removeVideoWidget];
+                [self->_txPipView removeFromSuperview];
+                self->_txPipView = nil;
+            });
+        }
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
+            [self.delegate onPlayerPipStateDidStop];
+        }
+    }
+    
+    if (pipState == TX_VOD_PLAYER_PIP_STATE_RESTORE_UI) {
+        self.restoreUI = YES;
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateRestoreUI)]) {
+            [self.delegate onPlayerPipStateRestoreUI];
+        }
+        [player exitPictureInPicture];
+    }
+}
+
+- (void)onPlayer:(TXVodPlayer *)player pictureInPictureErrorDidOccur:(TX_VOD_PLAYER_PIP_ERROR_TYPE)errorType withParam:(NSDictionary *)param {
+    NSInteger type = errorType;
+    switch (errorType) {
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_NONE:
+            type = NO_ERROR;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_DEVICE_NOT_SUPPORT:
+            type = ERROR_IOS_PIP_DEVICE_NOT_SUPPORT;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_PLAYER_NOT_SUPPORT:
+            type = ERROR_IOS_PIP_PLAYER_NOT_SUPPORT;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_VIDEO_NOT_SUPPORT:
+            type = ERROR_IOS_PIP_VIDEO_NOT_SUPPORT;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_PIP_IS_NOT_POSSIBLE:
+            type = ERROR_IOS_PIP_IS_NOT_POSSIBLE;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_ERROR_FROM_SYSTEM:
+            type = ERROR_IOS_PIP_FROM_SYSTEM;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_PLAYER_NOT_EXIST:
+            type = ERROR_IOS_PIP_PLAYER_NOT_EXIST;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_PIP_IS_RUNNING:
+            type = ERROR_IOS_PIP_IS_RUNNING;
+            break;
+        case TX_VOD_PLAYER_PIP_ERROR_TYPE_PIP_NOT_RUNNING:
+            type = ERROR_IOS_PIP_NOT_RUNNING;
+            break;
+    }
+    self.hasEnteredPipMode = NO;
+    if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateError:)]) {
+        [self.delegate onPlayerPipStateError:type];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->_txVodPlayer resume];
+    });
+}
+
+#pragma mark - UIImage转CVPixelBufferRef
+
+- (CVPixelBufferRef)CVPixelBufferRefFromUiImage:(UIImage *)img {
+    CGSize size = img.size;
+    CGImageRef image = [img CGImage];
+    
+    BOOL hasAlpha = CGImageRefContainsAlpha(image);
+    CFDictionaryRef empty = CFDictionaryCreate(kCFAllocatorDefault, NULL, NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey,
+                             empty, kCVPixelBufferIOSurfacePropertiesKey,
+                             nil];
+    CVPixelBufferRef pxbuffer = NULL;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, inputPixelFormat(), (__bridge CFDictionaryRef) options, &pxbuffer);
+    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
+    NSParameterAssert(pxdata != NULL);
+    
+    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+    uint32_t bitmapInfo = bitmapInfoWithPixelFormatType(inputPixelFormat(), (bool)hasAlpha);
+    CGContextRef context = CGBitmapContextCreate(pxdata, size.width, size.height, 8, CVPixelBufferGetBytesPerRow(pxbuffer), rgbColorSpace, bitmapInfo);
+    NSParameterAssert(context);
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    CGColorSpaceRelease(rgbColorSpace);
+    CGContextRelease(context);
+    return pxbuffer;
+}
+
+static OSType inputPixelFormat(){
+    return kCVPixelFormatType_32BGRA;
+}
+
+static uint32_t bitmapInfoWithPixelFormatType(OSType inputPixelFormat, bool hasAlpha){
+    if (inputPixelFormat == kCVPixelFormatType_32BGRA) {
+        uint32_t bitmapInfo = kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host;
+        if (!hasAlpha) {
+            bitmapInfo = kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Host;
+        }
+        return bitmapInfo;
+    }else if (inputPixelFormat == kCVPixelFormatType_32ARGB) {
+        uint32_t bitmapInfo = kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Big;
+        return bitmapInfo;
+    }else{
+        return 0;
+    }
+}
+
+// alpha的判断
+BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
+    if (!imageRef) {
+        return NO;
+    }
+    CGImageAlphaInfo alphaInfo = CGImageGetAlphaInfo(imageRef);
+    BOOL hasAlpha = !(alphaInfo == kCGImageAlphaNone ||
+                      alphaInfo == kCGImageAlphaNoneSkipFirst ||
+                      alphaInfo == kCGImageAlphaNoneSkipLast);
+    return hasAlpha;
 }
 
 @end

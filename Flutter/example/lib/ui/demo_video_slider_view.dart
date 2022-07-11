@@ -67,6 +67,12 @@ class VideoSliderState extends State<VideoSliderView> {
   void updatePorgess(double progress,double totalDuration) {
     if(!isSliding) {
       setState(() {
+        if(progress > 1.0) {
+          progress = 1.0;
+        }
+        if(progress < 0) {
+          progress = 0;
+        }
         _currentProgress = progress;
         _videoDuration = totalDuration;
       });

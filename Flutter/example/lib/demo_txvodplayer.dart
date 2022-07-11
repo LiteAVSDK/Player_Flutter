@@ -56,8 +56,11 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
-
-        progressSliderKey.currentState?.updatePorgess(_currentProgress / videoDuration, videoDuration);
+        if (videoDuration == 0.0) {
+          progressSliderKey.currentState?.updatePorgess(0.0, 0.0);
+        } else {
+          progressSliderKey.currentState?.updatePorgess(_currentProgress / videoDuration, videoDuration);
+        }
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC) {
         String? playUrl = event[TXVodPlayEvent.EVT_PLAY_URL]?.toString();
       }
