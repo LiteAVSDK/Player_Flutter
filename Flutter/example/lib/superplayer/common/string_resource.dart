@@ -16,4 +16,8 @@ class StringResource {
   static const BRIGHTNESS_LABEL = "亮度";
   static const MULITIPE_SPEED_PLAY_LABEL = "多倍速播放";
   static const HARDWARE_ACCE_LABEL = "硬件加速";
+
+  static const OPEN_PIP = "正在开启画中画";
+  static const CLOSE_PIP = "正在关闭画中画";
+  static const ERROR_PIP = "画中画开启失败";
 }

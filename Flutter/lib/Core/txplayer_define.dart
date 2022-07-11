@@ -94,11 +94,23 @@ abstract class TXVodPlayEvent {
   static const    EVENT_PIP_MODE_ALREADY_EXIT     = 2; // 已经退出画中画模式
   static const    EVENT_PIP_MODE_REQUEST_START    = 3; // 开始请求进入画中画模式
   static const    EVENT_PIP_MODE_UI_STATE_CHANGED = 4; // pip UI状态发生变动，only support android > 31
+  static const    EVENT_IOS_PIP_MODE_RESTORE_UI   = 5; // 重置UI only support iOS
+  static const    EVENT_IOS_PIP_MODE_WILL_EXIT    = 6; // 将要退出画中画 only support iOS
+
 
   static const NO_ERROR = 0;
-  static const ERROR_PIP_LOWER_VERSION        = -101; // pip 错误，android版本过低
-  static const ERROR_PIP_DENIED_PERMISSION    = -102; // pip 错误，画中画权限关闭/设备不支持画中画
-  static const ERROR_PIP_ACTIVITY_DESTROYED   = -103; // pip 错误，当前界面已销毁
+  static const ERROR_PIP_LOWER_VERSION            = -101; // pip 错误，android版本过低
+  static const ERROR_PIP_DENIED_PERMISSION        = -102; // pip 错误，画中画权限关闭/设备不支持画中画
+  static const ERROR_PIP_ACTIVITY_DESTROYED       = -103; // pip 错误，当前界面已销毁
+  static const ERROR_IOS_PIP_DEVICE_NOT_SUPPORT   = -104; // pip 错误，设备或系统版本不支持（iPad iOS9+ 才支持PIP）
+  static const ERROR_IOS_PIP_PLAYER_NOT_SUPPORT   = -105; // pip 错误，播放器不支持 only support iOS
+  static const ERROR_IOS_PIP_VIDEO_NOT_SUPPORT    = -106; // pip 错误，视频不支持 only support iOS
+  static const ERROR_IOS_PIP_IS_NOT_POSSIBLE      = -107; // pip 错误，PIP控制器不可用 only support iOS
+  static const ERROR_IOS_PIP_FROM_SYSTEM          = -108; // pip 错误，PIP控制器报错 only support iOS
+  static const ERROR_IOS_PIP_PLAYER_NOT_EXIST     = -109; // pip 错误，播放器对象不存在 only support iOS
+  static const ERROR_IOS_PIP_IS_RUNNING           = -110; // pip 错误，PIP功能已经运行 only support iOS
+  static const ERROR_IOS_PIP_NOT_RUNNING          = -111; // pip 错误，PIP功能没有启动 only support iOS
+
 
   /// 视频下载相关事件
   static const EVENT_PREDOWNLOAD_ON_COMPLETE = 200;  // 视频预下载完成
