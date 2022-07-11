@@ -10,7 +10,7 @@
 #import "FTXAudioManager.h"
 #import "FTXDownloadManager.h"
 
-@interface SuperPlayerPlugin ()<FlutterStreamHandler>
+@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate>
 
 @property (nonatomic, strong) NSObject<FlutterPluginRegistrar>* registrar;
 @property (nonatomic, strong) NSMutableDictionary *players;
@@ -20,7 +20,9 @@
 @implementation SuperPlayerPlugin {
     float orginBrightness;
     FlutterEventChannel *_eventChannel;
+    FlutterEventChannel *_pipEventChannel;
     FTXPlayerEventSinkQueue *_eventSink;
+    FTXPlayerEventSinkQueue *_pipEventSink;
     FTXAudioManager *audioManager;
     FTXDownloadManager *_FTXDownloadManager;
 }
@@ -57,8 +59,11 @@ SuperPlayerPlugin* instance;
     audioManager = [[FTXAudioManager alloc] init];
     // volume event stream
     _eventSink = [FTXPlayerEventSinkQueue new];
+    _pipEventSink = [FTXPlayerEventSinkQueue new];
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
+    _pipEventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/pipEvent" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
+    [_pipEventChannel setStreamHandler:self];
     
     [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification"  object:nil];
      _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
@@ -79,6 +84,7 @@ SuperPlayerPlugin* instance;
         result(playerId);
     }else if([@"createVodPlayer" isEqualToString:call.method]){
         FTXVodPlayer* player = [[FTXVodPlayer alloc] initWithRegistrar:self.registrar];
+        player.delegate = self;
         NSNumber *playerId = player.playerId;
         _players[playerId] = player;
         result(playerId);
@@ -167,8 +173,11 @@ SuperPlayerPlugin* instance;
         int logLevel = [args[@"logLevel"] intValue];
         [TXLiveBase setLogLevel:logLevel];
         result(nil);
-    }  else if([@"getLiteAVSDKVersion" isEqualToString:call.method]) {
+    } else if([@"getLiteAVSDKVersion" isEqualToString:call.method]) {
         result([TXLiveBase getSDKVersionStr]);
+    } else if ([@"isDeviceSupportPip" isEqualToString:call.method]) {
+        BOOL isSupport = [TXVodPlayer isSupportPictureInPicture];
+        result([NSNumber numberWithBool:isSupport]);
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -195,6 +204,7 @@ SuperPlayerPlugin* instance;
     if ([arguments isKindOfClass:NSString.class]) {
         if ([arguments isEqualToString:@"event"]) {
             [_eventSink setDelegate:events];
+            [_pipEventSink setDelegate:events];
         }
     }
 
@@ -206,10 +216,36 @@ SuperPlayerPlugin* instance;
     if ([arguments isKindOfClass:NSString.class]) {
         if ([arguments isEqualToString:@"event"]) {
             [_eventSink setDelegate:nil];
+            [_pipEventSink setDelegate:nil];
         }
     }
     return nil;
 }
 
+#pragma mark - FTXVodPlayerDelegate
+
+- (void)onPlayerPipRequestStart {
+    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_REQUEST_START)}];
+}
+
+- (void)onPlayerPipStateDidStart {
+    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_ALREADY_ENTER)}];
+}
+
+- (void)onPlayerPipStateWillStop {
+    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_WILL_EXIT)}];
+}
+
+- (void)onPlayerPipStateDidStop {
+    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_ALREADY_EXIT)}];
+}
+
+- (void)onPlayerPipStateError:(NSInteger)errorId {
+    [_pipEventSink success:@{@"event" : @(errorId)}];
+}
+
+- (void)onPlayerPipStateRestoreUI {
+    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_RESTORE_UI)}];
+}
 
 @end
