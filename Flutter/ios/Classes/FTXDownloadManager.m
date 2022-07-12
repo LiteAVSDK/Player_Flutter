@@ -5,7 +5,7 @@
 #import "FTXEvent.h"
 #import "FTXDownloadManager.h"
 #import "TXVodPreloadManager.h"
-#import "TXVodDownloadManager.h"
+#import <TXLiteAVSDK_Player/TXVodDownloadManager.h>
 #import "FTXEvent.h"
 #import "CommonUtil.h"
 
