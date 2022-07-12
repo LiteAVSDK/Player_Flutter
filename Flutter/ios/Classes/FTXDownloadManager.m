@@ -4,7 +4,7 @@
 #import "FTXPlayerEventSinkQueue.h"
 #import "FTXEvent.h"
 #import "FTXDownloadManager.h"
-#import "TXVodPreloadManager.h"
+#import <TXLiteAVSDK_Professional/TXVodPreloadManager.h>
 #import "FTXEvent.h"
 
 @interface FTXDownloadManager ()<FlutterStreamHandler, TXVodPreloadManagerDelegate>
