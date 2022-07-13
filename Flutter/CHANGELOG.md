@@ -23,3 +23,10 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - set Android TXLiteAVSDK_Professional to 10.2.0.11131，tag：release_player_v1.0.2
 - set iOS TXLiteAVSDK_Professional to 10.2.11418， tag：release_pro_v1.0.2
 
+#### Version: 1.0.3  2022.07.13
+
+##### 版本特性：
+
+- iOS端新增画中画（PIP) 功能
+- set Android TXLiteAVSDK_Professional to 10.3.0.11144，tag：release_player_v1.0.3
+- set iOS TXLiteAVSDK_Professional to 10.3.11513， tag：release_pro_v1.0.3
