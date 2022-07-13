@@ -133,7 +133,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             mPlayers.append(playerId, player);
             result.success(playerId);
         } else if (call.method.equals("createLivePlayer")) {
-            FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mActivityPluginBinding.getActivity());
+            FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mActivityPluginBinding.getActivity(), mTxPipManager);
             int playerId = player.getPlayerId();
             mPlayers.append(playerId, player);
             result.success(playerId);

@@ -5,9 +5,7 @@ part of demo_super_player_lib;
 class SuperPlayerController {
   static const TAG = "SuperPlayerController";
 
-  final StreamController<Map<dynamic, dynamic>> _eventStreamController = StreamController.broadcast();
   final StreamController<Map<dynamic, dynamic>> _simpleEventStreamController = StreamController.broadcast();
-  final StreamController<Map<dynamic, dynamic>> _playStateStreamController = StreamController.broadcast();
   final StreamController<Map<dynamic, dynamic>> _playerNetStatusStreamController = StreamController.broadcast();
 
   /// simple event,see SuperPlayerViewEvent
@@ -16,16 +14,24 @@ class SuperPlayerController {
   /// player net status,see TXVodNetEvent
   Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _playerNetStatusStreamController.stream;
 
-  TXVodPlayerController? _vodPlayerController;
+  late TXVodPlayerController _vodPlayerController;
+  late TXLivePlayerController _livePlayerController;
+
   SuperPlayerModel? videoModel;
   int _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
   PlayInfoProtocol? _currentProtocol;
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
   List<VideoQuality>? currentQualiyList;
-
+  StreamController<TXPlayerModelImpl> playerStreamController = StreamController();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
+  FTXVodPlayConfig _vodConfig = FTXVodPlayConfig();
+  FTXLivePlayConfig _liveConfig = FTXLivePlayConfig();
+  StreamSubscription? _vodPlayEventListener;
+  StreamSubscription? _vodNetEventListener;
+  StreamSubscription? _livePlayEventListener;
+  StreamSubscription? _liveNetEventListener;
 
   String _currentPlayUrl = "";
 
@@ -34,12 +40,13 @@ class SuperPlayerController {
   bool _needToPause = false;
   bool _isMultiBitrateStream = false; // 是否是多码流url播放
   bool _changeHWAcceleration = false; // 切换硬解后接收到第一个关键帧前的标记位
-  bool _isFullScreen = false;
   bool _isOpenHWAcceleration = true;
+  int _playerUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
   final BuildContext _context;
 
-  int currentDuration = 0;
-  int videoDuration = 0;
+  double currentDuration = 0;
+  double videoDuration = 0;
+  int _maxLiveProgressTime = 0;
 
   double _seekPos = 0; // 记录切换硬解时的播放时间
   /// 该值会改变新播放视频的播放开始时间点
@@ -50,18 +57,31 @@ class SuperPlayerController {
 
   SuperPlayerController(this._context) {
     _initVodPlayer();
+    _initLivePlayer();
   }
 
   void _initVodPlayer() async {
     _vodPlayerController = new TXVodPlayerController();
-    await _vodPlayerController?.initialize();
-    _vodPlayerController?.onPlayerEventBroadcast.listen((event) async {
+    await _vodPlayerController.initialize();
+    _setVodListener();
+  }
+
+  void _initLivePlayer() async {
+    _livePlayerController = TXLivePlayerController();
+    await _livePlayerController.initialize();
+    _setLiveListener();
+  }
+
+  void _setVodListener() {
+    _vodPlayEventListener?.cancel();
+    _vodNetEventListener?.cancel();
+    _vodPlayEventListener = _vodPlayerController.onPlayerEventBroadcast.listen((event) async {
       int eventCode = event['event'];
       switch (eventCode) {
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
           isPrepared = true;
           if (_isMultiBitrateStream) {
-            List<dynamic>? bitrateListTemp = await _vodPlayerController!.getSupportedBitrates();
+            List<dynamic>? bitrateListTemp = await _vodPlayerController.getSupportedBitrates();
             List<FTXBitrateItem> bitrateList = [];
             if (null != bitrateListTemp) {
               for (Map<dynamic, dynamic> map in bitrateListTemp) {
@@ -78,7 +98,7 @@ class SuperPlayerController {
               videoQualities.add(quality);
             }
 
-            int? bitrateIndex = await _vodPlayerController?.getBitrateIndex(); //获取默认码率的index
+            int? bitrateIndex = await _vodPlayerController.getBitrateIndex(); //获取默认码率的index
             for (VideoQuality quality in videoQualities) {
               if (quality.index == bitrateIndex) {
                 defaultQuality = quality;
@@ -88,9 +108,9 @@ class SuperPlayerController {
           }
 
           if (_needToPause) {
-            _vodPlayerController?.pause();
+            _vodPlayerController.pause();
           } else if (_needToResume) {
-            _vodPlayerController?.resume();
+            _vodPlayerController.resume();
           }
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
@@ -111,8 +131,7 @@ class SuperPlayerController {
           }
           _updatePlayerState(SuperPlayerState.PLAYING);
           break;
-        case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
-          // PLAY_EVT_RCV_FIRST_I_FRAME
+        case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME: // PLAY_EVT_RCV_FIRST_I_FRAME
           if (_needToPause) {
             return;
           }
@@ -132,19 +151,18 @@ class SuperPlayerController {
           dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS];
           dynamic duration = event[TXVodPlayEvent.EVT_PLAY_DURATION];
           if (null != progress) {
-            currentDuration = progress.toInt(); // 当前时间，转换后的单位 秒
+            currentDuration = progress.toDouble(); // 当前时间，转换后的单位 秒
           }
           if (null != duration) {
-            videoDuration = duration.toInt(); // 总播放时长，转换后的单位 秒
+            videoDuration = duration.toDouble(); // 总播放时长，转换后的单位 秒
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
           }
           break;
       }
-      _eventStreamController.add(event);
     });
-    _vodPlayerController?.onPlayerNetStatusBroadcast.listen((event) {
+    _vodNetEventListener = _vodPlayerController.onPlayerNetStatusBroadcast.listen((event) {
       dynamic wd = (event["VIDEO_WIDTH"]);
       dynamic hd = (event["VIDEO_HEIGHT"]);
       if (null != wd && null != hd) {
@@ -163,26 +181,83 @@ class SuperPlayerController {
     });
   }
 
-  void _checkVodPlayerIsInit() {
-    if (null == _vodPlayerController) {
-      _initVodPlayer();
-    }
+  void _setLiveListener() {
+    _livePlayEventListener?.cancel();
+    _liveNetEventListener?.cancel();
+    _livePlayEventListener = _livePlayerController.onPlayerEventBroadcast.listen((event) async {
+      int eventCode = event['event'];
+      switch (eventCode) {
+        case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
+        case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
+          _updatePlayerState(SuperPlayerState.PLAYING);
+          break;
+        case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT:
+        case TXVodPlayEvent.PLAY_EVT_PLAY_END:
+          if (playerType == SuperPlayerType.LIVE_SHIFT) {
+            _livePlayerController.resumeLive();
+            _observer?.onError(SuperPlayerCode.LIVE_SHIFT_FAIL, "时移失败,返回直播");
+            _updatePlayerState(SuperPlayerState.PLAYING);
+          } else {
+            _stop();
+            if (eventCode == TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT) {
+              _observer?.onError(SuperPlayerCode.NET_ERROR, "网络不给力,点击重试");
+            } else {
+              _observer?.onError(SuperPlayerCode.LIVE_PLAY_END, event[TXVodPlayEvent.EVT_DESCRIPTION]);
+            }
+          }
+          break;
+        case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
+          _updatePlayerState(SuperPlayerState.LOADING);
+          break;
+        case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
+          _updatePlayerState(SuperPlayerState.PLAYING);
+          _observer?.onRcvFirstIframe();
+          break;
+        case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC:
+          _observer?.onSwitchStreamEnd(true, SuperPlayerType.LIVE, currentQuality);
+          break;
+        case TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL:
+          _observer?.onSwitchStreamEnd(false, SuperPlayerType.LIVE, currentQuality);
+          break;
+        case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS:
+          int progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS_MS];
+          _maxLiveProgressTime = progress > _maxLiveProgressTime ? progress : _maxLiveProgressTime;
+          _observer?.onPlayProgress(progress / 1000, _maxLiveProgressTime / 1000, await getPlayableDuration());
+          break;
+      }
+    });
+    _liveNetEventListener = _livePlayerController.onPlayerNetStatusBroadcast.listen((event) {
+      dynamic wd = (event["VIDEO_WIDTH"]);
+      dynamic hd = (event["VIDEO_HEIGHT"]);
+      if (null != wd && null != hd) {
+        double w = wd.toDouble();
+        double h = hd.toDouble();
+        if (w > 0 && h > 0) {
+          if (w != videoWidth) {
+            videoWidth = w;
+          }
+          if (h != videoHeight) {
+            videoHeight = h;
+          }
+        }
+      }
+      _playerNetStatusStreamController.add(event);
+    });
   }
 
   /// 播放视频
-  void playWithModel(SuperPlayerModel videoModel) {
+  Future<void> playWithModel(SuperPlayerModel videoModel) async {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
-    resetPlayer();
+    await resetPlayer();
     if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
-      _playWithModelInner(videoModel);
+      await _playWithModelInner(videoModel);
     } else {
       _observer?.onNewVideoPlay();
     }
   }
 
   Future<void> _playWithModelInner(SuperPlayerModel videoModel) async {
-    _checkVodPlayerIsInit();
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
     _observer?.onVideoImageSpriteAndKeyFrameChanged(null, null);
@@ -206,7 +281,7 @@ class SuperPlayerController {
       }
       _playModeVideo(protocol);
       _updatePlayerType(SuperPlayerType.VOD);
-      _observer?.onPlayProgress(0, resultModel.duration, await getPlayableDuration());
+      _observer?.onPlayProgress(0, resultModel.duration.toDouble(), await getPlayableDuration());
       _observer?.onVideoImageSpriteAndKeyFrameChanged(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
     }, (errCode, message) {
       // onError
@@ -216,8 +291,7 @@ class SuperPlayerController {
   }
 
   Future<double> getPlayableDuration() async {
-    double? playableDuration = await _vodPlayerController?.getPlayableDuration();
-    return playableDuration ?? 0;
+    return await _vodPlayerController.getPlayableDuration();
   }
 
   void _playModeVideo(PlayInfoProtocol protocol) {
@@ -250,7 +324,7 @@ class SuperPlayerController {
   void _playWithUrl(SuperPlayerModel model) {
     List<VideoQuality> videoQualities = [];
     VideoQuality? defaultVideoQuality;
-    late String videoUrl;
+    String? videoUrl;
     if (model.multiVideoURLs.isNotEmpty) {
       int i = 0;
       for (SuperPlayerUrl superPlayerUrl in model.multiVideoURLs) {
@@ -267,8 +341,19 @@ class SuperPlayerController {
       _observer?.onError(SuperPlayerCode.PLAY_URL_EMPTY, "播放视频失败，播放链接为空");
       return;
     }
-    _playVodUrl(videoUrl);
-    _updatePlayerType(SuperPlayerType.VOD);
+    if (_isRTMPPlay(videoUrl)) {
+      _playLiveURL(videoUrl, TXPlayType.LIVE_RTMP);
+    } else if (_isFLVPlay(videoUrl)) {
+      _playTimeShiftLiveURL(model.appId, videoUrl);
+      if (model.multiVideoURLs.isNotEmpty) {
+        _startMultiStreamLiveURL(videoUrl);
+      }
+    } else {
+      _playVodUrl(videoUrl);
+    }
+    bool isLivePlay = (_isRTMPPlay(videoUrl) || _isFLVPlay(videoUrl));
+    _observer?.onPlayProgress(0, model.duration.toDouble(), 0);
+    _updatePlayerType(isLivePlay ? SuperPlayerType.LIVE : SuperPlayerType.VOD);
     _updateVideoQualityList(videoQualities, defaultVideoQuality);
   }
 
@@ -278,44 +363,43 @@ class SuperPlayerController {
     }
     _isMultiBitrateStream = url.contains(".m3u8");
     _currentPlayUrl = url;
-    if (null != _vodPlayerController) {
-      await _vodPlayerController?.setStartTime(startPos);
-      if (_playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
-        await _vodPlayerController?.setAutoPlay(isAutoPlay: false);
-        _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
-      } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY ||
-          _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
-        await _vodPlayerController?.setAutoPlay(isAutoPlay: true);
+    await _vodPlayerController.setStartTime(startPos);
+    if (_playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
+      await _vodPlayerController.setAutoPlay(isAutoPlay: false);
+      _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
+    } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY ||
+        _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
+      await _vodPlayerController.setAutoPlay(isAutoPlay: true);
+    }
+    _setVodListener();
+    String drmType = "plain";
+    if (_currentProtocol != null) {
+      LogUtils.d(TAG, "TOKEN: ${_currentProtocol!.getToken()}");
+      await _vodPlayerController.setToken(_currentProtocol!.getToken());
+      if (_currentProtocol!.getDRMType() != null && _currentProtocol!.getDRMType()!.isNotEmpty) {
+        drmType = _currentProtocol!.getDRMType()!;
       }
-      String drmType = "plain";
-      if (_currentProtocol != null) {
-        LogUtils.d(TAG, "TOKEN: ${_currentProtocol!.getToken()}");
-        await _vodPlayerController?.setToken(_currentProtocol!.getToken());
-        if (_currentProtocol!.getDRMType() != null && _currentProtocol!.getDRMType()!.isNotEmpty) {
-          drmType = _currentProtocol!.getDRMType()!;
-        }
+    } else {
+      await _vodPlayerController.setToken(null);
+    }
+    if (videoModel!.videoId != null && videoModel!.appId != 0) {
+      Uri uri = Uri.parse(url);
+      String query = uri.query;
+      if (query == null || query.isEmpty) {
+        query = "";
       } else {
-        await _vodPlayerController?.setToken(null);
-      }
-      if (videoModel!.videoId != null && videoModel!.appId != 0) {
-        Uri uri = Uri.parse(url);
-        String query = uri.query;
-        if (query == null || query.isEmpty) {
-          query = "";
-        } else {
-          query = query + "&";
-          if (query.contains("spfileid") || query.contains("spdrmtype") || query.contains("spappid")) {
-            LogUtils.d(TAG, "url contains superplay key. $query");
-          }
+        query = query + "&";
+        if (query.contains("spfileid") || query.contains("spdrmtype") || query.contains("spappid")) {
+          LogUtils.d(TAG, "url contains superplay key. $query");
         }
-        query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
-        Uri newUri = Uri(path: url, query: query);
-        LogUtils.d(TAG, 'playVodURL: newurl =  ${Uri.decodeFull(newUri.toString())}  ;url=  $url');
-        await _vodPlayerController?.startPlay(Uri.decodeFull(newUri.toString()));
-      } else {
-        LogUtils.d(TAG, "playVodURL url:$url");
-        await _vodPlayerController?.startPlay(url);
       }
+      query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
+      Uri newUri = Uri(path: url, query: query);
+      LogUtils.d(TAG, 'playVodURL: newurl =  ${Uri.decodeFull(newUri.toString())}  ;url=  $url');
+      await _vodPlayerController.startPlay(Uri.decodeFull(newUri.toString()));
+    } else {
+      LogUtils.d(TAG, "playVodURL url:$url");
+      await _vodPlayerController.startPlay(url);
     }
   }
 
@@ -324,10 +408,10 @@ class SuperPlayerController {
   void pause() {
     if (playerType == SuperPlayerType.VOD) {
       if (isPrepared) {
-        _vodPlayerController?.pause();
+        _vodPlayerController.pause();
       }
     } else {
-      // todo implements live player
+      _livePlayerController.pause();
     }
     _updatePlayerState(SuperPlayerState.PAUSE);
     _needToPause = true;
@@ -338,10 +422,10 @@ class SuperPlayerController {
     if (playerType == SuperPlayerType.VOD) {
       _needToResume = true;
       if (isPrepared) {
-        _vodPlayerController?.resume();
+        _vodPlayerController.resume();
       }
     } else {
-      // todo implements live player
+      _livePlayerController.resume();
     }
     _needToPause = false;
     _updatePlayerState(SuperPlayerState.PLAYING);
@@ -350,17 +434,74 @@ class SuperPlayerController {
   /// 重新开始播放视频
   Future<void> reStart() async {
     if (playerType == SuperPlayerType.LIVE || playerType == SuperPlayerType.LIVE_SHIFT) {
-      // todo implements live player
+      if (_isRTMPPlay(_currentPlayUrl)) {
+        _playLiveURL(_currentPlayUrl, TXPlayType.LIVE_RTMP);
+      } else if (_isFLVPlay(_currentPlayUrl) && null != videoModel) {
+        _playTimeShiftLiveURL(videoModel!.appId, _currentPlayUrl);
+        if (videoModel!.multiVideoURLs.isNotEmpty) {
+          _startMultiStreamLiveURL(_currentPlayUrl);
+        }
+      }
     } else {
       await _playVodUrl(_currentPlayUrl);
     }
   }
 
+  void _startMultiStreamLiveURL(String url) {
+    _liveConfig.autoAdjustCacheTime = false;
+    _liveConfig.maxAutoAdjustCacheTime = 5.0;
+    _liveConfig.minAutoAdjustCacheTime = 5.0;
+    _livePlayerController.setConfig(_liveConfig);
+    _observer?.onPlayTimeShiftLive(_livePlayerController, url);
+  }
+
+  /// 播放直播URL
+  void _playLiveURL(String url, int playType) async {
+    _currentPlayUrl = url;
+    _setLiveListener();
+    bool result = await _livePlayerController.startPlay(url, playType: playType);
+    if (result) {
+      _updatePlayerState(SuperPlayerState.PLAYING);
+    } else {
+      LogUtils.e(TAG, "playLiveURL videoURL:$url,result:$result");
+    }
+  }
+
+  /// 播放时移直播url
+  void _playTimeShiftLiveURL(int appId, String url) {
+    String bizid = url.substring(url.indexOf("//") + 2, url.indexOf("."));
+    String streamid = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+    LogUtils.i(TAG, "bizid:$bizid,streamid:$streamid,appid:$appId");
+    _playLiveURL(url, TXPlayType.LIVE_FLV);
+  }
+
   void _updatePlayerType(SuperPlayerType type) {
     if (playerType != type) {
       playerType = type;
+      updatePlayerView();
+      _observer?.onPlayerTypeChange(type);
     }
-    _observer?.onPlayerTypeChange(type);
+  }
+
+  void updatePlayerView() async {
+    TXPlayerController controller = getCurrentController();
+    TXPlayerModelImpl model = TXPlayerModelImpl(controller);
+    playerStreamController.sink.add(model);
+  }
+
+  Stream<TXPlayerModelImpl> getPlayerStream() {
+    return playerStreamController.stream;
+  }
+
+  /// 获得当前正在使用的controller
+  TXPlayerController getCurrentController() {
+    TXPlayerController controller;
+    if (playerType == SuperPlayerType.VOD) {
+      controller = _vodPlayerController;
+    } else {
+      controller = _livePlayerController;
+    }
+    return controller;
   }
 
   void _updatePlayerState(SuperPlayerState state) {
@@ -384,9 +525,6 @@ class SuperPlayerController {
         _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerDidEnd);
         break;
     }
-    Map<String, SuperPlayerState> eventMap = new Map();
-    eventMap['event'] = state;
-    _playStateStreamController.add(eventMap);
   }
 
   String _getPlayName() {
@@ -413,22 +551,30 @@ class SuperPlayerController {
     _simpleEventStreamController.add(eventMap);
   }
 
-  void _updateFullScreenState(bool fullScreen) {
-    _isFullScreen = fullScreen;
-    if (fullScreen) {
-      _addSimpleEvent(SuperPlayerViewEvent.onStartFullScreenPlay);
-    } else {
-      _addSimpleEvent(SuperPlayerViewEvent.onStopFullScreenPlay);
+  void _updatePlayerUIStatus(int status) {
+    if (_playerUIStatus != status) {
+      _playerUIStatus = status;
+      if (status == SuperPlayerUIStatus.FULLSCREEN_MODE) {
+        _addSimpleEvent(SuperPlayerViewEvent.onStartFullScreenPlay);
+      } else {
+        _addSimpleEvent(SuperPlayerViewEvent.onStopFullScreenPlay);
+      }
     }
   }
 
-  /// just for inner invoke
-  Future<void> _stopPlay() async {
-    await _vodPlayerController?.stop();
+  /// 是否是RTMP协议
+  bool _isRTMPPlay(String? videoURL) {
+    return null != videoURL && videoURL.startsWith("rtmp");
+  }
+
+  /// 是否是HTTP-FLV协议
+  bool _isFLVPlay(String? videoURL) {
+    return (null != videoURL && videoURL.startsWith("http://") || videoURL!.startsWith("https://")) &&
+        videoURL.contains(".flv");
   }
 
   /// 重置播放器状态
-  void resetPlayer() async {
+  Future<void> resetPlayer() async {
     isPrepared = false;
     _needToResume = false;
     _needToPause = false;
@@ -437,10 +583,20 @@ class SuperPlayerController {
     currentQuality = null;
     currentQualiyList?.clear();
     _currentProtocol = null;
-
-    await _vodPlayerController?.stop(isNeedClear: true);
+    // 移除所有事件
+    _vodPlayEventListener?.cancel();
+    _vodNetEventListener?.cancel();
+    _livePlayEventListener?.cancel();
+    _liveNetEventListener?.cancel();
+    await _vodPlayerController.stop();
+    await _livePlayerController.stop();
 
     _updatePlayerState(SuperPlayerState.INIT);
+  }
+
+  void _stop() async {
+    resetPlayer();
+    _updatePlayerState(SuperPlayerState.END);
   }
 
   /// 释放播放器，播放器释放之后，将不能再使用
@@ -448,13 +604,14 @@ class SuperPlayerController {
     // 先移除widget的事件监听
     _observer?.onDispose();
     resetPlayer();
-    _vodPlayerController?.dispose();
-    _vodPlayerController = null;
+    playerStreamController.close();
+    _vodPlayerController.dispose();
+    _livePlayerController.dispose();
   }
 
   /// return true : 执行了退出全屏等操作，消耗了返回事件  false：未消耗事件
   bool onBackPress() {
-    if (null != _vodPlayerController && _isFullScreen) {
+    if (_playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
       _observer?.onSysBackPress();
       return true;
     }
@@ -469,43 +626,59 @@ class SuperPlayerController {
   void switchStream(VideoQuality videoQuality) async {
     currentQuality = videoQuality;
     if (playerType == SuperPlayerType.VOD) {
-      if (null != _vodPlayerController) {
-        if (videoQuality.url.isNotEmpty) {
-          // url stream need manual seek
-          double currentTime = await _vodPlayerController!.getCurrentPlaybackTime();
-          await _vodPlayerController?.stop(isNeedClear: false);
-          LogUtils.d(TAG, "onQualitySelect quality.url:${videoQuality.url}");
-          await _vodPlayerController?.setStartTime(currentTime);
-          await _vodPlayerController?.startPlay(videoQuality.url);
-        } else {
-          LogUtils.d(TAG, "setBitrateIndex quality.index:${videoQuality.index}");
-          await _vodPlayerController?.setBitrateIndex(videoQuality.index);
-        }
-        _observer?.onSwitchStreamStart(true, SuperPlayerType.VOD, videoQuality);
+      if (videoQuality.url.isNotEmpty) {
+        // url stream need manual seek
+        double currentTime = await _vodPlayerController.getCurrentPlaybackTime();
+        await _vodPlayerController.stop(isNeedClear: false);
+        LogUtils.d(TAG, "onQualitySelect quality.url:${videoQuality.url}");
+        await _vodPlayerController.setStartTime(currentTime);
+        await _vodPlayerController.startPlay(videoQuality.url);
+      } else {
+        LogUtils.d(TAG, "setBitrateIndex quality.index:${videoQuality.index}");
+        await _vodPlayerController.setBitrateIndex(videoQuality.index);
       }
+      _observer?.onSwitchStreamStart(true, SuperPlayerType.VOD, videoQuality);
     } else {
-      // todo implements live player
+      bool success = false;
+      if (videoQuality.url.isNotEmpty) {
+        int result = await _livePlayerController.switchStream(videoQuality.url);
+        success = result >= 0;
+      }
+      _observer?.onSwitchStreamStart(success, SuperPlayerType.LIVE, videoQuality);
     }
   }
 
   /// seek 到需要的时间点进行播放
   Future<void> seek(double progress) async {
     if (playerType == SuperPlayerType.VOD) {
-      await _vodPlayerController?.seek(progress);
-      bool? isPlaying = await _vodPlayerController?.isPlaying();
+      await _vodPlayerController.seek(progress);
+      bool isPlaying = await _vodPlayerController.isPlaying();
       // resume when not playing.if isPlaying is null,not resume
-      if (!(isPlaying ?? true)) {
+      if (!isPlaying) {
         resume();
       }
     } else {
-      // todo implements live player
+      _updatePlayerType(SuperPlayerType.LIVE_SHIFT);
+      _livePlayerController.seek(progress);
+      bool isPlaying = await _livePlayerController.isPlaying();
+      // resume when not playing.if isPlaying is null,not resume
+      if (!isPlaying) {
+        resume();
+      }
     }
     _observer?.onSeek(progress);
   }
 
-  /// 配置播放器
+  /// 配置点播播放器
   Future<void> setPlayConfig(FTXVodPlayConfig config) async {
-    await _vodPlayerController?.setConfig(config);
+    _vodConfig = config;
+    await _vodPlayerController.setConfig(config);
+  }
+
+  /// 配置直播播放器
+  Future<void> setLiveConfig(FTXLivePlayConfig config) async {
+    _liveConfig = config;
+    await _livePlayerController.setConfig(config);
   }
 
   /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
@@ -514,39 +687,52 @@ class SuperPlayerController {
   /// </h1>
   /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
   /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
-  Future<int?> enterPictureInPictureMode(
+  Future<int> enterPictureInPictureMode(
       {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
-    return _vodPlayerController?.enterPictureInPictureMode(
-        backIcon: backIcon, playIcon: playIcon, pauseIcon: pauseIcon, forwardIcon: forwardIcon);
+    if (_playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE) {
+      if (playerType == SuperPlayerType.VOD) {
+        return _vodPlayerController.enterPictureInPictureMode(
+            backIconForAndroid: backIcon,
+            playIconForAndroid: playIcon,
+            pauseIconForAndroid: pauseIcon,
+            forwardIconForAndroid: forwardIcon);
+      } else {
+        return _livePlayerController.enterPictureInPictureMode(
+            backIconForAndroid: backIcon,
+            playIconForAndroid: playIcon,
+            pauseIconForAndroid: pauseIcon,
+            forwardIconForAndroid: forwardIcon);
+      }
+    }
+    return TXVodPlayEvent.ERROR_PIP_CAN_NOT_ENTER;
   }
 
   /// 开关硬解编码播放
   Future<void> enableHardwareDecode(bool enable) async {
     _isOpenHWAcceleration = enable;
     if (playerType == SuperPlayerType.VOD) {
-      if (null != _vodPlayerController) {
-        await _vodPlayerController?.enableHardwareDecode(enable);
-        if (playerState != SuperPlayerState.END) {
-          _changeHWAcceleration = true;
-          _seekPos = await _vodPlayerController!.getCurrentPlaybackTime();
-          LogUtils.d(TAG, "seek pos $_seekPos");
-          resetPlayer();
-          // 当protocol为空时，则说明当前播放视频为非v2和v4视频
-          if (_currentProtocol == null) {
-            _playUrlVideo(videoModel);
-          } else {
-            _playModeVideo(_currentProtocol!);
-          }
+      await _vodPlayerController.enableHardwareDecode(enable);
+      if (playerState != SuperPlayerState.END) {
+        _changeHWAcceleration = true;
+        _seekPos = await _vodPlayerController.getCurrentPlaybackTime();
+        LogUtils.d(TAG, "seek pos $_seekPos");
+        resetPlayer();
+        // 当protocol为空时，则说明当前播放视频为非v2和v4视频
+        if (_currentProtocol == null) {
+          _playUrlVideo(videoModel);
+        } else {
+          _playModeVideo(_currentProtocol!);
         }
       }
     } else {
-      // todo implements live player
+      await _vodPlayerController.enableHardwareDecode(enable);
+      await playWithModel(videoModel!);
     }
   }
 
   Future<void> setPlayRate(double rate) async {
     currentPlayRate = rate;
-    _vodPlayerController?.setRate(rate);
+    _vodPlayerController.setRate(rate);
   }
 
   /// 获得当前播放器状态

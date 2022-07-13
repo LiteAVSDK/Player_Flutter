@@ -81,8 +81,9 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
 
     await SuperPlayerPlugin.setConsoleEnabled(true);
     await _controller.initialize();
+    await _controller.setConfig(FTXLivePlayConfig());
     // 安卓需要设置hls格式才可正常播放
-    await _controller.play(_url, playType: TXPlayType.LIVE_FLV);
+    await _controller.startPlay(_url, playType: TXPlayType.LIVE_FLV);
   }
 
   @override
@@ -207,7 +208,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                   ),
                   new GestureDetector(
                     onTap: () async {
-                      _controller.play(_url, playType: TXPlayType.LIVE_FLV);
+                      _controller.startPlay(_url, playType: TXPlayType.LIVE_FLV);
                     },
                     child: Container(
                       color: Colors.transparent,
@@ -302,7 +303,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
             _url = url;
             _controller.stop();
             if (url.isNotEmpty) {
-              _controller.play(url);
+              _controller.startPlay(url);
             }
           }, showFileEdited: false);
         });

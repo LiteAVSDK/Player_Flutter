@@ -17,9 +17,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   StreamSubscription? _netSubscription;
 
   final StreamController<TXPlayerState?> _stateStreamController = StreamController.broadcast();
-
   final StreamController<Map<dynamic, dynamic>> _eventStreamController = StreamController.broadcast();
-
   final StreamController<Map<dynamic, dynamic>> _netStatusStreamController = StreamController.broadcast();
 
   /// 播放状态监听，@see TXPlayerState
@@ -137,6 +135,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   /// 通过url开始播放视频
   /// @param url : 视频播放地址
   /// return 是否播放成功
+  @override
   Future<bool> startPlay(String url) async {
     await _initPlayer.future;
     await _createTexture.future;
@@ -165,6 +164,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   /// 播放器初始化，创建共享纹理、初始化播放器
   /// @param onlyAudio 是否是纯音频模式
+  @override
   Future<void> initialize({bool? onlyAudio}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -176,6 +176,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置是否自动播放
+  @override
   Future<void> setAutoPlay({bool? isAutoPlay}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -184,7 +185,8 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   /// 停止播放
   /// return 是否停止成功
-  Future<bool> stop({bool isNeedClear = true}) async {
+  @override
+  Future<bool> stop({bool isNeedClear = false}) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
     final result = await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
@@ -193,12 +195,14 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 视频是否处于正在播放中
-  Future<bool?> isPlaying() async {
+  @override
+  Future<bool> isPlaying() async {
     await _initPlayer.future;
     return await _channel.invokeMethod("isPlaying");
   }
 
   /// 视频暂停，必须在播放器开始播放的时候调用
+  @override
   Future<void> pause() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -207,6 +211,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 继续播放，在暂停的时候调用
+  @override
   Future<void> resume() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -214,6 +219,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置是否静音
+  @override
   Future<void> setMute(bool mute) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -229,6 +235,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   /// 将视频播放进度定位到指定的进度进行播放
   /// progress 要定位的视频时间，单位 秒
+  @override
   Future<void> seek(double progress) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -236,6 +243,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置播放速率，默认速率 1
+  @override
   Future<void> setRate(double rate) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -294,7 +302,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置播放器配置
-  /// config @see FTXVodPlayConfig
+  /// config @see [FTXVodPlayConfig]
   Future<void> setConfig(FTXVodPlayConfig config) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -351,6 +359,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 开启/关闭硬件编码
+  @override
   Future<bool> enableHardwareDecode(bool enable) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
@@ -363,12 +372,26 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   /// </h1>
   /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
   /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
+  @override
   Future<int> enterPictureInPictureMode(
-      {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
+      {String? backIconForAndroid,
+      String? playIconForAndroid,
+      String? pauseIconForAndroid,
+      String? forwardIconForAndroid}) async {
     if (_isNeedDisposed) return -1;
     await _initPlayer.future;
-    return await _channel.invokeMethod("enterPictureInPictureMode",
-        {"backIcon": backIcon, "playIcon": playIcon, "pauseIcon": pauseIcon, "forwardIcon": forwardIcon});
+    if (Platform.isAndroid) {
+      return await _channel.invokeMethod("enterPictureInPictureMode", {
+        "backIcon": backIconForAndroid,
+        "playIcon": playIconForAndroid,
+        "pauseIcon": pauseIconForAndroid,
+        "forwardIcon": forwardIconForAndroid
+      });
+    } else if (Platform.isIOS) {
+      return -1;
+    } else {
+      return -1;
+    }
   }
 
   /// 获取总时长
@@ -378,13 +401,15 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return await _channel.invokeMethod("getDuration");
   }
 
-  /// 废弃controller
+  /// 释放controller
   @override
   void dispose() async {
     _isNeedDisposed = true;
     if (!_isDisposed) {
       await _eventSubscription!.cancel();
       _eventSubscription = null;
+      await _netSubscription!.cancel();
+      _netSubscription = null;
 
       await _release();
       _changeState(TXPlayerState.disposed);
@@ -398,8 +423,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   @override
-  // TODO: implement value
-
   get value => _value;
 
   set value(TXPlayerValue? val) {

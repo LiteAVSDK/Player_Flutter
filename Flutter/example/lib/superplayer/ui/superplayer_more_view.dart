@@ -18,6 +18,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   double _currentVolumn = 0;
   bool _isShowMoreView = false;
   bool _isOpenAccelerate = true;
+  bool _isVodPlay = false;
   String _currentRate = "";
   Map<String, double> playRateStr = {"1.0x": 1.0, "1.25x": 1.25, "1.5x": 1.5, "2.0x": 2.0};
   StreamSubscription? volumeSubscription;
@@ -25,6 +26,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   @override
   void initState() {
     super.initState();
+    _isVodPlay = widget.controller.getIsVodPlay();
     double playerPlayRate = widget.controller.getPlayRate();
     for(String rateStr in playRateStr.keys) {
       if(playerPlayRate == playRateStr[rateStr]) {
@@ -132,10 +134,13 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
         ),
       ));
     }
-    return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
-      child: Row(
-        children: playRateChild,
+    return Visibility(
+      visible: _isVodPlay,
+      child: Container(
+        margin: EdgeInsets.only(top: 10, bottom: 10),
+        child: Row(
+          children: playRateChild,
+        ),
       ),
     );
   }
@@ -243,6 +248,15 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
     }
   }
 
+  void updatePlayerType(SuperPlayerType playerType) {
+    bool isVodPlay = playerType == SuperPlayerType.VOD;
+    if(isVodPlay != _isVodPlay) {
+      setState(() {
+        _isVodPlay = isVodPlay;
+      });
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -255,6 +269,7 @@ class _MoreViewController {
   DoubleFunction getPlayRate;
   Function(bool value) siwtchAccelerate;
   Function(double playRate) onChangedPlayRate;
+  BoolFunction getIsVodPlay;
 
-  _MoreViewController(this.getAccelerateIsOpen, this.getPlayRate, this.siwtchAccelerate, this.onChangedPlayRate);
+  _MoreViewController(this.getAccelerateIsOpen, this.getPlayRate, this.siwtchAccelerate, this.onChangedPlayRate, this.getIsVodPlay);
 }

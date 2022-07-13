@@ -18,7 +18,7 @@ class DemoTXVodPlayer extends StatefulWidget {
 class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
     with WidgetsBindingObserver {
   late TXVodPlayerController _controller;
-  double _aspectRatio = 0;
+  double _aspectRatio = 16 / 9;
   double _currentProgress = 0.0;
   bool _isMute = false;
   int _volume = 100;
