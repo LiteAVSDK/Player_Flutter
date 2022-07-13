@@ -388,7 +388,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
         "forwardIcon": forwardIconForAndroid
       });
     } else if (Platform.isIOS) {
-      return -1;
+      return await _channel.invokeMethod("enterPictureInPictureMode");
     } else {
       return -1;
     }

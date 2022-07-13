@@ -23,7 +23,7 @@ class SuperPlayerController {
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
   List<VideoQuality>? currentQualiyList;
-  StreamController<TXPlayerModelImpl> playerStreamController = StreamController();
+  StreamController<TXPlayerModelImpl> playerStreamController = StreamController.broadcast();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
   FTXVodPlayConfig _vodConfig = FTXVodPlayConfig();

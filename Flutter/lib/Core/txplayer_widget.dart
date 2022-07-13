@@ -21,15 +21,22 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
   @override
   void initState() {
     super.initState();
-    streamSubscription = widget.playerStream?.listen((event) {
-      controller = event.controller;
-      resetControllerLink();
-    });
     controller = widget.controller;
-    resetControllerLink();
+    _checkStreamListen();
+    _resetControllerLink();
   }
 
-  void resetControllerLink() async {
+  void _checkStreamListen() {
+    if(null != streamSubscription) {
+      streamSubscription!.cancel();
+    }
+    streamSubscription = widget.playerStream?.listen((event) {
+      controller = event.controller;
+      _resetControllerLink();
+    });
+  }
+
+  void _resetControllerLink() async {
     int remainTextureId = await controller.textureId;
     if (remainTextureId >= 0) {
       if (remainTextureId != _textureId) {
@@ -39,6 +46,9 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
         });
       }
     } else {
+      setState(() {
+        _textureId = -1;
+      });
       controller.textureId.then((newTextureId) {
         if (_textureId != newTextureId) {
           setState(() {
@@ -46,9 +56,6 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
             _textureId = newTextureId;
           });
         }
-      });
-      setState(() {
-        _textureId = -1;
       });
     }
   }

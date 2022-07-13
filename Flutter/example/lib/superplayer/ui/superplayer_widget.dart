@@ -92,7 +92,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           Navigator.of(context).pop();
           if (_isPlaying) {
             // pause play when exit PIP, prevent user just close PIP, but not back to app
-            _playController._vodPlayerController?.pause();
+            _playController.getCurrentController().pause();
           }
         } else if (Platform.isIOS) {
           EasyLoading.dismiss();
@@ -362,7 +362,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     return Visibility(
       visible: _isShowControlView &&
           _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE,
-      // PIP 暂时只支持Android
       child: Positioned(
         right: 10,
         top: 0,
