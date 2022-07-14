@@ -321,6 +321,117 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
 }
 ```
 
+## 视频下载能力的使用
+
+### 预下载
+
+视频预下载能力依赖于`TXVodDownloadController`,使用其可对视频进行预下载和监听
+
+**接口**
+
+- 预下载视频
+
+```dart
+int taskId = await TXVodDownloadController.instance.startPreLoad(_url, 20, 720*1080,
+        onCompleteListener:(int taskId,String url) {
+          print('taskID=${taskId} ,url=${url}');
+        }, onErrorListener: (int taskId, String url, int code, String msg) {
+          print('taskID=${taskId} ,url=${url}, code=${code} , msg=${msg}');
+        } );
+```
+
+- 停止预下载
+
+```dart
+TXVodDownloadController.instance.stopPreLoad(taskId);
+```
+
+taskId从启动预下载的接口获得
+
+### 视频下载
+
+视频下载能力依赖于`TXVodDownloadController`,使用其可对视频进行下载和监听
+
+**接口**
+
+- 下载视频
+
+```dart
+TXVodDownloadMedialnfo downloadMedialnfo = TXVodDownloadMedialnfo();
+TXVodDownloadDataSource dataSource = TXVodDownloadDataSource();
+dataSource.appId = appId;
+dataSource.fileId = fileId;
+dataSource.pSign = pSign;
+downloadMedialnfo.dataSource = dataSource;
+TXVodDownloadController.instance.startDonwload(downloadMedialnfo);
+```
+
+也可以使用url下载。
+
+```dart
+TXVodDownloadMedialnfo downloadMedialnfo = TXVodDownloadMedialnfo();
+downloadMedialnfo.url = videoUrl;
+TXVodDownloadController.instance.startDonwload(downloadMedialnfo);
+```
+
+视频url下载不支持嵌套m3u8和mp4下载。
+下载也可以指定username，用来区分不同用户的下载，不传递的话，默认为default
+
+```dart
+downloadMedialnfo.userName = username;
+```
+
+- 停止下载
+
+```dart
+TXVodDownloadController.instance.stopDownload(downloadMedialnfo);
+```
+
+- 设置下载请求头
+
+针对部分视频下载的时候，需要设置额外的请求头
+
+```dart
+TXVodDownloadController.instance.setDownloadHeaders(headers);
+```
+
+- 获得视频的下载信息
+
+该接口可以获得下载中或者已经下载视频的下载信息，可以获得视频的当前缓存地址
+
+```dart
+TXVodDownloadController.instance.getDownloadInfo(downloadMedialnfo);
+```
+
+- 获得所有视频的下载信息
+
+```dart
+TXVodDownloadController.instance.getDownloadList();
+```
+
+- 设置视频下载监听
+
+该接口设置的视频下载监听为全局监听，所有视频的下载进度都会在该方法中回调，重复调用的话会前后覆盖
+
+```dart
+TXVodDownloadController.instance.setDownloadObserver((event, info) {
+// donwload state $event ,donwload info $info
+}, (errorCode, errorMsg, info) {
+// donwload error code $errorCode,error msg $errorMsg
+});
+```
+
+- 视频下载事件
+
+| 参数名 | 值   | 描述               |
+| ------ | ------ | ------------------ |
+| NO_ERROR | 301 | 视频下载开始 |
+| EVENT_DOWNLOAD_PROGRESS | 302 | 视频下载中，进度回调 |
+| EVENT_DOWNLOAD_STOP | 303 | 视频下载停止 |
+| EVENT_DOWNLOAD_FINISH | 304 | 视频下载完成 |
+| EVENT_DOWNLOAD_ERROR | 305 | 视频下载错误 |
+
+
 ## 深度定制开发指引 
 
 腾讯云播放器SDK Flutter插件对原生播放器能力进行了封装， 如果您要进行深度定制开发，建议采用如下方法：

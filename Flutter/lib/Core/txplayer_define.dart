@@ -261,7 +261,7 @@ class TXVodDownloadMedialnfo {
   int? downloadSize;
   /// 需要下载的视频url，url下载必填
   /// <h1>
-  /// url下载不支持不支持嵌套m3u8和mp4下载
+  /// url下载不支持嵌套m3u8和mp4下载
   /// </h1>
   String? url;
   /// fileId 存储
