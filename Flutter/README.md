@@ -172,6 +172,7 @@ class _TestState extends State<Test> {
 
   Future<void> initPlayer() async {
     await _controller.initialize();
+    await _controller.setConfig(FTXVodPlayConfig());
     await _controller.startPlay(_url);
   }
 
