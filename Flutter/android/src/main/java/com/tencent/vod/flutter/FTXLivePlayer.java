@@ -247,7 +247,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             mPipManager.addCallback(getPlayerId(), pipCallback);
             mPipParams = new FTXPIPManager.PipParams(playBackAssetPath, playResumeAssetPath,
                     playPauseAssetPath,
-                    playForwardAssetPath, getPlayerId());
+                    playForwardAssetPath, getPlayerId(),false,false,true);
             int pipResult = mPipManager.enterPip(isPlaying(), mPipParams);
             result.success(pipResult);
         } else if (call.method.equals("setConfig")) {

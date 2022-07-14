@@ -1,16 +1,15 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
-abstract class TXModel extends ChangeNotifier {
+abstract class TXModel {
 }
 
-class TXPlayerModelImpl extends TXModel {
+class TXPlayerHolder extends TXModel {
   TXPlayerController controller;
 
-  TXPlayerModelImpl(this.controller);
+  TXPlayerHolder(this.controller);
 
   void updateController(TXPlayerController playerController) {
     controller = playerController;
-    notifyListeners();
   }
 }

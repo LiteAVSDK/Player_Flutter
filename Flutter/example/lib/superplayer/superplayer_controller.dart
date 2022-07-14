@@ -23,7 +23,7 @@ class SuperPlayerController {
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
   List<VideoQuality>? currentQualiyList;
-  StreamController<TXPlayerModelImpl> playerStreamController = StreamController.broadcast();
+  StreamController<TXPlayerHolder> playerStreamController = StreamController.broadcast();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
   FTXVodPlayConfig _vodConfig = FTXVodPlayConfig();
@@ -485,11 +485,11 @@ class SuperPlayerController {
 
   void updatePlayerView() async {
     TXPlayerController controller = getCurrentController();
-    TXPlayerModelImpl model = TXPlayerModelImpl(controller);
+    TXPlayerHolder model = TXPlayerHolder(controller);
     playerStreamController.sink.add(model);
   }
 
-  Stream<TXPlayerModelImpl> getPlayerStream() {
+  Stream<TXPlayerHolder> getPlayerStream() {
     return playerStreamController.stream;
   }
 

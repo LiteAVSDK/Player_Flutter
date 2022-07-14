@@ -22,4 +22,4 @@ part 'Core/txvodplayer_controller.dart';
 part 'Core/txvoddownload_controller.dart';
 part 'Core/txliveplayer_config.dart';
 part 'Core/tools/common_utils.dart';
-part 'Core/provider/txplayer_provider.dart';
+part 'Core/provider/txplayer_holder.dart';

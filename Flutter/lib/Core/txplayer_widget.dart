@@ -3,7 +3,7 @@ part of SuperPlayer;
 
 class TXPlayerVideo extends StatefulWidget {
   final TXPlayerController controller;
-  final Stream<TXPlayerModelImpl>? playerStream;
+  final Stream<TXPlayerHolder>? playerStream;
 
   TXPlayerVideo({required this.controller, this.playerStream});
 
