@@ -47,6 +47,8 @@
 
 ### `pubspec.yaml`配置
 
+**推荐flutter sdk 版本 3.0.0 及以上**
+
 集成LiteAVSDK_Player版本，默认情况下也是集成此版本。在`pubspec.yaml`中增加配置
 
 ```yaml

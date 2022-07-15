@@ -218,7 +218,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       Navigator.of(context).push(MaterialPageRoute(builder: (context) {
         return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
       }));
-      WidgetsBinding.instance?.removeObserver(this);
+      WidgetsBinding.instance.removeObserver(this);
       _videoBottomKey.currentState?.updateFullScreen(true);
       _videoTitleKey.currentState?.updateFullScreen(true);
       _playController._updateFullScreenState(true);
@@ -230,7 +230,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _playController._updateFullScreenState(false);
       hideControlView();
     });
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   void _initPlayerState() {
@@ -260,7 +260,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _registerObserver();
     // 由于pop之后，无法触发任何回调，并且fulscreen的controller调用setState无效，
     // 所以这里向UI线程添加一个任务，这个任务会在回到这个界面之后触发，来保证播放状态正确。
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) => setState(() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => setState(() {
           _initPlayerState();
           _resizeVideo();
         }));
@@ -631,7 +631,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _pipSubscription?.cancel();
     _volumeSubscription?.cancel();
     super.dispose();
