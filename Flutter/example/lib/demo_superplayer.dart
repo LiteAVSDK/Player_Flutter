@@ -171,6 +171,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   }
 
   void onAddVideoTap(BuildContext context) {
+    bool isLive = tabSelectPos == 0;
     showDialog(
         context: context,
         builder: (context) {
@@ -191,7 +192,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
             }
 
             playCurrentModel(model);
-          }, needPisgn: true);
+          }, needPisgn: !isLive, showFileEdited: !isLive,);
         });
   }
 
