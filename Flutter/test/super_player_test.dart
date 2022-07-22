@@ -27,7 +27,7 @@ void main() {
     await SuperPlayerPlugin.setGlobalMaxCacheSize(200);
     String _url =
         "http://1400329073.vod2.myqcloud.com/d62d88a7vodtranscq1400329073/59c68fe75285890800381567412/adp.10.m3u8";
-    int taskId = await TXVodDownlaodController.instance.startPreLoad(_url, 20, 720*1080,
+    int taskId = await TXVodDownloadController.instance.startPreLoad(_url, 20, 720*1080,
         onCompleteListener:(int taskId,String url) {
           print('taskID=${taskId} ,url=${url}');
         }, onErrorListener: (int taskId, String url, int code, String msg) {

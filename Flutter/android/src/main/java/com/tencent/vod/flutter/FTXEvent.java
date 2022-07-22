@@ -24,6 +24,17 @@ public class FTXEvent {
     // 视频预下载出错
     public static final int EVENT_PREDOWNLOAD_ON_ERROR = 201;
 
+    // 视频下载开始
+    public static final int EVENT_DOWNLOAD_START    = 301;
+    // 视频下载进度
+    public static final int EVENT_DOWNLOAD_PROGRESS = 302;
+    // 视频下载停止
+    public static final int EVENT_DOWNLOAD_STOP     = 303;
+    // 视频下载完成
+    public static final int EVENT_DOWNLOAD_FINISH   = 304;
+    // 视频下载错误
+    public static final int EVENT_DOWNLOAD_ERROR    = 305;
+
     public static final int    NO_ERROR                       = 0;
     /**
      * pip 事件

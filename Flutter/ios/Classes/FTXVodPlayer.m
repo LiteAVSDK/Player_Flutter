@@ -66,9 +66,18 @@ BOOL volatile isStop = false;
         
         _netStatusChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txvodplayer/net/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
         [_netStatusChannel setStreamHandler:self];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onApplicationTerminateClick) name:UIApplicationWillTerminateNotification object:nil];
     }
     
     return self;
+}
+
+- (void)onApplicationTerminateClick {
+    [_txVodPlayer removeVideoWidget];
+    _txVodPlayer = nil;
+    _txVodPlayer.videoProcessDelegate = nil;
+    _textureId = -1;
 }
 
 - (void)destory

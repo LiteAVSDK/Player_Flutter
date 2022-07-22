@@ -2,6 +2,7 @@
 package com.tencent.vod.flutter;
 
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
 import android.app.RemoteAction;
@@ -110,7 +111,10 @@ public class FTXPIPManager {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     params.mPipParams = new PictureInPictureParams.Builder();
                     updatePipActions(isPlaying, params);
-                    mActivity.enterPictureInPictureMode(params.mPipParams.build());
+                    boolean enterResult = mActivity.enterPictureInPictureMode(params.mPipParams.build());
+                    if(!enterResult) {
+                        pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
+                    }
                 } else {
                     mActivity.enterPictureInPictureMode();
                 }
@@ -129,6 +133,9 @@ public class FTXPIPManager {
                 if (!isSuccess) {
                     pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
                     Log.e(TAG, "enterPip failed,because PIP feature is disabled");
+                } else if(!hasPipPermission()) {
+                    pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
+                    Log.e(TAG, "enterPip failed,because PIP has no permission");
                 }
             } else {
                 pipResult = FTXEvent.ERROR_PIP_LOWER_VERSION;
@@ -140,6 +147,17 @@ public class FTXPIPManager {
             Log.e(TAG, "enterPip failed,because activity is destroyed");
         }
         return pipResult;
+    }
+
+    private boolean hasPipPermission() {
+        AppOpsManager appOpsManager = (AppOpsManager) mActivity.getSystemService(Context.APP_OPS_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            int permissionResult = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+                    android.os.Process.myUid(),mActivity.getPackageName());
+            return permissionResult == AppOpsManager.MODE_ALLOWED;
+        } else {
+            return false;
+        }
     }
 
     public boolean isInPipMode() {

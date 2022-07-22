@@ -81,9 +81,9 @@ abstract class TXVodPlayEvent {
   static const EVT_PLAY_DURATION = "EVT_PLAY_DURATION"; // 播放总长
   static const EVT_PLAYABLE_DURATION_MS = "EVT_PLAYABLE_DURATION_MS"; // 点播可播放时长（毫秒）
   static const EVT_PLAYABLE_RATE = "EVT_PLAYABLE_RATE"; //播放速率
-  static const String EVT_IMAGESPRIT_WEBVTTURL = "EVT_IMAGESPRIT_WEBVTTURL"; // 雪碧图web vtt描述文件下载URL
-  static const String EVT_IMAGESPRIT_IMAGEURL_LIST = "EVT_IMAGESPRIT_IMAGEURL_LIST"; // 雪碧图图片下载URL
-  static const String EVT_DRM_TYPE = "EVT_DRM_TYPE"; // 加密类型
+  static const EVT_IMAGESPRIT_WEBVTTURL = "EVT_IMAGESPRIT_WEBVTTURL"; // 雪碧图web vtt描述文件下载URL
+  static const EVT_IMAGESPRIT_IMAGEURL_LIST = "EVT_IMAGESPRIT_IMAGEURL_LIST"; // 雪碧图图片下载URL
+  static const EVT_DRM_TYPE = "EVT_DRM_TYPE"; // 加密类型
 
   /// superplayer plugin volume event
   static const EVENT_VOLUME_CHANGED = 1; // 音量变化
@@ -113,8 +113,14 @@ abstract class TXVodPlayEvent {
 
 
   /// 视频下载相关事件
-  static const int EVENT_PREDOWNLOAD_ON_COMPLETE = 200;  // 视频预下载完成
-  static const int EVENT_PREDOWNLOAD_ON_ERROR = 201;  // 视频预下载出错
+  static const EVENT_PREDOWNLOAD_ON_COMPLETE = 200;  // 视频预下载完成
+  static const EVENT_PREDOWNLOAD_ON_ERROR = 201;  // 视频预下载出错
+
+  static const EVENT_DOWNLOAD_START    = 301; // 视频下载开始
+  static const EVENT_DOWNLOAD_PROGRESS = 302; // 视频下载进度
+  static const EVENT_DOWNLOAD_STOP     = 303; // 视频下载停止
+  static const EVENT_DOWNLOAD_FINISH   = 304; // 视频下载完成
+  static const EVENT_DOWNLOAD_ERROR    = 305; // 视频下载错误
 }
 
 abstract class TXVodNetEvent {
@@ -171,13 +177,24 @@ enum TXPlayerEvent {
 }
 
 class TXLogLevel {
-  static const int LOG_LEVEL_VERBOSE = 0; // 输出所有级别的log
-  static const int LOG_LEVEL_DEBUG = 1; // 输出 DEBUG,INFO,WARNING,ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_INFO = 2; // 输出 INFO,WARNNING,ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_WARN = 3; // 输出WARNNING,ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_ERROR = 4; // 输出ERROR 和 FATAL 级别的log
-  static const int LOG_LEVEL_FATAL = 5; // 只输出FATAL 级别的log
-  static const int LOG_LEVEL_NULL = 6; // 不输出任何sdk log
+  static const LOG_LEVEL_VERBOSE = 0; // 输出所有级别的log
+  static const LOG_LEVEL_DEBUG = 1; // 输出 DEBUG,INFO,WARNING,ERROR 和 FATAL 级别的log
+  static const LOG_LEVEL_INFO = 2; // 输出 INFO,WARNNING,ERROR 和 FATAL 级别的log
+  static const LOG_LEVEL_WARN = 3; // 输出WARNNING,ERROR 和 FATAL 级别的log
+  static const LOG_LEVEL_ERROR = 4; // 输出ERROR 和 FATAL 级别的log
+  static const LOG_LEVEL_FATAL = 5; // 只输出FATAL 级别的log
+  static const LOG_LEVEL_NULL = 6; // 不输出任何sdk log
+}
+
+class DownloadQuality {
+  static const QUALITY_OD = 0;
+  static const QUALITY_FLU = 1;
+  static const QUALITY_SD = 2;
+  static const QUALITY_HD = 3;
+  static const QUALITY_FHD = 4;
+  static const QUALITY_2K = 5;
+  static const QUALITY_4K = 6;
+  static const QUALITY_UNK = 1000;
 }
 
 class TXPlayInfoParams {
@@ -196,7 +213,82 @@ class TXPlayInfoParams {
   }
 }
 
+
+/// fileId存储
+class TXVodDownloadDataSource {
+  /// 下载文件对应的appId，fileId下载必填
+  int? appId;
+  /// 下载文件Id，fileId下载必填
+  String? fileId;
+  /// 加密签名，加密视频必填
+  String? pSign;
+  /// 清晰度ID,fileId下载必传，通过[CommonUtils.getDownloadQualityBySize]进行转换
+  int? quality;
+  /// 加密token
+  String? token;
+  /// 账户名称,用于url下载设置账户名称
+  String? userName;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> json = {};
+    json["appId"] = appId;
+    json["fileId"] = fileId;
+    json["pSign"] = pSign;
+    json["quality"] = quality;
+    json["token"] = token;
+    json["userName"] = userName;
+    return json;
+  }
+}
+
+/// 视频下载信息
+class TXVodDownloadMedialnfo {
+  /// 缓存地址
+  String? playPath;
+  /// 下载进度
+  double? progress;
+  /// 下载状态
+  int? downloadState;
+  /// 账户名称,用于url下载设置账户名称
+  String? userName;
+  /// 总时长
+  int? duration;
+  /// 已下载的可播放时长
+  int? playableDuration;
+  /// 文件总大小，单位：byte
+  int? size;
+  /// 已下载大小，单位：byte
+  int? downloadSize;
+  /// 需要下载的视频url，url下载必填
+  /// <h1>
+  /// url下载不支持嵌套m3u8和mp4下载
+  /// </h1>
+  String? url;
+  /// fileId 存储
+  TXVodDownloadDataSource? dataSource;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> json = {};
+    json["url"] = url;
+    json["downloadState"] = downloadState;
+    json["progress"] = progress;
+    json["playPath"] = playPath;
+    json["userName"] = userName;
+    json["duration"] = duration;
+    json["playableDuration"] = playableDuration;
+    json["size"] = size;
+    json["downloadSize"] = downloadSize;
+    if(null != dataSource) {
+      json.addAll(dataSource!.toJson());
+    }
+    return json;
+  }
+}
+
 //视频预下载事件回调Listener
 typedef FTXPredownlodOnCompleteListener = void Function(int taskId, String url);
 typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int code, String msg);
+// 视频下载时间回调Listener
+typedef FTXDownlodOnStateChangeListener = void Function(int event, TXVodDownloadMedialnfo info);
+typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg,TXVodDownloadMedialnfo info);
 

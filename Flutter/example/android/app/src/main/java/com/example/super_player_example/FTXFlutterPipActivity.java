@@ -122,10 +122,11 @@ public class FTXFlutterPipActivity extends FlutterActivity {
 
     @Override
     public boolean enterPictureInPictureMode(@NonNull PictureInPictureParams params) {
-        if (null != mEventSink) {
+        boolean enterResult = super.enterPictureInPictureMode(params);
+        if (enterResult && null != mEventSink) {
             mEventSink.success(getParams(EVENT_PIP_MODE_REQUEST_START, null));
         }
-        return super.enterPictureInPictureMode(params);
+        return enterResult;
     }
 
     private Map<String, Object> getParams(int event, Bundle bundle) {
