@@ -97,6 +97,12 @@ abstract class TXVodPlayEvent {
   static const    EVENT_IOS_PIP_MODE_RESTORE_UI   = 5; // 重置UI only support iOS
   static const    EVENT_IOS_PIP_MODE_WILL_EXIT    = 6; // 将要退出画中画 only support iOS
 
+  static const EVENT_ORIENTATION_CHANGED = 401; // 屏幕发生旋转
+  static const EXTRA_NAME_ORIENTATION = "orientation"; // 屏幕旋转方向
+  static const ORIENTATION_PORTRAIT_UP = 411; // 竖屏，顶部在上
+  static const ORIENTATION_LANDSCAPE_RIGHT = 412; // 横屏，顶部在左，底部在右
+  static const ORIENTATION_PORTRAIT_DOWN = 413; // 竖屏，顶部在下
+  static const ORIENTATION_LANDSCAPE_LEFT = 414; // 横屏，顶部在右，底部在左
 
   static const NO_ERROR = 0;
   static const ERROR_PIP_LOWER_VERSION            = -101; // pip 错误，android版本过低
