@@ -16,6 +16,8 @@
          [volumeView sizeToFit];
          // 单例slider
          _volumeSlider = nil;
+         //开始接收遥控事件
+         [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
          for (UIView *view in [volumeView subviews]) {
              if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
                  _volumeSlider = (UISlider *)view;

@@ -58,4 +58,17 @@ public class FTXEvent {
     // pip 错误，当前界面已销毁
     public static final int    ERROR_PIP_ACTIVITY_DESTROYED   = -103;
 
+
+    // 屏幕旋转事件
+    public static final int EVENT_ORIENTATION_CHANGED = 401;
+    // 屏幕旋转方向
+    public static final String EXTRA_NAME_ORIENTATION = "orientation";
+    // 正竖屏
+    public static final int ORIENTATION_PORTRAIT_UP = 411;
+    // 横屏，底部在右
+    public static final int ORIENTATION_LANDSCAPE_RIGHT = 412;
+    // 竖屏，顶部在下
+    public static final int ORIENTATION_PORTRAIT_DOWN = 413;
+    // 横屏，底部在左
+    public static final int ORIENTATION_LANDSCAPE_LEFT = 414;
 }

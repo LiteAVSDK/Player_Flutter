@@ -44,4 +44,17 @@
 // 视频下载错误
 #define EVENT_DOWNLOAD_ERROR 305
 
+// 屏幕旋转事件
+#define EVENT_ORIENTATION_CHANGED 401
+// 屏幕旋转方向
+#define EXTRA_NAME_ORIENTATION @"orientation"
+// 正竖屏
+#define ORIENTATION_PORTRAIT_UP 411
+// 横屏，底部在右
+#define ORIENTATION_LANDSCAPE_RIGHT 412
+// 竖屏，顶部在下
+#define ORIENTATION_PORTRAIT_DOWN 413
+// 横屏，底部在左
+#define ORIENTATION_LANDSCAPE_LEFT 414
+
 #endif /* FTXEvent_h */
