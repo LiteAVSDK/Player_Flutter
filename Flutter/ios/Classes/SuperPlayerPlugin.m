@@ -24,6 +24,7 @@
     FTXPlayerEventSinkQueue *_pipEventSink;
     FTXAudioManager *audioManager;
     FTXDownloadManager *_FTXDownloadManager;
+    int mCurrentOrientation;
 }
 
 SuperPlayerPlugin* instance;
@@ -43,6 +44,7 @@ SuperPlayerPlugin* instance;
     if (nil != _FTXDownloadManager) {
         [_FTXDownloadManager destroy];
     }
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (instancetype)initWithRegistrar:
@@ -62,10 +64,18 @@ SuperPlayerPlugin* instance;
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
     _pipEventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/pipEvent" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
+    [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
+    // pip
     [_pipEventChannel setStreamHandler:self];
-    
-    [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification"  object:nil];
+    // download
      _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
+    // orientation
+    mCurrentOrientation = ORIENTATION_PORTRAIT_UP;
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(onDeviceOrientationChange:)
+            name:UIDeviceOrientationDidChangeNotification
+          object:nil];
+
     return self;
 }
 
@@ -203,6 +213,7 @@ SuperPlayerPlugin* instance;
     if ([arguments isKindOfClass:NSString.class]) {
         if ([arguments isEqualToString:@"event"]) {
             [_eventSink setDelegate:events];
+        } else if ([arguments isEqualToString:@"pipEvent"]) {
             [_pipEventSink setDelegate:events];
         }
     }
@@ -215,6 +226,7 @@ SuperPlayerPlugin* instance;
     if ([arguments isKindOfClass:NSString.class]) {
         if ([arguments isEqualToString:@"event"]) {
             [_eventSink setDelegate:nil];
+        } else if ([arguments isEqualToString:@"pipEvent"]) {
             [_pipEventSink setDelegate:nil];
         }
     }
@@ -245,6 +257,41 @@ SuperPlayerPlugin* instance;
 
 - (void)onPlayerPipStateRestoreUI {
     [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_RESTORE_UI)}];
+}
+
+#pragma mark - orientation
+
+- (void)onDeviceOrientationChange:(NSNotification *)notification {
+    // IOS 此处不需要判断是否打开自动屏幕旋转/竖排锁定开关，当IOS打开锁定之后，这里默认是收不到回调的
+    UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
+    UIInterfaceOrientation interfaceOrientation = (UIInterfaceOrientation)orientation;
+    int tempOrientationCode = mCurrentOrientation;
+    switch (interfaceOrientation) {
+        case UIInterfaceOrientationPortrait:
+            // 电池栏在上
+            tempOrientationCode = ORIENTATION_PORTRAIT_UP;
+            break;
+        case UIInterfaceOrientationLandscapeLeft:
+            // 电池栏在左
+            tempOrientationCode = ORIENTATION_LANDSCAPE_LEFT;
+            break;
+        case UIInterfaceOrientationPortraitUpsideDown:
+            // 电池栏在下
+            tempOrientationCode = ORIENTATION_PORTRAIT_DOWN;
+            break;
+        case UIInterfaceOrientationLandscapeRight:
+            // 电池栏在右
+            tempOrientationCode = ORIENTATION_LANDSCAPE_RIGHT;
+            break;
+        default:
+            break;
+    }
+    if(tempOrientationCode != mCurrentOrientation) {
+        mCurrentOrientation = tempOrientationCode;
+        [_eventSink success:@{
+            @"event" : @(EVENT_ORIENTATION_CHANGED),
+            EXTRA_NAME_ORIENTATION : @(tempOrientationCode)}];
+    }
 }
 
 @end
