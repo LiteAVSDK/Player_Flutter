@@ -2,7 +2,8 @@
 part of demo_super_player_lib;
 
 final double topBottomOffset = 0;
-DeviceOrientation landscapeOrientation = DeviceOrientation.landscapeLeft;
+int manualOrientationDirection = TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT;
+FullScreenController _fullScreenController = FullScreenController();
 
 /// superplayer view widget
 class SuperPlayerView extends StatefulWidget {
@@ -40,7 +41,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late _BottomViewController _bottomViewController;
   late _QualityListViewController _qualitListViewController;
   late _VideoTitleController _titleViewController;
-  late _SuperPlayerFullScreenController _fullScreenController;
+  late _SuperPlayerFullScreenController _superPlayerFullUIController;
   late _CoverViewController _coverViewController;
   late _MoreViewController _moreViewController;
 
@@ -59,14 +60,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   void initState() {
     super.initState();
-    // ios need landscapeRight,android need landscapeLeft
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      landscapeOrientation = DeviceOrientation.landscapeRight;
-    } else {
-      landscapeOrientation = DeviceOrientation.landscapeLeft;
-    }
     _playController = widget._controller;
-    _fullScreenController = _SuperPlayerFullScreenController(_updateState);
+    _superPlayerFullUIController = _SuperPlayerFullScreenController(_updateState);
     _titleViewController = _VideoTitleController(_onTapBack, () {
       _moreViewKey.currentState?.toggleShowMoreView();
     });
@@ -143,6 +138,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _onResume();
         }
       }
+      // 画中画模式下，不进行旋转屏幕操作
+      if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && !_isFloatingMode) {
+        int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
+        _fullScreenController.switchToOrientation(orientation);
+      }
     });
     _registerObserver();
     _initPlayerState();
@@ -214,6 +214,22 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onDispose
       _playController._observer = null; // close observer
     });
+    _fullScreenController.setListener(() {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
+      }));
+      WidgetsBinding.instance?.removeObserver(this);
+      _videoBottomKey.currentState?.updateFullScreen(true);
+      _videoTitleKey.currentState?.updateFullScreen(true);
+      _playController._updateFullScreenState(true);
+      hideControlView();
+    }, () {
+      Navigator.of(context).pop();
+      _videoBottomKey.currentState?.updateFullScreen(false);
+      _videoTitleKey.currentState?.updateFullScreen(false);
+      _playController._updateFullScreenState(false);
+      hideControlView();
+    });
     WidgetsBinding.instance?.addObserver(this);
   }
 
@@ -237,11 +253,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isPlaying = false;
         _isLoading = true;
         break;
-    }
-    if (_isFullScreen) {
-      SystemChrome.setPreferredOrientations([landscapeOrientation]);
-    } else {
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }
   }
 
@@ -268,10 +279,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           Orientation currentOrientation = MediaQuery.of(context).orientation;
           bool isLandscape = currentOrientation == Orientation.landscape;
           if (!isLandscape) {
-            ///关闭状态栏，与RootViewController底部虚拟操作按钮
-            SystemChrome.setPreferredOrientations([landscapeOrientation]);
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-            AutoOrientation.landscapeAutoMode();
+            _fullScreenController.forceSwitchOrientation(manualOrientationDirection);
           }
         }
       } else if (state == AppLifecycleState.inactive) {
@@ -467,7 +475,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           forwardIcon: "images/ic_pip_play_forward.png");
       if (null != result) {
         String failedStr = "";
-        if(result != TXVodPlayEvent.NO_ERROR) {
+        if (result != TXVodPlayEvent.NO_ERROR) {
           if (result == TXVodPlayEvent.ERROR_PIP_LOWER_VERSION) {
             failedStr = "enterPip failed,because android version is too low,Minimum supported version is android 24";
           } else if (result == TXVodPlayEvent.ERROR_PIP_DENIED_PERMISSION) {
@@ -546,37 +554,17 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
   }
 
-  void _fullScreenOrientation() {
-    if (_isFullScreen) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-        return SuperPlayerFullScreenView(_playController, _fullScreenController);
-      }));
-      WidgetsBinding.instance?.removeObserver(this);
+  void _handleFullScreen(bool toSwitchFullScreen) {
+    if (toSwitchFullScreen) {
+      _fullScreenController.switchToOrientation(manualOrientationDirection);
     } else {
-      // exit fullscreen widget
-      Navigator.of(context).pop();
-
-      ///显示状态栏，与底部虚拟操作按钮
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
-      AutoOrientation.portraitAutoMode();
-
-      /// 隐藏moreView
-      _moreViewKey.currentState?.hideShowMoreView();
+      _fullScreenController.switchToOrientation(TXVodPlayEvent.ORIENTATION_PORTRAIT_UP);
     }
-    _videoBottomKey.currentState?.updateFullScreen(_isFullScreen);
-    _videoTitleKey.currentState?.updateFullScreen(_isFullScreen);
   }
 
   void _onControlFullScreen() {
     _isFullScreen = !_isFullScreen;
-    if (_isFullScreen) {
-      hideControlView();
-      _fullScreenOrientation();
-    } else {
-      hideControlView();
-      _fullScreenOrientation();
-    }
+    _handleFullScreen(_isFullScreen);
     _playController._updateFullScreenState(_isFullScreen);
   }
 
@@ -625,6 +613,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     if (!_isShowControlView || !mounted) {
       return;
     }
+    /// 隐藏moreView
+    _moreViewKey.currentState?.hideShowMoreView();
     setState(() {
       _isShowQualityListView = false;
       _isShowControlView = false;
@@ -654,11 +644,6 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
   @override
   void initState() {
     super.initState();
-
-    ///关闭状态栏，与底部虚拟操作按钮
-    SystemChrome.setPreferredOrientations([landscapeOrientation]);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    AutoOrientation.landscapeAutoMode();
   }
 
   @override
@@ -832,5 +817,60 @@ class _SuperPlayerFloatState extends State<SuperPlayerFloatView> {
     // 移除的时候，解除对进度事件的订阅
     streamSubscription?.cancel();
     sizeStreamSubscription?.cancel();
+  }
+}
+
+class FullScreenController {
+  bool _isInFullScreenUI = false;
+  int currentOrientation = TXVodPlayEvent.ORIENTATION_PORTRAIT_UP;
+  Function? onEnterFullScreenUI;
+  Function? onExitFullScreenUI;
+
+  FullScreenController();
+
+  void switchToOrientation(int orientationDirection) {
+    if (currentOrientation != orientationDirection) {
+      forceSwitchOrientation(orientationDirection);
+    }
+  }
+
+  void forceSwitchOrientation(int orientationDirection) {
+    currentOrientation = orientationDirection;
+    if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_UP) {
+      exitFullScreen();
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+      AutoOrientation.portraitUpMode();
+    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
+      enterFullScreen();
+      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      AutoOrientation.landscapeRightMode();
+    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
+    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
+      enterFullScreen();
+      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      AutoOrientation.landscapeLeftMode();
+    }
+  }
+
+  void enterFullScreen() {
+    if (!_isInFullScreenUI) {
+      _isInFullScreenUI = true;
+      onEnterFullScreenUI?.call();
+    }
+  }
+
+  void exitFullScreen() {
+    if (_isInFullScreenUI) {
+      _isInFullScreenUI = false;
+      onExitFullScreenUI?.call();
+    }
+  }
+
+  void setListener(Function enterfullScreen, Function exitFullScreen) {
+    this.onExitFullScreenUI = exitFullScreen;
+    this.onEnterFullScreenUI = enterfullScreen;
   }
 }
