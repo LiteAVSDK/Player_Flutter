@@ -3,7 +3,7 @@ part of demo_super_player_lib;
 
 typedef BoolFunction = bool Function();
 typedef DoubleFunction = double Function();
-/// 超级播放器更多菜单
+/// 播放器组件更多菜单
 class SuperPlayerMoreView extends StatefulWidget {
   _MoreViewController controller;
 
