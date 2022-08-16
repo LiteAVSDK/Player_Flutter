@@ -34,13 +34,20 @@ class SuperPlayerCode {
    static const VOD_REQUEST_FILE_ID_FAIL = 40002;
 }
 
-abstract class SuperPlayerViewEvent {
+class SuperPlayerViewEvent {
   static const onStartFullScreenPlay = "onStartFullScreenPlay"; //进入全屏播放
   static const onStopFullScreenPlay = "onStopFullScreenPlay"; //退出全屏播放
   static const onSuperPlayerDidStart = "onSuperPlayerDidStart"; //播放开始通知
   static const onSuperPlayerDidEnd = "onSuperPlayerDidEnd"; //播放结束通知
   static const onSuperPlayerError = "onSuperPlayerError"; //播放错误通知
   static const onSuperPlayerBackAction = "onSuperPlayerBackAction"; //返回事件
+}
+
+/// 播放器插件当前所处的布局状态
+class SuperPlayerUIStatus {
+  static const WINDOW_MODE = 0;
+  static const FULLSCREEN_MODE = 1;
+  static const PIP_MODE = 2;
 }
 
 
