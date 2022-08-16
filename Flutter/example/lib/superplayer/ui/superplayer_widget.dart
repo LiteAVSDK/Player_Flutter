@@ -137,7 +137,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         }
       }
 
-      if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED) {
+      // 画中画模式下，不进行旋转屏幕操作
+      if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && !_isFloatingMode) {
         int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
         _fullScreenController.switchToOrientation(orientation);
       }
