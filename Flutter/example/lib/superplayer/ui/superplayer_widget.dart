@@ -219,15 +219,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
       }));
       WidgetsBinding.instance.removeObserver(this);
-      _videoBottomKey.currentState?.updateFullScreen(true);
-      _videoTitleKey.currentState?.updateFullScreen(true);
-      _playController._updateFullScreenState(true);
+      _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
+      _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
+      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
+
       hideControlView();
     }, () {
       Navigator.of(context).pop();
-      _videoBottomKey.currentState?.updateFullScreen(false);
-      _videoTitleKey.currentState?.updateFullScreen(false);
-      _playController._updateFullScreenState(false);
+      _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       hideControlView();
     });
     WidgetsBinding.instance.addObserver(this);
@@ -572,7 +573,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     if (_playController._playerUIStatus != SuperPlayerUIStatus.PIP_MODE) {
       bool toSwitchFullScreen = _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE;
       _handleFullScreen(toSwitchFullScreen);
-      _playController._updateFullScreenState(toSwitchFullScreen);
     }
   }
 
