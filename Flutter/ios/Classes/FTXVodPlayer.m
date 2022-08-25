@@ -583,7 +583,7 @@ BOOL volatile isStop = false;
 - (void)setPlayConfig:(NSDictionary *)args
 {
     if (_txVodPlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
-        _txVodPlayer.config = [FTXTransformation transformToConfig:args];
+        _txVodPlayer.config = [FTXTransformation transformToVodConfig:args];
     }
 }
 

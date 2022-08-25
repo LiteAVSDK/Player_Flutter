@@ -14,10 +14,20 @@ class DemoSuperplayer extends StatefulWidget {
 }
 
 class _DemoSuperplayerState extends State<DemoSuperplayer> {
+
+  static const DEFAULT_PLACE_HOLDER = "http://xiaozhibo-10055601.file.myqcloud.com/coverImg.jpg";
+
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
   late SuperPlayerController _controller;
   StreamSubscription? simpleEventSubscription;
+  int tabSelectPos = 0;
+  TextStyle _textStyleSelected = new TextStyle(
+      fontSize: 16, color: Colors.white
+  );
+  TextStyle _textStyleUnSelected = new TextStyle(
+      fontSize: 16, color: Colors.grey
+  );
 
   @override
   void initState() {
@@ -30,12 +40,14 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     simpleEventSubscription = _controller.onSimplePlayerEventBroadcast.listen((event) {
       String evtName = event["event"];
       if (evtName == SuperPlayerViewEvent.onStartFullScreenPlay) {
+        // enter fullscreen
       } else if (evtName == SuperPlayerViewEvent.onStopFullScreenPlay) {
+        // exit fullscreen
       } else {
         print(evtName);
       }
     });
-    initData();
+    _getLiveListData();
   }
 
   @override
@@ -69,6 +81,34 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     return !_controller.onBackPress();
   }
 
+  Widget getTabRow() {
+    return new Container(
+      height: 40,
+      child: new Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          new GestureDetector(
+            child: new Container(
+              child: Text(
+                "直播",
+                style: tabSelectPos == 0 ? _textStyleSelected : _textStyleUnSelected,
+              ),
+            ),
+            onTap: _getLiveListData,
+          ),
+          new GestureDetector(
+              onTap: _getVodListData,
+              child: new Container(
+                child: Text(
+                  "点播",
+                  style: tabSelectPos == 1 ? _textStyleSelected : _textStyleUnSelected,
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
   Widget getBody() {
     return Column(
       children: [_getPlayArea(), Expanded(flex: 1, child: _getListArea()), _getAddArea()],
@@ -85,32 +125,39 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
 
   Widget _getListArea() {
     return Container(
-      margin: EdgeInsets.only(top: 10),
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: videoModels.length,
-        itemBuilder: (context, i) => _buildVideoItem(videoModels[i]),
-      ),
-    );
+        margin: EdgeInsets.only(top: 10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            getTabRow(),
+            Expanded(
+                child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: videoModels.length,
+              itemBuilder: (context, i) => _buildVideoItem(videoModels[i]),
+            ))
+          ],
+        ));
   }
 
   Widget _buildVideoItem(SuperPlayerModel playModel) {
     return Column(
       children: [
         ListTile(
-            leading: Image.network(
-              playModel.coverUrl,
-              width: 100,
-              height: 60,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-            title: new Text(
-              playModel.title,
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () => playCurrentModel(playModel),
-        horizontalTitleGap: 10,),
+          leading: Image.network(
+            playModel.coverUrl.isEmpty ? DEFAULT_PLACE_HOLDER : playModel.coverUrl,
+            width: 100,
+            height: 60,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+          title: new Text(
+            playModel.title,
+            style: TextStyle(color: Colors.white),
+          ),
+          onTap: () => playCurrentModel(playModel),
+          horizontalTitleGap: 10,
+        ),
         Divider()
       ],
     );
@@ -124,6 +171,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   }
 
   void onAddVideoTap(BuildContext context) {
+    bool isLive = tabSelectPos == 0;
     showDialog(
         context: context,
         builder: (context) {
@@ -144,7 +192,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
             }
 
             playCurrentModel(model);
-          }, needPisgn: true);
+          }, needPisgn: !isLive, showFileEdited: !isLive,);
         });
   }
 
@@ -152,7 +200,35 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     _controller.playWithModel(model);
   }
 
-  void initData() async {
+  void _getLiveListData() async {
+    setState(() {
+      tabSelectPos = 0;
+    });
+    List<SuperPlayerModel> models = [];
+
+    int playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
+    SuperPlayerModel model = SuperPlayerModel();
+    model.title = "测试视频";
+    model.videoURL = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/66bc542f387702300661648850/0RyP1rZfkdQA.png";
+    model.playAction = playAction;
+    models.add(model);
+
+    videoModels.clear();
+    videoModels.addAll(models);
+    setState(() {
+      if (videoModels.isNotEmpty) {
+        playCurrentModel(videoModels[0]);
+      } else {
+        EasyLoading.showError("video list request error");
+      }
+    });
+  }
+
+  void _getVodListData() async {
+    setState(() {
+      tabSelectPos = 1;
+    });
     List<SuperPlayerModel> models = [];
 
     int playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
@@ -196,13 +272,12 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     List<Future<void>> requestList = [];
     SuperVodDataLoader loader = SuperVodDataLoader();
     for (SuperPlayerModel tempModel in models) {
-      requestList.add(loader.getVideoData(tempModel, (resultModel) {
-        videoModels.add(resultModel);
-      }));
+      requestList.add(loader.getVideoData(tempModel, (_) {}));
     }
 
     await Future.wait(requestList);
-
+    videoModels.clear();
+    videoModels.addAll(models);
     setState(() {
       if (videoModels.isNotEmpty) {
         playCurrentModel(videoModels[0]);

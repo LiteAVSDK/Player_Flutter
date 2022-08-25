@@ -17,15 +17,15 @@ class VideoBottomView extends StatefulWidget {
 class _VideoBottomViewState extends State<VideoBottomView> {
   static const TAG = "VideoBottomView";
 
-  double _currentProgress = 0;
   double _playableProgress = 0;
-  int _currentDuration = 0;
-  int _videoDuration = 0;
+  double _currentDuration = 0;
+  double _videoDuration = 0;
   double _bufferedDuration = 0;
   bool _showFullScreenBtn = true;
   bool _isPlayMode = false;
   bool _isShowQuality = false; // only showed on fullscreen mode
   bool _isOnDraging = false;
+  SuperPlayerType _playerType = SuperPlayerType.VOD;
   VideoQuality? _currentQuality;
 
   @override
@@ -34,13 +34,15 @@ class _VideoBottomViewState extends State<VideoBottomView> {
       _videoDuration = widget._playerController.videoDuration;
       _currentDuration = widget._playerController.currentDuration;
     } else if (null != widget._playerController.videoModel) {
-      _videoDuration = widget._playerController.videoModel!.duration;
+      _videoDuration = widget._playerController.videoModel!.duration.toDouble();
     }
 
     _isPlayMode = (widget._playerController.playerState == SuperPlayerState.PLAYING);
-    _showFullScreenBtn = !widget._playerController._isFullScreen;
-    _isShowQuality = widget._playerController._isFullScreen;
+    bool isFullScreen = widget._playerController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE;
+    _showFullScreenBtn = !isFullScreen;
+    _isShowQuality = isFullScreen;
     _currentQuality = widget._playerController.currentQuality;
+    _playerType = widget._playerController.playerType;
     _fixProgress();
 
     super.initState();
@@ -128,8 +130,8 @@ class _VideoBottomViewState extends State<VideoBottomView> {
     return Expanded(
       child: VideoSlider(
         min: 0,
-        max: 1,
-        value: _currentProgress,
+        max: _videoDuration,
+        value: _currentDuration,
         bufferedValue: _playableProgress,
         activeColor: Color(ColorResource.COLOR_MAIN_THEME),
         inactiveColor: Color(ColorResource.COLOR_GRAY),
@@ -138,16 +140,18 @@ class _VideoBottomViewState extends State<VideoBottomView> {
         progressHeight: 2,
         sliderRadius: 4,
         sliderOutterRadius: 10,
+        // 直播禁止时移
+        canDrag: _playerType == SuperPlayerType.VOD,
         onDragUpdate: (value) {
           _isOnDraging = true;
         },
         onDragEnd: (value) {
           setState(() {
             _isOnDraging = false;
-            _currentProgress = value;
-            widget._playerController.seek(_currentProgress * _videoDuration);
+            _currentDuration = value * _videoDuration;
+            widget._playerController.seek(_currentDuration);
             LogUtils.d(TAG,
-                "_currentProgress:$_currentProgress,_videoDuration:$_videoDuration,currentDuration:${_currentProgress * _videoDuration}");
+                "_currentDuration:$_currentDuration,_videoDuration:$_videoDuration");
           });
         },
       ),
@@ -166,7 +170,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
     widget._controller.onTapQuality();
   }
 
-  void updateDuration(int duration, int videoDuration, double bufferedDration) {
+  void updateDuration(double duration, double videoDuration, double bufferedDration) {
     if (_isOnDraging) {
       return;
     }
@@ -183,19 +187,6 @@ class _VideoBottomViewState extends State<VideoBottomView> {
   }
 
   void _fixProgress() {
-    // provent division zero problem
-    if (_videoDuration == 0) {
-      _currentProgress = 0;
-    } else {
-      _currentProgress = _currentDuration / _videoDuration;
-    }
-    if (_currentProgress < 0) {
-      _currentProgress = 0;
-    }
-    if (_currentProgress > 1) {
-      _currentProgress = 1;
-    }
-
     if (_bufferedDuration == 0) {
       _playableProgress = 0;
     } else {
@@ -218,15 +209,24 @@ class _VideoBottomViewState extends State<VideoBottomView> {
     }
   }
 
-  void updateFullScreen(bool showFullScreen) {
+  void updatePlayerType(SuperPlayerType type) {
+    if(_playerType != type) {
+      setState(() {
+        _playerType = type;
+      });
+    }
+  }
+
+  void updateUIStatus(int status) {
     setState(() {
-      _showFullScreenBtn = !showFullScreen;
-      _isShowQuality = showFullScreen;
+      bool isFullScreen = widget._playerController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE;
+      _showFullScreenBtn = !isFullScreen;
+      _isShowQuality = isFullScreen;
     });
   }
 
-  String _buildTextString(int time) {
-    Duration duration = Duration(seconds: time);
+  String _buildTextString(double time) {
+    Duration duration = Duration(seconds: time.toInt());
     // 返回此持续时间跨越的整秒数。
     String inSeconds = (duration.inSeconds % 60).toString().padLeft(2, "0");
     // 返回此持续时间跨越的整分钟数。

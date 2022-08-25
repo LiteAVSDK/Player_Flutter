@@ -2,6 +2,7 @@
 
 #import "FTXLivePlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
+#import "FTXTransformation.h"
 #import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
 #import <Flutter/Flutter.h>
 #import <stdatomic.h>
@@ -137,11 +138,12 @@ static const int uninitialized = -1;
     }
 }
 
-- (void)switchStream:(NSString *)url
+- (int)switchStream:(NSString *)url
 {
     if (_txLivePlayer != nil) {
-        [_txLivePlayer switchStream:url];
+        return [_txLivePlayer switchStream:url];
     }
+    return -1;
 }
 
 - (int)seek:(float)progress
@@ -262,6 +264,20 @@ static const int uninitialized = -1;
     }
 }
 
+- (BOOL)enableHardwareDecode:(BOOL)enable {
+    if (_txLivePlayer != nil) {
+        _txLivePlayer.enableHWAcceleration = enable;
+    }
+    return false;
+}
+
+- (void)setPlayConfig:(NSDictionary *)args
+{
+    if (_txLivePlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
+        _txLivePlayer.config = [FTXTransformation transformToLiveConfig:args];
+    }
+}
+
 #pragma mark -
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result
@@ -309,12 +325,15 @@ static const int uninitialized = -1;
         result(nil);
     }else if([@"destory" isEqualToString:call.method]) {
         [self destory];
+        result(nil);
     }else if([@"setRenderRotation" isEqualToString:call.method]) {
         int rotation = [args[@"rotation"] intValue];
         [self setRenderRotation:rotation];
+        result(nil);
     }else if([@"switchStream" isEqualToString:call.method]) {
         NSString *url = args[@"url"];
-        [self switchStream:url];
+        int switchResult = [self switchStream:url];
+        result(@(switchResult));
     }else if ([@"seek" isEqualToString:call.method]) {
         result(FlutterMethodNotImplemented);
     }else if ([@"setAppID" isEqualToString:call.method]) {
@@ -327,6 +346,13 @@ static const int uninitialized = -1;
     }else if([@"resumeLive" isEqualToString:call.method]) {
         int r = [self resumeLive];
         result(@(r));
+    }else if([@"enableHardwareDecode" isEqualToString:call.method]) {
+        BOOL enable = [args[@"enable"] boolValue];
+        int r = [self enableHardwareDecode:enable];
+        result(@(r));
+    }else if([@"setConfig" isEqualToString:call.method]){
+        [self setPlayConfig:args];
+        result(nil);
     }else {
       result(FlutterMethodNotImplemented);
     }
