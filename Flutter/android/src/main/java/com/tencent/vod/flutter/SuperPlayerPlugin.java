@@ -210,6 +210,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             result.success(mTxPipManager.isSupportDevice());
         } else if (call.method.equals("getLiteAVSDKVersion")) {
             result.success(TXLiveBase.getSDKVersionStr());
+        } else if(call.method.equals("setGlobalEnv")) {
+            String envConfig = call.argument("envConfig");
+            int setResult = TXLiveBase.setGlobalEnv(envConfig);
+            result.success(setResult);
         } else {
             result.notImplemented();
         }

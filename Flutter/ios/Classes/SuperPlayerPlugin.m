@@ -187,6 +187,10 @@ SuperPlayerPlugin* instance;
     } else if ([@"isDeviceSupportPip" isEqualToString:call.method]) {
         BOOL isSupport = [TXVodPlayer isSupportPictureInPicture];
         result([NSNumber numberWithBool:isSupport]);
+    } else if([@"setGlobalEnv" isEqualToString:call.method]) {
+        NSString *envConfig = call.arguments[@"envConfig"];
+        int setResult = [TXLiveBase setGlobalEnv:[envConfig UTF8String]];
+        result(@(setResult));
     } else {
         result(FlutterMethodNotImplemented);
     }
