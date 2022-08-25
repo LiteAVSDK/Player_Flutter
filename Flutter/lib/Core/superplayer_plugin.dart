@@ -14,20 +14,31 @@ class SuperPlayerPlugin {
     return _instance!;
   }
 
-  final StreamController<Map<dynamic, dynamic>> _eventStreamController = StreamController.broadcast();
-  final StreamController<Map<dynamic, dynamic>> _eventPipStreamController = StreamController.broadcast();
+  final StreamController<Map<dynamic, dynamic>> _eventStreamController =
+      StreamController.broadcast();
+  final StreamController<Map<dynamic, dynamic>> _eventPipStreamController =
+      StreamController.broadcast();
 
   /// 原生交互，通用事件监听，来自插件的事件，例如 声音变化等事件
-  Stream<Map<dynamic, dynamic>> get onEventBroadcast => _eventStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onEventBroadcast =>
+      _eventStreamController.stream;
+
   /// 原生交互，通用事件监听，来自原生容器的事件，例如 PIP事件、activity/controller 生命周期变化
-  Stream<Map<dynamic, dynamic>> get onExtraEventBroadcast => _eventPipStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onExtraEventBroadcast =>
+      _eventPipStreamController.stream;
 
   SuperPlayerPlugin._internal() {
-    EventChannel eventChannel = EventChannel("cloud.tencent.com/playerPlugin/event");
-    eventChannel.receiveBroadcastStream("event").listen(_eventHandler, onError: _errorHandler);
+    EventChannel eventChannel =
+        EventChannel("cloud.tencent.com/playerPlugin/event");
+    eventChannel
+        .receiveBroadcastStream("event")
+        .listen(_eventHandler, onError: _errorHandler);
 
-    EventChannel pipEventChanne = EventChannel("cloud.tencent.com/playerPlugin/pipEvent");
-    pipEventChanne.receiveBroadcastStream("pipEvent").listen(_pipEventHandler, onError: _errorHandler);
+    EventChannel pipEventChanne =
+        EventChannel("cloud.tencent.com/playerPlugin/pipEvent");
+    pipEventChanne
+        .receiveBroadcastStream("pipEvent")
+        .listen(_pipEventHandler, onError: _errorHandler);
   }
 
   _pipEventHandler(event) {
@@ -46,7 +57,8 @@ class SuperPlayerPlugin {
 
   _errorHandler(error) {}
 
-  static const MethodChannel _channel = const MethodChannel('flutter_super_player');
+  static const MethodChannel _channel =
+      const MethodChannel('flutter_super_player');
 
   static Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
@@ -65,7 +77,8 @@ class SuperPlayerPlugin {
 
   /// 开关log输出
   static Future<int?> setConsoleEnabled(bool enabled) async {
-    return await _channel.invokeMethod('setConsoleEnabled', {"enabled": enabled});
+    return await _channel
+        .invokeMethod('setConsoleEnabled', {"enabled": enabled});
   }
 
   /// 释放播放器资源
@@ -91,12 +104,15 @@ class SuperPlayerPlugin {
   /// @param postfixPath 缓存目录
   /// @return true 设置成功 false 设置失败
   static Future<bool> setGlobalCacheFolderPath(String postfixPath) async {
-    return await _channel.invokeMethod('setGlobalCacheFolderPath', {"postfixPath": postfixPath});
+    return await _channel
+        .invokeMethod('setGlobalCacheFolderPath', {"postfixPath": postfixPath});
   }
 
   /// 设置全局license
-  static Future<void> setGlobalLicense(String licenceUrl, String licenceKey) async {
-    return await _channel.invokeMethod("setGlobalLicense", {"licenceUrl": licenceUrl, "licenceKey": licenceKey});
+  static Future<void> setGlobalLicense(
+      String licenceUrl, String licenceKey) async {
+    return await _channel.invokeMethod("setGlobalLicense",
+        {"licenceUrl": licenceUrl, "licenceKey": licenceKey});
   }
 
   /// 设置log输出级别 [TXLogLevel]
@@ -106,7 +122,8 @@ class SuperPlayerPlugin {
 
   /// 修改当前界面亮度
   static Future<void> setBrightness(double brightness) async {
-    return await _channel.invokeMethod("setBrightness", {"brightness": brightness});
+    return await _channel
+        .invokeMethod("setBrightness", {"brightness": brightness});
   }
 
   /// 恢复当前界面亮度
@@ -163,7 +180,6 @@ class SuperPlayerPlugin {
   /// @note 目标市场为中国大陆的客户请不要调用此接口，如果目标市场为海外用户，请通过技术支持联系我们，了解 env_config 的配置方法，以确保 App 遵守 GDPR 标准。
   ///
   static Future<int> setGlobalEnv(String envConfig) async {
-    //todo
-    return 0;
+    return await _channel.invokeMethod("setGlobalEnv", {"envConfig": envConfig});
   }
 }
