@@ -62,7 +62,11 @@
     playConfig.enableAEC = [args[@"config"][@"enableAec"] boolValue];
     playConfig.enableMessage = [args[@"config"][@"enableMessage"] intValue];
     playConfig.enableMetaData = [args[@"config"][@"enableMetaData"] intValue];
-    playConfig.flvSessionKey = [args[@"config"][@"flvSessionKey"] stringValue];
+    NSString *flvSessionKey = args[@"config"][@"flvSessionKey"];
+    
+    if(flvSessionKey != nil && flvSessionKey.length > 0) {
+        playConfig.flvSessionKey = flvSessionKey;
+    }
     
     return playConfig;
 }

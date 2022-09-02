@@ -5,8 +5,9 @@
 #import "FTXTransformation.h"
 #import "FTXPlayerEventSinkQueue.h"
 #import "FTXEvent.h"
+#import <MediaPlayer/MediaPlayer.h>
+#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
 #import "FTXAudioManager.h"
-#import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
 #import "FTXDownloadManager.h"
 
 @interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate>
@@ -64,10 +65,9 @@ SuperPlayerPlugin* instance;
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
     _pipEventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/pipEvent" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
-    [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
-    // pip
     [_pipEventChannel setStreamHandler:self];
-    // download
+
+    [audioManager registerVolumeChangeListener:self];
      _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
     // orientation
     mCurrentOrientation = ORIENTATION_PORTRAIT_UP;
@@ -75,11 +75,12 @@ SuperPlayerPlugin* instance;
         selector:@selector(onDeviceOrientationChange:)
             name:UIDeviceOrientationDidChangeNotification
           object:nil];
-    
+
     return self;
 }
 
--(void)systemVolumeDidChangeNoti:(NSNotification* )noti{
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
+{
     [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_VOLUME_CHANGED withParams:@{}]];
 }
 
@@ -207,7 +208,7 @@ SuperPlayerPlugin* instance;
 
 -(void) destory
 {
-    [audioManager destory:self name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
+    [audioManager destory:self];
 }
 
 #pragma mark - FlutterStreamHandler

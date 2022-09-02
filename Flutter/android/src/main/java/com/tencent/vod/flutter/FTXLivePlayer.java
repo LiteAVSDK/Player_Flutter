@@ -28,28 +28,28 @@ import io.flutter.view.TextureRegistry;
  */
 public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.MethodCallHandler, ITXLivePlayListener {
 
-    private static final String                             TAG = "FTXLivePlayer";
-    private              FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
+    private static final String TAG = "FTXLivePlayer";
+    private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
     final private MethodChannel mMethodChannel;
-    private final EventChannel  mEventChannel;
-    private final EventChannel  mNetChannel;
+    private final EventChannel mEventChannel;
+    private final EventChannel mNetChannel;
 
     private SurfaceTexture mSurfaceTexture;
-    private Surface        mSurface;
+    private Surface mSurface;
 
-    final private FTXPlayerEventSink mEventSink     = new FTXPlayerEventSink();
+    final private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     final private FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
-    private              TXLivePlayer                        mLivePlayer;
-    private static final int                                 Uninitialized         = -101;
-    private              boolean                             mEnableHardwareDecode = true;
-    private              boolean                             mHardwareDecodeFail   = false;
-    private              TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
-    private              Activity                            mActivity;
+    private TXLivePlayer mLivePlayer;
+    private static final int Uninitialized = -101;
+    private boolean mEnableHardwareDecode = true;
+    private boolean mHardwareDecodeFail = false;
+    private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
+    private Activity mActivity;
 
-    private final FTXPIPManager             mPipManager;
-    private       FTXPIPManager.PipParams   mPipParams;
+    private final FTXPIPManager mPipManager;
+    private FTXPIPManager.PipParams mPipParams;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPlayBack() {
@@ -81,7 +81,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         mActivity = activity;
         mPipManager = pipManager;
 
-        mSurfaceTextureEntry =  mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
+        mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
         mSurface = new Surface(mSurfaceTexture);
 
@@ -247,7 +247,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             mPipManager.addCallback(getPlayerId(), pipCallback);
             mPipParams = new FTXPIPManager.PipParams(playBackAssetPath, playResumeAssetPath,
                     playPauseAssetPath,
-                    playForwardAssetPath, getPlayerId(),false,false,true);
+                    playForwardAssetPath, getPlayerId(), false, false, true);
             int pipResult = mPipManager.enterPip(isPlaying(), mPipParams);
             result.success(pipResult);
         } else if (call.method.equals("setConfig")) {

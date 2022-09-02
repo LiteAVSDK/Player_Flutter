@@ -12,10 +12,8 @@
 
 - (void)setVolumeUIVisible:(BOOL)volumeUIVisible;
 
-- (void)registerVolumeChangeListener:(_Nonnull id)observer selector:(_Nonnull SEL)aSelector
-                                name:(nullable NSNotificationName)aName object:(nullable id)anObject;
+- (void)registerVolumeChangeListener:(_Nonnull id)observer;
 
-- (void)destory:(_Nonnull id)observer name:(nullable NSNotificationName)aName
-                                object:(nullable id)anObject;
+- (void)destory:(_Nonnull id)observer;
 
 @end
