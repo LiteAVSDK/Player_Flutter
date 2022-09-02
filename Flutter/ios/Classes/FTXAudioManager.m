@@ -5,7 +5,10 @@
 @implementation FTXAudioManager
     UISlider *_volumeSlider;
     MPVolumeView *volumeView;
+    AVAudioSession *audioSession;
 
+NSString *const LOW_VERSION_NOTIFCATION_NAME = @"AVSystemController_SystemVolumeDidChangeNotification";
+NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 
 - (instancetype)init
  {
@@ -24,6 +27,9 @@
                  break;
              }
          }
+         
+         audioSession = [AVAudioSession sharedInstance];
+         [audioSession setActive:true error:nil];
      }
      return self;
  };
@@ -48,17 +54,18 @@
     volumeView.hidden = !volumeUIVisible;
 }
 
-- (void)registerVolumeChangeListener:(id)observer selector:(SEL)aSelector name:(NSNotificationName)aName object:(id)anObject
+- (void)registerVolumeChangeListener:(id)observer
 {
-    [[NSNotificationCenter defaultCenter] addObserver:observer selector:aSelector name:aName object:anObject];
+    // destory volume observer
+    [audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
 }
 
-- (void)destory:(id)observer name:(NSNotificationName)aName object:(id)anObject
+- (void)destory:(id)observer
 {
     // destory volume view
     [volumeView removeFromSuperview];
     // destory volume observer
-    [[NSNotificationCenter defaultCenter] removeObserver:observer name:aName object:anObject];
+    [audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
 }
 
 @end
