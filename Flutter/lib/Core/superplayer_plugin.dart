@@ -19,6 +19,7 @@ class SuperPlayerPlugin {
 
   /// 原生交互，通用事件监听，来自插件的事件，例如 声音变化等事件
   Stream<Map<dynamic, dynamic>> get onEventBroadcast => _eventStreamController.stream;
+
   /// 原生交互，通用事件监听，来自原生容器的事件，例如 PIP事件、activity/controller 生命周期变化
   Stream<Map<dynamic, dynamic>> get onExtraEventBroadcast => _eventPipStreamController.stream;
 
@@ -152,5 +153,17 @@ class SuperPlayerPlugin {
   /// 获取依赖Native端的 LiteAVSDK 的版本
   static Future<String?> getLiteAVSDKVersion() async {
     return await _channel.invokeMethod('getLiteAVSDKVersion');
+  }
+
+  ///
+  /// 设置 liteav SDK 接入的环境。
+  /// 腾讯云在全球各地区部署的环境，按照各地区政策法规要求，需要接入不同地区接入点。
+  ///
+  /// @param envConfig 需要接入的环境，SDK 默认接入的环境是：默认正式环境。
+  /// @return 0：成功；其他：错误
+  /// @note 目标市场为中国大陆的客户请不要调用此接口，如果目标市场为海外用户，请通过技术支持联系我们，了解 env_config 的配置方法，以确保 App 遵守 GDPR 标准。
+  ///
+  static Future<int> setGlobalEnv(String envConfig) async {
+    return await _channel.invokeMethod("setGlobalEnv", {"envConfig": envConfig});
   }
 }

@@ -6,6 +6,8 @@ static NSString* cacheFolder = nil;
 static int maxCacheItems = -1;
 @interface FTXTransformation : NSObject
 
-+ (TXVodPlayConfig *)transformToConfig:(NSDictionary*)map;
++ (TXVodPlayConfig *)transformToVodConfig:(NSDictionary*)map;
+
++ (TXLivePlayConfig *)transformToLiveConfig:(NSDictionary*)map;
 
 @end

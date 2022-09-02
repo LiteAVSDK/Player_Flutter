@@ -2,6 +2,7 @@
 
 #import "FTXLivePlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
+#import "FTXTransformation.h"
 #import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
 #import <Flutter/Flutter.h>
 #import <stdatomic.h>
@@ -25,7 +26,7 @@ static const int uninitialized = -1;
     // 旧的一帧
     CVPixelBufferRef _lastBuffer;
     int64_t _textureId;
-    
+
     id<FlutterPluginRegistrar> _registrar;
     id<FlutterTextureRegistry> _textureRegistry;
 }
@@ -39,20 +40,20 @@ static const int uninitialized = -1;
         _textureId = -1;
         _eventSink = [FTXPlayerEventSinkQueue new];
         _netStatusSink = [FTXPlayerEventSinkQueue new];
-        
+
         __weak typeof(self) weakSelf = self;
         _methodChannel = [FlutterMethodChannel methodChannelWithName:[@"cloud.tencent.com/txliveplayer/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
         [_methodChannel setMethodCallHandler:^(FlutterMethodCall * _Nonnull call, FlutterResult  _Nonnull result) {
             [weakSelf handleMethodCall:call result:result];
         }];
-        
+
         _eventChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txliveplayer/event/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
-        
+
         _netStatusChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txliveplayer/net/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
         [_netStatusChannel setStreamHandler:self];
     }
-    
+
     return self;
 }
 
@@ -61,7 +62,7 @@ static const int uninitialized = -1;
     [self stopPlay];
     [_txLivePlayer removeVideoWidget];
     _txLivePlayer = nil;
-    
+
     if (_textureId >= 0) {
         [_textureRegistry unregisterTexture:_textureId];
         _textureId = -1;
@@ -81,7 +82,7 @@ static const int uninitialized = -1;
         CVPixelBufferRelease(_lastBuffer);
         _lastBuffer = nil;
     }
-    
+
     [_methodChannel setMethodCallHandler:nil];
     _methodChannel = nil;
 
@@ -101,7 +102,7 @@ static const int uninitialized = -1;
             int64_t tId = [_textureRegistry registerTexture:self];
             _textureId = tId;
         }
-        
+
         if (_txLivePlayer != nil) {
             TXLivePlayConfig *config = [TXLivePlayConfig new];
             [config setPlayerPixelFormatType:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange];
@@ -137,11 +138,12 @@ static const int uninitialized = -1;
     }
 }
 
-- (void)switchStream:(NSString *)url
+- (int)switchStream:(NSString *)url
 {
     if (_txLivePlayer != nil) {
-        [_txLivePlayer switchStream:url];
+        return [_txLivePlayer switchStream:url];
     }
+    return -1;
 }
 
 - (int)seek:(float)progress
@@ -207,7 +209,7 @@ static const int uninitialized = -1;
 - (void)setLiveMode:(int)type
 {
     TXLivePlayConfig *config = _txLivePlayer.config;
-    
+
     if (type == 0) {
         //自动模式
         config.bAutoAdjustCacheTime   = YES;
@@ -238,7 +240,7 @@ static const int uninitialized = -1;
     if (_txLivePlayer != nil) {
         return [_txLivePlayer prepareLiveSeek:domain bizId:bizId];
     }
-    
+
     return uninitialized;
 }
 
@@ -246,7 +248,7 @@ static const int uninitialized = -1;
     if (_txLivePlayer != nil) {
         return [_txLivePlayer resumeLive];
     }
-    
+
     return uninitialized;
 }
 
@@ -262,12 +264,26 @@ static const int uninitialized = -1;
     }
 }
 
+- (BOOL)enableHardwareDecode:(BOOL)enable {
+    if (_txLivePlayer != nil) {
+        _txLivePlayer.enableHWAcceleration = enable;
+    }
+    return false;
+}
+
+- (void)setPlayConfig:(NSDictionary *)args
+{
+    if (_txLivePlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
+        _txLivePlayer.config = [FTXTransformation transformToLiveConfig:args];
+    }
+}
+
 #pragma mark -
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result
 {
     NSDictionary *args = call.arguments;
-    
+
     if([@"init" isEqualToString:call.method]){
         BOOL onlyAudio = [args[@"onlyAudio"] boolValue];
         NSNumber* textureId = [self createPlayer:onlyAudio];
@@ -309,12 +325,15 @@ static const int uninitialized = -1;
         result(nil);
     }else if([@"destory" isEqualToString:call.method]) {
         [self destory];
+        result(nil);
     }else if([@"setRenderRotation" isEqualToString:call.method]) {
         int rotation = [args[@"rotation"] intValue];
         [self setRenderRotation:rotation];
+        result(nil);
     }else if([@"switchStream" isEqualToString:call.method]) {
         NSString *url = args[@"url"];
-        [self switchStream:url];
+        int switchResult = [self switchStream:url];
+        result(@(switchResult));
     }else if ([@"seek" isEqualToString:call.method]) {
         result(FlutterMethodNotImplemented);
     }else if ([@"setAppID" isEqualToString:call.method]) {
@@ -327,6 +346,13 @@ static const int uninitialized = -1;
     }else if([@"resumeLive" isEqualToString:call.method]) {
         int r = [self resumeLive];
         result(@(r));
+    }else if([@"enableHardwareDecode" isEqualToString:call.method]) {
+        BOOL enable = [args[@"enable"] boolValue];
+        int r = [self enableHardwareDecode:enable];
+        result(@(r));
+    }else if([@"setConfig" isEqualToString:call.method]){
+        [self setPlayConfig:args];
+        result(nil);
     }else {
       result(FlutterMethodNotImplemented);
     }

@@ -3,6 +3,7 @@ library SuperPlayer;
 
 import 'dart:async';
 import 'dart:core';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -19,4 +20,6 @@ part 'Core/txplayer_widget.dart';
 part 'Core/txvodplayer_config.dart';
 part 'Core/txvodplayer_controller.dart';
 part 'Core/txvoddownload_controller.dart';
+part 'Core/txliveplayer_config.dart';
 part 'Core/tools/common_utils.dart';
+part 'Core/provider/txplayer_holder.dart';

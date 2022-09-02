@@ -76,9 +76,9 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
     }
   }
 
-  void updateFullScreen(bool showFullScreen) {
+  void updateUIStatus(int status) {
     setState(() {
-      _isFullScreen = showFullScreen;
+      _isFullScreen = status == SuperPlayerUIStatus.FULLSCREEN_MODE;
     });
   }
 }

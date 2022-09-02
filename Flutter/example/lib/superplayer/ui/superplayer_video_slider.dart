@@ -17,6 +17,7 @@ class VideoSlider extends StatefulWidget {
   final Color? bufferedColor;
   final Color? sliderColor;
   final Color? sliderOutterColor;
+  bool? canDrag = true;
 
   // calback
   final Function? onDragStart;
@@ -38,12 +39,16 @@ class VideoSlider extends StatefulWidget {
       this.sliderOutterColor,
       this.onDragStart,
       this.onDragUpdate,
-      this.onDragEnd}) {
+      this.onDragEnd,
+      this.canDrag}) {
     double range = (max - min);
-    _checkRange(range, valueName: "max - min");
-    double currentProgress = value / range;
-    double? bufferedProgress = bufferedValue != null ? bufferedValue! / range : null;
-    controller = _VideoSliderController(currentProgress, bufferedProgress: bufferedProgress);
+    if(range <= 0) {
+      controller = _VideoSliderController(1, bufferedProgress: 1);
+    } else {
+      double currentProgress = value / range;
+      double? bufferedProgress = bufferedValue != null ? bufferedValue! / range : null;
+      controller = _VideoSliderController(currentProgress, bufferedProgress: bufferedProgress);
+    }
   }
 
   @override
@@ -77,24 +82,31 @@ class VideoSliderState extends State<VideoSlider> {
     double rightPadding = overlayRadius;
     return GestureDetector(
       onHorizontalDragStart: (DragStartDetails details) {
-        isDraging = true;
-        widget.onDragStart?.call();
+        if(widget.canDrag!) {
+          isDraging = true;
+          widget.onDragStart?.call();
+        }
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        isDraging = true;
-        _seekToPosition(details.globalPosition);
-        widget.onDragUpdate?.call(widget.controller.progress);
+        if(widget.canDrag!) {
+          isDraging = true;
+          _seekToPosition(details.globalPosition);
+          widget.onDragUpdate?.call(widget.controller.progress);}
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        isDraging = false;
-        widget.onDragEnd?.call(widget.controller.progress);
+        if(widget.canDrag!) {
+          isDraging = false;
+          widget.onDragEnd?.call(widget.controller.progress);}
       },
       onHorizontalDragCancel: () {
-        isDraging = false;
-        widget.onDragEnd?.call(widget.controller.progress);
+        if(widget.canDrag!) {
+          isDraging = false;
+          widget.onDragEnd?.call(widget.controller.progress);}
       },
       onTapDown: (TapDownDetails details) {
-        _seekToPosition(details.globalPosition);
+        if(widget.canDrag!) {
+          _seekToPosition(details.globalPosition);
+        }
       },
       child: Center(
         child: Container(
