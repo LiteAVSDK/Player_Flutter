@@ -5,7 +5,10 @@
 @implementation FTXAudioManager
     UISlider *_volumeSlider;
     MPVolumeView *volumeView;
+    AVAudioSession *audioSession;
 
+NSString *const LOW_VERSION_NOTIFCATION_NAME = @"AVSystemController_SystemVolumeDidChangeNotification";
+NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 
 - (instancetype)init
  {

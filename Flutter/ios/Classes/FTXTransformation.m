@@ -4,7 +4,7 @@
 
 @implementation FTXTransformation
 
-+ (TXVodPlayConfig *)transformToConfig:(NSDictionary *)args
++ (TXVodPlayConfig *)transformToVodConfig:(NSDictionary *)args
 {
     TXVodPlayConfig *playConfig = [[TXVodPlayConfig alloc] init];
     playConfig.connectRetryCount = [args[@"config"][@"connectRetryCount"] intValue];
@@ -43,6 +43,29 @@
     NSDictionary *extInfoMap = args[@"config"][@"extInfoMap"];
     if(headers != nil) {
         playConfig.extInfoMap = extInfoMap;
+    }
+
+    return playConfig;
+}
+
++ (TXLivePlayConfig *)transformToLiveConfig:(NSDictionary *)args
+{
+    TXLivePlayConfig *playConfig = [[TXLivePlayConfig alloc] init];
+
+    playConfig.cacheTime = [args[@"config"][@"cacheTime"] floatValue];
+    playConfig.maxAutoAdjustCacheTime = [args[@"config"][@"maxAutoAdjustCacheTime"] floatValue];
+    playConfig.minAutoAdjustCacheTime = [args[@"config"][@"minAutoAdjustCacheTime"] floatValue];
+    playConfig.videoBlockThreshold = [args[@"config"][@"videoBlockThreshold"] intValue];
+    playConfig.connectRetryCount = [args[@"config"][@"connectRetryCount"] intValue];
+    playConfig.connectRetryInterval = [args[@"config"][@"connectRetryInterval"] intValue];
+    playConfig.bAutoAdjustCacheTime = [args[@"config"][@"autoAdjustCacheTime"] boolValue];
+    playConfig.enableAEC = [args[@"config"][@"enableAec"] boolValue];
+    playConfig.enableMessage = [args[@"config"][@"enableMessage"] intValue];
+    playConfig.enableMetaData = [args[@"config"][@"enableMetaData"] intValue];
+    NSString *flvSessionKey = args[@"config"][@"flvSessionKey"];
+
+    if(flvSessionKey != nil && flvSessionKey.length > 0) {
+        playConfig.flvSessionKey = flvSessionKey;
     }
 
     return playConfig;
