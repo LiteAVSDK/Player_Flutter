@@ -43,7 +43,7 @@ class _SuperPlayerCoverViewState extends State<SuperPlayerCoverView> {
     }
 
     return Visibility(
-      visible: _isShowCover,
+      visible: _isShowCover && hasCover,
       child: Positioned.fill(
           top: topBottomOffset,
           bottom: topBottomOffset,
@@ -53,7 +53,11 @@ class _SuperPlayerCoverViewState extends State<SuperPlayerCoverView> {
             onDoubleTap: _onDoubleTapVideo,
             onTap: _onSingleTapVideo,
             child: Container(
-              child: hasCover ? Image.network(coverUrl,fit: BoxFit.cover,) : Container(),
+              decoration: BoxDecoration(
+                // 增加一个半透明背景，防止透明封面图的出现
+                color:Color(ColorResource.COLOR_TRANS_GRAY)
+              ),
+              child: Image.network(coverUrl,fit: BoxFit.cover),
             )
           )),
     );

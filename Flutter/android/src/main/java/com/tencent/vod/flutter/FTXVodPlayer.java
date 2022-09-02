@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -510,7 +509,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     void setPlayConfig(Map<Object, Object> config) {
         if (mVodPlayer != null) {
-            TXVodPlayConfig playConfig = FTXTransformation.transformToConfig(config);
+            TXVodPlayConfig playConfig = FTXTransformation.transformToVodConfig(config);
             mVodPlayer.setConfig(playConfig);
         }
     }

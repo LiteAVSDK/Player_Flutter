@@ -116,7 +116,7 @@ abstract class TXVodPlayEvent {
   static const ERROR_IOS_PIP_PLAYER_NOT_EXIST     = -109; // pip 错误，播放器对象不存在 only support iOS
   static const ERROR_IOS_PIP_IS_RUNNING           = -110; // pip 错误，PIP功能已经运行 only support iOS
   static const ERROR_IOS_PIP_NOT_RUNNING          = -111; // pip 错误，PIP功能没有启动 only support iOS
-
+  static const ERROR_PIP_CAN_NOT_ENTER            = -120; // pip 错误，当前不能进入pip模式，例如正处于全屏模式下
 
   /// 视频下载相关事件
   static const EVENT_PREDOWNLOAD_ON_COMPLETE = 200;  // 视频预下载完成

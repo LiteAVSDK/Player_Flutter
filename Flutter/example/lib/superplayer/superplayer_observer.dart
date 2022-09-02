@@ -8,10 +8,10 @@ class _SuperPlayerObserver {
   Function onPlayPause;
   Function onPlayStop;
   Function onPlayLoading;
-  Function(int current, int duration,double playableDuration) onPlayProgress;
+  Function(double current, double duration,double playableDuration) onPlayProgress;
   Function(double position) onSeek;
-  Function(bool success, SuperPlayerType playerType, VideoQuality quality) onSwitchStreamStart;
-  Function(bool success, SuperPlayerType playerType, VideoQuality quality) onSwitchStreamEnd;
+  Function(bool success, SuperPlayerType playerType, VideoQuality? quality) onSwitchStreamStart;
+  Function(bool success, SuperPlayerType playerType, VideoQuality? quality) onSwitchStreamEnd;
   Function(int code, String msg) onError;
   Function(SuperPlayerType playerType) onPlayerTypeChange;
   Function(TXLivePlayerController controller, String url) onPlayTimeShiftLive;

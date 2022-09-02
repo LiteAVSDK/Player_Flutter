@@ -205,40 +205,45 @@ public class FTXPIPManager {
             return;
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            List<RemoteAction> actions = new ArrayList<>();
             // play back
-            Bundle backData = new Bundle();
-            backData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_BACK);
-            backData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
-            Intent backIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(backData);
-            PendingIntent preIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_BACK, backIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            RemoteAction preAction = new RemoteAction(getBackIcon(params), "skipPre", "skip pre", preIntent);
+            if(params.mIsNeedPlayBack) {
+                Bundle backData = new Bundle();
+                backData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_BACK);
+                backData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
+                Intent backIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(backData);
+                PendingIntent preIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_BACK, backIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                RemoteAction preAction = new RemoteAction(getBackIcon(params), "skipPre", "skip pre", preIntent);
+                actions.add(preAction);
+            }
 
             // resume or pause
-            Bundle playOrPauseData = new Bundle();
-            playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
-            playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE);
-            Intent playOrPauseIntent =
-                    new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
-            Icon playIcon = isPlaying ? getPauseIcon(params) : getPlayIcon(params);
-            PendingIntent playIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE,
-                    playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            RemoteAction playOrPauseAction = new RemoteAction(playIcon, "playOrPause", "play Or Pause", playIntent);
+            if(params.mIsNeedPlayControl) {
+                Bundle playOrPauseData = new Bundle();
+                playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
+                playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE);
+                Intent playOrPauseIntent =
+                        new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
+                Icon playIcon = isPlaying ? getPauseIcon(params) : getPlayIcon(params);
+                PendingIntent playIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE,
+                        playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                RemoteAction playOrPauseAction = new RemoteAction(playIcon, "playOrPause", "play Or Pause", playIntent);
+                actions.add(playOrPauseAction);
+            }
 
             // forward
-            Bundle forwardData = new Bundle();
-            forwardData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_FORWARD);
-            forwardData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
-            Intent forwardIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(forwardData);
-            PendingIntent nextIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_FORWARD,
-                    forwardIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            RemoteAction nextAction = new RemoteAction(getForwardIcon(params), "skipNext", "skip next", nextIntent);
-
-            List<RemoteAction> actions = new ArrayList<>();
-            actions.add(preAction);
-            actions.add(playOrPauseAction);
-            actions.add(nextAction);
+            if(params.mIsNeedPlayForward) {
+                Bundle forwardData = new Bundle();
+                forwardData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_FORWARD);
+                forwardData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
+                Intent forwardIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(forwardData);
+                PendingIntent nextIntent = PendingIntent.getBroadcast(mActivity, FTXEvent.EXTRA_PIP_PLAY_FORWARD,
+                        forwardIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                RemoteAction nextAction = new RemoteAction(getForwardIcon(params), "skipNext", "skip next", nextIntent);
+                actions.add(nextAction);
+            }
 
             params.mPipParams.setActions(actions);
             mActivity.setPictureInPictureParams(params.mPipParams.build());
@@ -285,6 +290,9 @@ public class FTXPIPManager {
         String mPlayForwardAssetPath;
         int    mCurrentPlayerId;
         protected PictureInPictureParams.Builder mPipParams;
+        private   boolean                        mIsNeedPlayBack    = true;
+        private   boolean                        mIsNeedPlayForward = true;
+        private   boolean                        mIsNeedPlayControl = true;
 
         /**
          * @param mPlayBackAssetPath 回退按钮图片资源路径，传空则使用系统默认图标
@@ -295,11 +303,21 @@ public class FTXPIPManager {
          */
         public PipParams(String mPlayBackAssetPath, String mPlayResumeAssetPath, String mPlayPauseAssetPath,
                          String mPlayForwardAssetPath, int mCurrentPlayerId) {
+            this(mPlayBackAssetPath, mPlayResumeAssetPath, mPlayPauseAssetPath, mPlayForwardAssetPath,
+                    mCurrentPlayerId, true, true, true);
+        }
+
+        public PipParams(String mPlayBackAssetPath, String mPlayResumeAssetPath, String mPlayPauseAssetPath,
+                         String mPlayForwardAssetPath, int mCurrentPlayerId, boolean isNeedPlayBack,
+                         boolean isNeedPlayForward, boolean isNeedPlayControl) {
             this.mPlayBackAssetPath = mPlayBackAssetPath;
             this.mPlayResumeAssetPath = mPlayResumeAssetPath;
             this.mPlayPauseAssetPath = mPlayPauseAssetPath;
             this.mPlayForwardAssetPath = mPlayForwardAssetPath;
             this.mCurrentPlayerId = mCurrentPlayerId;
+            this.mIsNeedPlayBack = isNeedPlayBack;
+            this.mIsNeedPlayForward = isNeedPlayForward;
+            this.mIsNeedPlayControl = isNeedPlayControl;
         }
     }
 
