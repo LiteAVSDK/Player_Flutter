@@ -67,7 +67,7 @@ SuperPlayerPlugin* instance;
     [_eventChannel setStreamHandler:self];
     [_pipEventChannel setStreamHandler:self];
 
-    [audioManager registerVolumeChangeListener:self selector:@selector(systemVolumeDidChangeNoti:) name:@"AVSystemController_SystemVolumeDidChangeNotification"  object:nil];
+    [audioManager registerVolumeChangeListener:self];
      _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
     // orientation
     mCurrentOrientation = ORIENTATION_PORTRAIT_UP;
@@ -79,7 +79,8 @@ SuperPlayerPlugin* instance;
     return self;
 }
 
--(void)systemVolumeDidChangeNoti:(NSNotification* )noti{
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
+{
     [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_VOLUME_CHANGED withParams:@{}]];
 }
 
@@ -207,7 +208,7 @@ SuperPlayerPlugin* instance;
 
 -(void) destory
 {
-    [audioManager destory:self name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
+    [audioManager destory:self];
 }
 
 #pragma mark - FlutterStreamHandler
