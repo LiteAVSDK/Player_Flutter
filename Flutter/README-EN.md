@@ -325,4 +325,13 @@ The Player SDK for Flutter plugin encapsulates native player capabilities. We re
 
 ## References
 
-- [Player SDK](https://cloud.tencent.com/document/product/881)
+- [Player SDK](https://www.tencentcloud.com/zh/document/product/266/7836)
+
+## Contact Us
+
+- Communication & Feedback   
+  Welcome to join our Telegram Group to communicate with our professional engineers! We are more than happy to hear from you~
+  Click to join: [https://t.me/+EPk6TMZEZMM5OGY1](https://t.me/+EPk6TMZEZMM5OGY1)   
+  Or scan the QR code   
+  <img src="https://qcloudimg.tencent-cloud.cn/raw/79cbfd13877704ff6e17f30de09002dd.jpg" width="300px">    
+
