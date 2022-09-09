@@ -6,7 +6,7 @@
 #import "FTXPlayerEventSinkQueue.h"
 #import "FTXEvent.h"
 #import <MediaPlayer/MediaPlayer.h>
-#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
+#import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
 #import "FTXAudioManager.h"
 #import "FTXDownloadManager.h"
 
