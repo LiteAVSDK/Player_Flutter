@@ -157,6 +157,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isShowCover = true;
         _isLoading = true;
       });
+      _coverViewKey.currentState?.showCover(_playController.videoModel!);
     }, () {
       // onPlayPrepare
       _isShowCover = true;
@@ -243,12 +244,14 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isPlaying = true;
         _isShowCover = false;
         _isLoading = false;
+        _coverViewKey.currentState?.hideCover();
         break;
       case SuperPlayerState.END:
       case SuperPlayerState.PAUSE:
         _isPlaying = false;
         _isShowCover = false;
         _isLoading = false;
+        _coverViewKey.currentState?.hideCover();
         break;
       case SuperPlayerState.INIT:
       case SuperPlayerState.LOADING:
