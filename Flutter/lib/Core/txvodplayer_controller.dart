@@ -133,27 +133,34 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 通过url开始播放视频
+  /// 10.7版本开始，startPlay变更为startVodPlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
+  /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
+  /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
   /// @param url : 视频播放地址
   /// return 是否播放成功
-  @override
-  Future<bool> startPlay(String url) async {
+  Future<bool> startVodPlay(String url) async {
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
 
-    final result = await _channel.invokeMethod("play", {"url": url});
+    final result = await _channel.invokeMethod("startVodPlay", {"url": url});
     return result == 0;
   }
 
   /// 通过fileld播放视频
+  /// 10.7版本开始，startPlayWithParams变更为startVodPlayWithParams，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
+  /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
+  /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
   /// @params : 见[TXPlayInfoParams]
   /// return 是否播放成功
-  Future<void> startPlayWithParams(TXPlayInfoParams params) async {
+  Future<void> startVodPlayWithParams(TXPlayInfoParams params) async {
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
 
-    await _channel.invokeMethod("startPlayWithParams", params.toJson());
+    await _channel.invokeMethod("startVodPlayWithParams", params.toJson());
   }
 
   /// 共享纹理id，原生层的纹理准备好之后，会将纹理id传递回来。

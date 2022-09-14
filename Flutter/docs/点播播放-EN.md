@@ -184,12 +184,12 @@ await _controller.initialize();
 
 ### Step 6. Start the playback[](id:step6)
 ::: Playback via URL
-`TXVodPlayerController` will internally recognize the playback protocol automatically. You only need to pass in your playback URL to the `startPlay` function.
+`TXVodPlayerController` will internally recognize the playback protocol automatically. You only need to pass in your playback URL to the `startVodPlay` function.
 ```dart
 // Play back the video resource
 String _url =
     "http://1400329073.vod2.myqcloud.com/d62d88a7vodtranscq1400329073/59c68fe75285890800381567412/adp.10.m3u8";
-await _controller.startPlay(_url);
+await _controller.startVodPlay(_url);
 ```
 :::
 ::: Playback via `fileId`
@@ -197,7 +197,7 @@ await _controller.startPlay(_url);
 TXPlayerAuthParams authParams = TXPlayerAuthParams();
 authParams.appId = 1252463788;
 authParams.fileId = "4564972819220421305";
-await _controller.startPlayWithParams(authParams);
+await _controller.startVodPlayWithParams(authParams);
 ```
 Find the target video file in [Media Assets](https://console.cloud.tencent.com/vod/media), and you can view the `FileId` below the filename.
 
@@ -206,7 +206,7 @@ Play back the video through the `FileId`, and the player will request the backen
 </dx-tabs>
 
 ### Step 7. Stop the playback[](id:step7)
-**Remember to call the controller termination method** when stopping the playback, especially before the next call of `startPlay`. This can prevent memory leak and screen flashing issues.
+**Remember to call the controller termination method** when stopping the playback, especially before the next call of `startVodPlay`. This can prevent memory leak and screen flashing issues.
 ```dart
 @override
 void dispose() {
@@ -232,6 +232,10 @@ await _controller.initialize();
 
 #### Playing back through URL
 
+**Notice**
+
+Starting from version 10.7.0, the Licence needs to be set through {@link SuperPlayerPlugin#setGlobalLicense} before it can be played successfully, otherwise the playback will fail (black screen), and it can only be set once globally. Live Licence, UGC Licence, and Player Licence can all be used. If you have not obtained the above Licence, you can quickly apply for a beta Licence for free To play, the official licence needs to be [purchased](https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96 .B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
+
 **Description**
 
 This API is used to play back a video via URL.
@@ -239,7 +243,7 @@ This API is used to play back a video via URL.
 **API**
 
 ```dart
-_controller.startPlay(url);
+_controller.startVodPlay(url);
 ```
 
 **Parameter description**
@@ -249,6 +253,10 @@ _controller.startPlay(url);
 | url | String | The URL of the video to be played back. |
 
 #### Playing back via file ID
+
+**Notice**
+
+Starting from version 10.7.0, the Licence needs to be set through {@link SuperPlayerPlugin#setGlobalLicense} before it can be played successfully, otherwise the playback will fail (black screen), and it can only be set once globally. Live Licence, UGC Licence, and Player Licence can all be used. If you have not obtained the above Licence, you can quickly apply for a beta Licence for free To play, the official licence needs to be [purchased](https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96 .B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
 
 **Description**
 
@@ -260,7 +268,7 @@ This API is used to play back a video via `fileId`.
 TXPlayerAuthParams params = TXPlayerAuthParams();
 params.appId = 1252463788;
 params.fileId = "4564972819220421305";
-_controller.startPlayWithParams(params);
+_controller.startVodPlayWithParams(params);
 ```
 
 **Parameter description**
@@ -320,7 +328,7 @@ _controller.stop();
 
 **Description**
 
-This API is used to set whether to automatically play back the video after calling `startPlay` to load the video URL.
+This API is used to set whether to automatically play back the video after calling `startVodPlay` to load the video URL.
 
 **API**
 
@@ -533,8 +541,8 @@ _controller.setConfig(config);
 | progressInterval | int | Progress callback interval in ms. If it is not set, the SDK will call back the progress once every 0.5 seconds |
 | maxBufferSize | int | Maximum size of playback buffer in MB. The setting will affect `playableDuration`. The greater the value, the more the data that is buffered in advance |
 | maxPreloadSize | int | Maximum preload buffer size in MB |
-| firstStartPlayBufferTime | int | Duration of the video data that needs to be loaded during the first buffering in ms. Default value: 100 ms |
-| nextStartPlayBufferTime | int | Minimum buffered data size to stop buffering (secondary buffering for insufficient buffered data or progress bar drag buffering caused by `seek`) in ms. Default value: 250 ms |
+| firststartVodPlayBufferTime | int | Duration of the video data that needs to be loaded during the first buffering in ms. Default value: 100 ms |
+| nextstartVodPlayBufferTime | int | Minimum buffered data size to stop buffering (secondary buffering for insufficient buffered data or progress bar drag buffering caused by `seek`) in ms. Default value: 250 ms |
 | overlayKey | String | HLS security hardening encryption and decryption key |
 | overlayIv | String | HLS security hardening encryption and decryption IV |
 | extInfoMap | Map | Some special configuration items |
@@ -739,15 +747,15 @@ This is how seamless switch works in video playback. You can use `isAutoPlay` in
 ![](https://mc.qcloudimg.com/static/img/7331417ebbdfe6306fe96f4b76c8d0ad/image.jpg)
 
 ```dart
-// Play back video A: If `isAutoPlay` is set to `true`, the video will be immediately loaded and played back when `startPlay` is called
+// Play back video A: If `isAutoPlay` is set to `true`, the video will be immediately loaded and played back when `startVodPlay` is called
 String url_A = "http://1252463788.vod2.myqcloud.com/xxxxx/v.f10.mp4";
 await _controller_A.setIsAutoPlay(isAutoPlay: true);
-await _controller_A.play(url_A);
+await _controller_A.startVodPlay(url_A);
 
 // To preload video B when playing back video A, set `isAutoPlay` to `false`
 String url_B = "http://1252463788.vod2.myqcloud.com/xxxxx/v.f20.mp4";
 await _controller_B.setIsAutoPlay(isAutoPlay: false);
-await _controller_B.play(url_B);
+await _controller_B.startVodPlay(url_B);
 ```
 
 After video A ends and video B is automatically or manually switched to, you can call the `resume` function to immediately play back video B.

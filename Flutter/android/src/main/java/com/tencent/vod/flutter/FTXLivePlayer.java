@@ -184,10 +184,10 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             boolean loop = call.argument("isAutoPlay");
             setIsAutoPlay(loop);
             result.success(null);
-        } else if (call.method.equals("play")) {
+        } else if (call.method.equals("startLivePlay")) {
             String url = call.argument("url");
             int type = call.argument("playType");
-            int r = startPlay(url, type);
+            int r = startLivePlay(url, type);
             result.success(r);
         } else if (call.method.equals("stop")) {
             Boolean isNeedClear = call.argument("isNeedClear");
@@ -270,8 +270,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     private int mSurfaceWidth, mSurfaceHeight = 0;
 
-    int startPlay(String url, int type) {
-        Log.d(TAG, "startPlay:");
+    int startLivePlay(String url, int type) {
+        Log.d(TAG, "startLivePlay:");
         if (mLivePlayer != null) {
             mLivePlayer.setSurface(mSurface);
             mLivePlayer.setPlayListener(this);
@@ -292,7 +292,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
                     }
                 }
             }, null);
-            return mLivePlayer.startPlay(url, type);
+            return mLivePlayer.startLivePlay(url, type);
         }
         return Uninitialized;
     }

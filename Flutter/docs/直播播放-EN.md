@@ -79,7 +79,7 @@ Blocks in red are the native code to be written, and blocks in yellow are the in
 ### Step 3. Start the playback
 ```dart
 String flvUrl = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
-await _controller.play("flvUrl", playType: TXPlayType.LIVE_FLV);
+await _controller.startLivePlay("flvUrl", playType: TXPlayType.LIVE_FLV);
 ```
 
 | Option | Enumerated Value | Description |
@@ -143,7 +143,7 @@ _controller.switchStream("http://5815.liveplay.myqcloud.com/live/5815_62fe94d692
 The time shifting feature allows you to return to any previous time point during a live stream and resume playback from that time point. It is highly suitable for scenarios in which there is no need for interaction but viewers may want to rewind and replay a video, such as sports and gaming events.
 
 ```dart
-// Call `startPlay` first before setting time shifting
+// Call `startLivePlay` first before setting time shifting
 // Start playback
 await _controller.setAppID(appId); // Configure `appId`
 await _controller.prepareLiveSeek(domian, bizidNum);    // The backend requests the live streaming start time 
@@ -199,7 +199,7 @@ This feature doesn't need to be enabled in advance, but the live stream must be 
 The playback URL cannot be a general CDN URL and must carry a hotlink protection signature. For more information on how to calculate a signature, see [Hotlink Protection URL Calculation](https://cloud.tencent.com/document/product/267/32735).
 
 - **ACC must be specified as the playback type**
-When calling the `startPlay` playback function, you need to set `type` to **PLAY_TYPE_LIVE_RTMP_ACC**, and the SDK will use the RTMP-UDP protocol to directly pull the live stream.
+When calling the `startLivePlay` playback function, you need to set `type` to **PLAY_TYPE_LIVE_RTMP_ACC**, and the SDK will use the RTMP-UDP protocol to directly pull the live stream.
 
 - **It has a limit on the number of streams played back concurrently**
 Currently, a maximum of 10 streams can be played back concurrently. Because the cost of low-latency lines is much greater than CDN lines, we encourage users to use this feature only in scenarios that actually require high interaction rather than using it for scenarios which do not require extremely low latency.
@@ -226,6 +226,10 @@ await _controller.initialize();
 
 #### Playing back through URL
 
+**Notice**
+
+Starting from version 10.7.0, the Licence needs to be set through {@link SuperPlayerPlugin#setGlobalLicense} before it can be played successfully, otherwise the playback will fail (black screen), and it can only be set once globally. Live Licence, UGC Licence, and Player Licence can all be used. If you have not obtained the above Licence, you can quickly apply for a beta Licence for free To play, the official licence needs to be [purchased](https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96 .B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
+
 **Description**
 
 This API is used to play back a video via URL.
@@ -233,7 +237,7 @@ This API is used to play back a video via URL.
 **API**
 
 ```dart
-_controller.startPlay(url);
+_controller.startLivePlay(url);
 ```
 
 **Parameter description**
@@ -288,7 +292,7 @@ _controller.stop();
 
 **Description**
 
-This API is used to set whether to automatically play back the video after calling `startPlay` to load the video URL.
+This API is used to set whether to automatically play back the video after calling `startLivePlay` to load the video URL.
 
 **API**
 

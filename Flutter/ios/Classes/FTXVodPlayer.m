@@ -160,16 +160,16 @@ BOOL volatile isStop = false;
     }
 }
 
-- (int)startPlay:(NSString *)url
+- (int)startVodPlay:(NSString *)url
 {
     if (_txVodPlayer != nil) {
-        return [_txVodPlayer startPlay:url];
+        return [_txVodPlayer startVodPlay:url];
     }
     return uninitialized;
 }
 
 
-- (int)startPlayWithParams:(NSDictionary *)params
+- (int)startVodPlayWithParams:(NSDictionary *)params
 {
     if (_txVodPlayer != nil) {
         TXPlayerAuthParams *p = [TXPlayerAuthParams new];
@@ -179,7 +179,7 @@ BOOL volatile isStop = false;
         if (psign.length > 0) {
             p.sign = params[@"psign"];
         }
-        return [_txVodPlayer startPlayWithParams:p];
+        return [_txVodPlayer startVodPlayWithParams:p];
     }
     return uninitialized;
 }
@@ -304,12 +304,12 @@ BOOL volatile isStop = false;
         BOOL isAutoPlay = [args[@"isAutoPlay"] boolValue];
         [self setIsAutoPlay:isAutoPlay];
         result(nil);
-    }else if([@"play" isEqualToString:call.method]){
+    }else if([@"startVodPlay" isEqualToString:call.method]){
         NSString *url = args[@"url"];
-        int r = [self startPlay:url];
+        int r = [self startVodPlay:url];
         result(@(r));
-    }else if([@"startPlayWithParams" isEqualToString:call.method]) {
-        int r = [self startPlayWithParams:args];
+    }else if([@"startVodPlayWithParams" isEqualToString:call.method]) {
+        int r = [self startVodPlayWithParams:args];
         result(@(r));
     } else if([@"stop" isEqualToString:call.method]){
         BOOL r = [self stopPlay];

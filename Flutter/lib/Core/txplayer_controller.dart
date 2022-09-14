@@ -10,7 +10,6 @@ abstract class TXPlayerController {
   double? get videoRight;
   double? get videoBottom;
 
-  Future<bool> startPlay(String url);
   Future<void> initialize({bool? onlyAudio});
   Future<void> setAutoPlay({bool? isAutoPlay});
   Future<bool> stop({bool isNeedClear = false});
