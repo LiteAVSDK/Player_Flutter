@@ -231,12 +231,12 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             boolean loop = call.argument("isAutoPlay");
             setIsAutoPlay(loop);
             result.success(null);
-        } else if (call.method.equals("play")) {
+        } else if (call.method.equals("startVodPlay")) {
             String url = call.argument("url");
-            int r = startPlay(url);
+            int r = startVodPlay(url);
             result.success(r);
-        } else if (call.method.equals("startPlayWithParams")) {
-            startPlayWithParams(call);
+        } else if (call.method.equals("startVodPlayWithParams")) {
+            startVodPlayWithParams(call);
             result.success(null);
         } else if (call.method.equals("stop")) {
             Boolean isNeedClear = call.argument("isNeedClear");
@@ -385,20 +385,20 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         }
     }
 
-    int startPlay(String url) {
+    int startVodPlay(String url) {
         if (mVodPlayer != null) {
-            return mVodPlayer.startPlay(url);
+            return mVodPlayer.startVodPlay(url);
         }
         return Uninitialized;
     }
 
-    void startPlayWithParams(MethodCall call) {
+    void startVodPlayWithParams(MethodCall call) {
         if (mVodPlayer != null) {
             int appId = call.argument("appId");
             String fileId = call.argument("fileId");
             String psign = call.argument("psign");
             TXPlayInfoParams playInfoParams = new TXPlayInfoParams(appId, fileId, psign);
-            mVodPlayer.startPlay(playInfoParams);
+            mVodPlayer.startVodPlay(playInfoParams);
         }
     }
 

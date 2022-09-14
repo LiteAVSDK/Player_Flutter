@@ -85,7 +85,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
     await _controller.setAudioPlayoutVolume(volume);
 
     _controller.setConfig(FTXVodPlayConfig());
-    await _controller.startPlay(_url);
+    await _controller.startVodPlay(_url);
   }
 
   @override
@@ -327,7 +327,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
             double stratTime =
             await _controller.getCurrentPlaybackTime();
             await _controller.setStartTime(stratTime);
-            await _controller.startPlay(_url);
+            await _controller.startVodPlay(_url);
             String wareMode = enableHardware ? "硬解" : "软解";
             if (enableSuccess) {
               EasyLoading.showToast("切换$wareMode成功");
@@ -400,11 +400,11 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
                 _appId = appId;
                 _fileId = fileId;
                 if (url.isNotEmpty) {
-                  _controller.startPlay(url);
+                  _controller.startVodPlay(url);
                 } else if (appId != 0 && fileId.isNotEmpty) {
                   TXPlayInfoParams params = TXPlayInfoParams(appId: _appId,
                     fileId: _fileId, psign: pSign != null ? pSign : "");
-                  _controller.startPlayWithParams(params);
+                  _controller.startVodPlayWithParams(params);
                 }
               }, needPisgn: true);
         });

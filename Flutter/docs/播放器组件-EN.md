@@ -171,7 +171,7 @@ Future<bool> onWillPop() async {
 ```dart
 SuperPlayerModel model = SuperPlayerModel();
 model.videoURL = "http://1400329073.vod2.myqcloud.com/d62d88a7vodtranscq1400329073/59c68fe75285890800381567412/adp.10.m3u8";
-_controller.playWithModel(model);
+_controller.playWithModelNeedLicence(model);
 ```
 :::
 
@@ -181,7 +181,7 @@ SuperPlayerModel model = SuperPlayerModel();
 model.appId = 1500005830;
 model.videoId = new SuperPlayerVideoId();
 model.videoId.fileId = "8602268011437356984";
-_controller.playWithModel(model);
+_controller.playWithModelNeedLicence(model);
 ```
 
 Find the target video file in [Media Assets](https://console.cloud.tencent.com/vod/media), and you can view the `FileId` below the filename.
@@ -192,7 +192,7 @@ Play back the video through the `FileId`, and the player will request the backen
 
 ### Step 8. Stop the playback[](id:step8)
 
-**Remember to call the controller termination method** when stopping the playback, especially before the next call of `startPlay`. This can prevent memory leak and screen flashing issues, as well as ensure that playback is stopped when the page is exited.
+**Remember to call the controller termination method** when stopping the playback, especially before the next call of `startVodPlay`. This can prevent memory leak and screen flashing issues, as well as ensure that playback is stopped when the page is exited.
 ```dart
   @override
 void dispose() {
@@ -206,6 +206,10 @@ void dispose() {
 
 #### Playing back video
 
+**Notice**
+
+Starting from version 10.7.0, the Licence needs to be set through {@link SuperPlayerPlugin#setGlobalLicense} before it can be played successfully, otherwise the playback will fail (black screen), and it can only be set once globally. Live Licence, UGC Licence, and Player Licence can all be used. If you have not obtained the above Licence, you can quickly apply for a beta Licence for free To play, the official licence needs to be [purchased](https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96 .B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
+
 **Description**
 
 This API is used to start video playback.
@@ -213,7 +217,7 @@ This API is used to start video playback.
 **API**
 
 ```dart
-_controller.playWithModel(model);
+_controller.playWithModelNeedLicence(model);
 ```
 
 **Parameter description**
@@ -244,9 +248,9 @@ _controller.playWithModel(model);
 
 3. playAction
 
-* PLAY_ACTION_AUTO_PLAY: The video will be automatically played back after `playWithModel` is called.
-* PLAY_ACTION_MANUAL_PLAY: The video needs to be played back manually after `playWithModel` is called. The player doesn't load the video and only displays the thumbnail image, which consumes no video playback resources compared with `PLAY_ACTION_PRELOAD`.
-* PLAY_ACTION_PRELOAD: The player will display the thumbnail image and won't start the video playback after `playWithModel` is called, but the video will be loaded. This can start the playback faster than `PLAY_ACTION_MANUAL_PLAY`.
+* PLAY_ACTION_AUTO_PLAY: The video will be automatically played back after `playWithModelNeedLicence` is called.
+* PLAY_ACTION_MANUAL_PLAY: The video needs to be played back manually after `playWithModelNeedLicence` is called. The player doesn't load the video and only displays the thumbnail image, which consumes no video playback resources compared with `PLAY_ACTION_PRELOAD`.
+* PLAY_ACTION_PRELOAD: The player will display the thumbnail image and won't start the video playback after `playWithModelNeedLicence` is called, but the video will be loaded. This can start the playback faster than `PLAY_ACTION_MANUAL_PLAY`.
 
 #### Pausing playback
 
@@ -529,7 +533,7 @@ model.title = "VOD";
 SuperVodDataLoader loader = SuperVodDataLoader();
 // Values of the required parameters in `model` are directly assigned in `SuperVodDataLoader`
 loader.getVideoData(model, (resultModel) {
-  _controller.playWithModel(resultModel);
+  _controller.playWithModelNeedLicence(resultModel);
 })
 ```
 
