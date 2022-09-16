@@ -220,16 +220,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
       }));
       WidgetsBinding.instance.removeObserver(this);
+      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
-      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
 
       hideControlView();
     }, () {
       Navigator.of(context).pop();
+      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       hideControlView();
     });
     WidgetsBinding.instance.addObserver(this);
