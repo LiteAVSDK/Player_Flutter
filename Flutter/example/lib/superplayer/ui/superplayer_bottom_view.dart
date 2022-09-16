@@ -43,7 +43,6 @@ class _VideoBottomViewState extends State<VideoBottomView> {
     _isShowQuality = isFullScreen;
     _currentQuality = widget._playerController.currentQuality;
     _playerType = widget._playerController.playerType;
-    _fixProgress();
 
     super.initState();
   }
@@ -132,7 +131,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
         min: 0,
         max: _videoDuration,
         value: _currentDuration,
-        bufferedValue: _playableProgress,
+        bufferedValue: _bufferedDuration,
         activeColor: Color(ColorResource.COLOR_MAIN_THEME),
         inactiveColor: Color(ColorResource.COLOR_GRAY),
         sliderColor: Color(ColorResource.COLOR_MAIN_THEME),
@@ -180,24 +179,8 @@ class _VideoBottomViewState extends State<VideoBottomView> {
           _currentDuration = duration;
           _videoDuration = videoDuration;
           _bufferedDuration = bufferedDration;
-          _fixProgress();
         });
       }
-    }
-  }
-
-  void _fixProgress() {
-    if (_bufferedDuration == 0) {
-      _playableProgress = 0;
-    } else {
-      _playableProgress = _bufferedDuration / _videoDuration;
-    }
-
-    if (_playableProgress < 0) {
-      _playableProgress = 0;
-    }
-    if (_playableProgress > 1) {
-      _playableProgress = 1;
     }
   }
 
@@ -219,7 +202,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
 
   void updateUIStatus(int status) {
     setState(() {
-      bool isFullScreen = widget._playerController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE;
+      bool isFullScreen = status == SuperPlayerUIStatus.FULLSCREEN_MODE;
       _showFullScreenBtn = !isFullScreen;
       _isShowQuality = isFullScreen;
     });

@@ -42,13 +42,19 @@ class VideoSlider extends StatefulWidget {
       this.onDragEnd,
       this.canDrag}) {
     double range = (max - min);
-    if(range <= 0) {
+    if (range <= 0) {
       controller = _VideoSliderController(1, bufferedProgress: 1);
     } else {
-      double currentProgress = value / range;
-      double? bufferedProgress = bufferedValue != null ? bufferedValue! / range : null;
+      double currentProgress = remainTwoFixed(value / range);
+      double? bufferedProgress = bufferedValue != null ? remainTwoFixed(bufferedValue! / range) : null;
       controller = _VideoSliderController(currentProgress, bufferedProgress: bufferedProgress);
     }
+  }
+
+  /// remain two fixed,avoid double precision problem
+  double remainTwoFixed(double value) {
+    int valueInt = (value * 100).toInt();
+    return valueInt / 100;
   }
 
   @override
@@ -82,29 +88,32 @@ class VideoSliderState extends State<VideoSlider> {
     double rightPadding = overlayRadius;
     return GestureDetector(
       onHorizontalDragStart: (DragStartDetails details) {
-        if(widget.canDrag!) {
+        if (widget.canDrag!) {
           isDraging = true;
           widget.onDragStart?.call();
         }
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        if(widget.canDrag!) {
+        if (widget.canDrag!) {
           isDraging = true;
           _seekToPosition(details.globalPosition);
-          widget.onDragUpdate?.call(widget.controller.progress);}
+          widget.onDragUpdate?.call(widget.controller.progress);
+        }
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        if(widget.canDrag!) {
+        if (widget.canDrag!) {
           isDraging = false;
-          widget.onDragEnd?.call(widget.controller.progress);}
+          widget.onDragEnd?.call(widget.controller.progress);
+        }
       },
       onHorizontalDragCancel: () {
-        if(widget.canDrag!) {
+        if (widget.canDrag!) {
           isDraging = false;
-          widget.onDragEnd?.call(widget.controller.progress);}
+          widget.onDragEnd?.call(widget.controller.progress);
+        }
       },
       onTapDown: (TapDownDetails details) {
-        if(widget.canDrag!) {
+        if (widget.canDrag!) {
           _seekToPosition(details.globalPosition);
         }
       },
@@ -174,8 +183,7 @@ class _VideoSliderPainter extends CustomPainter {
 
     // draw background
     canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromPoints(Offset(start, baseVerticalOffset), Offset(end, baseVerticalOffset + progressHeight)),
+        RRect.fromRectAndRadius(Rect.fromPoints(Offset(start, baseVerticalOffset), Offset(end, baseVerticalOffset + progressHeight)),
             Radius.circular(sliderRadius)),
         shaders.backgroundPaint);
 
@@ -186,8 +194,7 @@ class _VideoSliderPainter extends CustomPainter {
       double bufferedEndless = start + (width * bPercent);
       canvas.drawRRect(
           RRect.fromRectAndRadius(
-              Rect.fromPoints(
-                  Offset(start, baseVerticalOffset), Offset(bufferedEndless, baseVerticalOffset + progressHeight)),
+              Rect.fromPoints(Offset(start, baseVerticalOffset), Offset(bufferedEndless, baseVerticalOffset + progressHeight)),
               Radius.circular(sliderRadius)),
           shaders.bufferedPaint);
     }
@@ -198,8 +205,7 @@ class _VideoSliderPainter extends CustomPainter {
     double progressEndless = start + (width * ppercent);
     canvas.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromPoints(
-                Offset(start, baseVerticalOffset), Offset(progressEndless, baseVerticalOffset + progressHeight)),
+            Rect.fromPoints(Offset(start, baseVerticalOffset), Offset(progressEndless, baseVerticalOffset + progressHeight)),
             Radius.circular(sliderRadius)),
         shaders.progressPaint);
 
@@ -225,11 +231,7 @@ class _VideoSliderShaders {
   Paint dragSliderOverlayPaint = Paint();
 
   _VideoSliderShaders(
-      {Color? backgroundColor,
-      Color? progressColor,
-      Color? dragSliderColor,
-      Color? bufferedColor,
-      Color? drawSliderOverlayColor}) {
+      {Color? backgroundColor, Color? progressColor, Color? dragSliderColor, Color? bufferedColor, Color? drawSliderOverlayColor}) {
     backgroundPaint.color = backgroundColor ?? Colors.grey;
     bufferedPaint.color = bufferedColor ?? Colors.blueGrey;
     progressPaint.color = progressColor ?? Colors.blueAccent;
