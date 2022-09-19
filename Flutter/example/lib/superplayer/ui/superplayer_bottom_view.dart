@@ -17,7 +17,6 @@ class VideoBottomView extends StatefulWidget {
 class _VideoBottomViewState extends State<VideoBottomView> {
   static const TAG = "VideoBottomView";
 
-  double _playableProgress = 0;
   double _currentDuration = 0;
   double _videoDuration = 0;
   double _bufferedDuration = 0;
@@ -33,8 +32,11 @@ class _VideoBottomViewState extends State<VideoBottomView> {
     if (widget._playerController.isPrepared) {
       _videoDuration = widget._playerController.videoDuration;
       _currentDuration = widget._playerController.currentDuration;
+      _bufferedDuration = 0;
     } else if (null != widget._playerController.videoModel) {
       _videoDuration = widget._playerController.videoModel!.duration.toDouble();
+      _currentDuration = 0;
+      _bufferedDuration = 0;
     }
 
     _isPlayMode = (widget._playerController.playerState == SuperPlayerState.PLAYING);
@@ -179,6 +181,9 @@ class _VideoBottomViewState extends State<VideoBottomView> {
           _currentDuration = duration;
           _videoDuration = videoDuration;
           _bufferedDuration = bufferedDration;
+          if(_bufferedDuration > _videoDuration) {
+            _bufferedDuration = _videoDuration;
+          }
         });
       }
     }

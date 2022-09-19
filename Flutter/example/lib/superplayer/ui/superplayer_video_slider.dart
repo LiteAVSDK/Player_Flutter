@@ -249,6 +249,6 @@ class _VideoSliderController {
 
 void _checkRange(double value, {String? valueName}) {
   if (value < 0.0 || value > 1.0) {
-    throw ArgumentError("${valueName ?? "value"} must range in 0.0 to 1.0,please check your param");
+    throw ArgumentError("${valueName ?? "value"} must range in 0.0 to 1.0,please check your param，current is $value");
   }
 }
