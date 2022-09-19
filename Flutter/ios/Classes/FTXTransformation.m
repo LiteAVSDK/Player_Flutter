@@ -51,7 +51,7 @@
 + (TXLivePlayConfig *)transformToLiveConfig:(NSDictionary *)args
 {
     TXLivePlayConfig *playConfig = [[TXLivePlayConfig alloc] init];
-
+    
     playConfig.cacheTime = [args[@"config"][@"cacheTime"] floatValue];
     playConfig.maxAutoAdjustCacheTime = [args[@"config"][@"maxAutoAdjustCacheTime"] floatValue];
     playConfig.minAutoAdjustCacheTime = [args[@"config"][@"minAutoAdjustCacheTime"] floatValue];
@@ -63,11 +63,11 @@
     playConfig.enableMessage = [args[@"config"][@"enableMessage"] intValue];
     playConfig.enableMetaData = [args[@"config"][@"enableMetaData"] intValue];
     NSString *flvSessionKey = args[@"config"][@"flvSessionKey"];
-
+    
     if(flvSessionKey != nil && flvSessionKey.length > 0) {
         playConfig.flvSessionKey = flvSessionKey;
     }
-
+    
     return playConfig;
 }
 

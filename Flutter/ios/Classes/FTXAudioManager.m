@@ -27,7 +27,7 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
                  break;
              }
          }
-
+         
          audioSession = [AVAudioSession sharedInstance];
          [audioSession setActive:true error:nil];
      }

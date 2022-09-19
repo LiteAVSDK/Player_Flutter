@@ -154,10 +154,10 @@ static const int uninitialized = -1;
     return uninitialized;
 }
 
-- (int)startPlay:(NSString *)url type:(TX_Enum_PlayType)playType
+- (int)startLivePlay:(NSString *)url type:(TX_Enum_PlayType)playType
 {
     if (_txLivePlayer != nil) {
-        return [_txLivePlayer startPlay:url type:playType];
+        return [_txLivePlayer startLivePlay:url type:playType];
     }
     return uninitialized;
 }
@@ -292,13 +292,13 @@ static const int uninitialized = -1;
         BOOL isAutoPlay = [args[@"isAutoPlay"] boolValue];
         [self setIsAutoPlay:isAutoPlay];
         result(nil);
-    }else if([@"play" isEqualToString:call.method]){
+    }else if([@"startLivePlay" isEqualToString:call.method]){
         NSString *url = args[@"url"];
         int type = -1;
         if(![[args objectForKey:@"playType"] isEqual:[NSNull null]]){
             type = [args[@"playType"] intValue];
         }
-        int r = [self startPlay:url type:type];
+        int r = [self startLivePlay:url type:type];
         result(@(r));
     }else if([@"stop" isEqualToString:call.method]){
         BOOL r = [self stopPlay];
