@@ -245,8 +245,13 @@ class SuperPlayerController {
     });
   }
 
-  /// 播放视频
-  Future<void> playWithModel(SuperPlayerModel videoModel) async {
+  /// 播放视频.
+  /// 10.7版本开始，playWithModel变更为playWithModelNeedLicence，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
+  /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
+  /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，
+  /// 正式版 License 需[购买]
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
+  Future<void> playWithModelNeedLicence(SuperPlayerModel videoModel) async {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
     await resetPlayer();
@@ -396,10 +401,10 @@ class SuperPlayerController {
       query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
       Uri newUri = Uri(path: url, query: query);
       LogUtils.d(TAG, 'playVodURL: newurl =  ${Uri.decodeFull(newUri.toString())}  ;url=  $url');
-      await _vodPlayerController.startPlay(Uri.decodeFull(newUri.toString()));
+      await _vodPlayerController.startVodPlay(Uri.decodeFull(newUri.toString()));
     } else {
       LogUtils.d(TAG, "playVodURL url:$url");
-      await _vodPlayerController.startPlay(url);
+      await _vodPlayerController.startVodPlay(url);
     }
   }
 
@@ -459,7 +464,7 @@ class SuperPlayerController {
   void _playLiveURL(String url, int playType) async {
     _currentPlayUrl = url;
     _setLiveListener();
-    bool result = await _livePlayerController.startPlay(url, playType: playType);
+    bool result = await _livePlayerController.startLivePlay(url, playType: playType);
     if (result) {
       _updatePlayerState(SuperPlayerState.PLAYING);
     } else {
@@ -632,7 +637,7 @@ class SuperPlayerController {
         await _vodPlayerController.stop(isNeedClear: false);
         LogUtils.d(TAG, "onQualitySelect quality.url:${videoQuality.url}");
         await _vodPlayerController.setStartTime(currentTime);
-        await _vodPlayerController.startPlay(videoQuality.url);
+        await _vodPlayerController.startVodPlay(videoQuality.url);
       } else {
         LogUtils.d(TAG, "setBitrateIndex quality.index:${videoQuality.index}");
         await _vodPlayerController.setBitrateIndex(videoQuality.index);
@@ -726,7 +731,7 @@ class SuperPlayerController {
       }
     } else {
       await _vodPlayerController.enableHardwareDecode(enable);
-      await playWithModel(videoModel!);
+      await playWithModelNeedLicence(videoModel!);
     }
   }
 

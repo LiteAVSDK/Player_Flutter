@@ -197,7 +197,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   }
 
   void playCurrentModel(SuperPlayerModel model) {
-    _controller.playWithModel(model);
+    _controller.playWithModelNeedLicence(model);
   }
 
   void _getLiveListData() async {

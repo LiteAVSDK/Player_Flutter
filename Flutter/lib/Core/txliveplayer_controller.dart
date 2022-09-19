@@ -132,19 +132,22 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 参考: [PlayType.LIVE_RTMP] ...
   @deprecated
   Future<bool> play(String url, {int? playType}) async {
-    return await startPlay(url, playType: playType);
+    return await startLivePlay(url, playType: playType);
   }
 
   ///
   /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
   /// 参考: [PlayType.LIVE_RTMP] ...
-  @override
-  Future<bool> startPlay(String url, {int? playType}) async {
+  /// 10.7版本开始，startPlay变更为startLivePlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
+  /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
+  /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
+  Future<bool> startLivePlay(String url, {int? playType}) async {
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
 
-    final result = await _channel.invokeMethod("play", {"url": url, "playType": playType});
+    final result = await _channel.invokeMethod("startLivePlay", {"url": url, "playType": playType});
     return result == 0;
   }
 
