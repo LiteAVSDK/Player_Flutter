@@ -107,14 +107,27 @@ class VideoSliderState extends State<VideoSlider> {
         }
       },
       onHorizontalDragCancel: () {
-        if (widget.canDrag!) {
+        if (widget.canDrag! && isDraging) {
           isDraging = false;
           widget.onDragEnd?.call(widget.controller.progress);
         }
       },
-      onTapDown: (TapDownDetails details) {
-        if (widget.canDrag!) {
+      onVerticalDragCancel: () {
+        if (widget.canDrag! && isDraging) {
+          isDraging = false;
+          widget.onDragEnd?.call(widget.controller.progress);
+        }
+      },
+      onTapUp: (TapUpDetails details) {
+        if (widget.canDrag! && !isDraging) {
           _seekToPosition(details.globalPosition);
+          widget.onDragEnd?.call(widget.controller.progress);
+        }
+      },
+      onTapCancel: () {
+        if (widget.canDrag!) {
+          isDraging = false;
+          widget.onDragEnd?.call(widget.controller.progress);
         }
       },
       child: Center(
