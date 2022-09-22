@@ -558,12 +558,12 @@ class SuperPlayerController {
 
   void _updatePlayerUIStatus(int status) {
     if (_playerUIStatus != status) {
-      _playerUIStatus = status;
       if (status == SuperPlayerUIStatus.FULLSCREEN_MODE) {
         _addSimpleEvent(SuperPlayerViewEvent.onStartFullScreenPlay);
-      } else {
+      } else if(_playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
         _addSimpleEvent(SuperPlayerViewEvent.onStopFullScreenPlay);
       }
+      _playerUIStatus = status;
     }
   }
 
@@ -656,6 +656,7 @@ class SuperPlayerController {
   /// seek 到需要的时间点进行播放
   Future<void> seek(double progress) async {
     if (playerType == SuperPlayerType.VOD) {
+      _needToPause = false;
       await _vodPlayerController.seek(progress);
       bool isPlaying = await _vodPlayerController.isPlaying();
       // resume when not playing.if isPlaying is null,not resume
