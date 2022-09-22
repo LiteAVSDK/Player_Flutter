@@ -84,8 +84,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       }
     });
     // only register listen once
-    _pipSubscription =
-        SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+    _pipSubscription = SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
         // exit floatingMode
@@ -96,9 +95,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
             _playController.getCurrentController().pause();
           }
         } else if (Platform.isIOS) {
+          _onResume();
           EasyLoading.dismiss();
         }
         _isFloatingMode = false;
+        _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
         // EVENT_PIP_MODE_ALREADY_ENTER 的状态变化有滞后性，进入PIP之后才会通知，这里需要监听EVENT_PIP_MODE_REQUEST_START,
         // 在即将进入PIP模式下就要开始进行PIP模式的UI准备
@@ -111,6 +112,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           EasyLoading.showToast(StringResource.OPEN_PIP);
         }
         _isFloatingMode = true;
+        _playController._updatePlayerUIStatus(SuperPlayerUIStatus.PIP_MODE);
       } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_ENTER) {
         if (Platform.isIOS) {
           EasyLoading.dismiss();
@@ -124,11 +126,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           EasyLoading.showToast(StringResource.ERROR_PIP);
         }
         _isFloatingMode = false;
+        _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
         print('$eventCode');
       }
     });
-    _volumeSubscription =
-        SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+    _volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (_isFloatingMode && _isPlaying) {
         if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PAUSE) {
