@@ -35,11 +35,11 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 public class FTXPIPManager {
     private final static String TAG = "FTXPIPManager";
 
-    private       boolean                   isRegisterReceiver = false;
-    private final Map<Integer, PipCallback> pipCallbacks       = new HashMap<>();
+    private boolean isRegisterReceiver = false;
+    private final Map<Integer, PipCallback> pipCallbacks = new HashMap<>();
 
     FTXAudioManager mTxAudioManager;
-    private Activity                    mActivity;
+    private Activity mActivity;
     private FlutterPlugin.FlutterAssets mFlutterAssets;
 
     private final BroadcastReceiver pipActionReceiver = new BroadcastReceiver() {
@@ -66,8 +66,8 @@ public class FTXPIPManager {
 
     /**
      * @param mTxAudioManager 音频管理，用于画中画模式下请求音频焦点
-     * @param mActivity activity
-     * @param flutterAssets flutter资源管理
+     * @param mActivity       activity
+     * @param flutterAssets   flutter资源管理
      */
     public FTXPIPManager(FTXAudioManager mTxAudioManager,
                          Activity mActivity, FlutterPlugin.FlutterAssets flutterAssets) {
@@ -112,7 +112,7 @@ public class FTXPIPManager {
                     params.mPipParams = new PictureInPictureParams.Builder();
                     updatePipActions(isPlaying, params);
                     boolean enterResult = mActivity.enterPictureInPictureMode(params.mPipParams.build());
-                    if(!enterResult) {
+                    if (!enterResult) {
                         pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
                     }
                 } else {
@@ -133,7 +133,7 @@ public class FTXPIPManager {
                 if (!isSuccess) {
                     pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
                     Log.e(TAG, "enterPip failed,because PIP feature is disabled");
-                } else if(!hasPipPermission()) {
+                } else if (!hasPipPermission()) {
                     pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
                     Log.e(TAG, "enterPip failed,because PIP has no permission");
                 }
@@ -153,7 +153,7 @@ public class FTXPIPManager {
         AppOpsManager appOpsManager = (AppOpsManager) mActivity.getSystemService(Context.APP_OPS_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             int permissionResult = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                    android.os.Process.myUid(),mActivity.getPackageName());
+                    android.os.Process.myUid(), mActivity.getPackageName());
             return permissionResult == AppOpsManager.MODE_ALLOWED;
         } else {
             return false;
@@ -184,16 +184,24 @@ public class FTXPIPManager {
     }
 
     private void initPipReceiver() {
-        if (!isRegisterReceiver) {
-            IntentFilter pipIntentFilter = new IntentFilter(FTXEvent.ACTION_PIP_PLAY_CONTROL);
-            mActivity.registerReceiver(pipActionReceiver, pipIntentFilter);
-            isRegisterReceiver = true;
+        try {
+            if (!isRegisterReceiver) {
+                IntentFilter pipIntentFilter = new IntentFilter(FTXEvent.ACTION_PIP_PLAY_CONTROL);
+                mActivity.registerReceiver(pipActionReceiver, pipIntentFilter);
+                isRegisterReceiver = true;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
         }
     }
 
     public void releaseReceiver() {
-        if(isRegisterReceiver) {
-            mActivity.unregisterReceiver(pipActionReceiver);
+        try {
+            if (isRegisterReceiver) {
+                mActivity.unregisterReceiver(pipActionReceiver);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
         }
     }
 
@@ -209,7 +217,7 @@ public class FTXPIPManager {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             List<RemoteAction> actions = new ArrayList<>();
             // play back
-            if(params.mIsNeedPlayBack) {
+            if (params.mIsNeedPlayBack) {
                 Bundle backData = new Bundle();
                 backData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_BACK);
                 backData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
@@ -221,7 +229,7 @@ public class FTXPIPManager {
             }
 
             // resume or pause
-            if(params.mIsNeedPlayControl) {
+            if (params.mIsNeedPlayControl) {
                 Bundle playOrPauseData = new Bundle();
                 playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
                 playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE);
@@ -235,7 +243,7 @@ public class FTXPIPManager {
             }
 
             // forward
-            if(params.mIsNeedPlayForward) {
+            if (params.mIsNeedPlayForward) {
                 Bundle forwardData = new Bundle();
                 forwardData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_FORWARD);
                 forwardData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, params.mCurrentPlayerId);
@@ -290,18 +298,18 @@ public class FTXPIPManager {
         String mPlayResumeAssetPath;
         String mPlayPauseAssetPath;
         String mPlayForwardAssetPath;
-        int    mCurrentPlayerId;
+        int mCurrentPlayerId;
         protected PictureInPictureParams.Builder mPipParams;
-        private   boolean                        mIsNeedPlayBack    = true;
-        private   boolean                        mIsNeedPlayForward = true;
-        private   boolean                        mIsNeedPlayControl = true;
+        private boolean mIsNeedPlayBack = true;
+        private boolean mIsNeedPlayForward = true;
+        private boolean mIsNeedPlayControl = true;
 
         /**
-         * @param mPlayBackAssetPath 回退按钮图片资源路径，传空则使用系统默认图标
-         * @param mPlayResumeAssetPath 播放按钮图片资源路径，传空则使用系统默认图标
-         * @param mPlayPauseAssetPath 暂停按钮图片资源路径，传空则使用系统默认图标
+         * @param mPlayBackAssetPath    回退按钮图片资源路径，传空则使用系统默认图标
+         * @param mPlayResumeAssetPath  播放按钮图片资源路径，传空则使用系统默认图标
+         * @param mPlayPauseAssetPath   暂停按钮图片资源路径，传空则使用系统默认图标
          * @param mPlayForwardAssetPath 前进按钮图片资源路径，传空则使用系统默认图标
-         * @param mCurrentPlayerId 播放器id
+         * @param mCurrentPlayerId      播放器id
          */
         public PipParams(String mPlayBackAssetPath, String mPlayResumeAssetPath, String mPlayPauseAssetPath,
                          String mPlayForwardAssetPath, int mCurrentPlayerId) {
