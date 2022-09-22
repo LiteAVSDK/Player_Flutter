@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.flutter.Log;
+import android.util.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 
 /**
@@ -191,7 +191,7 @@ public class FTXPIPManager {
                 isRegisterReceiver = true;
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.getStackTraceString(e);
         }
     }
 
@@ -201,7 +201,7 @@ public class FTXPIPManager {
                 mActivity.unregisterReceiver(pipActionReceiver);
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.getStackTraceString(e);
         }
     }
 
