@@ -192,7 +192,9 @@ public class FTXPIPManager {
     }
 
     public void releaseReceiver() {
-        mActivity.unregisterReceiver(pipActionReceiver);
+        if(isRegisterReceiver) {
+            mActivity.unregisterReceiver(pipActionReceiver);
+        }
     }
 
     /**
