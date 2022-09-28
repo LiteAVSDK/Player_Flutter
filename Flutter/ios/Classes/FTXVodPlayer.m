@@ -729,15 +729,15 @@ BOOL volatile isStop = false;
         } else {
             dispatch_async(dispatch_get_main_queue(), ^{
                 if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
-                    [self->_txVodPlayer resume];
+                    [player exitPictureInPicture];
                 }
-                [player removeVideoWidget];
                 [self->_txPipView removeFromSuperview];
                 self->_txPipView = nil;
+                
+                if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
+                    [self.delegate onPlayerPipStateDidStop];
+                }
             });
-        }
-        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
-            [self.delegate onPlayerPipStateDidStop];
         }
     }
     
