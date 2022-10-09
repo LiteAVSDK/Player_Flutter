@@ -88,6 +88,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
             videoBottom = event["videoBottom"];
           }
         }
+        value = _value!.copyWith(degree: map['EVT_KEY_VIDEO_ROTATION'] ?? 0);
         break;
       case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: //点播加载完成
         break;
@@ -427,6 +428,11 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     }
 
     super.dispose();
+  }
+  
+  @override
+  TXPlayerValue? playerValue () {
+    return _value;
   }
 
   @override
