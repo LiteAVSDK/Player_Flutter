@@ -31,7 +31,6 @@
         _eventSink = [FTXPlayerEventSinkQueue new];
         _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/txvodplayer/download/event" binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
-        NSLog(@"dokie initWithRegistrar");
         [[TXVodDownloadManager shareInstance] setDelegate:self];
         // 设置下载存储路径
         NSString *cachesDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];

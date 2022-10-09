@@ -377,4 +377,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   double? videoTop = 0;
   double? videoRight = 0;
   double? videoBottom = 0;
+
+  @override
+  TXPlayerValue? playerValue() {
+    return _value;
+  }
 }

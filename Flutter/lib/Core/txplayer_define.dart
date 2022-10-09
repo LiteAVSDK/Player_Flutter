@@ -4,12 +4,24 @@ part of SuperPlayer;
 class TXPlayerValue {
   final TXPlayerState state;
 
-  TXPlayerValue.uninitialized() : this(state: TXPlayerState.stopped);
+  /// 当前视频纹理的旋转角度
+  final int degree;
 
-  TXPlayerValue({required this.state});
+  TXPlayerValue.uninitialized() : this();
 
-  TXPlayerValue copyWith({TXPlayerState? state}) {
-    return TXPlayerValue(state: state ?? this.state);
+  TXPlayerValue({
+    this.state = TXPlayerState.stopped,
+    this.degree = 0,
+  });
+
+  TXPlayerValue copyWith({
+    TXPlayerState? state,
+    int? degree,
+  }) {
+    return TXPlayerValue(
+      state: state ?? this.state,
+      degree: degree ?? this.degree
+    );
   }
 }
 
