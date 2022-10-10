@@ -115,6 +115,14 @@
         TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
         NSDictionary *resultDic = [self buildMapFromDownloadMediaInfo:mediaInfo];
         result(resultDic);
+    } else if([@"deleteDownloadMediaInfo" isEqualToString:call.method]) {
+        NSNumber *quality = args[@"quality"];
+        NSString *videoUrl = args[@"url"];
+        NSNumber *appIdNum = args[@"appId"];
+        NSString *fileId = args[@"fileId"];
+        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
+        [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
+        result(@(TRUE));
     }
 }
 
