@@ -4,12 +4,24 @@ part of SuperPlayer;
 class TXPlayerValue {
   final TXPlayerState state;
 
-  TXPlayerValue.uninitialized() : this(state: TXPlayerState.stopped);
+  /// 当前视频纹理的旋转角度
+  final int degree;
 
-  TXPlayerValue({required this.state});
+  TXPlayerValue.uninitialized() : this();
 
-  TXPlayerValue copyWith({TXPlayerState? state}) {
-    return TXPlayerValue(state: state ?? this.state);
+  TXPlayerValue({
+    this.state = TXPlayerState.stopped,
+    this.degree = 0,
+  });
+
+  TXPlayerValue copyWith({
+    TXPlayerState? state,
+    int? degree,
+  }) {
+    return TXPlayerValue(
+      state: state ?? this.state,
+      degree: degree ?? this.degree
+    );
   }
 }
 
@@ -63,6 +75,7 @@ abstract class TXVodPlayEvent {
   static const PLAY_WARNING_SHAKE_FAIL = 3003; // RTMP 服务器握手失败（仅播放 RTMP 地址时会抛送）
   static const PLAY_WARNING_READ_WRITE_FAIL = 3005; // RTMP 读/写失败
   static const PLAY_WARNING_SPEAKER_DEVICE_ABNORMAL = 1205; // 播放设备异常
+  static const VOD_PLAY_EVT_SEEK_COMPLETE = 2019; // Seek 完成
 
   static const EVT_UTC_TIME = "EVT_UTC_TIME"; // UTC时间
   static const EVT_BLOCK_DURATION = "EVT_BLOCK_DURATION"; // 卡顿时间

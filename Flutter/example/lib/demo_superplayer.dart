@@ -29,9 +29,22 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
       fontSize: 16, color: Colors.grey
   );
 
+  void aa() async {
+
+    // List<TXVodDownloadMedialnfo> downloadInfoList = await TXVodDownloadController.instance.getDownloadList();
+    // bool result = await TXVodDownloadController.instance.deleteDownloadMediaInfo(medialnfo);
+
+  }
+
   @override
   void initState() {
     super.initState();
+
+    TXVodDownloadMedialnfo medialnfo = TXVodDownloadMedialnfo();
+    medialnfo.url = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/00eb06a88602268011437356984/video_10_0.m3u8";
+    TXVodDownloadController.instance.startDonwload(medialnfo);
+
+
     _controller = SuperPlayerController(context);
     FTXVodPlayConfig config = FTXVodPlayConfig();
     // 如果不配置preferredResolution，则在播放多码率视频的时候优先播放720 * 1280分辨率的码率
@@ -290,7 +303,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   @override
   void dispose() {
     // must invoke when page exit.
-    _controller.releasePlayer();
+    // _controller.releasePlayer();
     simpleEventSubscription?.cancel();
     // restore page brightness
     SuperPlayerPlugin.restorePageBrightness();

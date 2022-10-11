@@ -65,12 +65,12 @@ class SuperPlayerPlugin {
   }
 
   /// 开关log输出
-  static Future<int?> setConsoleEnabled(bool enabled) async {
+  static Future<void> setConsoleEnabled(bool enabled) async {
     return await _channel.invokeMethod('setConsoleEnabled', {"enabled": enabled});
   }
 
   /// 释放播放器资源
-  static Future<int?> releasePlayer(int? playerId) async {
+  static Future<void> releasePlayer(int? playerId) async {
     return await _channel.invokeMethod('releasePlayer', {"playerId": playerId});
   }
 
@@ -131,12 +131,12 @@ class SuperPlayerPlugin {
   }
 
   /// 释放音频焦点，只用于安卓端
-  static Future<double> abandonAudioFocus() async {
+  static Future<void> abandonAudioFocus() async {
     return await _channel.invokeMethod("abandonAudioFocus");
   }
 
   /// 请求获得音频焦点，只用于安卓端
-  static Future<double> requestAudioFocus() async {
+  static Future<void> requestAudioFocus() async {
     return await _channel.invokeMethod("requestAudioFocus");
   }
 

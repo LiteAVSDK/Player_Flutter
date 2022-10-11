@@ -9,6 +9,7 @@ abstract class TXPlayerController {
   double? get videoTop;
   double? get videoRight;
   double? get videoBottom;
+  TXPlayerValue? playerValue();
 
   Future<void> initialize({bool? onlyAudio});
   Future<void> setAutoPlay({bool? isAutoPlay});

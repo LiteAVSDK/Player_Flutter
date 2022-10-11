@@ -107,6 +107,11 @@ class TXVodDownloadController {
     _downlodOnErrorListener = downlodOnErrorListener;
   }
 
+  /// 删除下载任务
+  Future<bool> deleteDownloadMediaInfo(TXVodDownloadMedialnfo medialnfo) async {
+    return await _methodChannel.invokeMethod("deleteDownloadMediaInfo", medialnfo.toJson());
+  }
+
   TXVodDownloadMedialnfo _getDownloadInfoFromMap(Map<dynamic, dynamic> map) {
     TXVodDownloadMedialnfo medialnfo = TXVodDownloadMedialnfo();
     medialnfo.playPath = map["playPath"];
