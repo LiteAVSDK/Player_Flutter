@@ -84,7 +84,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       }
     });
     // only register listen once
-    _pipSubscription = SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+    _pipSubscription =
+        SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
         // exit floatingMode
@@ -130,7 +131,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         print('$eventCode');
       }
     });
-    _volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+    _volumeSubscription =
+        SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (_isFloatingMode && _isPlaying) {
         if (eventCode == TXVodPlayEvent.EVENT_AUDIO_FOCUS_PAUSE) {

@@ -84,7 +84,17 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
         );
       });
     } else {
-      return _textureId == -1 ? Container() : Texture(textureId: _textureId);
+      return _textureId == -1 ? Container() : _buildRotate();
+    }
+  }
+
+  Widget _buildRotate() {
+    var degree = widget.controller.playerValue()?.degree;
+    var quarterTurns = ( degree! / 90).floor();
+    if (quarterTurns == 0 || !Platform.isIOS) {
+      return Texture(textureId: _textureId);
+    } else {
+      return RotatedBox(quarterTurns: quarterTurns, child: Texture(textureId: _textureId));
     }
   }
 

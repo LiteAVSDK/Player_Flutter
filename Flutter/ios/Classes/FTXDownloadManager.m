@@ -31,7 +31,6 @@
         _eventSink = [FTXPlayerEventSinkQueue new];
         _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/txvodplayer/download/event" binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
-        NSLog(@"dokie initWithRegistrar");
         [[TXVodDownloadManager shareInstance] setDelegate:self];
         // 设置下载存储路径
         NSString *cachesDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
@@ -115,6 +114,14 @@
         TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
         NSDictionary *resultDic = [self buildMapFromDownloadMediaInfo:mediaInfo];
         result(resultDic);
+    } else if([@"deleteDownloadMediaInfo" isEqualToString:call.method]) {
+        NSNumber *quality = args[@"quality"];
+        NSString *videoUrl = args[@"url"];
+        NSNumber *appIdNum = args[@"appId"];
+        NSString *fileId = args[@"fileId"];
+        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
+        [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
+        result(@(TRUE));
     }
 }
 

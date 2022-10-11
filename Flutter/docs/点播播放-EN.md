@@ -541,8 +541,8 @@ _controller.setConfig(config);
 | progressInterval | int | Progress callback interval in ms. If it is not set, the SDK will call back the progress once every 0.5 seconds |
 | maxBufferSize | int | Maximum size of playback buffer in MB. The setting will affect `playableDuration`. The greater the value, the more the data that is buffered in advance |
 | maxPreloadSize | int | Maximum preload buffer size in MB |
-| firstStartPlayBufferTime | int | Duration of the video data that needs to be loaded during the first buffering in ms. Default value: 100 ms |
-| nextStartPlayBufferTime | int | Minimum buffered data size to stop buffering (secondary buffering for insufficient buffered data or progress bar drag buffering caused by `seek`) in ms. Default value: 250 ms |
+| firststartVodPlayBufferTime | int | Duration of the video data that needs to be loaded during the first buffering in ms. Default value: 100 ms |
+| nextstartVodPlayBufferTime | int | Minimum buffered data size to stop buffering (secondary buffering for insufficient buffered data or progress bar drag buffering caused by `seek`) in ms. Default value: 250 ms |
 | overlayKey | String | HLS security hardening encryption and decryption key |
 | overlayIv | String | HLS security hardening encryption and decryption IV |
 | extInfoMap | Map | Some special configuration items |

@@ -123,6 +123,14 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
             String fileId = call.argument("fileId");
             TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId);
             result.success(buildMapFromDownloadMediaInfo(mediaInfo));
+        } else if (call.method.equals("deleteDownloadMediaInfo")) {
+            Integer quality = call.argument("quality");
+            String videoUrl = call.argument("url");
+            Integer appId = call.argument("appId");
+            String fileId = call.argument("fileId");
+            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId);
+            boolean deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
+            result.success(deleteResult);
         }
     }
 
