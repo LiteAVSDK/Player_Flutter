@@ -415,6 +415,32 @@ static Future<int> setGlobalEnv(String envConfig) async;
 | ------ | ------ | ------------------ |
 | result | int | 1 设置成功， 2 设置失败 |
 
+### startVideoOrientationService
+
+**说明**
+
+开始监听设备旋转方向，开启之后，如果设备自动旋转打开，播放器会自动根据当前设备方向来旋转视频方向。
+该接口目前只适用安卓端，IOS端会自动开启该能力。
+
+**注意**
+
+在调用该接口前，请务必向用户告知隐私风险。
+
+**接口**
+
+```dart
+static Future<bool> startVideoOrientationService() async
+```
+
+**参数说明**
+
+无
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| result | bool | true  开启成功,false  开启失败，如开启过早，还未等到上下文初始化、获取sensor失败等原因 |
 
 
 ## TXVodPlayerController类
