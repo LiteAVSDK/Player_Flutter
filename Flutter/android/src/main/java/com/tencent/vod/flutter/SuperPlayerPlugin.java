@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.OrientationEventListener;
 import android.view.Window;
@@ -95,32 +96,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
                 mEventSink.setEventSinkProxy(null);
             }
         });
-        mFTXDownloadManager = new FTXDownloadManager(mFlutterPluginBinding);
-        mOrientationManager = new OrientationEventListener(flutterPluginBinding.getApplicationContext()) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                if (isAutoRotateOn()) {
-                    int orientationEvent = mCurrentOrientation;
-                    // 每个方向判断当前方向正负30度，共计60度的区间
-                    if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
-                        orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
-                    } else if (orientation > 240 && orientation < 300) {
-                        orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_RIGHT;
-                    } else if (orientation > 150 && orientation < 210) {
-                        orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_DOWN;
-                    } else if (orientation > 60 && orientation < 110) {
-                        orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_LEFT;
-                    }
-                    if (orientationEvent != mCurrentOrientation) {
-                        mCurrentOrientation = orientationEvent;
-                        Bundle bundle = new Bundle();
-                        bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
-                        mEventSink.success(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle));
-                    }
-                }
-            }
-        };
-        mOrientationManager.enable();
+        mFTXDownloadManager = new FTXDownloadManager(flutterPluginBinding);
     }
 
     @Override
@@ -214,9 +190,51 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             String envConfig = call.argument("envConfig");
             int setResult = TXLiveBase.setGlobalEnv(envConfig);
             result.success(setResult);
+        } else if(call.method.equals("startVideoOrientationService")) {
+            boolean setResult = startVideoOrientationService();
+            result.success(setResult);
         } else {
             result.notImplemented();
         }
+    }
+
+    private boolean startVideoOrientationService() {
+        if(null == mFlutterPluginBinding) {
+            return false;
+        }
+        if(null == mOrientationManager) {
+           try{
+               mOrientationManager = new OrientationEventListener(mFlutterPluginBinding.getApplicationContext()) {
+                   @Override
+                   public void onOrientationChanged(int orientation) {
+                       if (isAutoRotateOn()) {
+                           int orientationEvent = mCurrentOrientation;
+                           // 每个方向判断当前方向正负30度，共计60度的区间
+                           if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
+                               orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
+                           } else if (orientation > 240 && orientation < 300) {
+                               orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_RIGHT;
+                           } else if (orientation > 150 && orientation < 210) {
+                               orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_DOWN;
+                           } else if (orientation > 60 && orientation < 110) {
+                               orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_LEFT;
+                           }
+                           if (orientationEvent != mCurrentOrientation) {
+                               mCurrentOrientation = orientationEvent;
+                               Bundle bundle = new Bundle();
+                               bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
+                               mEventSink.success(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle));
+                           }
+                       }
+                   }
+               };
+               mOrientationManager.enable();
+           } catch (Exception e) {
+               Log.getStackTraceString(e);
+               return false;
+           }
+        }
+        return true;
     }
 
     private void initAudioManagerIfNeed() {
@@ -238,6 +256,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         channel.setMethodCallHandler(null);
         mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
+        if (null != mOrientationManager) {
+            mOrientationManager.disable();
+        }
     }
 
     @Override
@@ -261,9 +282,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         if (null != mTxPipManager) {
             mTxPipManager.releaseReceiver();
         }
-        if (null != mOrientationManager) {
-            mOrientationManager.disable();
-        }
         unregisterReceiver();
     }
 
@@ -282,9 +300,14 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
      */
     protected boolean isAutoRotateOn() {
         //获取系统是否允许自动旋转屏幕
-        return (android.provider.Settings.System.getInt(
-                mFlutterPluginBinding.getApplicationContext().getContentResolver(),
-                Settings.System.ACCELEROMETER_ROTATION, 0) == 1);
+        try{
+            return (android.provider.Settings.System.getInt(
+                    mFlutterPluginBinding.getApplicationContext().getContentResolver(),
+                    Settings.System.ACCELEROMETER_ROTATION, 0) == 1);
+        } catch (Exception e) {
+            Log.getStackTraceString(e);
+            return false;
+        }
     }
 
     /**

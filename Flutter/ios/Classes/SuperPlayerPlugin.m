@@ -192,6 +192,9 @@ SuperPlayerPlugin* instance;
         NSString *envConfig = call.arguments[@"envConfig"];
         int setResult = [TXLiveBase setGlobalEnv:[envConfig UTF8String]];
         result(@(setResult));
+    } else if([@"startVideoOrientationService" isEqualToString:call.method]) {
+        // only for android
+        result(nil);
     } else {
         result(FlutterMethodNotImplemented);
     }
