@@ -166,4 +166,16 @@ class SuperPlayerPlugin {
   static Future<int> setGlobalEnv(String envConfig) async {
     return await _channel.invokeMethod("setGlobalEnv", {"envConfig": envConfig});
   }
+
+  ///
+  /// 开始监听设备旋转方向，开启之后，如果设备自动旋转打开，播放器会自动根据当前设备方向来旋转视频方向。
+  /// <h1>该接口目前只适用安卓端，IOS端会自动开启该能力</h1>
+  /// 在调用该接口前，请务必向用户告知隐私风险。
+  /// 如有需要，请确认是否有获取旋转sensor的权限。
+  /// @return true : 开启成功
+  ///         false : 开启失败，如开启过早，还未等到上下文初始化、获取sensor失败等原因
+  static Future<bool> startVideoOrientationService() async {
+    return await _channel.invokeMethod("startVideoOrientationService");
+  }
+
 }
