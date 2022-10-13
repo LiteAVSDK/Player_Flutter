@@ -293,7 +293,7 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
   @override
   void dispose() {
     // must invoke when page exit.
-    // _controller.releasePlayer();
+    _controller.releasePlayer();
     simpleEventSubscription?.cancel();
     // restore page brightness
     SuperPlayerPlugin.restorePageBrightness();
