@@ -194,7 +194,7 @@ SuperPlayerPlugin* instance;
         result(@(setResult));
     } else if([@"startVideoOrientationService" isEqualToString:call.method]) {
         // only for android
-        result(nil);
+        result(@(true));
     } else {
         result(FlutterMethodNotImplemented);
     }
