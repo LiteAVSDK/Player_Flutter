@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
+import 'package:super_player_example/shortvideo/demo_short_video_lib.dart';
 
 import 'ui/treePage.dart';
 
@@ -105,5 +106,11 @@ class _MyAppState extends State<MyApp> {
       ),
       builder: EasyLoading.init(),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    EventBusUtils.getInstance().destroy();
   }
 }

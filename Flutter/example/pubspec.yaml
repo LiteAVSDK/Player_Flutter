@@ -12,6 +12,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  event_bus: ^2.0.0
 
   auto_orientation: ^2.2.1
 

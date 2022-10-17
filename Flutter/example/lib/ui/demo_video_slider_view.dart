@@ -11,16 +11,16 @@ class VideoSliderView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return VideoSliderState();
+    return VideoSliderViewState();
   }
 }
 
-class VideoSliderState extends State<VideoSliderView> {
+class VideoSliderViewState extends State<VideoSliderView> {
 
   double _currentProgress = 0.0;
   double _videoDuration = 0.0;
 
-  bool isSliding = false;
+  bool _isSliding = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +40,14 @@ class VideoSliderState extends State<VideoSliderView> {
           max: 1,
           value: _currentProgress,
           onChanged: (double value) {
-            isSliding = true;
+            _isSliding = true;
             setState(() {
               _currentProgress = value;
             });
           },
           onChangeEnd: (double value) {
             setState(() {
-              isSliding = false;
+              _isSliding = false;
               _currentProgress = value;
               if (widget._controller is TXVodPlayerController) {
                 TXVodPlayerController controller = widget._controller as TXVodPlayerController;
@@ -64,8 +64,8 @@ class VideoSliderState extends State<VideoSliderView> {
         ));
   }
 
-  void updatePorgess(double progress,double totalDuration) {
-    if(!isSliding) {
+  void updateProgress(double progress,double totalDuration) {
+    if(!_isSliding) {
       setState(() {
         if(progress > 1.0) {
           progress = 1.0;

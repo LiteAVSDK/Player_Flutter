@@ -6,6 +6,7 @@ import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/demo_txLiveplayer.dart';
 import 'package:super_player_example/demo_txvodplayer.dart';
 
+import '../demo_short_video_player.dart';
 import 'demo_define.dart';
 
 class TreePage extends StatefulWidget {
@@ -43,6 +44,7 @@ class _TreePageState extends State<TreePage> {
         TreeDatachild("直播播放"),
         TreeDatachild("点播播放"),
         TreeDatachild("播放器组件"),
+        TreeDatachild("短视频播放")
       ], "播放器", false),
     ];
   }
@@ -84,7 +86,7 @@ class _TreePageState extends State<TreePage> {
                 },
                 //展开内容
                 body: Container(
-                  height: 200,
+                  height: 250,
                   padding: EdgeInsets.symmetric(horizontal: 5.0),
                   child: ListView.builder(
                     itemCount: treeData.children.length,
@@ -133,8 +135,10 @@ class _TreePageState extends State<TreePage> {
                 return DemoTXLivePlayer();
               }else if (i == 1) {
                 return DemoTXVodPlayer();
-              } else {
+              } else if (i==2){
                 return DemoSuperplayer();
+              } else {
+                return DemoShortVideoPlayer();
               }
             }
           ),

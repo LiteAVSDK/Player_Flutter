@@ -28,7 +28,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   StreamSubscription? playNetEventSubscription;
   StreamSubscription? playerStateEventSubscription;
 
-  GlobalKey<VideoSliderState> progressSliderKey = GlobalKey();
+  GlobalKey<VideoSliderViewState> progressSliderKey = GlobalKey();
 
   Future<void> init() async {
     if (!mounted) return;
@@ -40,7 +40,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
         _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
-        progressSliderKey.currentState?.updatePorgess(1, _maxLiveProgressTime);
+        progressSliderKey.currentState?.updateProgress(1, _maxLiveProgressTime);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN ||
           event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         //首帧出现
@@ -90,7 +90,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   void initState() {
     super.initState();
     init();
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance?.addObserver(this);
     EasyLoading.show(status: 'loading...');
   }
 
@@ -291,7 +291,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     playNetEventSubscription?.cancel();
     _controller.dispose();
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance?.removeObserver(this);
     EasyLoading.dismiss();
   }
 
