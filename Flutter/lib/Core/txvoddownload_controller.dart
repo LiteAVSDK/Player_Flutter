@@ -145,17 +145,17 @@ class TXVodDownloadController {
     int eventCode = map["event"];
     switch (eventCode) {
       case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_COMPLETE:
-        int taskId = map['taskId'] as int;
-        String url = map['url'] as String;
+        int taskId = map['taskId'];
+        String url = map['url'];
         LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_COMPLETE, taskID=${taskId} ,url=${url}');
         if (_onPreDownloadOnCompleteListener != null) {
           _onPreDownloadOnCompleteListener!(taskId, url);
         }
         break;
       case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_ERROR:
-        int taskId = map['taskId'] as int;
-        String url = map['url'] as String;
-        int code = map['code'] as int;
+        int taskId = map['taskId'];
+        String url = map['url'];
+        int code = map['code'] ?? 0;
         String msg = map['msg'] ?? '';
         LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_ERROR, taskID=${taskId} ,url=${url}, code=${code} , msg=${msg}');
         if (_onPreDownloadOnErrorListener != null) {

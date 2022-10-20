@@ -72,7 +72,7 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
 
                         @Override
                         public void onError(int taskID, String url, int code, String msg) {
-                            onErrorEvent(taskID, url, msg);
+                            onErrorEvent(taskID, url, code, msg);
                         }
                     });
             result.success(retTaskID);
@@ -141,9 +141,10 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
         sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
     }
 
-    private void onErrorEvent(int taskId, String url, String msg) {
+    private void onErrorEvent(int taskId, String url, int code, String msg) {
         Bundle bundle = new Bundle();
         bundle.putInt("taskId", taskId);
+        bundle.putInt("code", code);
         bundle.putString("url", url);
         bundle.putString("msg", msg);
         sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_ERROR, bundle));
