@@ -57,12 +57,11 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler{
                     onCompleteEvent(taskID,url);
                 }
 
-                @Override
-                public void onError(int taskID, String url, int code, String msg) {
-                    onErrorEvent(taskID, url, msg);
-                }
-
-            });
+                        @Override
+                        public void onError(int taskID, String url, int code, String msg) {
+                            onErrorEvent(taskID, url, code, msg);
+                        }
+                    });
             result.success(retTaskID);
         } else if (call.method.equals("stopPreLoad")) {
             final TXVodPreloadManager downloadManager = TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
@@ -79,9 +78,10 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler{
         sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
     }
 
-    private void onErrorEvent(int taskId, String url, String msg) {
+    private void onErrorEvent(int taskId, String url, int code, String msg) {
         Bundle bundle = new Bundle();
         bundle.putInt("taskId", taskId);
+        bundle.putInt("code", code);
         bundle.putString("url", url);
         bundle.putString("msg", msg);
         sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_ERROR, bundle));

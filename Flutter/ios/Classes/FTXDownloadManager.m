@@ -113,7 +113,7 @@
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     [dict setObject:@(taskID) forKey:@"taskId"];
     [dict setObject:url forKey:@"url"];
-    [dict setObject:@(error.code) forKey:@"code"];
+    [dict setObject:error.code forKey:@"code"];
     if (nil != error.userInfo.description) {
         [dict setObject:error.userInfo.description forKey:@"msg"];
     }
