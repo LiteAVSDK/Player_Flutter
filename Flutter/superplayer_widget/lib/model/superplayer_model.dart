@@ -141,3 +141,9 @@ class SuperPlayerVideoId {
   String fileId = ""; // 腾讯云视频fileId
   String psign = ""; // v4 开启防盗链必填
 }
+
+/// 进度条打点信息
+class SliderPoint {
+  Color pointColor = Colors.white;
+  double progress = 0;
+}

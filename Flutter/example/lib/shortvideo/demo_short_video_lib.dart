@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:super_player/super_player.dart';
-import 'package:super_player_example/superplayer/demo_superplayer_lib.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'package:super_player_example/ui/demo_video_slider_view.dart';
 import 'package:event_bus/event_bus.dart';
 

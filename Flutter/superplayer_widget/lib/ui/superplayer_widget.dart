@@ -1,7 +1,7 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
-final double topBottomOffset = 0;
+const topBottomOffset = 0.0;
 int manualOrientationDirection = TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT;
 FullScreenController _fullScreenController = FullScreenController();
 
@@ -9,14 +9,14 @@ FullScreenController _fullScreenController = FullScreenController();
 class SuperPlayerView extends StatefulWidget {
   final SuperPlayerController _controller;
 
-  SuperPlayerView(this._controller, {Key? viewKey}) : super(key: viewKey);
+  const SuperPlayerView(this._controller, {Key? viewKey}) : super(key: viewKey);
 
   @override
   State<StatefulWidget> createState() => SuperPlayerViewState();
 }
 
 class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObserver {
-  static final int _controlViewShowTime = 7000;
+  static const _controlViewShowTime = 7000;
   static const TAG = "SuperPlayerViewState";
 
   late SuperPlayerController _playController;
@@ -32,28 +32,32 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   double _videoHeight = 0;
 
   bool _isShowControlView = false;
-  bool _isShowQualityView = false;
   bool _isShowQualityListView = false;
 
-  late _BottomViewController _bottomViewController;
-  late _QualityListViewController _qualitListViewController;
+  late BottomViewController _bottomViewController;
+  late QualityListViewController _qualitListViewController;
   late _VideoTitleController _titleViewController;
   late _SuperPlayerFullScreenController _superPlayerFullUIController;
-  late _CoverViewController _coverViewController;
-  late _MoreViewController _moreViewController;
+  late CoverViewController _coverViewController;
+  late MoreViewController _moreViewController;
 
   StreamSubscription? _volumeSubscription;
   StreamSubscription? _pipSubscription;
 
   /// init
-  Timer _controlViewTimer = Timer(Duration(milliseconds: _controlViewShowTime), () {});
+  Timer _controlViewTimer = Timer(const Duration(milliseconds: _controlViewShowTime), () {});
 
-  GlobalKey<_VideoBottomViewState> _videoBottomKey = GlobalKey();
-  GlobalKey<_QualityListViewState> _qualityListKey = GlobalKey();
-  GlobalKey<_VideoTitleViewState> _videoTitleKey = GlobalKey();
-  GlobalKey<_SuperPlayerCoverViewState> _coverViewKey = GlobalKey();
-  GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
-  GlobalKey<_SuperPlayerFloatState> floatPlayerKey = GlobalKey();
+  final GlobalKey<_VideoBottomViewState> _videoBottomKey = GlobalKey();
+  final GlobalKey<_QualityListViewState> _qualityListKey = GlobalKey();
+  final GlobalKey<_VideoTitleViewState> _videoTitleKey = GlobalKey();
+  final GlobalKey<_SuperPlayerCoverViewState> _coverViewKey = GlobalKey();
+  final GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
+  final GlobalKey<_SuperPlayerFloatState> floatPlayerKey = GlobalKey();
+
+  Uint8List? _currentSprite;
+  bool _isShowSprite = false;
+  /// 任务队列
+  final TaskExecutors _taskExecutors = TaskExecutors();
 
   @override
   void initState() {
@@ -63,12 +67,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _titleViewController = _VideoTitleController(_onTapBack, () {
       _moreViewKey.currentState?.toggleShowMoreView();
     });
-    _bottomViewController = _BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView);
-    _coverViewController = _CoverViewController(_onDoubleTapVideo, _onSingleTapVideo);
-    _qualitListViewController = _QualityListViewController((quality) {
+    _bottomViewController = BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView, (value) {
+      _taskExecutors.addTask(() => _controlTest(true, value));
+    }, () {
+      _taskExecutors.addTask(() => _controlTest(false, 0));
+    });
+    _coverViewController = CoverViewController(_onDoubleTapVideo, _onSingleTapVideo);
+    _qualitListViewController = QualityListViewController((quality) {
       _playController.switchStream(quality);
     });
-    _moreViewController = _MoreViewController(
+    _moreViewController = MoreViewController(
         () => _playController._isOpenHWAcceleration,
         () => _playController.currentPlayRate,
         (value) => _playController.enableHardwareDecode(value),
@@ -212,6 +220,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _qualityListKey.currentState?.updateQuality(qualityList, defaultQuality);
     }, (info, list) {
       // onVideoImageSpriteAndKeyFrameChanged
+      _videoBottomKey.currentState?.setKeyFrame(list);
     }, () {
       // onSysBackPress
       _onControlFullScreen();
@@ -282,8 +291,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         // 不更新状态，直接resume
         _playController.getCurrentController().resume();
         // 从后台回来之后，如果手机横竖屏状态发生更改，被改为竖屏，那么这里根据判断切换横屏
-        if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE &&
-            defaultTargetPlatform == TargetPlatform.iOS) {
+        if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE && defaultTargetPlatform == TargetPlatform.iOS) {
           Orientation currentOrientation = MediaQuery.of(context).orientation;
           bool isLandscape = currentOrientation == Orientation.landscape;
           if (!isLandscape) {
@@ -354,9 +362,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _getPlayer(),
           _getTitleArea(),
           _getPipEnterView(),
+          _getImageSpriteView(),
           _getCover(),
           _getBottomView(),
-          _getQualityView(),
           _getStartOrResumeBtn(),
           _getQualityListView(),
           _getMoreMenuView(),
@@ -366,10 +374,18 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     );
   }
 
+  Widget _getImageSpriteView() {
+    return Visibility(
+      visible: _isShowSprite,
+      child: Center(
+        child: null != _currentSprite ? Image.memory(_currentSprite!) : Container(),
+      ),
+    );
+  }
+
   Widget _getPipEnterView() {
     return Visibility(
-      visible: _isShowControlView &&
-          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE,
+      visible: _isShowControlView && _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE,
       child: Positioned(
         right: 10,
         top: 0,
@@ -382,7 +398,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
                 child: Image(
                   width: 30,
                   height: 30,
-                  image: AssetImage("images/ic_pip_play_icon.png"),
+                  image: AssetImage("images/ic_pip_play_icon.png", package: StringResource.PKG_NAME),
                 ),
               )),
         ),
@@ -394,20 +410,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     return SuperPlayerMoreView(_moreViewController, key: _moreViewKey);
   }
 
-  Widget _getQualityView() {
-    return Visibility(
-      visible: _isShowQualityView,
-      child: ListView.builder(itemBuilder: (BuildContext context, int index) {
-        return Container();
-      }),
-    );
-  }
-
   Widget _getQualityListView() {
     return Visibility(
       visible: _isShowQualityListView,
-      child: QualityListView(_qualitListViewController, _playController.currentQualiyList,
-          _playController.currentQuality, _qualityListKey),
+      child: QualityListView(_qualitListViewController, _playController.currentQualiyList, _playController.currentQuality, _qualityListKey),
     );
   }
 
@@ -442,7 +448,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           child: Image(
             width: 40,
             height: 40,
-            image: AssetImage("images/superplayer_ic_vod_play_normal.png"),
+            image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: StringResource.PKG_NAME),
           ),
         ),
       ),
@@ -462,8 +468,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       child: Center(
         child: AspectRatio(
             aspectRatio: _aspectRatio,
-            child: TXPlayerVideo(
-                controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream())),
+            child: TXPlayerVideo(controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream())),
       ),
     );
   }
@@ -475,11 +480,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         top: topBottomOffset,
         left: 0,
         right: 0,
-        child: _VideoTitleView(
-            _titleViewController,
-            _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
-            _playController._getPlayName(),
-            _videoTitleKey),
+        child: _VideoTitleView(_titleViewController, _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
+            _playController._getPlayName(), _videoTitleKey),
       ),
     );
   }
@@ -487,10 +489,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _onEnterPipMode() async {
     if (!_isFloatingMode) {
       int result = await _playController.enterPictureInPictureMode(
-          backIcon: "images/ic_pip_play_replay.png",
-          playIcon: "images/ic_pip_play_normal.png",
-          pauseIcon: "images/ic_pip_play_pause.png",
-          forwardIcon: "images/ic_pip_play_forward.png");
+          backIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_replay.png",
+          playIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_normal.png",
+          pauseIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_pause.png",
+          forwardIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_forward.png");
       String failedStr = "";
       if (result != TXVodPlayEvent.NO_ERROR) {
         if (result == TXVodPlayEvent.ERROR_PIP_LOWER_VERSION) {
@@ -565,6 +567,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     } else if (playerState == SuperPlayerState.PAUSE) {
       //继续播放
       _playController.resume();
+      _isShowCover = false;
+      _coverViewKey.currentState?.hideCover();
     }
   }
 
@@ -617,10 +621,17 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
 
     if (isNeedAutoDisappear) {
-      _controlViewTimer = new Timer(Duration(milliseconds: _controlViewShowTime), () {
-        hideControlView();
-      });
+      _startHideRunnable();
     }
+  }
+
+  void _startHideRunnable() {
+    if (_controlViewTimer.isActive) {
+      _controlViewTimer.cancel();
+    }
+    _controlViewTimer = Timer(const Duration(milliseconds: _controlViewShowTime), () {
+      hideControlView();
+    });
   }
 
   /// 隐藏所有控制组件
@@ -628,12 +639,33 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     if (!_isShowControlView || !mounted) {
       return;
     }
+
     /// 隐藏moreView
     _moreViewKey.currentState?.hideShowMoreView();
     setState(() {
       _isShowQualityListView = false;
       _isShowControlView = false;
     });
+  }
+
+  /// 控制雪碧图显示
+  Future _controlTest(bool isShow, double value) async {
+    if (isShow) {
+      Uint8List? tmp = await _playController._vodPlayerController.getImageSprite(value);
+      if (!Utils.compareBuffer(_currentSprite, tmp)) {
+        setState(() {
+          _currentSprite = tmp;
+          _isShowSprite = true;
+        });
+      }
+      _controlViewTimer.cancel();
+    } else {
+      _startHideRunnable();
+      setState(() {
+        _currentSprite = null;
+        _isShowSprite = false;
+      });
+    }
   }
 
   @override
@@ -664,20 +696,19 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      child: MediaQuery.removePadding(
-          context: context,
-          removeTop: true,
-          removeBottom: true,
-          removeLeft: true,
-          removeRight: true,
-          child: Scaffold(
-            body: Container(
-                decoration: BoxDecoration(color: Colors.black),
-                width: double.infinity,
-                child: SuperPlayerView(widget._playController, viewKey: widget.key)),
-          )),
-      onWillPop: _onFullScreenWillPop,
-    );
+        onWillPop: _onFullScreenWillPop,
+        child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            removeBottom: true,
+            removeLeft: true,
+            removeRight: true,
+            child: Scaffold(
+              body: Container(
+                  decoration: const BoxDecoration(color: Colors.black),
+                  width: double.infinity,
+                  child: SuperPlayerView(widget._playController, viewKey: widget.key)),
+            )));
   }
 
   Future<bool> _onFullScreenWillPop() async {
@@ -714,7 +745,6 @@ class _SuperPlayerFloatState extends State<SuperPlayerFloatView> {
   double _aspectRatio = 16.0 / 9.0;
   double _videoWidth = 0;
   double _videoHeight = 0;
-  StreamSubscription? sizeStreamSubscription;
 
   @override
   void initState() {
@@ -797,8 +827,6 @@ class _SuperPlayerFloatState extends State<SuperPlayerFloatView> {
   @override
   void dispose() {
     super.dispose();
-    // 移除的时候，解除对进度事件的订阅
-    sizeStreamSubscription?.cancel();
   }
 }
 

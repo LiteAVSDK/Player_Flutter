@@ -2,10 +2,12 @@
 library demo_super_player_lib;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:auto_orientation/auto_orientation.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,7 @@ part 'cgi/super_vod_data_loader.dart';
 part 'model/superplayer_define.dart';
 part 'model/superplayer_model.dart';
 part 'tools/video_quality_utils.dart';
+part 'tools/utils.dart';
 part 'ui/superplayer_bottom_view.dart';
 part 'ui/superplayer_quality_view.dart';
 part 'ui/superplayer_title_view.dart';
@@ -34,3 +37,4 @@ part 'ui/superplayer_video_slider.dart';
 part 'common/color_resource.dart';
 part 'common/string_resource.dart';
 part 'common/theme_resource.dart';
+part 'common/task_executors.dart';

@@ -25,6 +25,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
  */
 @implementation FTXVodPlayer {
     TXVodPlayer *_txVodPlayer;
+    TXImageSprite *_txImageSprite;
     FTXPlayerEventSinkQueue *_eventSink;
     FTXPlayerEventSinkQueue *_netStatusSink;
     FlutterMethodChannel *_methodChannel;
@@ -149,7 +150,7 @@ BOOL volatile isStop = false;
         _txVodPlayer.vodDelegate = self;
         [self setupPlayerWithBool:onlyAudio];
     }
-
+    _txImageSprite = [[TXImageSprite alloc] init];
     return [NSNumber numberWithLongLong:_textureId];
 }
 
@@ -426,6 +427,32 @@ BOOL volatile isStop = false;
     else if ([@"enterPictureInPictureMode" isEqualToString:call.method]) {
         int ret = [self enterPictureInPictureMode];
         result(@(ret));
+    }
+    else if ([@"initImageSprite" isEqualToString:call.method]) {
+        NSDictionary *args = call.arguments;
+        NSString *vvtStr = args[@"vvtUrl"];
+        NSArray *imageStrs = args[@"imageUrls"];
+        
+        NSMutableArray *imageUrls = @[].mutableCopy;
+        for(NSString *url in imageStrs) {
+            NSURL *nsurl = [NSURL URLWithString:url];
+            if (nsurl) {
+                [imageUrls addObject:nsurl];
+            }
+        }
+        [_txImageSprite setVTTUrl: [NSURL URLWithString:vvtStr] imageUrls:imageUrls];
+        result(nil);
+    }
+    else if ([@"getImageSprite" isEqualToString:call.method]) {
+        NSDictionary *args = call.arguments;
+        NSInteger time = [args[@"time"] intValue];
+        UIImage *imageSprite = [_txImageSprite getThumbnail:time];
+        if(nil != imageSprite) {
+            NSData *data = UIImagePNGRepresentation(imageSprite);
+            result(data);
+        } else {
+            result(nil);
+        }
     }
     else {
         result(FlutterMethodNotImplemented);
