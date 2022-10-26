@@ -3,7 +3,7 @@ part of demo_super_player_lib;
 
 /// 视频进度条，双进度
 class VideoSlider extends StatefulWidget {
-  late final _VideoSliderController controller;
+  late final VideoSliderController controller;
 
   final double? progressHeight;
   final double min;
@@ -17,12 +17,14 @@ class VideoSlider extends StatefulWidget {
   final Color? bufferedColor;
   final Color? sliderColor;
   final Color? sliderOutterColor;
+  List<SliderPoint>? playPoints = [];
   bool? canDrag = true;
 
   // calback
   final Function? onDragStart;
   final Function(double value)? onDragUpdate;
   final Function(double value)? onDragEnd;
+  final Function(double pointX, int pos)? onPointClick;
 
   VideoSlider(
       {this.progressHeight,
@@ -40,14 +42,18 @@ class VideoSlider extends StatefulWidget {
       this.onDragStart,
       this.onDragUpdate,
       this.onDragEnd,
-      this.canDrag}) {
+      this.canDrag,
+      this.playPoints,
+      this.onPointClick,
+      GlobalKey<VideoSliderState>? key})
+      : super(key: key) {
     double range = (max - min);
     if (range <= 0) {
-      controller = _VideoSliderController(1, bufferedProgress: 1);
+      controller = VideoSliderController(1, bufferedProgress: 1);
     } else {
       double currentProgress = remainTwoFixed(value / range);
       double? bufferedProgress = bufferedValue != null ? remainTwoFixed(bufferedValue! / range) : null;
-      controller = _VideoSliderController(currentProgress, bufferedProgress: bufferedProgress);
+      controller = VideoSliderController(currentProgress, bufferedProgress: bufferedProgress);
     }
   }
 
@@ -120,6 +126,19 @@ class VideoSliderState extends State<VideoSlider> {
       },
       onTapUp: (TapUpDetails details) {
         if (widget.canDrag! && !isDraging) {
+          List<SliderPoint> tmp = widget.playPoints ?? [];
+          for (int i = 0; i < tmp.length; i++) {
+            SliderPoint point = tmp[i];
+            final box = context.findRenderObject()! as RenderBox;
+            final Offset tapPos = box.globalToLocal(details.globalPosition);
+            double width = box.size.width;
+            double pointStart = width * point.progress;
+            double clickRadius = radius * 3;
+            if (tapPos.dx > pointStart - clickRadius && tapPos.dx < pointStart + clickRadius) {
+              widget.onPointClick?.call(pointStart, i);
+              return;
+            }
+          }
           _seekToPosition(details.globalPosition);
           widget.onDragEnd?.call(widget.controller.progress);
         }
@@ -144,6 +163,7 @@ class VideoSliderState extends State<VideoSlider> {
                 bufferedPercent: widget.controller.bufferedProgress,
                 leftPadding: leftPadding,
                 rightPadding: rightPadding,
+                pointList: widget.playPoints ?? [],
                 sliderOverlayRadius: overlayRadius),
           ),
         ),
@@ -151,14 +171,18 @@ class VideoSliderState extends State<VideoSlider> {
     );
   }
 
-  void _seekToPosition(Offset globalPosition) {
+  double _getProgressByPosition(Offset globalPosition) {
     final box = context.findRenderObject()! as RenderBox;
     final Offset tapPos = box.globalToLocal(globalPosition);
     double progress = widget.controller.progress;
     progress = tapPos.dx / box.size.width;
     if (progress < 0) progress = 0;
     if (progress > 1) progress = 1;
+    return progress;
+  }
 
+  void _seekToPosition(Offset globalPosition) {
+    double progress = _getProgressByPosition(globalPosition);
     setState(() {
       widget.controller.progress = progress;
     });
@@ -175,6 +199,7 @@ class _VideoSliderPainter extends CustomPainter {
   final bool isDraging;
   final double leftPadding;
   final double rightPadding;
+  final List<SliderPoint> pointList;
 
   _VideoSliderPainter(
       {required this.shaders,
@@ -185,6 +210,7 @@ class _VideoSliderPainter extends CustomPainter {
       required this.sliderOverlayRadius,
       required this.leftPadding,
       required this.rightPadding,
+      required this.pointList,
       this.bufferedPercent});
 
   @override
@@ -222,6 +248,13 @@ class _VideoSliderPainter extends CustomPainter {
             Radius.circular(sliderRadius)),
         shaders.progressPaint);
 
+    // draw point
+    for (SliderPoint point in pointList) {
+      double pointStart = start + (width * point.progress);
+      shaders.pointPaint.color = point.pointColor;
+      canvas.drawCircle(Offset(pointStart, size.height / 2), progressHeight, shaders.pointPaint);
+    }
+
     // draw outer slider，only show when drag
     if (isDraging) {
       canvas.drawCircle(Offset(progressEndless, size.height / 2), sliderOverlayRadius, shaders.dragSliderOverlayPaint);
@@ -242,6 +275,7 @@ class _VideoSliderShaders {
   Paint progressPaint = Paint();
   Paint dragSliderPaint = Paint();
   Paint dragSliderOverlayPaint = Paint();
+  Paint pointPaint = Paint();
 
   _VideoSliderShaders(
       {Color? backgroundColor, Color? progressColor, Color? dragSliderColor, Color? bufferedColor, Color? drawSliderOverlayColor}) {
@@ -253,11 +287,11 @@ class _VideoSliderShaders {
   }
 }
 
-class _VideoSliderController {
+class VideoSliderController {
   double progress;
   double? bufferedProgress;
 
-  _VideoSliderController(this.progress, {this.bufferedProgress});
+  VideoSliderController(this.progress, {this.bufferedProgress});
 }
 
 void _checkRange(double value, {String? valueName}) {

@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/ui/demo_inputdialog.dart';
-
-import 'superplayer/demo_superplayer_lib.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 
 /// flutter superplayer demo
 class DemoSuperplayer extends StatefulWidget {
@@ -241,6 +240,14 @@ class _DemoSuperplayerState extends State<DemoSuperplayer> {
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "8602268011437356984";
     model.title = "云点播（fileId播放）";
+    model.playAction = playAction;
+    models.add(model);
+
+    model = SuperPlayerModel();
+    model.appId = 1252463788;
+    model.videoId = new SuperPlayerVideoId();
+    model.videoId!.fileId = "5285890781763144364";
+    model.title = "腾讯云";
     model.playAction = playAction;
     models.add(model);
 

@@ -115,7 +115,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
         offstage: _isVideoPlaying,
         child: Align(
           child: Container(
-              child: Image.asset('images/superplayer_ic_vod_play_normal.png'),
+              child: Image(image: AssetImage("images/superplayer_ic_vod_play_normal.png", package:StringResource.PKG_NAME)),
               height: 50,
               width: 50),
           alignment: Alignment.center,

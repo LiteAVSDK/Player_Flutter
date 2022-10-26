@@ -2,10 +2,10 @@
 part of demo_super_player_lib;
 
 class SuperPlayerCoverView extends StatefulWidget {
-  final _CoverViewController _controller;
-  SuperPlayerModel? videoModel;
+  final CoverViewController _controller;
+  final SuperPlayerModel? videoModel;
 
-  SuperPlayerCoverView(this._controller, GlobalKey<_SuperPlayerCoverViewState> key, this.videoModel) : super(key: key);
+  const SuperPlayerCoverView(this._controller, Key key, this.videoModel) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _SuperPlayerCoverViewState();
@@ -53,7 +53,7 @@ class _SuperPlayerCoverViewState extends State<SuperPlayerCoverView> {
             onDoubleTap: _onDoubleTapVideo,
             onTap: _onSingleTapVideo,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 // 增加一个半透明背景，防止透明封面图的出现
                 color:Color(ColorResource.COLOR_TRANS_GRAY)
               ),
@@ -85,9 +85,9 @@ class _SuperPlayerCoverViewState extends State<SuperPlayerCoverView> {
   }
 }
 
-class _CoverViewController {
+class CoverViewController {
   Function onDoubleTapVideo;
   Function onSingleTapVideo;
 
-  _CoverViewController(this.onDoubleTapVideo, this.onSingleTapVideo);
+  CoverViewController(this.onDoubleTapVideo, this.onSingleTapVideo);
 }

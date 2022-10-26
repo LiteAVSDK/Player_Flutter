@@ -2,7 +2,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:super_player/super_player.dart';
-import 'package:super_player_example/superplayer/demo_superplayer_lib.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'shortvideo/demo_short_video_lib.dart';
 
 class DemoShortVideoPlayer extends StatefulWidget {
@@ -25,7 +25,7 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
         superPlayerModelList = dataModels;
       });
     });
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -79,7 +79,7 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

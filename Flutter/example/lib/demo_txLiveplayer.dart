@@ -90,7 +90,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   void initState() {
     super.initState();
     init();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     EasyLoading.show(status: 'loading...');
   }
 
@@ -291,7 +291,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     playNetEventSubscription?.cancel();
     _controller.dispose();
     super.dispose();
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     EasyLoading.dismiss();
   }
 

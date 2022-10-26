@@ -4,9 +4,9 @@ part of demo_super_player_lib;
 class QualityListView extends StatefulWidget {
   final List<VideoQuality>? _qualityList;
   final VideoQuality? _currentQuality;
-  final _QualityListViewController _controller;
+  final QualityListViewController _controller;
 
-  QualityListView(this._controller, this._qualityList, this._currentQuality, Key key) : super(key: key);
+  const QualityListView(this._controller, this._qualityList, this._currentQuality, Key key) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _QualityListViewState();
@@ -32,8 +32,8 @@ class _QualityListViewState extends State<QualityListView> {
       child: Container(
         height: double.infinity,
         width: 300,
-        padding: EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 15),
-        decoration: BoxDecoration(color: Color(ColorResource.COLOR_TRANS_BLACK)),
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 15),
+        decoration: const BoxDecoration(color: Color(ColorResource.COLOR_TRANS_BLACK)),
         child: Center(
           child: null != _qualityList
               ? ListView.builder(
@@ -44,7 +44,7 @@ class _QualityListViewState extends State<QualityListView> {
                     return InkWell(
                       onTap: () => widget._controller.onSwitchStream(_qualityList![index]),
                       child: Container(
-                        margin: EdgeInsets.only(top: 10, bottom: 10),
+                        margin: const EdgeInsets.only(top: 10, bottom: 10),
                         child: Text(
                           _qualityList![index].title,
                           textAlign: TextAlign.center,
@@ -71,8 +71,8 @@ class _QualityListViewState extends State<QualityListView> {
   }
 }
 
-class _QualityListViewController {
+class QualityListViewController {
   Function(VideoQuality) onSwitchStream;
 
-  _QualityListViewController(this.onSwitchStream);
+  QualityListViewController(this.onSwitchStream);
 }

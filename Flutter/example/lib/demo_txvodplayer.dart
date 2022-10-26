@@ -92,7 +92,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
   void initState() {
     super.initState();
     init();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     EasyLoading.show(status: 'loading...');
   }
 
@@ -386,7 +386,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
     playEventSubscription?.cancel();
     _controller.dispose();
     super.dispose();
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     EasyLoading.dismiss();
   }
 

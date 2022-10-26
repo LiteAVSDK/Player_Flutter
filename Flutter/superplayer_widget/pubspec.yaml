@@ -1,9 +1,6 @@
-name: super_player_example
-description: Demonstrates how to use the super_player plugin.
-
-# The following line prevents the package from being accidentally published to
-# pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+name: superplayer_widget
+description: superplayer,base on vodplayer
+version: "1.0.1"
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -12,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  event_bus: ^2.0.0
 
   auto_orientation: ^2.2.1
 
@@ -25,43 +21,48 @@ dependencies:
     # The example app is bundled with the plugin so we use a path dependency on
     # the parent directory to use the current plugin's version.
     path: ../
-  superplayer_widget:
-    # 该路径根据superplayer_widget存放路径改变
-    path: ../superplayer_widget
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# The following section is specific to Fluttfler.
+# The following section is specific to Flutter packages.
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
   assets:
-    - images/ic_new_vod_bg.png
-    - images/addp.png
-  # To add assets to your application, add an assets section, like this:
+    - images/ic_pip_play_icon.png
+    - images/ic_pip_play_normal.png
+    - images/ic_pip_play_pause.png
+    - images/ic_pip_play_forward.png
+    - images/ic_pip_play_replay.png
+    - images/superplayer_ic_vod_more_normal.png
+    - images/superplayer_ic_light_max.png
+    - images/superplayer_ic_light_min.png
+    - images/superplayer_ic_volume_max.png
+    - images/superplayer_ic_volume_min.png
+    - images/superplayer_ic_vod_pause_normal.png
+    - images/superplayer_ic_vod_play_normal.png
+    - images/superplayer_bottom_shadow.png
+    - images/superplayer_ic_vod_fullscreen.png
+    - images/superplayer_top_shadow.png
+    - images/superplayer_btn_back_play.png
+  # To add assets to your package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/assets-and-images/#resolution-aware.
-
-  # For details regarding adding assets from package dependencies, see
+  #
+  # For details regarding assets in packages, see
   # https://flutter.dev/assets-and-images/#from-packages
+  #
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware
 
-  # To add custom fonts to your application, add a fonts section here,
+  # To add custom fonts to your package, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
@@ -78,5 +79,5 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/custom-fonts/#from-packages
+  # For details regarding fonts in packages, see
+  # https://flutter.dev/custom-fonts/#from-packages
