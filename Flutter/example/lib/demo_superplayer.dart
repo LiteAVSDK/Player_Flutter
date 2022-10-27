@@ -287,6 +287,18 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     models.add(model);
 
     model = SuperPlayerModel();
+    model.title = "加密视频播放";
+    model.appId = 1254432039;
+    model.videoId = new SuperPlayerVideoId();
+    model.videoId!.fileId = "5285890816303742312";
+    model.videoId!.psign =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTI1NDQzMjAzOSwiZmlsZUlkIjoiNTI4NTg5MDgxNjMwMzc0MjMxMiIsImN1cnJlbnRUaW1lU3"
+        "RhbXAiOjE2MTcyNTc0ODMsInBjZmciOiJiYXNpY0RybVByZXNldCIsInVybEFjY2Vzc0luZm8iOnt9LCJkcm1MaWNlbnNlSW5mbyI6e319.2H1t9dKPpdA41"
+        "a8t1WwI631OWC18HGl60ccBDLylCKE";
+    model.playAction = playAction;
+    models.add(model);
+
+    model = SuperPlayerModel();
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "4564972819219071568";
