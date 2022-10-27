@@ -309,7 +309,7 @@ class SuperPlayerController {
           }
         }
         query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
-        Uri newUri = Uri(path: url, query: query);
+        Uri newUri = uri.replace(query: query);
         LogUtils.d(TAG, 'playVodURL: newurl =  ${Uri.decodeFull(newUri.toString())}  ;url=  $url');
         await _vodPlayerController?.startPlay(Uri.decodeFull(newUri.toString()));
       } else {
