@@ -39,6 +39,8 @@ class SuperPlayerController {
   String _currentPlayUrl = "";
 
   bool isPrepared = false;
+  bool isMute = false;
+  bool isLoop = false;
   bool _needToResume = false;
   bool _needToPause = false;
   bool _isMultiBitrateStream = false; // 是否是多码流url播放
@@ -771,6 +773,24 @@ class SuperPlayerController {
     } else {
       await _vodPlayerController.enableHardwareDecode(enable);
       await playWithModelNeedLicence(videoModel!);
+    }
+  }
+
+  /// 设置是否静音
+  Future<void> setMute(bool mute) async {
+    isMute = mute;
+    if (playerType == SuperPlayerType.VOD) {
+      return await _vodPlayerController.setMute(mute);
+    } else {
+      return await _livePlayerController.setMute(mute);
+    }
+  }
+
+  /// 设置是否循环播放，不支持直播时调用
+  Future<void> setLoop(bool loop) async {
+    if (playerType == SuperPlayerType.VOD) {
+      isLoop = loop;
+      return await _vodPlayerController.setLoop(loop);
     }
   }
 
