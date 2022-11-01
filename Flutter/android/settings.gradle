@@ -1,1 +1,7 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 rootProject.name = 'flutter_super_player'
