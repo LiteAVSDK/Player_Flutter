@@ -21,6 +21,7 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
   @override
   void initState() {
     super.initState();
+
     controller = widget.controller;
     _checkStreamListen();
     _resetControllerLink();

@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXBitrateItem;
+import com.tencent.rtmp.TXImageSprite;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXPlayInfoParams;
@@ -47,6 +48,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     final private FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
     private TXVodPlayer mVodPlayer;
+    private TXImageSprite mTxImageSprite;
 
     private static final int                                 Uninitialized         = -101;
     private              TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
@@ -358,7 +360,29 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
                     playForwardAssetPath, getPlayerId());
             int pipResult = mPipManager.enterPip(isPlaying(), mPipParams);
             result.success(pipResult);
-        } else {
+        } else if(call.method.equals("initImageSprite")) {
+            String vvtUrl = call.argument("vvtUrl");
+            List<String> imageUrls = call.argument("imageUrls");
+            mTxImageSprite.setVTTUrlAndImageUrls(vvtUrl,imageUrls);
+            result.success(null);
+        } else if(call.method.equals("getImageSprite")) {
+            final Double time = call.argument("time");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Bitmap bitmap = mTxImageSprite.getThumbnail(time.floatValue());
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    if(null != bitmap) {
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                        byte[] byteArray = stream.toByteArray();
+                        result.success(byteArray);
+                    } else {
+                        result.success(null);
+                    }
+                }
+            }).start();
+        }
+        else {
             result.notImplemented();
         }
     }
@@ -368,6 +392,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             mVodPlayer = new TXVodPlayer(mFlutterPluginBinding.getApplicationContext());
             mVodPlayer.setVodListener(this);
             setPlayer(onlyAudio);
+            mTxImageSprite = new TXImageSprite(mFlutterPluginBinding.getApplicationContext());
         }
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }

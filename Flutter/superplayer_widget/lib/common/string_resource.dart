@@ -20,4 +20,6 @@ class StringResource {
   static const OPEN_PIP = "正在开启画中画";
   static const CLOSE_PIP = "正在关闭画中画";
   static const ERROR_PIP = "画中画开启失败";
+
+  static const PKG_NAME = "superplayer_widget";
 }

@@ -34,7 +34,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
   StreamSubscription? playEventSubscription;
   StreamSubscription? playNetEventSubscription;
 
-  GlobalKey<VideoSliderState> progressSliderKey = GlobalKey();
+  GlobalKey<VideoSliderViewState> progressSliderKey = GlobalKey();
 
   Future<void> init() async {
     if (!mounted) return;
@@ -57,9 +57,9 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
         if (videoDuration == 0.0) {
-          progressSliderKey.currentState?.updatePorgess(0.0, 0.0);
+          progressSliderKey.currentState?.updateProgress(0.0, 0.0);
         } else {
-          progressSliderKey.currentState?.updatePorgess(_currentProgress / videoDuration, videoDuration);
+          progressSliderKey.currentState?.updateProgress(_currentProgress / videoDuration, videoDuration);
         }
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC) {
         String? playUrl = event[TXVodPlayEvent.EVT_PLAY_URL]?.toString();

@@ -33,9 +33,14 @@ class SuperPlayerController {
   StreamSubscription? _livePlayEventListener;
   StreamSubscription? _liveNetEventListener;
 
+  PlayImageSpriteInfo? spriteInfo;
+  List<PlayKeyFrameDescInfo>? keyFrameInfo;
+
   String _currentPlayUrl = "";
 
   bool isPrepared = false;
+  bool isMute = false;
+  bool isLoop = false;
   bool _needToResume = false;
   bool _needToPause = false;
   bool _isMultiBitrateStream = false; // 是否是多码流url播放
@@ -54,6 +59,10 @@ class SuperPlayerController {
   double videoWidth = 0;
   double videoHeight = 0;
   double currentPlayRate = 1.0;
+
+  // 规避IOS部分情况下收不到FirstFrame事件
+  bool _isCalledFirstFrame = false;
+  bool _isRecFirstFrameEvent = false;
 
   SuperPlayerController(this._context) {
     _initVodPlayer();
@@ -78,8 +87,20 @@ class SuperPlayerController {
     _vodPlayEventListener = _vodPlayerController.onPlayerEventBroadcast.listen((event) async {
       int eventCode = event['event'];
       switch (eventCode) {
+        case TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC:
+          _currentPlayUrl = event[TXVodPlayEvent.EVT_PLAY_URL];
+          PlayImageSpriteInfo playImageSpriteInfo = PlayImageSpriteInfo();
+          playImageSpriteInfo.webVttUrl = event[TXVodPlayEvent.EVT_IMAGESPRIT_WEBVTTURL] ?? "";
+          event[TXVodPlayEvent.EVT_IMAGESPRIT_IMAGEURL_LIST]?.forEach((element) {
+            playImageSpriteInfo.imageUrls.add(element);
+          });
+          _vodPlayerController.initImageSprite(playImageSpriteInfo.webVttUrl, playImageSpriteInfo.imageUrls);
+          spriteInfo = playImageSpriteInfo;
+          break;
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
           isPrepared = true;
+          _isRecFirstFrameEvent = false;
+          _isCalledFirstFrame = false;
           if (_isMultiBitrateStream) {
             List<dynamic>? bitrateListTemp = await _vodPlayerController.getSupportedBitrates();
             List<FTXBitrateItem> bitrateList = [];
@@ -135,14 +156,14 @@ class SuperPlayerController {
           if (_needToPause) {
             return;
           }
+          _isRecFirstFrameEvent = true;
           if (_changeHWAcceleration) {
             LogUtils.d(TAG, "seek pos $_seekPos");
             seek(_seekPos);
             _changeHWAcceleration = false;
           }
-
           _updatePlayerState(SuperPlayerState.PLAYING);
-          _observer?.onRcvFirstIframe();
+          _onRecFirstFrame();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_END:
           _updatePlayerState(SuperPlayerState.END);
@@ -158,6 +179,13 @@ class SuperPlayerController {
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
+          }
+          if (!_isCalledFirstFrame) {
+            if (!_isRecFirstFrameEvent) {
+              _isRecFirstFrameEvent = true;
+            } else {
+              _onRecFirstFrame();
+            }
           }
           break;
       }
@@ -265,17 +293,25 @@ class SuperPlayerController {
   Future<void> _playWithModelInner(SuperPlayerModel videoModel) async {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
-    _observer?.onVideoImageSpriteAndKeyFrameChanged(null, null);
+    _updateImageSpriteAndKeyFrame(null, null);
     _currentProtocol = null;
 
     // 优先使用url播放
     if (videoModel.videoURL.isNotEmpty) {
       _playWithUrl(videoModel);
+      getInfo(videoModel);
     } else if (videoModel.videoId != null && (videoModel.videoId!.fileId.isNotEmpty)) {
       _currentProtocol = PlayInfoProtocol(videoModel);
       // 没有url的时候，根据field去请求
       await _sendRequest();
     }
+  }
+
+  void getInfo(SuperPlayerModel videoModel) {
+    PlayInfoProtocol temp = PlayInfoProtocol(videoModel);
+    temp.sendRequest((protocol, resultModel) async {
+      _updateImageSpriteAndKeyFrame(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
+    }, (errCode, errorMsg) {});
   }
 
   Future<void> _sendRequest() async {
@@ -287,12 +323,21 @@ class SuperPlayerController {
       _playModeVideo(protocol);
       _updatePlayerType(SuperPlayerType.VOD);
       _observer?.onPlayProgress(0, resultModel.duration.toDouble(), await getPlayableDuration());
-      _observer?.onVideoImageSpriteAndKeyFrameChanged(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
+      _updateImageSpriteAndKeyFrame(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
     }, (errCode, message) {
       // onError
       _observer?.onError(SuperPlayerCode.VOD_REQUEST_FILE_ID_FAIL, "播放视频文件失败 code = $errCode msg = $message");
       _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerError);
     });
+  }
+
+  void _updateImageSpriteAndKeyFrame(PlayImageSpriteInfo? spriteInfo, List<PlayKeyFrameDescInfo>? keyFrameInfo) {
+    _observer?.onVideoImageSpriteAndKeyFrameChanged(spriteInfo, keyFrameInfo);
+    if (null != spriteInfo) {
+      _vodPlayerController.initImageSprite(spriteInfo.webVttUrl, spriteInfo.imageUrls);
+    }
+    this.spriteInfo = spriteInfo;
+    this.keyFrameInfo = keyFrameInfo;
   }
 
   Future<double> getPlayableDuration() async {
@@ -304,9 +349,8 @@ class SuperPlayerController {
     _playVodUrl(videoUrl);
     List<VideoQuality>? qualityList = protocol.getVideoQualityList();
 
-    _isMultiBitrateStream = protocol.getResolutionNameList() != null ||
-        qualityList != null ||
-        (videoUrl != null && videoUrl.contains("m3u8"));
+    _isMultiBitrateStream =
+        protocol.getResolutionNameList() != null || qualityList != null || (videoUrl != null && videoUrl.contains("m3u8"));
 
     _updateVideoQualityList(qualityList, protocol.getDefaultVideoQuality());
   }
@@ -372,8 +416,7 @@ class SuperPlayerController {
     if (_playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       await _vodPlayerController.setAutoPlay(isAutoPlay: false);
       _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
-    } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY ||
-        _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
+    } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
       await _vodPlayerController.setAutoPlay(isAutoPlay: true);
     }
     _setVodListener();
@@ -393,7 +436,7 @@ class SuperPlayerController {
       if (query == null || query.isEmpty) {
         query = "";
       } else {
-        query = query + "&";
+        query = "$query&";
         if (query.contains("spfileid") || query.contains("spdrmtype") || query.contains("spappid")) {
           LogUtils.d(TAG, "url contains superplay key. $query");
         }
@@ -405,6 +448,13 @@ class SuperPlayerController {
     } else {
       LogUtils.d(TAG, "playVodURL url:$url");
       await _vodPlayerController.startVodPlay(url);
+    }
+  }
+
+  void _onRecFirstFrame() {
+    if (_isRecFirstFrameEvent) {
+      _isCalledFirstFrame = true;
+      _observer?.onRcvFirstIframe();
     }
   }
 
@@ -536,9 +586,7 @@ class SuperPlayerController {
     String title = "";
     if (videoModel != null && null != videoModel!.title && videoModel!.title.isNotEmpty) {
       title = videoModel!.title;
-    } else if (_currentProtocol != null &&
-        null != _currentProtocol!.getName() &&
-        _currentProtocol!.getName()!.isNotEmpty) {
+    } else if (_currentProtocol != null && null != _currentProtocol!.getName() && _currentProtocol!.getName()!.isNotEmpty) {
       title = _currentProtocol!.getName()!;
     }
     return title;
@@ -551,7 +599,7 @@ class SuperPlayerController {
   }
 
   void _addSimpleEvent(String event) {
-    Map<String, String> eventMap = new Map();
+    Map<String, String> eventMap = {};
     eventMap['event'] = event;
     _simpleEventStreamController.add(eventMap);
   }
@@ -560,7 +608,7 @@ class SuperPlayerController {
     if (_playerUIStatus != status) {
       if (status == SuperPlayerUIStatus.FULLSCREEN_MODE) {
         _addSimpleEvent(SuperPlayerViewEvent.onStartFullScreenPlay);
-      } else if(_playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
+      } else if (_playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
         _addSimpleEvent(SuperPlayerViewEvent.onStopFullScreenPlay);
       }
       _playerUIStatus = status;
@@ -574,8 +622,7 @@ class SuperPlayerController {
 
   /// 是否是HTTP-FLV协议
   bool _isFLVPlay(String? videoURL) {
-    return (null != videoURL && videoURL.startsWith("http://") || videoURL!.startsWith("https://")) &&
-        videoURL.contains(".flv");
+    return (null != videoURL && videoURL.startsWith("http://") || videoURL!.startsWith("https://")) && videoURL.contains(".flv");
   }
 
   /// 重置播放器状态
@@ -693,21 +740,14 @@ class SuperPlayerController {
   /// </h1>
   /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
   /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
-  Future<int> enterPictureInPictureMode(
-      {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
+  Future<int> enterPictureInPictureMode({String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
     if (_playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE) {
       if (playerType == SuperPlayerType.VOD) {
         return _vodPlayerController.enterPictureInPictureMode(
-            backIconForAndroid: backIcon,
-            playIconForAndroid: playIcon,
-            pauseIconForAndroid: pauseIcon,
-            forwardIconForAndroid: forwardIcon);
+            backIconForAndroid: backIcon, playIconForAndroid: playIcon, pauseIconForAndroid: pauseIcon, forwardIconForAndroid: forwardIcon);
       } else {
         return _livePlayerController.enterPictureInPictureMode(
-            backIconForAndroid: backIcon,
-            playIconForAndroid: playIcon,
-            pauseIconForAndroid: pauseIcon,
-            forwardIconForAndroid: forwardIcon);
+            backIconForAndroid: backIcon, playIconForAndroid: playIcon, pauseIconForAndroid: pauseIcon, forwardIconForAndroid: forwardIcon);
       }
     }
     return TXVodPlayEvent.ERROR_PIP_CAN_NOT_ENTER;
@@ -733,6 +773,24 @@ class SuperPlayerController {
     } else {
       await _vodPlayerController.enableHardwareDecode(enable);
       await playWithModelNeedLicence(videoModel!);
+    }
+  }
+
+  /// 设置是否静音
+  Future<void> setMute(bool mute) async {
+    isMute = mute;
+    if (playerType == SuperPlayerType.VOD) {
+      return await _vodPlayerController.setMute(mute);
+    } else {
+      return await _livePlayerController.setMute(mute);
+    }
+  }
+
+  /// 设置是否循环播放，不支持直播时调用
+  Future<void> setLoop(bool loop) async {
+    if (playerType == SuperPlayerType.VOD) {
+      isLoop = loop;
+      return await _vodPlayerController.setLoop(loop);
     }
   }
 

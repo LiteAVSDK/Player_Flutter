@@ -6,7 +6,7 @@ class _VideoTitleView extends StatefulWidget {
   final _VideoTitleController _controller;
   final bool initIsFullScreen;
 
-  _VideoTitleView(this._controller, this.initIsFullScreen, this._title, GlobalKey<_VideoTitleViewState> key)
+  const _VideoTitleView(this._controller, this.initIsFullScreen, this._title, GlobalKey<_VideoTitleViewState> key)
       : super(key: key);
 
   @override
@@ -27,32 +27,32 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 6, right: 6),
-      decoration: BoxDecoration(
-          image: DecorationImage(image: AssetImage("images/superplayer_top_shadow.png"), fit: BoxFit.fill)),
+      padding: const EdgeInsets.only(left: 6, right: 6),
+      decoration: const BoxDecoration(
+          image: DecorationImage(image: AssetImage("images/superplayer_top_shadow.png", package:StringResource.PKG_NAME), fit: BoxFit.fill)),
       child: Row(
         children: [
           InkWell(
             onTap: _onTapBackBtn,
-            child: Image(
+            child: const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_btn_back_play.png"),
+              image: AssetImage("images/superplayer_btn_back_play.png", package:StringResource.PKG_NAME),
             ),
           ),
           Text(
             _title,
-            style: TextStyle(fontSize: 11, color: Colors.white),
+            style: const TextStyle(fontSize: 11, color: Colors.white),
           ),
-          Expanded(child: SizedBox()),
+          const Expanded(child: SizedBox()),
           Visibility(
               visible: _isFullScreen,
               child: InkWell(
                 onTap: _onTapMore,
-                child: Image(
+                child: const Image(
                   width: 30,
                   height: 30,
-                  image: AssetImage("images/superplayer_ic_vod_more_normal.png"),
+                  image: AssetImage("images/superplayer_ic_vod_more_normal.png", package:StringResource.PKG_NAME),
                 ),
               ))
         ],
@@ -84,8 +84,8 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
 }
 
 class _VideoTitleController {
-  Function _onTapBack;
-  Function _onTapMore;
+  final Function _onTapBack;
+  final Function _onTapMore;
 
   _VideoTitleController(this._onTapBack, this._onTapMore);
 }
