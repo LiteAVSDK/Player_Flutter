@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';

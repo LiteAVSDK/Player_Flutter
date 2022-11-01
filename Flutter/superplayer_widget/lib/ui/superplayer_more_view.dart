@@ -5,9 +5,9 @@ typedef BoolFunction = bool Function();
 typedef DoubleFunction = double Function();
 /// 超级播放器更多菜单
 class SuperPlayerMoreView extends StatefulWidget {
-  _MoreViewController controller;
+  final MoreViewController controller;
 
-  SuperPlayerMoreView(this.controller, {Key? key}) : super(key: key);
+  const SuperPlayerMoreView(this.controller, {Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _SuperPlayerMoreViewState();
@@ -78,8 +78,8 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
           child: Container(
               height: double.infinity,
               width: 320,
-              padding: EdgeInsets.only(left: 15, right: 20, top: 15, bottom: 15),
-              decoration: BoxDecoration(color: Color(ColorResource.COLOR_TRANS_BLACK)),
+              padding: const EdgeInsets.only(left: 15, right: 20, top: 15, bottom: 15),
+              decoration: const BoxDecoration(color: Color(ColorResource.COLOR_TRANS_BLACK)),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -96,7 +96,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
 
   Widget _getSwitchHardwareWidget() {
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
+      margin: const EdgeInsets.only(top: 10, bottom: 10),
       child: Row(
         children: [
           Text(
@@ -105,7 +105,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
           Switch(
-              activeColor: Color(ColorResource.COLOR_MAIN_THEME),
+              activeColor: const Color(ColorResource.COLOR_MAIN_THEME),
               value: _isOpenAccelerate,
               onChanged: _onChangeAccelerate)
         ],
@@ -123,7 +123,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
     ];
     for (String rateStr in playRateStr.keys) {
       playRateChild.add(Container(
-        padding: EdgeInsets.only(left: 5, right: 5),
+        padding: const EdgeInsets.only(left: 5, right: 5),
         child: InkWell(
           onTap: () => _onChangePlayRate(rateStr),
           child: Text(
@@ -137,7 +137,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
     return Visibility(
       visible: _isVodPlay,
       child: Container(
-        margin: EdgeInsets.only(top: 10, bottom: 10),
+        margin: const EdgeInsets.only(top: 10, bottom: 10),
         child: Row(
           children: playRateChild,
         ),
@@ -147,14 +147,14 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
 
   Widget _getBrightnessWidget() {
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
+      margin: const EdgeInsets.only(top: 10, bottom: 10),
       child: Row(children: [
         Text(
           StringResource.BRIGHTNESS_LABEL,
           textAlign: TextAlign.center,
           style: ThemeResource.getCommonLabelTextStyle(),
         ),
-        Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_light_min.png")),
+        const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_light_min.png", package:StringResource.PKG_NAME)),
         Expanded(
           child: Theme(
               data: ThemeResource.getCommonSliderTheme(),
@@ -165,14 +165,14 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
                 onChanged: _onChangeBrightness,
               )),
         ),
-        Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_light_max.png")),
+        const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_light_max.png", package:StringResource.PKG_NAME)),
       ]),
     );
   }
 
   Widget _getVolumeWidget() {
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
+      margin: const EdgeInsets.only(top: 10, bottom: 10),
       child: Row(
         children: [
           Text(
@@ -180,7 +180,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
             textAlign: TextAlign.center,
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
-          Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_volume_min.png")),
+          const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_volume_min.png", package:StringResource.PKG_NAME)),
           Expanded(
             child: Theme(
                 data: ThemeResource.getCommonSliderTheme(),
@@ -191,7 +191,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
                   onChanged: _onChangeVolume,
                 )),
           ),
-          Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_volume_max.png")),
+          const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_volume_max.png", package:StringResource.PKG_NAME)),
         ],
       ),
     );
@@ -264,12 +264,12 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   }
 }
 
-class _MoreViewController {
+class MoreViewController {
   BoolFunction getAccelerateIsOpen;
   DoubleFunction getPlayRate;
   Function(bool value) siwtchAccelerate;
   Function(double playRate) onChangedPlayRate;
   BoolFunction getIsVodPlay;
 
-  _MoreViewController(this.getAccelerateIsOpen, this.getPlayRate, this.siwtchAccelerate, this.onChangedPlayRate, this.getIsVodPlay);
+  MoreViewController(this.getAccelerateIsOpen, this.getPlayRate, this.siwtchAccelerate, this.onChangedPlayRate, this.getIsVodPlay);
 }
