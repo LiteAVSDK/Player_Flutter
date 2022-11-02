@@ -88,7 +88,11 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
             videoBottom = event["videoBottom"];
           }
         }
-        value = _value!.copyWith(degree: map['EVT_KEY_VIDEO_ROTATION'] ?? 0);
+        int videoDegree = map['EVT_KEY_VIDEO_ROTATION'] ?? 0;
+        if(Platform.isIOS && videoDegree == -1) {
+          videoDegree = 0;
+        }
+        value = _value!.copyWith(degree: videoDegree);
         break;
       case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: //点播加载完成
         break;
