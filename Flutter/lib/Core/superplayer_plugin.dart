@@ -2,8 +2,9 @@
 part of SuperPlayer;
 
 class SuperPlayerPlugin {
-  static SuperPlayerPlugin? _instance;
+  static const TAG = "SuperPlayerPlugin";
 
+  static SuperPlayerPlugin? _instance;
   static SuperPlayerPlugin get instance => _sharedInstance();
 
   /// SuperPlayerPlugin单例
@@ -35,6 +36,7 @@ class SuperPlayerPlugin {
     if (null == event) {
       return;
     }
+    LogUtils.d(TAG, "[pipEventHandler], receive event =  $event ");
     _eventPipStreamController.add(event);
   }
 
