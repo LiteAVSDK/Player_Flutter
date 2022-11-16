@@ -751,7 +751,6 @@ BOOL volatile isStop = false;
     if (pipState == TX_VOD_PLAYER_PIP_STATE_DID_STOP) {
         self.hasEnteredPipMode = NO;
         if (self.restoreUI) {
-            [self->_txVodPlayer resume];
             self.restoreUI = NO;
         } else {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -773,7 +772,11 @@ BOOL volatile isStop = false;
         if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateRestoreUI)]) {
             [self.delegate onPlayerPipStateRestoreUI];
         }
-        [player exitPictureInPicture];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [player exitPictureInPicture];
+            [self->_txVodPlayer resume];
+        });
+   
     }
 }
 
@@ -809,12 +812,10 @@ BOOL volatile isStop = false;
             break;
     }
     self.hasEnteredPipMode = NO;
+    NSLog(@"[onPlayer], pictureInPictureErrorDidOccur errorType= %ld", type);
     if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateError:)]) {
         [self.delegate onPlayerPipStateError:type];
     }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self->_txVodPlayer resume];
-    });
 }
 
 #pragma mark - UIImage转CVPixelBufferRef
