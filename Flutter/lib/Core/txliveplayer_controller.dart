@@ -311,20 +311,14 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       String? playIconForAndroid,
       String? pauseIconForAndroid,
       String? forwardIconForAndroid}) async {
-    if (_isNeedDisposed) return -1;
-    await _initPlayer.future;
-    if (Platform.isAndroid) {
-      return await _channel.invokeMethod("enterPictureInPictureMode", {
-        "backIcon": backIconForAndroid,
-        "playIcon": playIconForAndroid,
-        "pauseIcon": pauseIconForAndroid,
-        "forwardIcon": forwardIconForAndroid
-      });
-    } else if (Platform.isIOS) {
-      return -1;
-    } else {
-      return -1;
-    }
+    /// live not support
+    return 0;
+  }
+
+  /// 退出画中画，如果该播放器处于画中画模式
+  @override
+  Future<void> exitPictureInPictureMode() async {
+    /// live not support
   }
 
   /// 释放播放器资源占用

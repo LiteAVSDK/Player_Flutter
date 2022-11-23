@@ -6,9 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Surface;
-
 import androidx.annotation.NonNull;
-
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXImageSprite;
@@ -17,18 +15,18 @@ import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXPlayInfoParams;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
-
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.tencent.vod.flutter.model.PipResult;
+import com.tencent.vod.flutter.model.VideoModel;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * vodPlayer plugin processor
@@ -49,6 +47,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     private TXVodPlayer mVodPlayer;
     private TXImageSprite mTxImageSprite;
+    private VideoModel mVideoModel;
 
     private static final int                                 Uninitialized         = -101;
     private              TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
@@ -59,39 +58,17 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     private       FTXPIPManager.PipParams   mPipParams;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
-        public void onPlayBack() {
-            boolean isPlaying = isPlaying();
-            if (isPlaying) {
-                float backPlayTime = getCurrentPlaybackTime() - 10;
-                if (backPlayTime < 0) {
-                    backPlayTime = 0;
-                }
-                seek(backPlayTime);
+        public void onPipResult(PipResult result) {
+            float playTime = result.getPlayTime();
+            float duration = mVodPlayer.getDuration();
+            if (playTime > duration) {
+                playTime = duration;
             }
-        }
-
-        @Override
-        public void onResumeOrPlay() {
-            boolean isPlaying = isPlaying();
-            if (isPlaying) {
-                pause();
-            } else {
+            seek(playTime);
+            // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
+            boolean isPipPlaying = result.isPlaying();
+            if(isPipPlaying) {
                 resume();
-            }
-            // isPlaying取反，点击暂停/播放之后，播放状态会变化
-            mPipManager.updatePipActions(!isPlaying, mPipParams);
-        }
-
-        @Override
-        public void onPlayForward() {
-            boolean isPlaying = isPlaying();
-            if (isPlaying) {
-                float forwardPlayTime = getCurrentPlaybackTime() + 10;
-                float duration = mVodPlayer.getDuration();
-                if (forwardPlayTime > duration) {
-                    forwardPlayTime = duration;
-                }
-                seek(forwardPlayTime);
             }
         }
     };
@@ -100,6 +77,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         super();
         mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;
+        mVideoModel = new VideoModel();
+        mVideoModel.setPlayerType(FTXEvent.PLAYER_VOD);
 
         mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
                 ".com/txvodplayer/" + super.getPlayerId());
@@ -196,10 +175,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             }
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
             mHardwareDecodeFail = true;
-        } else if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
-            if (null != mPipManager && mPipManager.isInPipMode()) {
-                mPipManager.updatePipActions(false, mPipParams);
-            }
         }
         mEventSink.success(CommonUtil.getParams(event, bundle));
     }
@@ -355,11 +330,23 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             String playPauseAssetPath = call.argument("pauseIcon");
             String playForwardAssetPath = call.argument("forwardIcon");
             mPipManager.addCallback(getPlayerId(), pipCallback);
-            mPipParams = new FTXPIPManager.PipParams(playBackAssetPath, playResumeAssetPath,
-                    playPauseAssetPath,
-                    playForwardAssetPath, getPlayerId());
-            int pipResult = mPipManager.enterPip(isPlaying(), mPipParams);
+            mPipParams = new FTXPIPManager.PipParams(
+                    mPipManager.toAndroidPath(playBackAssetPath),
+                    mPipManager.toAndroidPath(playResumeAssetPath),
+                    mPipManager.toAndroidPath(playPauseAssetPath),
+                    mPipManager.toAndroidPath(playForwardAssetPath),
+                    getPlayerId());
+            mPipParams.setIsPlaying(isPlaying());
+            mPipParams.setCurrentPlayTime(getCurrentPlaybackTime());
+            int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
+            // 启动成功之后，暂停当前界面视频
+            if(pipResult == FTXEvent.NO_ERROR) {
+                pause();
+            }
             result.success(pipResult);
+        } else if(call.method.equals("exitPictureInPictureMode")) {
+            mPipManager.exitPip();
+            result.success(null);
         } else if(call.method.equals("initImageSprite")) {
             String vvtUrl = call.argument("vvtUrl");
             List<String> imageUrls = call.argument("imageUrls");
@@ -411,6 +398,10 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     }
 
     int startVodPlay(String url) {
+        mVideoModel.setVideoUrl(url);
+        mVideoModel.setAppId(0);
+        mVideoModel.setFileId("");
+        mVideoModel.setPSign("");
         if (mVodPlayer != null) {
             return mVodPlayer.startVodPlay(url);
         }
@@ -422,6 +413,10 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             int appId = call.argument("appId");
             String fileId = call.argument("fileId");
             String psign = call.argument("psign");
+            mVideoModel.setVideoUrl("");
+            mVideoModel.setAppId(appId);
+            mVideoModel.setFileId(fileId);
+            mVideoModel.setPSign(psign);
             TXPlayInfoParams playInfoParams = new TXPlayInfoParams(appId, fileId, psign);
             mVodPlayer.startVodPlay(playInfoParams);
         }

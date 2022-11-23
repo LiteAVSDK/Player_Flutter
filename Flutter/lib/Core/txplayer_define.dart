@@ -304,6 +304,14 @@ class TXVodDownloadMedialnfo {
   }
 }
 
+///
+/// 播放器类型
+///
+abstract class TXPlayerType {
+  static const VOD_PLAY = 0;
+  static const LIVE_PLAY = 1;
+}
+
 //视频预下载事件回调Listener
 typedef FTXPredownlodOnCompleteListener = void Function(int taskId, String url);
 typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int code, String msg);

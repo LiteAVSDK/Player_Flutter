@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
+import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/shortvideo/demo_short_video_lib.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 
 import 'ui/treePage.dart';
 
@@ -22,6 +24,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   String? _liteAVSdkVersion = 'Unknown';
+  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -34,7 +37,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// set player license
-  Future<void> initPlayerLicense() async{
+  Future<void> initPlayerLicense() async {
     String licenceURL = ""; // 获取到的 licence url
     String licenceKey = ""; // 获取到的 licence key
     await SuperPlayerPlugin.setGlobalLicense(licenceURL, licenceKey);
@@ -58,6 +61,9 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _platformVersion = platformVersion!;
     });
+    TXPipController.instance.setNavigatorHandle((params) {
+      navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => DemoSuperPlayer(initParams: params)));
+    });
   }
 
   Future<void> _getflutterSdkVersion() async {
@@ -70,38 +76,38 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       home: Container(
         decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("images/ic_new_vod_bg.png"),
-              fit: BoxFit.cover,
-            )
-        ),
+          image: AssetImage("images/ic_new_vod_bg.png"),
+          fit: BoxFit.cover,
+        )),
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
-            title: const Text('腾讯云Flutter播放器', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),),
+            title: const Text(
+              '腾讯云Flutter播放器',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+            ),
           ),
-          body: Builder(
-              builder: (context) {
-                return Container(
-                  color: Colors.transparent,
-                  child: Stack(
-                    children: [
-                      TreePage(),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: new EdgeInsets.all(20.0) ,
-                          child: Text('LiteAVSDKVersion: ${_liteAVSdkVersion}'),
-                        )
-                      ),
-                    ],
-                  ),
-                );
-              }
-          ),
+          body: Builder(builder: (context) {
+            return Container(
+              color: Colors.transparent,
+              child: Stack(
+                children: [
+                  TreePage(),
+                  Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: new EdgeInsets.all(20.0),
+                        child: Text('LiteAVSDKVersion: ${_liteAVSdkVersion}'),
+                      )),
+                ],
+              ),
+            );
+          }),
         ),
       ),
       builder: EasyLoading.init(),

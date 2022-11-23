@@ -1,3 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.tencent.vod.flutterr">
+        xmlns:tools="http://schemas.android.com/tools"
+        package="com.tencent.vod.flutterr">
+
+    <application>
+        <activity
+                android:name="com.tencent.vod.flutter.ui.FlutterPipImplActivity"
+                android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen"
+                android:supportsPictureInPicture="true"
+                android:screenOrientation="portrait"
+                android:exported="true"
+                android:resizeableActivity="true"
+                android:launchMode="singleInstance"
+                android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                android:hardwareAccelerated="true"
+                android:windowSoftInputMode="stateHidden"
+                tools:ignore="UnusedAttribute" >
+            <intent-filter>
+                <action android:name="com.tencent.flutter.startPip"/>
+                <action android:name="com.tencent.flutter.exitPip"/>
+                <action android:name="com.tencent.flutter.updatePip"/>
+            </intent-filter>
+        </activity>
+    </application>
+
 </manifest>

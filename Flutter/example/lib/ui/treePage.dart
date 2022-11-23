@@ -136,7 +136,7 @@ class _TreePageState extends State<TreePage> {
               }else if (i == 1) {
                 return DemoTXVodPlayer();
               } else if (i==2){
-                return DemoSuperplayer();
+                return DemoSuperPlayer();
               } else {
                 return DemoShortVideoPlayer();
               }

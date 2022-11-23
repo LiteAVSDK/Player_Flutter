@@ -63,7 +63,7 @@ SuperPlayerPlugin* instance;
     _eventSink = [FTXPlayerEventSinkQueue new];
     _pipEventSink = [FTXPlayerEventSinkQueue new];
     _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/event" binaryMessenger:[registrar messenger]];
-    _pipEventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/pipEvent" binaryMessenger:[registrar messenger]];
+    _pipEventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/playerPlugin/componentEvent" binaryMessenger:[registrar messenger]];
     [_eventChannel setStreamHandler:self];
     [_pipEventChannel setStreamHandler:self];
 
@@ -194,7 +194,7 @@ SuperPlayerPlugin* instance;
         result(@(setResult));
     } else if([@"startVideoOrientationService" isEqualToString:call.method]) {
         // only for android
-        result(@(true));
+        result(@(YES));
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -263,8 +263,8 @@ SuperPlayerPlugin* instance;
     [_pipEventSink success:@{@"event" : @(errorId)}];
 }
 
-- (void)onPlayerPipStateRestoreUI {
-    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_RESTORE_UI)}];
+- (void)onPlayerPipStateRestoreUI:(double)playTime {
+    [_pipEventSink success:@{@"event" : @(EVENT_PIP_MODE_RESTORE_UI), EVENT_PIP_PLAY_TIME : @(playTime)}];
 }
 
 #pragma mark - orientation

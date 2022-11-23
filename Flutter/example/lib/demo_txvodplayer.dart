@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:super_player/super_player.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'ui/demo_inputdialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'ui/demo_volume_slider.dart';
@@ -12,10 +13,10 @@ import 'ui/demo_video_slider_view.dart';
 
 class DemoTXVodPlayer extends StatefulWidget {
   @override
-  _DemoTXVodlayerState createState() => _DemoTXVodlayerState();
+  _DemoTXVodPlayerState createState() => _DemoTXVodPlayerState();
 }
 
-class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
+class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     with WidgetsBindingObserver {
   late TXVodPlayerController _controller;
   double _aspectRatio = 16 / 9;
@@ -24,8 +25,7 @@ class _DemoTXVodlayerState extends State<DemoTXVodPlayer>
   int _volume = 100;
   List _supportedBitrates = [];
   int _curBitrateIndex = 0;
-  String _url =
-      "http://1400329073.vod2.myqcloud.com/d62d88a7vodtranscq1400329073/59c68fe75285890800381567412/adp.10.m3u8";
+  String _url = "http://1400329073.vod2.myqcloud.com/d62d88a7vodtranscq1400329073/59c68fe75285890800381567412/adp.10.m3u8";
   int _appId = 0;
   String _fileId = "";
   double _rate = 1.0;
