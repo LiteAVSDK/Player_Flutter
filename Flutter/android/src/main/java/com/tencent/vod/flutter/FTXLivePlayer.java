@@ -6,22 +6,20 @@ import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
-
 import androidx.annotation.NonNull;
-
 import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXLivePlayer;
-
-import java.util.Map;
-
+import com.tencent.vod.flutter.model.PipResult;
+import com.tencent.vod.flutter.model.VideoModel;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
+import java.util.Map;
 
 /**
  * live player processor
@@ -50,27 +48,15 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     private final FTXPIPManager mPipManager;
     private FTXPIPManager.PipParams mPipParams;
+    private VideoModel mVideoModel;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
-        public void onPlayBack() {
-            // pip not support playback
-        }
-
-        @Override
-        public void onResumeOrPlay() {
-            boolean isPlaying = isPlaying();
-            if (isPlaying) {
-                pause();
-            } else {
+        public void onPipResult(PipResult result) {
+            // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
+            boolean isPipPlaying = result.isPlaying();
+            if(isPipPlaying) {
                 resume();
             }
-            // isPlaying取反，点击暂停/播放之后，播放状态会变化
-            mPipManager.updatePipActions(!isPlaying, mPipParams);
-        }
-
-        @Override
-        public void onPlayForward() {
-            // pip not support forward
         }
     };
 
@@ -80,6 +66,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         mFlutterPluginBinding = flutterPluginBinding;
         mActivity = activity;
         mPipManager = pipManager;
+        mVideoModel = new VideoModel();
+        mVideoModel.setPlayerType(FTXEvent.PLAYER_LIVE);
 
         mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
@@ -245,11 +233,22 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             String playPauseAssetPath = call.argument("pauseIcon");
             String playForwardAssetPath = call.argument("forwardIcon");
             mPipManager.addCallback(getPlayerId(), pipCallback);
-            mPipParams = new FTXPIPManager.PipParams(playBackAssetPath, playResumeAssetPath,
-                    playPauseAssetPath,
-                    playForwardAssetPath, getPlayerId(), false, false, true);
-            int pipResult = mPipManager.enterPip(isPlaying(), mPipParams);
+            mPipParams = new FTXPIPManager.PipParams(
+                    mPipManager.toAndroidPath(playBackAssetPath),
+                    mPipManager.toAndroidPath(playResumeAssetPath),
+                    mPipManager.toAndroidPath(playPauseAssetPath),
+                    mPipManager.toAndroidPath(playForwardAssetPath),
+                    getPlayerId(),false, false, true);
+            mPipParams.setIsPlaying(isPlaying());
+            int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
+            // 启动成功之后，暂停当前界面视频
+            if(pipResult == FTXEvent.NO_ERROR) {
+                pause();
+            }
             result.success(pipResult);
+        } else if(call.method.equals("exitPictureInPictureMode")) {
+            mPipManager.exitPip();
+            result.success(null);
         } else if (call.method.equals("setConfig")) {
             Map<Object, Object> config = call.argument("config");
             setPlayConfig(config);
@@ -272,6 +271,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     int startLivePlay(String url, int type) {
         Log.d(TAG, "startLivePlay:");
+        mVideoModel.setVideoUrl(url);
+        mVideoModel.setLiveType(type);
         if (mLivePlayer != null) {
             mLivePlayer.setSurface(mSurface);
             mLivePlayer.setPlayListener(this);

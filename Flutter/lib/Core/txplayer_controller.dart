@@ -23,4 +23,6 @@ abstract class TXPlayerController {
   Future<bool> enableHardwareDecode(bool enable);
   Future<int> enterPictureInPictureMode(
       {String? backIconForAndroid, String? playIconForAndroid, String? pauseIconForAndroid, String? forwardIconForAndroid});
+  Future<void> exitPictureInPictureMode();
+  void dispose();
 }

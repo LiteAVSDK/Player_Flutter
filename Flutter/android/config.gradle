@@ -1,5 +1,5 @@
 rootProject.ext {
-    compileSdkVersion = 28
+    compileSdkVersion = 31
     buildToolsVersion = "28.0.3"
     supportSdkVersion = "26.0.1"
     minSdkVersion = 19

@@ -37,7 +37,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late BottomViewController _bottomViewController;
   late QualityListViewController _qualitListViewController;
   late _VideoTitleController _titleViewController;
-  late _SuperPlayerFullScreenController _superPlayerFullUIController;
+  late SuperPlayerFullScreenController _superPlayerFullUIController;
   late CoverViewController _coverViewController;
   late MoreViewController _moreViewController;
 
@@ -52,22 +52,25 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   final GlobalKey<_VideoTitleViewState> _videoTitleKey = GlobalKey();
   final GlobalKey<_SuperPlayerCoverViewState> _coverViewKey = GlobalKey();
   final GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
-  final GlobalKey<_SuperPlayerFloatState> floatPlayerKey = GlobalKey();
 
   Uint8List? _currentSprite;
   bool _isShowSprite = false;
+  int _pipPreUiStatus = SuperPlayerUIStatus.WINDOW_MODE;
+
   /// 任务队列
   final TaskExecutors _taskExecutors = TaskExecutors();
 
   @override
   void initState() {
     super.initState();
+    TXPipController.instance.exitAndReleaseCurrentPip();
     _playController = widget._controller;
-    _superPlayerFullUIController = _SuperPlayerFullScreenController(_updateState);
+    _superPlayerFullUIController = SuperPlayerFullScreenController(_updateState);
     _titleViewController = _VideoTitleController(_onTapBack, () {
       _moreViewKey.currentState?.toggleShowMoreView();
     });
-    _bottomViewController = BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView, (value) {
+    _bottomViewController =
+        BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView, (value) {
       _taskExecutors.addTask(() => _controlTest(true, value));
     }, () {
       _taskExecutors.addTask(() => _controlTest(false, 0));
@@ -95,47 +98,18 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _pipSubscription = SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
       int eventCode = event["event"];
       if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
-        // exit floatingMode
-        if (Platform.isAndroid) {
-          Navigator.of(context).pop();
-          if (_isPlaying) {
-            // pause play when exit PIP, prevent user just close PIP, but not back to app
-            _playController.getCurrentController().pause();
-          }
-        } else if (Platform.isIOS) {
-          _onResume();
-          EasyLoading.dismiss();
-        }
         _isFloatingMode = false;
-        _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+        _playController._updatePlayerUIStatus(_pipPreUiStatus);
       } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
-        // EVENT_PIP_MODE_ALREADY_ENTER 的状态变化有滞后性，进入PIP之后才会通知，这里需要监听EVENT_PIP_MODE_REQUEST_START,
-        // 在即将进入PIP模式下就要开始进行PIP模式的UI准备
-        // enter floatingMode
-        if (Platform.isAndroid) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-            return SuperPlayerFloatView(_playController, _aspectRatio, key: floatPlayerKey);
-          }));
-        } else if (Platform.isIOS) {
-          EasyLoading.showToast(StringResource.OPEN_PIP);
-        }
+        _pipPreUiStatus = _playController._playerUIStatus;
         _isFloatingMode = true;
         _playController._updatePlayerUIStatus(SuperPlayerUIStatus.PIP_MODE);
-      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_ENTER) {
-        if (Platform.isIOS) {
-          EasyLoading.dismiss();
-        }
       } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) {
-        if (Platform.isIOS) {
-          EasyLoading.showToast(StringResource.CLOSE_PIP);
-        }
-      } else {
-        if (Platform.isIOS) {
-          EasyLoading.showToast(StringResource.ERROR_PIP);
-        }
+        EasyLoading.showToast(StringResource.CLOSE_PIP);
+      } else if (eventCode < 0) {
+        EasyLoading.showToast(StringResource.ERROR_PIP);
         _isFloatingMode = false;
-        _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-        print('$eventCode');
+        _playController._updatePlayerUIStatus(_pipPreUiStatus);
       }
     });
     _volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
@@ -198,7 +172,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, (current, duration, playableDuration) {
       // onPlayProgress
       _videoBottomKey.currentState?.updateDuration(current, duration, playableDuration);
-      floatPlayerKey.currentState?.updateDuration(current, duration);
     }, (position) {
       // onSeek
     }, (success, playerType, quality) {
@@ -291,7 +264,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         // 不更新状态，直接resume
         _playController.getCurrentController().resume();
         // 从后台回来之后，如果手机横竖屏状态发生更改，被改为竖屏，那么这里根据判断切换横屏
-        if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE && defaultTargetPlatform == TargetPlatform.iOS) {
+        if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE &&
+            defaultTargetPlatform == TargetPlatform.iOS) {
           Orientation currentOrientation = MediaQuery.of(context).orientation;
           bool isLandscape = currentOrientation == Orientation.landscape;
           if (!isLandscape) {
@@ -308,7 +282,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _calculateSize(double videoWidth, double videoHeight) {
     if ((0 != videoWidth && 0 != videoHeight) && (_videoWidth != videoWidth && _videoHeight != videoHeight)) {
-      floatPlayerKey.currentState?._calculateSize(videoWidth, videoHeight);
       _videoWidth = videoWidth;
       _videoHeight = videoHeight;
       _resizeVideo();
@@ -355,23 +328,21 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Center(
-          child: Stack(
-        children: [
-          _getPlayer(),
-          _getTitleArea(),
-          _getPipEnterView(),
-          _getImageSpriteView(),
-          _getCover(),
-          _getBottomView(),
-          _getStartOrResumeBtn(),
-          _getQualityListView(),
-          _getMoreMenuView(),
-          _getLoading(),
-        ],
-      )),
-    );
+    return Center(
+        child: Stack(
+      children: [
+        _getPlayer(),
+        _getTitleArea(),
+        _getPipEnterView(),
+        _getImageSpriteView(),
+        _getCover(),
+        _getBottomView(),
+        _getStartOrResumeBtn(),
+        _getQualityListView(),
+        _getMoreMenuView(),
+        _getLoading(),
+      ],
+    ));
   }
 
   Widget _getImageSpriteView() {
@@ -385,7 +356,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   Widget _getPipEnterView() {
     return Visibility(
-      visible: _isShowControlView && _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE,
+      visible: _isShowControlView &&
+          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE &&
+          _playController.playerType == SuperPlayerType.VOD,
       child: Positioned(
         right: 10,
         top: 0,
@@ -394,8 +367,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           child: InkWell(
               onTap: _onEnterPipMode,
               child: Container(
-                padding: EdgeInsets.all(5), // expand click area
-                child: Image(
+                padding: const EdgeInsets.all(5), // expand click area
+                child: const Image(
                   width: 30,
                   height: 30,
                   image: AssetImage("images/ic_pip_play_icon.png", package: StringResource.PKG_NAME),
@@ -413,7 +386,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   Widget _getQualityListView() {
     return Visibility(
       visible: _isShowQualityListView,
-      child: QualityListView(_qualitListViewController, _playController.currentQualiyList, _playController.currentQuality, _qualityListKey),
+      child: QualityListView(_qualitListViewController, _playController.currentQualiyList,
+          _playController.currentQuality, _qualityListKey),
     );
   }
 
@@ -431,7 +405,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         height: 40,
         child: Visibility(
             visible: _isLoading,
-            child: CircularProgressIndicator(
+            child: const CircularProgressIndicator(
               color: Colors.grey,
             )),
       ),
@@ -445,7 +419,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         maintainState: false,
         child: InkWell(
           onTap: _onTapPlayControl,
-          child: Image(
+          child: const Image(
             width: 40,
             height: 40,
             image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: StringResource.PKG_NAME),
@@ -468,7 +442,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       child: Center(
         child: AspectRatio(
             aspectRatio: _aspectRatio,
-            child: TXPlayerVideo(controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream())),
+            child: TXPlayerVideo(
+                controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream())),
       ),
     );
   }
@@ -480,8 +455,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         top: topBottomOffset,
         left: 0,
         right: 0,
-        child: _VideoTitleView(_titleViewController, _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
-            _playController._getPlayName(), _videoTitleKey),
+        child: _VideoTitleView(
+            _titleViewController,
+            _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
+            _playController._getPlayName(),
+            _videoTitleKey),
       ),
     );
   }
@@ -679,9 +657,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
 class SuperPlayerFullScreenView extends StatefulWidget {
   final SuperPlayerController _playController;
-  final _SuperPlayerFullScreenController controller;
+  final SuperPlayerFullScreenController controller;
 
-  SuperPlayerFullScreenView(this._playController, this.controller, {Key? viewKey}) : super(key: viewKey);
+  const SuperPlayerFullScreenView(this._playController, this.controller, {Key? viewKey}) : super(key: viewKey);
 
   @override
   State<StatefulWidget> createState() => SuperPlayerFullScreenState();
@@ -723,111 +701,10 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
   }
 }
 
-class _SuperPlayerFullScreenController {
+class SuperPlayerFullScreenController {
   Function onExitFullScreen;
 
-  _SuperPlayerFullScreenController(this.onExitFullScreen);
-}
-
-class SuperPlayerFloatView extends StatefulWidget {
-  final SuperPlayerController _controller;
-  final double initAspectRatio;
-
-  SuperPlayerFloatView(this._controller, this.initAspectRatio, {Key? key}) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _SuperPlayerFloatState();
-}
-
-class _SuperPlayerFloatState extends State<SuperPlayerFloatView> {
-  double _videoDuration = 0;
-  double _currentDuration = 0;
-  double _aspectRatio = 16.0 / 9.0;
-  double _videoWidth = 0;
-  double _videoHeight = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _aspectRatio = widget.initAspectRatio;
-  }
-
-  void _calculateSize(double videoWidth, double videoHeight) {
-    if ((0 != videoWidth && 0 != videoHeight) && (_videoWidth != videoWidth && _videoHeight != videoHeight)) {
-      _videoWidth = videoWidth;
-      _videoHeight = videoHeight;
-
-      Size size = MediaQuery.of(context).size;
-      double playerHeight = size.height;
-      // remain height
-      double videoRadio = _videoWidth / _videoHeight;
-      double radioHeight = playerHeight;
-      double radioWidth = playerHeight * videoRadio;
-
-      _aspectRatio = radioWidth / radioHeight;
-
-      setState(() {});
-    }
-  }
-
-  void updateDuration(double duration, double videoDuration) {
-    if (duration != _currentDuration || _videoDuration != videoDuration) {
-      if (duration <= videoDuration) {
-        setState(() {
-          _currentDuration = duration;
-          _videoDuration = videoDuration;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Center(
-                child: AspectRatio(
-                  aspectRatio: _aspectRatio,
-                  child: TXPlayerVideo(
-                    controller: widget._controller.getCurrentController(),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _getSlider(),
-              )
-            ],
-          )),
-    );
-  }
-
-  Widget _getSlider() {
-    return Theme(
-        data: ThemeResource.getMiniSliderTheme(),
-        child: Slider(
-          min: 0,
-          max: _videoDuration,
-          value: _currentDuration,
-          onChanged: (double value) {
-            setState(() {
-              _currentDuration = value;
-            });
-          },
-        ));
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  SuperPlayerFullScreenController(this.onExitFullScreen);
 }
 
 class FullScreenController {
@@ -853,13 +730,15 @@ class FullScreenController {
       AutoOrientation.portraitUpMode();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
       enterFullScreen();
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
+      SystemChrome.setPreferredOrientations(
+          Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       AutoOrientation.landscapeRightMode();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
       enterFullScreen();
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
+      SystemChrome.setPreferredOrientations(
+          Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       AutoOrientation.landscapeLeftMode();
     }
@@ -879,8 +758,8 @@ class FullScreenController {
     }
   }
 
-  void setListener(Function enterfullScreen, Function exitFullScreen) {
-    this.onExitFullScreenUI = exitFullScreen;
-    this.onEnterFullScreenUI = enterfullScreen;
+  void setListener(Function enterFullScreen, Function exitFullScreen) {
+    onExitFullScreenUI = exitFullScreen;
+    onEnterFullScreenUI = enterFullScreen;
   }
 }

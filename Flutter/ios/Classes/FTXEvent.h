@@ -15,6 +15,8 @@
 #define EVENT_PIP_MODE_RESTORE_UI       5
 #define EVENT_PIP_MODE_WILL_EXIT        6
 
+#define EVENT_PIP_PLAY_TIME             @"playTime"
+
 // 画中画错误事件code
 #define NO_ERROR                             0     ///<   无错误
 #define ERROR_IOS_PIP_DEVICE_NOT_SUPPORT     -104  ///<   设备或系统版本不支持（iPad iOS9+ 才支持PIP）

@@ -70,7 +70,7 @@ class SuperPlayerController {
   }
 
   void _initVodPlayer() async {
-    _vodPlayerController = new TXVodPlayerController();
+    _vodPlayerController = TXVodPlayerController();
     await _vodPlayerController.initialize();
     _setVodListener();
   }
@@ -349,8 +349,9 @@ class SuperPlayerController {
     _playVodUrl(videoUrl);
     List<VideoQuality>? qualityList = protocol.getVideoQualityList();
 
-    _isMultiBitrateStream =
-        protocol.getResolutionNameList() != null || qualityList != null || (videoUrl != null && videoUrl.contains("m3u8"));
+    _isMultiBitrateStream = protocol.getResolutionNameList() != null ||
+        qualityList != null ||
+        (videoUrl != null && videoUrl.contains("m3u8"));
 
     _updateVideoQualityList(qualityList, protocol.getDefaultVideoQuality());
   }
@@ -416,7 +417,8 @@ class SuperPlayerController {
     if (_playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       await _vodPlayerController.setAutoPlay(isAutoPlay: false);
       _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
-    } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
+    } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY ||
+        _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
       await _vodPlayerController.setAutoPlay(isAutoPlay: true);
     }
     _setVodListener();
@@ -586,7 +588,9 @@ class SuperPlayerController {
     String title = "";
     if (videoModel != null && null != videoModel!.title && videoModel!.title.isNotEmpty) {
       title = videoModel!.title;
-    } else if (_currentProtocol != null && null != _currentProtocol!.getName() && _currentProtocol!.getName()!.isNotEmpty) {
+    } else if (_currentProtocol != null &&
+        null != _currentProtocol!.getName() &&
+        _currentProtocol!.getName()!.isNotEmpty) {
       title = _currentProtocol!.getName()!;
     }
     return title;
@@ -622,7 +626,8 @@ class SuperPlayerController {
 
   /// 是否是HTTP-FLV协议
   bool _isFLVPlay(String? videoURL) {
-    return (null != videoURL && videoURL.startsWith("http://") || videoURL!.startsWith("https://")) && videoURL.contains(".flv");
+    return (null != videoURL && videoURL.startsWith("http://") || videoURL!.startsWith("https://")) &&
+        videoURL.contains(".flv");
   }
 
   /// 重置播放器状态
@@ -655,10 +660,13 @@ class SuperPlayerController {
   Future<void> releasePlayer() async {
     // 先移除widget的事件监听
     _observer?.onDispose();
-    resetPlayer();
     playerStreamController.close();
-    _vodPlayerController.dispose();
-    _livePlayerController.dispose();
+    // 如果处于画中画模式，播放器暂时不释放
+    if(!TXPipController.instance.isPlayerInPip(getCurrentController())) {
+      resetPlayer();
+      _vodPlayerController.dispose();
+      _livePlayerController.dispose();
+    }
   }
 
   /// return true : 执行了退出全屏等操作，消耗了返回事件  false：未消耗事件
@@ -740,14 +748,21 @@ class SuperPlayerController {
   /// </h1>
   /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
   /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
-  Future<int> enterPictureInPictureMode({String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
+  Future<int> enterPictureInPictureMode(
+      {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
     if (_playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE) {
       if (playerType == SuperPlayerType.VOD) {
-        return _vodPlayerController.enterPictureInPictureMode(
-            backIconForAndroid: backIcon, playIconForAndroid: playIcon, pauseIconForAndroid: pauseIcon, forwardIconForAndroid: forwardIcon);
+        return TXPipController.instance.enterPip(_vodPlayerController, _context,
+            backIconForAndroid: backIcon,
+            playIconForAndroid: playIcon,
+            pauseIconForAndroid: pauseIcon,
+            forwardIconForAndroid: forwardIcon);
       } else {
-        return _livePlayerController.enterPictureInPictureMode(
-            backIconForAndroid: backIcon, playIconForAndroid: playIcon, pauseIconForAndroid: pauseIcon, forwardIconForAndroid: forwardIcon);
+        return TXPipController.instance.enterPip(_livePlayerController, _context,
+            backIconForAndroid: backIcon,
+            playIconForAndroid: playIcon,
+            pauseIconForAndroid: pauseIcon,
+            forwardIconForAndroid: forwardIcon);
       }
     }
     return TXVodPlayEvent.ERROR_PIP_CAN_NOT_ENTER;
@@ -791,6 +806,14 @@ class SuperPlayerController {
     if (playerType == SuperPlayerType.VOD) {
       isLoop = loop;
       return await _vodPlayerController.setLoop(loop);
+    }
+  }
+
+  /// 设置播放开始时间
+  Future<void> setStartTime(double startTime) async {
+    if (playerType == SuperPlayerType.VOD) {
+      startPos = startTime;
+      return await _vodPlayerController.setStartTime(startTime);
     }
   }
 

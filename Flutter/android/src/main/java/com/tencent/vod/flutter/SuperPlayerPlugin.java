@@ -246,7 +246,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
 
     private void initPipManagerIfNeed() {
         if (null == mTxPipManager) {
-            mTxPipManager = new FTXPIPManager(mTxAudioManager, mActivityPluginBinding.getActivity(),
+            mTxPipManager = new FTXPIPManager(mTxAudioManager, mFlutterPluginBinding, mActivityPluginBinding,
                     mFlutterPluginBinding.getFlutterAssets());
         }
     }
@@ -280,7 +280,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     @Override
     public void onDetachedFromActivity() {
         if (null != mTxPipManager) {
-            mTxPipManager.releaseReceiver();
+            mTxPipManager.releaseActivityListener();
         }
         unregisterReceiver();
     }
