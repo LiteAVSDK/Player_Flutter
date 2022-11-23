@@ -28,7 +28,7 @@ class SuperPlayerPlugin {
     EventChannel eventChannel = EventChannel("cloud.tencent.com/playerPlugin/event");
     eventChannel.receiveBroadcastStream("event").listen(_eventHandler, onError: _errorHandler);
 
-    EventChannel pipEventChanne = EventChannel("cloud.tencent.com/playerPlugin/pipEvent");
+    EventChannel pipEventChanne = EventChannel("cloud.tencent.com/playerPlugin/componentEvent");
     pipEventChanne.receiveBroadcastStream("pipEvent").listen(_pipEventHandler, onError: _errorHandler);
   }
 

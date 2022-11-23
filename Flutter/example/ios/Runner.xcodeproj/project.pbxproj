@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -392,7 +392,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteavdemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Yunxiao Develop Profile";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -519,7 +519,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteavdemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Yunxiao Develop Profile";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -541,7 +541,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteavdemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Yunxiao Develop Profile";
 				VERSIONING_SYSTEM = "apple-generic";

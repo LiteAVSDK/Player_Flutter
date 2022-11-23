@@ -424,6 +424,14 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return await _channel.invokeMethod("getDuration");
   }
 
+  /// 退出画中画，如果该播放器处于画中画模式
+  @override
+  Future<void> exitPictureInPictureMode() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    return await _channel.invokeMethod("exitPictureInPictureMode");
+  }
+
   /// 释放controller
   @override
   void dispose() async {
@@ -465,4 +473,5 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   double? videoTop = 0;
   double? videoRight = 0;
   double? videoBottom = 0;
+
 }

@@ -39,6 +39,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     
     id<FlutterPluginRegistrar> _registrar;
     id<FlutterTextureRegistry> _textureRegistry;
+    
+    float currentPlayTime;
 }
 
 
@@ -417,7 +419,7 @@ BOOL volatile isStop = false;
         result(@(index));
     }
     else if([@"getPlayableDuration" isEqualToString:call.method]){
-        float time = [self getCurrentPlaybackTime];
+        float time = [self getPlayableDuration];
         result(@(time));
     }
     else if([@"getDuration" isEqualToString:call.method]){
@@ -453,6 +455,12 @@ BOOL volatile isStop = false;
         } else {
             result(nil);
         }
+    }
+    else if ([@"exitPictureInPictureMode" isEqualToString:call.method]) {
+        if(_txVodPlayer != nil) {
+            [_txVodPlayer exitPictureInPicture];
+        }
+        result(nil);
     }
     else {
         result(FlutterMethodNotImplemented);
@@ -522,7 +530,12 @@ BOOL volatile isStop = false;
 {
     // 交给flutter共享纹理处理首帧事件返回时机
     if (EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
+        currentPlayTime = 0;
         return;
+    } else if(EvtID == PLAY_EVT_PLAY_PROGRESS) {
+        currentPlayTime = [param[EVT_PLAY_PROGRESS] floatValue];
+    } else if(EvtID == PLAY_EVT_PLAY_BEGIN) {
+        currentPlayTime = 0;
     }
     
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
@@ -769,14 +782,13 @@ BOOL volatile isStop = false;
     
     if (pipState == TX_VOD_PLAYER_PIP_STATE_RESTORE_UI) {
         self.restoreUI = YES;
-        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateRestoreUI)]) {
-            [self.delegate onPlayerPipStateRestoreUI];
-        }
         dispatch_async(dispatch_get_main_queue(), ^{
             [player exitPictureInPicture];
             [self->_txVodPlayer resume];
         });
-   
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateRestoreUI:)]) {
+            [self.delegate onPlayerPipStateRestoreUI:currentPlayTime];
+        }
     }
 }
 
