@@ -52,7 +52,9 @@
         return;
     }
     
-    for (NSObject *obj in self.eventQueue) {
+    // array Immutable handle
+    NSArray *array = [NSArray arrayWithArray:self.eventQueue];
+    for (NSObject *obj in array) {
         self.eventSink(obj);
     }
     [self.eventQueue removeAllObjects];
