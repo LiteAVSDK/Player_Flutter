@@ -54,7 +54,7 @@
 
 - 播放器组件`SuperPlayerController` 对点播和直播进行了封装，同时提供了简单的UI交互， 由于此部分代码在example目录。如果您有对播放器组件定制化的需求，您可以进行如下操作：
 
-  把播放器组件相关的代码，代码目录：`exmple/lib/superplayer`，复制到您的项目中，进行定制化开发。
+  把播放器组件相关的代码，代码目录：`Flutter/superplayer_widget`，导入到您的项目中，进行定制化开发。
 
 ## 文档链接
 
