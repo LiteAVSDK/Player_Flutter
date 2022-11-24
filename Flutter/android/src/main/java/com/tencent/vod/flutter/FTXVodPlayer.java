@@ -170,7 +170,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
             int width = bundle.getInt(TXLiveConstants.EVT_PARAM1, 0);
             int height = bundle.getInt(TXLiveConstants.EVT_PARAM2, 0);
-            if (!mEnableHardwareDecode || mHardwareDecodeFail) {
+            // 设置surface大小，防止部分情况收不到硬解失败的事件，导致只有1px内容
+            if (width != 0 && height != 0) {
                 setDefaultBufferSizeForSoftDecode(width, height);
             }
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
@@ -368,8 +369,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
                     }
                 }
             }).start();
-        }
-        else {
+        } else {
             result.notImplemented();
         }
     }
