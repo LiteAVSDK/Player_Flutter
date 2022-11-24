@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)onPlayerPipStateDidStop;
 
-- (void)onPlayerPipStateRestoreUI;
+- (void)onPlayerPipStateRestoreUI:(double)playTime;;
 
 - (void)onPlayerPipStateError:(NSInteger)errorId;
 

@@ -35,10 +35,11 @@ public class FTXEvent {
     // 视频下载错误
     public static final int EVENT_DOWNLOAD_ERROR    = 305;
 
-    public static final int    NO_ERROR                       = 0;
+    public static final int NO_ERROR                = 0;
     /**
      * pip 事件
      */
+    public static final String PIP_CHANNEL_NAME              = "cloud.tencent.com/playerPlugin/componentEvent";
     // pip广播action
     public final static String ACTION_PIP_PLAY_CONTROL        = "vodPlayControl";
     // pip 操作
@@ -57,6 +58,40 @@ public class FTXEvent {
     public static final int    ERROR_PIP_DENIED_PERMISSION    = -102;
     // pip 错误，当前界面已销毁
     public static final int    ERROR_PIP_ACTIVITY_DESTROYED   = -103;
+    // 来自画中画容器的事件，广播键值
+    public static final String EVENT_PIP_ACTION               = "com.tencent.flutter.pipevent";
+    // 来自画中画容器的事件，事件键值
+    public static final String EVENT_PIP_MODE_NAME            = "pipEventName";
+    // 画中画当前播放时间
+    public static final String EVENT_PIP_PLAY_TIME            = "playTime";
+    // 来自画中画容器的事件，已经进入画中画
+    public static final int    EVENT_PIP_MODE_ALREADY_ENTER    = 1;
+    // 来自画中画容器的事件，已经退出画中画
+    public static final int    EVENT_PIP_MODE_ALREADY_EXIT     = 2;
+    // 来自画中画容器的事件，开始进入画中画
+    public static final int    EVENT_PIP_MODE_REQUEST_START    = 3;
+    // 来自画中画容器的事件，画中画UI发生变动，> android 31
+    public static final int    EVENT_PIP_MODE_UI_STATE_CHANGED = 4;
+    // 画中画界面恢复，即点击放大按钮
+    public static final int    EVENT_PIP_MODE_RESTORE_UI       = 5;
+
+    // 启动画中画
+    public static final String PIP_ACTION_START = "com.tencent.flutter.startPip";
+    // 退出画中画
+    public static final String PIP_ACTION_EXIT = "com.tencent.flutter.exitPip";
+    // 更新画中画
+    public static final String PIP_ACTION_UPDATE = "com.tencent.flutter.updatePip";
+    // 画中画参数
+    public static final String EXTRA_NAME_PARAMS = "pipParams";
+    // 视频源
+    public static final String EXTRA_NAME_VIDEO = "videoModel";
+    // 画中画结束参数
+    public static final String EXTRA_NAME_RESULT = "pipResult";
+
+    // 点播播放器
+    public static final int PLAYER_VOD = 1;
+    // 直播播放器
+    public static final int PLAYER_LIVE = 2;
 
 
     // 屏幕旋转事件
@@ -71,4 +106,5 @@ public class FTXEvent {
     public static final int ORIENTATION_PORTRAIT_DOWN = 413;
     // 横屏，底部在左
     public static final int ORIENTATION_LANDSCAPE_LEFT = 414;
+
 }
