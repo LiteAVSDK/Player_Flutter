@@ -5,13 +5,15 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/transparent"
         tools:context="com.tencent.vod.flutter.ui.FlutterPipImplActivity">
 
 
     <SurfaceView
             android:id="@+id/sv_video_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
 
     <ProgressBar
             android:id="@+id/pb_video_progress"
@@ -19,6 +21,7 @@
             android:layout_height="3dp"
             android:layout_alignParentBottom="true"
             android:max="100"
+            android:visibility="gone"
             style="@android:style/Widget.Holo.ProgressBar.Horizontal"/>
 
 </RelativeLayout>

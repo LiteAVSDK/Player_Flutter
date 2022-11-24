@@ -106,7 +106,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _playController._updatePlayerUIStatus(SuperPlayerUIStatus.PIP_MODE);
       } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) {
         EasyLoading.showToast(StringResource.CLOSE_PIP);
-      } else if(eventCode < 0) {
+      } else if (eventCode < 0) {
         EasyLoading.showToast(StringResource.ERROR_PIP);
         _isFloatingMode = false;
         _playController._updatePlayerUIStatus(_pipPreUiStatus);
@@ -356,7 +356,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   Widget _getPipEnterView() {
     return Visibility(
-      visible: _isShowControlView && _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE,
+      visible: _isShowControlView &&
+          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE &&
+          _playController.playerType == SuperPlayerType.VOD,
       child: Positioned(
         right: 10,
         top: 0,

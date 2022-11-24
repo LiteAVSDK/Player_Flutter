@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// set player license
-  Future<void> initPlayerLicense() async {
+  Future<void> initPlayerLicense() async{
     String licenceURL = ""; // 获取到的 licence url
     String licenceKey = ""; // 获取到的 licence key
     await SuperPlayerPlugin.setGlobalLicense(licenceURL, licenceKey);

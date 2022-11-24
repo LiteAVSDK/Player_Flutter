@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:super_player/super_player.dart';
-import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'ui/demo_inputdialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'ui/demo_volume_slider.dart';

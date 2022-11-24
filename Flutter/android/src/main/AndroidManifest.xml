@@ -6,12 +6,12 @@
     <application>
         <activity
                 android:name="com.tencent.vod.flutter.ui.FlutterPipImplActivity"
-                android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen"
+                android:theme="@style/Theme"
                 android:supportsPictureInPicture="true"
                 android:screenOrientation="portrait"
                 android:exported="true"
                 android:resizeableActivity="true"
-                android:launchMode="singleInstance"
+                android:launchMode="singleTop"
                 android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
                 android:hardwareAccelerated="true"
                 android:windowSoftInputMode="stateHidden"

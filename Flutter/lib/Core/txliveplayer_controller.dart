@@ -312,7 +312,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       String? pauseIconForAndroid,
       String? forwardIconForAndroid}) async {
     /// live not support
-    return 0;
+    return -1;
   }
 
   /// 退出画中画，如果该播放器处于画中画模式

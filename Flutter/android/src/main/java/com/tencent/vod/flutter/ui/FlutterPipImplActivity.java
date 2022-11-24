@@ -19,6 +19,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import com.tencent.rtmp.ITXLivePlayListener;
@@ -49,7 +50,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     private int configHeight = 0;
 
     private SurfaceView mVideoSurface;
-    private ProgressBar pb_video_progress;
+    private ProgressBar mVideoProgress;
 
     private TXVodPlayer mVodPlayer;
     private TXLivePlayer mLivePlayer;
@@ -106,7 +107,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         mVodPlayer = new TXVodPlayer(this);
         mLivePlayer = new TXLivePlayer(this);
         mVideoSurface = findViewById(R.id.sv_video_container);
-        pb_video_progress = findViewById(R.id.pb_video_progress);
+        mVideoProgress = findViewById(R.id.pb_video_progress);
         mVideoSurface.getHolder().addCallback(this);
         setVodPlayerListener();
         setLivePlayerListener();
@@ -152,6 +153,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         } else {
             if (isInPictureInPictureMode) {
                 sendPipBroadCast(FTXEvent.EVENT_PIP_MODE_ALREADY_ENTER, null);
+                showComponent();
             } else {
                 handlePipExitEvent();
             }
@@ -218,6 +220,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         }
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
         sendPipBroadCast(codeEvent, data);
+        overridePendingTransition(0, 0);
         finish();
     }
 
@@ -279,7 +282,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
                                     mVideoModel.getPSign()));
                 }
             } else if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                pb_video_progress.setProgress(pb_video_progress.getMax());
+                mVideoProgress.setProgress(mVideoProgress.getMax());
                 mLivePlayer.startLivePlay(mVideoModel.getVideoUrl(), mVideoModel.getLiveType());
                 // 直播暂时不支持一开始画中画直播暂停
                 mCurrentParams.setIsPlaying(true);
@@ -398,6 +401,15 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         sendBroadcast(intent);
     }
 
+    /**
+     * 显示组件
+     * 为了防止画中画启动一瞬间的黑屏，组件一开始为隐藏状态，只有进入画中画之后才会显示组件
+     */
+    private void showComponent() {
+        mVideoSurface.setVisibility(View.VISIBLE);
+        mVideoProgress.setVisibility(View.VISIBLE);
+    }
+
     @Override
     public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
         if (VERSION.SDK_INT >= VERSION_CODES.N && isInPictureInPictureMode()) {
@@ -415,12 +427,12 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
                 int progress = bundle.getInt(TXLiveConstants.EVT_PLAY_PROGRESS_MS);
                 int duration = bundle.getInt(TXLiveConstants.EVT_PLAY_DURATION_MS);
                 float percentage = (progress / 1000F) / (duration / 1000F);
-                final int progressToShow = Math.round(percentage * pb_video_progress.getMax());
-                if(null != pb_video_progress) {
-                    pb_video_progress.post(new Runnable() {
+                final int progressToShow = Math.round(percentage * mVideoProgress.getMax());
+                if(null != mVideoProgress) {
+                    mVideoProgress.post(new Runnable() {
                         @Override
                         public void run() {
-                            pb_video_progress.setProgress(progressToShow);
+                            mVideoProgress.setProgress(progressToShow);
                         }
                     });
                 }
@@ -430,16 +442,13 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
 
     @Override
     public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
-
     }
 
     @Override
     public void onPlayEvent(int event, Bundle bundle) {
-
     }
 
     @Override
     public void onNetStatus(Bundle bundle) {
-
     }
 }
