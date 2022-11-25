@@ -9,6 +9,8 @@
                 android:theme="@style/Theme"
                 android:supportsPictureInPicture="true"
                 android:screenOrientation="portrait"
+                android:documentLaunchMode="intoExisting"
+                android:excludeFromRecents="true"
                 android:exported="true"
                 android:resizeableActivity="true"
                 android:launchMode="singleTop"
