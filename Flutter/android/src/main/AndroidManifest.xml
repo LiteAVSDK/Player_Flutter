@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        package="com.tencent.vod.flutterr">
+        package="com.tencent.vod.flutter">
 
+    <!--                android:documentLaunchMode="intoExisting"-->
+    <!--                android:excludeFromRecents="true"-->
     <application>
         <activity
                 android:name="com.tencent.vod.flutter.ui.FlutterPipImplActivity"
                 android:theme="@style/Theme"
                 android:supportsPictureInPicture="true"
                 android:screenOrientation="portrait"
-                android:documentLaunchMode="intoExisting"
                 android:excludeFromRecents="true"
                 android:exported="true"
                 android:resizeableActivity="true"
