@@ -32,7 +32,7 @@ import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
-import com.tencent.vod.flutterr.R;
+import com.tencent.vod.flutter.R;
 import io.flutter.embedding.android.FlutterActivity;
 
 public class FlutterPipImplActivity extends FlutterActivity implements Callback, ITXVodPlayListener,
@@ -319,6 +319,9 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     protected void onStop() {
         super.onStop();
+        unRegisterPipBroadcast();
+        mVodPlayer.stopPlay(true);
+        mLivePlayer.stopPlay(true);
         mIsNeedToStop = true;
     }
 
@@ -331,9 +334,6 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unRegisterPipBroadcast();
-        mVodPlayer.stopPlay(true);
-        mLivePlayer.stopPlay(true);
     }
 
     private void attachSurface(Surface surface) {
