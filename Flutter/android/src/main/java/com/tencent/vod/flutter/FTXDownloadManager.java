@@ -163,6 +163,7 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
     public void destroy() {
         mMethodChannel.setMethodCallHandler(null);
         mEventChannel.setStreamHandler(null);
+        TXVodDownloadManager.getInstance().setListener(null);
     }
 
     private Map<String,Object> buildMapFromDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) {
