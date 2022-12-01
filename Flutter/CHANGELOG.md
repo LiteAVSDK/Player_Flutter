@@ -58,3 +58,19 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 
 - set Android TXLiteAVSDK_Player to 10.7.0.13053，tag：release_player_v1.0.7
 - set iOS TXLiteAVSDK_Player to 10.7.11936， tag：release_player_v1.0.7
+
+
+#### Version: 10.8.0  2022.12.01
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.8.0.13052，tag：release_player_v10.0.8
+- set iOS TXLiteAVSDK_Player to 10.8.12015， tag：release_player_v10.0.8
+
+
+#### Version: 10.8.0_stable 2022.12.01
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.8.0.13065，tag：release_player_v10.0.8_stable
+- set iOS TXLiteAVSDK_Player to 10.8.12025， tag：release_player_v10.0.8_stable
