@@ -71,7 +71,7 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
         var viewWidth = constrains.maxWidth;
         var viewHeight = constrains.maxHeight;
         var videoWidth = controller.resizeVideoWidth!;
-        var videoHeight = widget.controller.resizeVideoHeight!;
+        var videoHeight = controller.resizeVideoHeight!;
 
         double left = controller.videoLeft! * viewWidth / videoWidth;
         double top = controller.videoTop! * viewHeight / videoHeight;

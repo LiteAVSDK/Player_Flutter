@@ -3,8 +3,6 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="com.tencent.vod.flutter">
 
-    <!--                android:documentLaunchMode="intoExisting"-->
-    <!--                android:excludeFromRecents="true"-->
     <application>
         <activity
                 android:name="com.tencent.vod.flutter.ui.FlutterPipImplActivity"
