@@ -43,18 +43,22 @@ class TXPipController {
       if ((Platform.isIOS && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_ENTER) ||
           (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START)) {
         _onPipEnterListener?.onNeedSavePipPageState(_extParams);
+        _playerData?.isEnterPip = true;
         Navigator.of(context).pop();
-      } else if ((Platform.isIOS && eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT)
-      || (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT)) {
+      } else if ((Platform.isIOS && eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) ||
+          (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT)) {
+        _playerData?.isEnterPip = false;
         await exitAndReleaseCurrentPip();
       } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_RESTORE_UI) {
         _extParams[ARGUMENT_PIP_START_TIME] = event["playTime"];
         await exitAndReleaseCurrentPip();
         _onJumpToPipPlayer?.call(_extParams);
-      } else if(eventCode < 0) {
-        // pip enter failed
-        _pipEventSubscription?.cancel();
-        _playerData = null;
+      } else if (eventCode < 0) {
+        if (_playerData != null && _playerData!.isEnterPip) {
+          exitAndReleaseCurrentPip();
+        } else {
+          _releasePlayerData();
+        }
       }
     });
     int enterResult = await _playerData!._playerController.enterPictureInPictureMode(
@@ -63,20 +67,23 @@ class TXPipController {
         pauseIconForAndroid: pauseIconForAndroid,
         forwardIconForAndroid: forwardIconForAndroid);
     if (enterResult != TXVodPlayEvent.NO_ERROR) {
-      _playerData = null;
-      _pipEventSubscription?.cancel();
+      _releasePlayerData();
     }
     return enterResult;
   }
 
   Future<void> exitAndReleaseCurrentPip() async {
     if (null != _playerData && _playerData?._playerController != null) {
-      if(Platform.isAndroid) {
+      if (Platform.isAndroid) {
         await _playerData?._playerController.exitPictureInPictureMode();
       }
       await _playerData?._playerController.stop();
       _playerData?._playerController.dispose();
     }
+    _releasePlayerData();
+  }
+
+  void _releasePlayerData() {
     _pipEventSubscription?.cancel();
     _playerData = null;
   }
