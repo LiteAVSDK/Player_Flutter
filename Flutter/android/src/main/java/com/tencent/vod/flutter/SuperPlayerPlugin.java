@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.content.BroadcastReceiver;
@@ -40,6 +41,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
  * The MethodChannel that will the communication between Flutter and native Android
  * This local reference serves to register the plugin with the Flutter Engine and unregister it
  * when the Flutter Engine is detached from the Activity
+ * </p>
  */
 public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
 
@@ -84,7 +86,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         channel.setMethodCallHandler(this);
         mPlayers = new SparseArray();
         initAudioManagerIfNeed();
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/playerPlugin/event");
+        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
+                "cloud.tencent.com/playerPlugin/event");
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -109,7 +112,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             mPlayers.append(playerId, player);
             result.success(playerId);
         } else if (call.method.equals("createLivePlayer")) {
-            FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mActivityPluginBinding.getActivity(), mTxPipManager);
+            FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mActivityPluginBinding.getActivity(),
+                    mTxPipManager);
             int playerId = player.getPlayerId();
             mPlayers.append(playerId, player);
             result.success(playerId);
@@ -186,11 +190,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             result.success(mTxPipManager.isSupportDevice());
         } else if (call.method.equals("getLiteAVSDKVersion")) {
             result.success(TXLiveBase.getSDKVersionStr());
-        } else if(call.method.equals("setGlobalEnv")) {
+        } else if (call.method.equals("setGlobalEnv")) {
             String envConfig = call.argument("envConfig");
             int setResult = TXLiveBase.setGlobalEnv(envConfig);
             result.success(setResult);
-        } else if(call.method.equals("startVideoOrientationService")) {
+        } else if (call.method.equals("startVideoOrientationService")) {
             boolean setResult = startVideoOrientationService();
             result.success(setResult);
         } else {
@@ -199,11 +203,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     }
 
     private boolean startVideoOrientationService() {
-        if(null == mFlutterPluginBinding) {
+        if (null == mFlutterPluginBinding) {
             return false;
         }
-        if(null == mOrientationManager) {
-           try{
+        if (null == mOrientationManager) {
+            try {
                mOrientationManager = new OrientationEventListener(mFlutterPluginBinding.getApplicationContext()) {
                    @Override
                    public void onOrientationChanged(int orientation) {
@@ -300,7 +304,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
      */
     protected boolean isAutoRotateOn() {
         //获取系统是否允许自动旋转屏幕
-        try{
+        try {
             return (android.provider.Settings.System.getInt(
                     mFlutterPluginBinding.getApplicationContext().getContentResolver(),
                     Settings.System.ACCELEROMETER_ROTATION, 0) == 1);

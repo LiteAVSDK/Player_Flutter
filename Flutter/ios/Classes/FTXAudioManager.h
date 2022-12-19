@@ -6,9 +6,9 @@
 @interface FTXAudioManager : NSObject
 
 
-- (float)getVolume;
+- (CGFloat)getVolume;
 
-- (void)setVolume:(float)value;
+- (void)setVolume:(CGFloat)value;
 
 - (void)setVolumeUIVisible:(BOOL)volumeUIVisible;
 

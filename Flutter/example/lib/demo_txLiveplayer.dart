@@ -23,6 +23,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   String _url =
       "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
   bool _isStop = true;
+  bool _isPlaying = false;
   double _maxLiveProgressTime = 0;
   StreamSubscription? playEventSubscription;
   StreamSubscription? playNetEventSubscription;
@@ -45,6 +46,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
           event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         //首帧出现
         _isStop = false;
+        _isPlaying = true;
         EasyLoading.dismiss();
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
         //切换流成功
@@ -102,7 +104,9 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.resumed:
-        _controller.resume();
+        if(_isPlaying) {
+          _controller.resume();
+        }
         break;
       case AppLifecycleState.paused:
         _controller.pause();
@@ -181,6 +185,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                         EasyLoading.showError('已经停止播放, 请重新播放');
                         return;
                       }
+                      _isPlaying = false;
                       _controller.pause();
                     },
                     child: Container(

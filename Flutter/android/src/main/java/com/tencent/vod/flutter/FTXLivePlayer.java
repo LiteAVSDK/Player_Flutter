@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.app.Activity;
@@ -29,15 +30,15 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     private static final String TAG = "FTXLivePlayer";
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
-    final private MethodChannel mMethodChannel;
+    private final MethodChannel mMethodChannel;
     private final EventChannel mEventChannel;
     private final EventChannel mNetChannel;
 
     private SurfaceTexture mSurfaceTexture;
     private Surface mSurface;
 
-    final private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
-    final private FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
+    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
+    private final FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
     private TXLivePlayer mLivePlayer;
     private static final int Uninitialized = -101;
@@ -45,6 +46,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     private boolean mHardwareDecodeFail = false;
     private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
     private Activity mActivity;
+
+    private int mSurfaceWidth = 0;
+    private int mSurfaceHeight = 0;
 
     private final FTXPIPManager mPipManager;
     private FTXPIPManager.PipParams mPipParams;
@@ -54,12 +58,15 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         public void onPipResult(PipResult result) {
             // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
             boolean isPipPlaying = result.isPlaying();
-            if(isPipPlaying) {
+            if (isPipPlaying) {
                 resume();
             }
         }
     };
 
+    /**
+     * 直播播放器
+     */
     public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, Activity activity,
                          FTXPIPManager pipManager) {
         super();
@@ -73,10 +80,12 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
         mSurface = new Surface(mSurfaceTexture);
 
-        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txliveplayer/" + super.getPlayerId());
+        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(),
+                "cloud.tencent.com/txliveplayer/" + super.getPlayerId());
         mMethodChannel.setMethodCallHandler(this);
 
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txliveplayer/event/" + super.getPlayerId());
+        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
+                "cloud.tencent.com/txliveplayer/event/" + super.getPlayerId());
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -89,7 +98,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             }
         });
 
-        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txliveplayer/net/" + super.getPlayerId());
+        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
+                "cloud.tencent.com/txliveplayer/net/" + super.getPlayerId());
         mNetChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -242,11 +252,11 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             mPipParams.setIsPlaying(isPlaying());
             int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
             // 启动成功之后，暂停当前界面视频
-            if(pipResult == FTXEvent.NO_ERROR) {
+            if (pipResult == FTXEvent.NO_ERROR) {
                 pause();
             }
             result.success(pipResult);
-        } else if(call.method.equals("exitPictureInPictureMode")) {
+        } else if (call.method.equals("exitPictureInPictureMode")) {
             mPipManager.exitPip();
             result.success(null);
         } else if (call.method.equals("setConfig")) {
@@ -266,8 +276,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         Log.d("AndroidLog", "textureId :" + mSurfaceTextureEntry.id());
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }
-
-    private int mSurfaceWidth, mSurfaceHeight = 0;
 
     int startLivePlay(String url, int type) {
         Log.d(TAG, "startLivePlay:");

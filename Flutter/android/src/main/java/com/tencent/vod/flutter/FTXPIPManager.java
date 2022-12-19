@@ -77,6 +77,7 @@ public class FTXPIPManager {
     };
 
     /**
+     * 画中画管理
      * @param mTxAudioManager 音频管理，用于画中画模式下请求音频焦点
      * @param activityBinding activityBinding
      * @param flutterAssets flutter资源管理
@@ -159,6 +160,9 @@ public class FTXPIPManager {
         }
     }
 
+    /**
+     * 设备是否支持画中画
+     */
     public int isSupportDevice() {
         int pipResult = FTXEvent.NO_ERROR;
         Activity activity = mActivityBinding.getActivity();
@@ -176,8 +180,8 @@ public class FTXPIPManager {
                 }
             } else {
                 pipResult = FTXEvent.ERROR_PIP_LOWER_VERSION;
-                Log.e(TAG, "enterPip failed,because android version is too low,Minimum supported version is android " +
-                        "24,but current is " + Build.VERSION.SDK_INT);
+                Log.e(TAG, "enterPip failed,because android version is too low,Minimum supported version is android "
+                        + "24,but current is " + Build.VERSION.SDK_INT);
             }
         } else {
             pipResult = FTXEvent.ERROR_PIP_ACTIVITY_DESTROYED;
@@ -259,6 +263,7 @@ public class FTXPIPManager {
         private float mCurrentPlayTime = 0;
 
         /**
+         * 画中画参数
          * @param mPlayBackAssetPath 回退按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
          * @param mPlayResumeAssetPath 播放按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
          * @param mPlayPauseAssetPath 暂停按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
@@ -329,9 +334,11 @@ public class FTXPIPManager {
             this.mCurrentPlayTime = mCurrentPlayTime;
         }
 
+        /**
+         * 构造画中画参数
+         */
         @RequiresApi(api = VERSION_CODES.O)
         public PictureInPictureParams buildParams(Activity activity) {
-            PictureInPictureParams.Builder mPipParams = new Builder();
             List<RemoteAction> actions = new ArrayList<>();
             // play back
             if (mIsNeedPlayBack) {
@@ -373,6 +380,7 @@ public class FTXPIPManager {
                 actions.add(nextAction);
             }
 
+            PictureInPictureParams.Builder mPipParams = new Builder();
             mPipParams.setActions(actions);
             return mPipParams.build();
         }
@@ -404,7 +412,8 @@ public class FTXPIPManager {
                     Bitmap iconBitmap = BitmapFactory.decodeStream(activity.getAssets().open(path));
                     return Icon.createWithBitmap(iconBitmap);
                 }
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                Log.getStackTraceString(e);
             }
             return Icon.createWithResource(activity, defaultResId);
         }

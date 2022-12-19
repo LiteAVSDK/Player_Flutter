@@ -14,7 +14,7 @@
 
 #pragma mark - public
 
-- (void)success:(NSObject *)event
+- (void)success:(id)event
 {
     [self enqueue:event];
     [self flushIfNeed];

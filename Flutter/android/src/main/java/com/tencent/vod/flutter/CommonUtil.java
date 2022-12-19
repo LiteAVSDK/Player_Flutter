@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.os.Bundle;
@@ -40,6 +41,9 @@ public class CommonUtil {
         return param;
     }
 
+    /**
+     * 通过宽高获得对应的缓存视频清晰度
+     */
     public static int getCacheVideoQuality(Integer width, Integer height) {
         if (width == null || height == null) {
             return TXVodDownloadDataSource.QUALITY_FLU;
