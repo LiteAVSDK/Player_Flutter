@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.graphics.Bitmap;
@@ -35,15 +36,15 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
-    final private MethodChannel mMethodChannel;
+    private final MethodChannel mMethodChannel;
     private final EventChannel  mEventChannel;
     private final EventChannel  mNetChannel;
 
     private SurfaceTexture mSurfaceTexture;
     private Surface        mSurface;
 
-    final private FTXPlayerEventSink mEventSink     = new FTXPlayerEventSink();
-    final private FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
+    private final FTXPlayerEventSink mEventSink     = new FTXPlayerEventSink();
+    private final FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
     private TXVodPlayer mVodPlayer;
     private TXImageSprite mTxImageSprite;
@@ -67,12 +68,15 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             seek(playTime);
             // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
             boolean isPipPlaying = result.isPlaying();
-            if(isPipPlaying) {
+            if (isPipPlaying) {
                 resume();
             }
         }
     };
 
+    /**
+     * 点播播放器
+     */
     public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
         super();
         mPipManager = pipManager;
@@ -80,12 +84,12 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         mVideoModel = new VideoModel();
         mVideoModel.setPlayerType(FTXEvent.PLAYER_VOD);
 
-        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
-                ".com/txvodplayer/" + super.getPlayerId());
+        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent"
+                + ".com/txvodplayer/" + super.getPlayerId());
         mMethodChannel.setMethodCallHandler(this);
 
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
-                ".com/txvodplayer/event/" + super.getPlayerId());
+        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent"
+                + ".com/txvodplayer/event/" + super.getPlayerId());
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -98,8 +102,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             }
         });
 
-        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent" +
-                ".com/txvodplayer/net/" + super.getPlayerId());
+        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent"
+                + ".com/txvodplayer/net/" + super.getPlayerId());
         mNetChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -147,9 +151,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     @Override
     public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
         if (event == TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION) {
-            String EVT_PARAM3 = bundle.getString("EVT_PARAM3");
-            if (!TextUtils.isEmpty(EVT_PARAM3)) {
-                String[] array = EVT_PARAM3.split(",");
+            String evtParam3 = bundle.getString("EVT_PARAM3");
+            if (!TextUtils.isEmpty(evtParam3)) {
+                String[] array = evtParam3.split(",");
                 if (array.length == 6) {
                     int videoWidth = Integer.parseInt(array[4]) - Integer.parseInt(array[2]) + 1;
                     int videoHeight = Integer.parseInt(array[5]) - Integer.parseInt(array[3]) + 1;
@@ -182,7 +186,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
 
     // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
     private void setDefaultBufferSizeForSoftDecode(int width, int height) {
-        if (mSurfaceTextureEntry!= null && mSurfaceTextureEntry.surfaceTexture() != null) {
+        if (mSurfaceTextureEntry != null && mSurfaceTextureEntry.surfaceTexture() != null) {
             SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
             surfaceTexture.setDefaultBufferSize(width, height);
             if (mSurface != null) {
@@ -341,26 +345,26 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             mPipParams.setCurrentPlayTime(getCurrentPlaybackTime());
             int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
             // 启动成功之后，暂停当前界面视频
-            if(pipResult == FTXEvent.NO_ERROR) {
+            if (pipResult == FTXEvent.NO_ERROR) {
                 pause();
             }
             result.success(pipResult);
-        } else if(call.method.equals("exitPictureInPictureMode")) {
+        } else if (call.method.equals("exitPictureInPictureMode")) {
             mPipManager.exitPip();
             result.success(null);
-        } else if(call.method.equals("initImageSprite")) {
+        } else if (call.method.equals("initImageSprite")) {
             String vvtUrl = call.argument("vvtUrl");
             List<String> imageUrls = call.argument("imageUrls");
             mTxImageSprite.setVTTUrlAndImageUrls(vvtUrl,imageUrls);
             result.success(null);
-        } else if(call.method.equals("getImageSprite")) {
+        } else if (call.method.equals("getImageSprite")) {
             final Double time = call.argument("time");
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     Bitmap bitmap = mTxImageSprite.getThumbnail(time.floatValue());
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    if(null != bitmap) {
+                    if (null != bitmap) {
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                         byte[] byteArray = stream.toByteArray();
                         result.success(byteArray);
@@ -398,11 +402,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
     }
 
     int startVodPlay(String url) {
-        mVideoModel.setVideoUrl(url);
-        mVideoModel.setAppId(0);
-        mVideoModel.setFileId("");
-        mVideoModel.setPSign("");
         if (mVodPlayer != null) {
+            mVideoModel.setVideoUrl(url);
+            mVideoModel.setAppId(0);
+            mVideoModel.setFileId("");
+            mVideoModel.setPSign("");
             return mVodPlayer.startVodPlay(url);
         }
         return Uninitialized;
@@ -573,8 +577,10 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         if (mVodPlayer != null) {
             if (TextUtils.isEmpty(token)) {
                 mVodPlayer.setToken(null);
+                mVideoModel.setToken(null);
             } else {
                 mVodPlayer.setToken(token);
+                mVideoModel.setToken(token);
             }
         }
     }

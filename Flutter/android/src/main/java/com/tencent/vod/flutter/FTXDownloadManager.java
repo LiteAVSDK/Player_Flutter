@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.os.Bundle;
@@ -29,18 +30,23 @@ import io.flutter.plugin.common.MethodChannel;
  */
 public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXVodDownloadListener {
     private       FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
-    final private MethodChannel                      mMethodChannel;
+    private final  MethodChannel                      mMethodChannel;
     private final EventChannel                       mEventChannel;
-    final private FTXPlayerEventSink                 mEventSink = new FTXPlayerEventSink();
+    private final FTXPlayerEventSink                 mEventSink = new FTXPlayerEventSink();
     private       Handler                            mMainHandler;
 
+    /**
+     * 视频下载管理
+     */
     public FTXDownloadManager(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         mFlutterPluginBinding = flutterPluginBinding;
         mMainHandler = new Handler(mFlutterPluginBinding.getApplicationContext().getMainLooper());
-        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txvodplayer/download/api");
+        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(),
+                "cloud.tencent.com/txvodplayer/download/api");
         mMethodChannel.setMethodCallHandler(this);
 
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txvodplayer/download/event");
+        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
+                "cloud.tencent.com/txvodplayer/download/event");
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -92,8 +98,8 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
             if (!TextUtils.isEmpty(videoUrl)) {
                 TXVodDownloadManager.getInstance().startDownloadUrl(videoUrl, userName);
             } else if (null != appId && null != fileId) {
-                TXVodDownloadDataSource dataSource = new TXVodDownloadDataSource(appId, fileId, optQuality(quality), pSign,
-                        userName);
+                TXVodDownloadDataSource dataSource =
+                        new TXVodDownloadDataSource(appId, fileId, optQuality(quality), pSign, userName);
                 TXVodDownloadManager.getInstance().startDownload(dataSource);
             }
             result.success(null);

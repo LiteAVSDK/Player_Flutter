@@ -26,6 +26,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
   late SuperPlayerController _controller;
+  SuperVodDataLoader loader = SuperVodDataLoader();
   StreamSubscription? simpleEventSubscription;
   int tabSelectPos = 0;
   SuperPlayerModel? currentVideoModel;
@@ -212,7 +213,12 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                 return;
               }
 
-              playCurrentModel(model, 0);
+              loader.getVideoData(model, (resultModel) {
+                setState(() {
+                  videoModels.add(resultModel);
+                });
+                playCurrentModel(resultModel, 0);
+              });
             },
             needPisgn: !isLive,
             showFileEdited: !isLive,
@@ -327,7 +333,6 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     models.add(model);
 
     List<Future<void>> requestList = [];
-    SuperVodDataLoader loader = SuperVodDataLoader();
     for (SuperPlayerModel tempModel in models) {
       requestList.add(loader.getVideoData(tempModel, (_) {}));
     }

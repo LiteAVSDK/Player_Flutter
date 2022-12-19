@@ -79,6 +79,9 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
                         case FTXEvent.EXTRA_PIP_PLAY_FORWARD:
                             handlePlayForward();
                             break;
+                        default:
+                            Log.e(TAG, "unknown control code");
+                            break;
                     }
                 }
             }
@@ -88,7 +91,6 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        registerPipBroadcast();
         Intent intent = getIntent();
         PipParams params = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
         if (null == params) {
@@ -102,6 +104,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
                 configPipMode(null);
             }
         }
+        registerPipBroadcast();
         handleIntent(intent);
         setContentView(R.layout.activity_flutter_pip_impl);
         mVodPlayer = new TXVodPlayer(this);
@@ -159,6 +162,11 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
             }
         }
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
     }
 
     @Override
@@ -274,6 +282,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
             if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_VOD) {
                 mVodPlayer.setStartTime(playTime);
                 mVodPlayer.setAutoPlay(isPlaying);
+                mVodPlayer.setToken(mVideoModel.getToken());
                 if (!TextUtils.isEmpty(mVideoModel.getVideoUrl())) {
                     mVodPlayer.startVodPlay(mVideoModel.getVideoUrl());
                 } else if (!TextUtils.isEmpty(mVideoModel.getFileId())) {
@@ -291,11 +300,6 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
                 }
             }
         }
-    }
-
-    @Override
-    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
     }
 
     @Override
@@ -319,7 +323,6 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     protected void onStop() {
         super.onStop();
-        unRegisterPipBroadcast();
         mVodPlayer.stopPlay(true);
         mLivePlayer.stopPlay(true);
         mIsNeedToStop = true;
@@ -333,6 +336,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
 
     @Override
     protected void onDestroy() {
+        unRegisterPipBroadcast();
         super.onDestroy();
     }
 
@@ -413,22 +417,22 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
         if (VERSION.SDK_INT >= VERSION_CODES.N && isInPictureInPictureMode()) {
-            if(null != mCurrentParams) {
+            if (null != mCurrentParams) {
                 if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
                     // 播放完毕的时候，自动将播放按钮置为播放
                     mCurrentParams.setIsPlaying(false);
-                } else if(event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
+                } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
                     // 播放开始的时候，自动将播放按钮置为暂停
                     mCurrentParams.setIsPlaying(true);
                 }
                 updatePip(mCurrentParams);
             }
-            if(event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
+            if (event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
                 int progress = bundle.getInt(TXLiveConstants.EVT_PLAY_PROGRESS_MS);
                 int duration = bundle.getInt(TXLiveConstants.EVT_PLAY_DURATION_MS);
                 float percentage = (progress / 1000F) / (duration / 1000F);
                 final int progressToShow = Math.round(percentage * mVideoProgress.getMax());
-                if(null != mVideoProgress) {
+                if (null != mVideoProgress) {
                     mVideoProgress.post(new Runnable() {
                         @Override
                         public void run() {
@@ -441,11 +445,11 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     }
 
     @Override
-    public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
+    public void onPlayEvent(int event, Bundle bundle) {
     }
 
     @Override
-    public void onPlayEvent(int event, Bundle bundle) {
+    public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
     }
 
     @Override

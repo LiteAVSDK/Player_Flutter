@@ -18,6 +18,7 @@ public class VideoModel implements Parcelable {
     private String pSign;
     private int mPlayerType = FTXEvent.PLAYER_VOD;
     private int mLiveType = TXLivePlayer.PLAY_TYPE_LIVE_FLV;
+    private String mToken;
 
     public VideoModel() {}
 
@@ -28,6 +29,7 @@ public class VideoModel implements Parcelable {
         pSign = in.readString();
         mPlayerType = in.readInt();
         mLiveType = in.readInt();
+        mToken = in.readString();
     }
 
     public static final Creator<VideoModel> CREATOR = new Creator<VideoModel>() {
@@ -48,6 +50,14 @@ public class VideoModel implements Parcelable {
 
     public void setVideoUrl(String videoUrl) {
         this.videoUrl = videoUrl;
+    }
+
+    public String getToken() {
+        return mToken;
+    }
+
+    public void setToken(String token) {
+        this.mToken = token;
     }
 
     public int getAppId() {
@@ -103,5 +113,6 @@ public class VideoModel implements Parcelable {
         dest.writeString(pSign);
         dest.writeInt(mPlayerType);
         dest.writeInt(mLiveType);
+        dest.writeString(mToken);
     }
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
-#ifndef FTXEvent_h
-#define FTXEvent_h
+#ifndef SUPERPLAYER_FLUTTER_IOS_CLASSES_FTXEVENT_H_
+#define SUPERPLAYER_FLUTTER_IOS_CLASSES_FTXEVENT_H_
 
 // 音频变化事件code
 #define EVENT_VOLUME_CHANGED 1
@@ -59,4 +59,4 @@
 // 横屏，底部在左
 #define ORIENTATION_LANDSCAPE_LEFT 414
 
-#endif /* FTXEvent_h */
+#endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_FTXEVENT_H_

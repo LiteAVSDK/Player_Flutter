@@ -78,6 +78,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _coverViewController = CoverViewController(_onDoubleTapVideo, _onSingleTapVideo);
     _qualitListViewController = QualityListViewController((quality) {
       _playController.switchStream(quality);
+      hideControlView();
     });
     _moreViewController = MoreViewController(
         () => _playController._isOpenHWAcceleration,
@@ -181,6 +182,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, (code, msg) {
       // onError
       _togglePlayUIState(false);
+      EasyLoading.showToast("play video error,code:$code,error:$msg");
     }, (playerType) {
       // onPlayerTypeChange
       _videoBottomKey.currentState?.updatePlayerType(playerType);

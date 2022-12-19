@@ -3,6 +3,7 @@ part of SuperPlayer;
 
 class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
   int? _playerId = -1;
+  static String kTag = "TXLivePlayerController";
 
   final Completer<int> _initPlayer;
   final Completer<int> _createTexture;
@@ -127,11 +128,17 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _stateStreamController.add(_state);
   }
 
+  void printVersionInfo() async {
+    LogUtils.d(kTag, "dart SDK version:${Platform.version}");
+    LogUtils.d(kTag, "liteAV SDK version:${await SuperPlayerPlugin.platformVersion}");
+  }
+
   ///
   /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
   /// 参考: [PlayType.LIVE_RTMP] ...
   @deprecated
   Future<bool> play(String url, {int? playType}) async {
+    printVersionInfo();
     return await startLivePlay(url, playType: playType);
   }
 
@@ -146,7 +153,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
-
+    printVersionInfo();
     final result = await _channel.invokeMethod("startLivePlay", {"url": url, "playType": playType});
     return result == 0;
   }
