@@ -5,9 +5,9 @@
 #import "FTXEvent.h"
 
 @interface CommonUtil : NSObject
-    
-+(int)getCacheVideoQuality:(int)width height:(int)pHeight;
 
-+(int)getDownloadEventByState:(int)downloadState;
-    
++(NSNumber*)getCacheVideoQuality:(int)width height:(int)pHeight;
+
++(NSNumber*)getDownloadEventByState:(int)downloadState;
+
 @end

@@ -34,13 +34,13 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
      return self;
  };
 
-- (float)getVolume
+- (CGFloat)getVolume
 {
     return _volumeSlider.value > 0 ? _volumeSlider.value : [[AVAudioSession sharedInstance]outputVolume];
 }
 
 
-- (void)setVolume:(float)value
+- (void)setVolume:(CGFloat)value
 {
     // 需要设置 showsVolumeSlider 为 YES
     volumeView.showsVolumeSlider = YES;

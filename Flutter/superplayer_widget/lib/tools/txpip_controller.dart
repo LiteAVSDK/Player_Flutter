@@ -2,7 +2,7 @@
 part of demo_super_player_lib;
 
 typedef OnJumpToPipPlayer = void Function(Map params);
-typedef OnPopCurrent = void Function();
+typedef OnPipClose = void Function();
 
 ///
 /// 画中画控制器，单例，只能存在一个画中画
@@ -19,6 +19,7 @@ class TXPipController {
   final Map<String, dynamic> _extParams = {};
   TXPipPlayerRestorePage? _onPipEnterListener;
   OnJumpToPipPlayer? _onJumpToPipPlayer;
+  OnPipClose? _onPipClose;
   StreamSubscription? _pipEventSubscription;
 
   /// TXPipController
@@ -44,7 +45,11 @@ class TXPipController {
           (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START)) {
         _onPipEnterListener?.onNeedSavePipPageState(_extParams);
         _playerData?.isEnterPip = true;
-        Navigator.of(context).pop();
+        if(_onPipClose != null) {
+          _onPipClose!.call();
+        } else {
+          Navigator.of(context).pop();
+        }
       } else if ((Platform.isIOS && eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) ||
           (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT)) {
         _playerData?.isEnterPip = false;
@@ -100,8 +105,9 @@ class TXPipController {
     _onPipEnterListener = listener;
   }
 
-  void setNavigatorHandle(OnJumpToPipPlayer onJumpToPipPlayer) {
+  void setNavigatorHandle(OnJumpToPipPlayer onJumpToPipPlayer,{OnPipClose? onPipClose}) {
     _onJumpToPipPlayer = onJumpToPipPlayer;
+    _onPipClose = onPipClose;
   }
 }
 

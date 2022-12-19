@@ -3,6 +3,7 @@ part of SuperPlayer;
 
 class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
   int? _playerId = -1;
+  static String kTag = "TXVodPlayerController";
 
   final Completer<int> _initPlayer;
   final Completer<int> _createTexture;
@@ -137,6 +138,11 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     _stateStreamController.add(_state);
   }
 
+  void printVersionInfo() async {
+    LogUtils.d(kTag, "dart SDK version:${Platform.version}");
+    LogUtils.d(kTag, "liteAV SDK version:${await SuperPlayerPlugin.platformVersion}");
+  }
+
   /// 通过url开始播放视频
   /// 10.7版本开始，startPlay变更为startVodPlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
@@ -148,7 +154,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
-
+    printVersionInfo();
     final result = await _channel.invokeMethod("startVodPlay", {"url": url});
     return result == 0;
   }
@@ -164,7 +170,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
-
+    printVersionInfo();
     await _channel.invokeMethod("startVodPlayWithParams", params.toJson());
   }
 

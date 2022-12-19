@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.content.Context;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public class FTXAudioManager {
 
-    private final static String TAG = "FTXAudioManager";
+    private static final String TAG = "FTXAudioManager";
 
     private AudioManager                            mAudioManager;
     private AudioFocusRequest                       mFocusRequest;
@@ -116,6 +117,9 @@ public class FTXAudioManager {
         }
     }
 
+    /**
+     * 请求获取音频焦点
+     */
     public void requestAudioFocus() {
         int result;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -141,7 +145,7 @@ public class FTXAudioManager {
     }
 
     public void addAudioFocusChangedListener(AudioFocusChangeListener listener) {
-        if(!mAudioFocusListeners.contains(listener)) {
+        if (!mAudioFocusListeners.contains(listener)) {
             mAudioFocusListeners.add(listener);
         }
     }
@@ -151,19 +155,20 @@ public class FTXAudioManager {
     }
 
     void onAudioFocusPause() {
-        for(AudioFocusChangeListener listener : mAudioFocusListeners) {
+        for (AudioFocusChangeListener listener : mAudioFocusListeners) {
             listener.onAudioFocusPause();
         }
     }
 
     void onAudioFocusPlay() {
-        for(AudioFocusChangeListener listener : mAudioFocusListeners) {
+        for (AudioFocusChangeListener listener : mAudioFocusListeners) {
             listener.onAudioFocusPlay();
         }
     }
 
     interface AudioFocusChangeListener {
         void onAudioFocusPause();
+
         void onAudioFocusPlay();
     }
 }

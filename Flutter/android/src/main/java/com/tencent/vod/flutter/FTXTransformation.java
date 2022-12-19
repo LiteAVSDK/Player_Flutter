@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import android.text.TextUtils;
@@ -14,6 +15,9 @@ import java.util.Map;
  */
 public class FTXTransformation {
 
+    /**
+     * 将map转换为config
+     */
     @SuppressWarnings("unchecked")
     public static TXVodPlayConfig transformToVodConfig(Map<Object, Object> config) {
         TXVodPlayConfig playConfig = new TXVodPlayConfig();
@@ -30,7 +34,7 @@ public class FTXTransformation {
             playConfig.setTimeout(timeout);
         }
         Integer playerType = (Integer) config.get("playerType");
-        if(null != playerType) {
+        if (null != playerType) {
             playConfig.setPlayerType(playerType);
         }
         Map<String, String> headers = (Map<String, String>) config.get("headers");
@@ -39,15 +43,15 @@ public class FTXTransformation {
         }
         playConfig.setHeaders(headers);
         Boolean enableAccurateSeek = (Boolean) config.get("enableAccurateSeek");
-        if(null != enableAccurateSeek) {
+        if (null != enableAccurateSeek) {
             playConfig.setEnableAccurateSeek(enableAccurateSeek);
         }
         Boolean autoRotate = (Boolean) config.get("autoRotate");
-        if(null != autoRotate) {
+        if (null != autoRotate) {
             playConfig.setAutoRotate(autoRotate);
         }
         Boolean smoothSwitchBitrate = (Boolean) config.get("smoothSwitchBitrate");
-        if(null != smoothSwitchBitrate) {
+        if (null != smoothSwitchBitrate) {
             playConfig.setSmoothSwitchBitrate(smoothSwitchBitrate);
         }
         String cacheMp4ExtName = (String) config.get("cacheMp4ExtName");
@@ -67,11 +71,11 @@ public class FTXTransformation {
             playConfig.setMaxPreloadSize(maxPreloadSize);
         }
         Integer firstStartPlayBufferTime = (Integer) config.get("firstStartPlayBufferTime");
-        if(null != firstStartPlayBufferTime) {
+        if (null != firstStartPlayBufferTime) {
             playConfig.setFirstStartPlayBufferTime(firstStartPlayBufferTime);
         }
         Integer nextStartPlayBufferTime = (Integer) config.get("nextStartPlayBufferTime");
-        if(null != nextStartPlayBufferTime) {
+        if (null != nextStartPlayBufferTime) {
             playConfig.setNextStartPlayBufferTime(nextStartPlayBufferTime);
         }
 
@@ -89,7 +93,7 @@ public class FTXTransformation {
         }
         playConfig.setExtInfo(extInfoMap);
         Boolean enableRenderProcess = (Boolean) config.get("enableRenderProcess");
-        if(null != enableRenderProcess) {
+        if (null != enableRenderProcess) {
             playConfig.setEnableRenderProcess(enableRenderProcess);
         }
         String preferredResolutionStr = (String) config.get("preferredResolution");
@@ -101,50 +105,53 @@ public class FTXTransformation {
         return playConfig;
     }
 
+    /**
+     * map转config
+     */
     public static TXLivePlayConfig transformToLiveConfig(Map<Object, Object> config) {
         TXLivePlayConfig livePlayConfig = new TXLivePlayConfig();
         Double cacheTime = (Double) config.get("cacheTime");
-        if(doubleIsNotEmpty(cacheTime)) {
+        if (doubleIsNotEmpty(cacheTime)) {
             livePlayConfig.setCacheTime(cacheTime.floatValue());
         }
         Double maxAutoAdjustCacheTime = (Double) config.get("maxAutoAdjustCacheTime");
-        if(doubleIsNotEmpty(maxAutoAdjustCacheTime)) {
+        if (doubleIsNotEmpty(maxAutoAdjustCacheTime)) {
             livePlayConfig.setMaxAutoAdjustCacheTime(maxAutoAdjustCacheTime.floatValue());
         }
         Double minAutoAdjustCacheTime = (Double) config.get("minAutoAdjustCacheTime");
-        if(doubleIsNotEmpty(minAutoAdjustCacheTime)) {
+        if (doubleIsNotEmpty(minAutoAdjustCacheTime)) {
             livePlayConfig.setMinAutoAdjustCacheTime(minAutoAdjustCacheTime.floatValue());
         }
         Integer videoBlockThreshold = (Integer) config.get("videoBlockThreshold");
-        if(intIsNotEmpty(videoBlockThreshold)) {
+        if (intIsNotEmpty(videoBlockThreshold)) {
             livePlayConfig.setVideoBlockThreshold(videoBlockThreshold);
         }
         Integer connectRetryCount = (Integer) config.get("connectRetryCount");
-        if(intIsNotEmpty(connectRetryCount)) {
+        if (intIsNotEmpty(connectRetryCount)) {
             livePlayConfig.setConnectRetryCount(connectRetryCount);
         }
         Integer connectRetryInterval = (Integer) config.get("connectRetryInterval");
-        if(intIsNotEmpty(connectRetryInterval)) {
+        if (intIsNotEmpty(connectRetryInterval)) {
             livePlayConfig.setConnectRetryInterval(connectRetryInterval);
         }
         Boolean autoAdjustCacheTime = (Boolean) config.get("autoAdjustCacheTime");
-        if(null != autoAdjustCacheTime) {
+        if (null != autoAdjustCacheTime) {
             livePlayConfig.setAutoAdjustCacheTime(autoAdjustCacheTime);
         }
-        Boolean enableAec= (Boolean) config.get("enableAec");
-        if(null != enableAec) {
+        Boolean enableAec = (Boolean) config.get("enableAec");
+        if (null != enableAec) {
             livePlayConfig.setEnableAEC(enableAec);
         }
         Boolean enableMessage = (Boolean) config.get("enableMessage");
-        if(null != enableMessage) {
+        if (null != enableMessage) {
             livePlayConfig.setEnableMessage(enableMessage);
         }
         Boolean enableMetaData = (Boolean) config.get("enableMetaData");
-        if(null != enableMetaData) {
+        if (null != enableMetaData) {
             livePlayConfig.setEnableMetaData(enableMetaData);
         }
         String flvSessionKey = (String) config.get("flvSessionKey");
-        if(!TextUtils.isEmpty(flvSessionKey)) {
+        if (!TextUtils.isEmpty(flvSessionKey)) {
             livePlayConfig.setFlvSessionKey(flvSessionKey);
         }
         return livePlayConfig;

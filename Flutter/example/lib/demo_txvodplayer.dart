@@ -30,6 +30,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
   double _rate = 1.0;
   bool enableHardware = true;
   int volume = 80;
+  bool _isPlaying = false;
   StreamSubscription? playEventSubscription;
   StreamSubscription? playNetEventSubscription;
 
@@ -52,6 +53,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
           event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
         _supportedBitrates = (await _controller.getSupportedBitrates())!;
+        _isPlaying = true;
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
@@ -103,7 +105,9 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.resumed:
-        _controller.resume();
+        if(_isPlaying) {
+          _controller.resume();
+        }
         break;
       case AppLifecycleState.paused:
         _controller.pause();
@@ -187,7 +191,9 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
         ),
       ),
       new GestureDetector(
-        onTap: () => {_controller.pause()},
+        onTap: () {
+          _isPlaying = false;
+          _controller.pause();},
         child: Container(
           alignment: Alignment.center,
           child: Text(
