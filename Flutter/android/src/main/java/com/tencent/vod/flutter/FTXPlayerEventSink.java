@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 import java.util.LinkedList;
@@ -21,13 +22,17 @@ public class FTXPlayerEventSink implements EventChannel.EventSink {
     }
 
     private void enqueue(Object event) {
-        if (isEnd)  return;
+        if (isEnd) {
+            return;
+        }
         eventQueue.offer(event);
     }
 
     private void consume() {
-        if (eventSink == null) return;
-        while (!eventQueue.isEmpty()){
+        if (eventSink == null) {
+            return;
+        }
+        while (!eventQueue.isEmpty()) {
             Object event = eventQueue.poll();
             if (event instanceof EndEvent) {
                 eventSink.endOfStream();

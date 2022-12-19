@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Tencent. All rights reserved.
 #import <Flutter/Flutter.h>
 #import <UIKit/UIKit.h>
 

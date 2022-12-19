@@ -4,7 +4,7 @@
 
 @implementation CommonUtil
 
-+ (int)getCacheVideoQuality:(int)width height:(int)pHeight{
++ (NSNumber*)getCacheVideoQuality:(int)width height:(int)pHeight{
     int minValue = MIN(width, pHeight);
     int cacheQualityIndex;
    if (minValue == 240 || minValue == 180) {
@@ -24,10 +24,10 @@
    } else {
        cacheQualityIndex = TXVodQualityFLU;
    }
-   return cacheQualityIndex;
+    return [NSNumber numberWithInt:cacheQualityIndex];
 }
 
-+ (int)getDownloadEventByState:(int)downloadState{
++ (NSNumber*)getDownloadEventByState:(int)downloadState{
     int result;
     switch (downloadState) {
         case TXVodDownloadMediaInfoStateInit:
@@ -49,7 +49,7 @@
             result = EVENT_DOWNLOAD_ERROR;
             break;
     }
-    return result;
+    return [NSNumber numberWithInt:result];;
 }
 
 

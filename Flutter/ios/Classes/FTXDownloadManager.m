@@ -211,7 +211,7 @@
     if(nil != info && [NSNull null] != (NSNull *)info) {
         [dict setValue:info.playPath forKey:@"playPath"];
         [dict setValue:@(info.progress) forKey:@"progress"];
-        [dict setValue:@([CommonUtil getDownloadEventByState:(int)info.downloadState]) forKey:@"downloadState"];
+        [dict setValue:[CommonUtil getDownloadEventByState:(int)info.downloadState] forKey:@"downloadState"];
         [dict setValue:info.userName forKey:@"userName"];
         [dict setValue:@(info.duration) forKey:@"duration"];
         [dict setValue:@(info.playableDuration) forKey:@"playableDuration"];

@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+
 package com.tencent.vod.flutter;
 
 /**
@@ -41,7 +42,7 @@ public class FTXEvent {
      */
     public static final String PIP_CHANNEL_NAME              = "cloud.tencent.com/playerPlugin/componentEvent";
     // pip广播action
-    public final static String ACTION_PIP_PLAY_CONTROL        = "vodPlayControl";
+    public static final String ACTION_PIP_PLAY_CONTROL        = "vodPlayControl";
     // pip 操作
     public static final String EXTRA_NAME_PLAY_OP             = "vodPlayOp";
     // pip需要操作的播放器
