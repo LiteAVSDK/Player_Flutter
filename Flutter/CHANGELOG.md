@@ -75,3 +75,11 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 
 - set Android TXLiteAVSDK_Professional to 10.8.0.13065，tag：release_pro_v10.8.0_stable
 - set iOS TXLiteAVSDK_Professional to 10.8.12025， tag：release_pro_v10.8.0_stable
+
+
+#### Version: 10.9.0  2023.01.03
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Professional to 10.9.0.13092，tag：release_pro_v10.9.0
+- set iOS TXLiteAVSDK_Professional to 10.9.13148， tag：release_pro_v10.9.0
