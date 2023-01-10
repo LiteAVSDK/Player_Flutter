@@ -41,7 +41,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     // 监听设备旋转
     SuperPlayerPlugin.startVideoOrientationService();
     _controller = SuperPlayerController(context);
-    TXPipController.instance.setPipPlayerPage(DemoSuperPlayer, this);
+    TXPipController.instance.setPipPlayerPage(this);
     FTXVodPlayConfig config = FTXVodPlayConfig();
     // 如果不配置preferredResolution，则在播放多码率视频的时候优先播放720 * 1280分辨率的码率
     config.preferredResolution = 720 * 1280;

@@ -101,7 +101,7 @@ class TXPipController {
     return false;
   }
 
-  void setPipPlayerPage(Type a, TXPipPlayerRestorePage listener) {
+  void setPipPlayerPage(TXPipPlayerRestorePage listener) {
     _onPipEnterListener = listener;
   }
 
