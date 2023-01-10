@@ -23,6 +23,7 @@
 ├── ios                            // 播放器插件iOS源代码
 ├── lib                            // 播放器插件dart源代码
 ├── docs                           // 帮助文档
+├── superplayer_widget             // 播放器组件
 └── example                        // 播放器相关demo代码
     ├── android                    // android的demo源代码
     ├── ios                        // iOS的demo源代码
