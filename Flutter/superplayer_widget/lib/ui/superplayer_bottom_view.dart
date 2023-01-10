@@ -69,7 +69,8 @@ class _VideoBottomViewState extends State<VideoBottomView> {
                 child: null != showedKeyFrameInfo
                     ? Container(
                         decoration: const BoxDecoration(
-                            color: Color(ColorResource.COLOR_TRANS_BLACK), borderRadius: BorderRadius.all(Radius.circular(50))),
+                            color: Color(ColorResource.COLOR_TRANS_BLACK),
+                            borderRadius: BorderRadius.all(Radius.circular(50))),
                         padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
                         child: Text(
                           "${Utils.formattedTime(showedKeyFrameInfo!.time)} ${showedKeyFrameInfo!.content}",
@@ -82,14 +83,18 @@ class _VideoBottomViewState extends State<VideoBottomView> {
           Container(
             decoration: const BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage("images/superplayer_bottom_shadow.png", package: StringResource.PKG_NAME), fit: BoxFit.fill)),
+                    image: AssetImage("images/superplayer_bottom_shadow.png", package: StringResource.PKG_NAME),
+                    fit: BoxFit.fill)),
             padding: const EdgeInsets.only(left: 6, right: 6),
             child: Row(
               children: [
                 _getPlayImage(),
-                Text(
-                  _buildTextString(_currentDuration),
-                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                SizedBox(
+                  width: 35,
+                  child: Text(
+                    _buildTextString(_currentDuration),
+                    style: const TextStyle(fontSize: 12, color: Colors.white),
+                  ),
                 ),
                 _getSlider(),
                 Text(
@@ -219,7 +224,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
           _currentDuration = duration;
           _videoDuration = videoDuration;
           _bufferedDuration = bufferedDration;
-          if(_bufferedDuration > _videoDuration) {
+          if (_bufferedDuration > _videoDuration) {
             _bufferedDuration = _videoDuration;
           }
         });
