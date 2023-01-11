@@ -187,7 +187,8 @@ SuperPlayerPlugin* instance;
         result([TXLiveBase getSDKVersionStr]);
     } else if ([@"isDeviceSupportPip" isEqualToString:call.method]) {
         BOOL isSupport = [TXVodPlayer isSupportPictureInPicture];
-        result([NSNumber numberWithBool:isSupport]);
+        int pipSupportResult = isSupport ? 0 : ERROR_IOS_PIP_DEVICE_NOT_SUPPORT;
+        result(@(pipSupportResult));
     } else if([@"setGlobalEnv" isEqualToString:call.method]) {
         NSString *envConfig = call.arguments[@"envConfig"];
         int setResult = [TXLiveBase setGlobalEnv:[envConfig UTF8String]];
