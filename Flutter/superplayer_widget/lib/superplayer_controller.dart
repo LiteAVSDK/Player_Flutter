@@ -43,6 +43,7 @@ class SuperPlayerController {
   bool isLoop = false;
   bool _needToResume = false;
   bool _needToPause = false;
+  bool callResume = false;
   bool _isMultiBitrateStream = false; // 是否是多码流url播放
   bool _changeHWAcceleration = false; // 切换硬解后接收到第一个关键帧前的标记位
   bool _isOpenHWAcceleration = true;
@@ -59,10 +60,6 @@ class SuperPlayerController {
   double videoWidth = 0;
   double videoHeight = 0;
   double currentPlayRate = 1.0;
-
-  // 规避IOS部分情况下收不到FirstFrame事件
-  bool _isCalledFirstFrame = false;
-  bool _isRecFirstFrameEvent = false;
 
   SuperPlayerController(this._context) {
     _initVodPlayer();
@@ -99,8 +96,6 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
           isPrepared = true;
-          _isRecFirstFrameEvent = false;
-          _isCalledFirstFrame = false;
           if (_isMultiBitrateStream) {
             List<dynamic>? bitrateListTemp = await _vodPlayerController.getSupportedBitrates();
             List<FTXBitrateItem> bitrateList = [];
@@ -156,14 +151,13 @@ class SuperPlayerController {
           if (_needToPause) {
             return;
           }
-          _isRecFirstFrameEvent = true;
           if (_changeHWAcceleration) {
             LogUtils.d(TAG, "seek pos $_seekPos");
             seek(_seekPos);
             _changeHWAcceleration = false;
           }
           _updatePlayerState(SuperPlayerState.PLAYING);
-          _onRecFirstFrame();
+          _observer?.onRcvFirstIframe();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_END:
           _updatePlayerState(SuperPlayerState.END);
@@ -179,13 +173,6 @@ class SuperPlayerController {
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
-          }
-          if (!_isCalledFirstFrame) {
-            if (!_isRecFirstFrameEvent) {
-              _isRecFirstFrameEvent = true;
-            } else {
-              _onRecFirstFrame();
-            }
           }
           break;
       }
@@ -285,9 +272,8 @@ class SuperPlayerController {
     await resetPlayer();
     if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       await _playWithModelInner(videoModel);
-    } else {
-      _observer?.onNewVideoPlay();
     }
+    _observer?.onPreparePlayVideo();
   }
 
   Future<void> _playWithModelInner(SuperPlayerModel videoModel) async {
@@ -295,6 +281,7 @@ class SuperPlayerController {
     _playAction = videoModel.playAction;
     _updateImageSpriteAndKeyFrame(null, null);
     _currentProtocol = null;
+    callResume = false;
 
     // 优先使用url播放
     if (videoModel.videoURL.isNotEmpty) {
@@ -453,13 +440,6 @@ class SuperPlayerController {
     }
   }
 
-  void _onRecFirstFrame() {
-    if (_isRecFirstFrameEvent) {
-      _isCalledFirstFrame = true;
-      _observer?.onRcvFirstIframe();
-    }
-  }
-
   /// 暂停视频
   /// 涉及到_updatePlayerState相关的方法，不使用异步,避免异步调用导致的playerState更新不及时
   void pause() {
@@ -484,6 +464,7 @@ class SuperPlayerController {
     } else {
       _livePlayerController.resume();
     }
+    callResume = true;
     _needToPause = false;
     _updatePlayerState(SuperPlayerState.PLAYING);
   }
