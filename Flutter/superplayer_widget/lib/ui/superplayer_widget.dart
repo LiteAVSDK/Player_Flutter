@@ -22,7 +22,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late SuperPlayerController _playController;
   bool _isFloatingMode = false;
   bool _isPlaying = false;
-  bool _isLoading = true;
+  bool _isLoading = false;
   bool _isShowCover = true;
 
   double _radioWidth = 0;
@@ -135,18 +135,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _registerObserver() {
     _playController._observer = _SuperPlayerObserver(() {
-      // onNewVideoPlay
+      // preparePlayVideo
       setState(() {
-        _isPlaying = false;
         _isShowControlView = false;
-        _isShowCover = true;
-        _isLoading = true;
+        _isLoading = _playController.videoModel!.playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
       });
       _coverViewKey.currentState?.showCover(_playController.videoModel!);
     }, () {
       // onPlayPrepare
       _isShowCover = true;
-      _coverViewKey.currentState?.showCover(_playController.videoModel!);
+      _isLoading = true;
       _togglePlayUIState(false);
     }, (name) {
       _togglePlayUIState(true);
@@ -165,11 +163,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _coverViewKey.currentState?.hideCover();
     }, () {
       // onPlayLoading
-      if (!_isPlaying) {
-        setState(() {
+      setState(() {
+        //预加载模式进行特殊处理
+        if(_playController.videoModel!.playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
+          if(_playController.callResume) {
+            _isLoading = true;
+          }
+        } else {
           _isLoading = true;
-        });
-      }
+        }
+      });
     }, (current, duration, playableDuration) {
       // onPlayProgress
       _videoBottomKey.currentState?.updateDuration(current, duration, playableDuration);
@@ -529,7 +532,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _onResume() {
     SuperPlayerState playerState = _playController.playerState;
-    int playAction = _playController._playAction;
+    int playAction = _playController.videoModel!.playAction;
     if (playerState == SuperPlayerState.LOADING && playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       _playController.resume();
     } else if (playerState == SuperPlayerState.INIT) {

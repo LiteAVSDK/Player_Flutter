@@ -19,11 +19,11 @@ class _SuperPlayerObserver {
   Function(PlayImageSpriteInfo? info, List<PlayKeyFrameDescInfo>? list) onVideoImageSpriteAndKeyFrameChanged;
   Function onRcvFirstIframe;
   Function onSysBackPress;
-  Function onNewVideoPlay;
+  Function onPreparePlayVideo;
   Function onDispose;
 
   _SuperPlayerObserver(
-      this.onNewVideoPlay,
+      this.onPreparePlayVideo,
       this.onPlayPrepare,
       this.onPlayBegin,
       this.onPlayPause,
