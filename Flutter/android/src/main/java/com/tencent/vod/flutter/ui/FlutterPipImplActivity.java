@@ -5,14 +5,17 @@ package com.tencent.vod.flutter.ui;
 import android.app.PictureInPictureParams;
 import android.app.PictureInPictureUiState;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
@@ -30,13 +33,13 @@ import com.tencent.rtmp.TXPlayInfoParams;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
+import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
-import com.tencent.vod.flutter.R;
 import io.flutter.embedding.android.FlutterActivity;
 
 public class FlutterPipImplActivity extends FlutterActivity implements Callback, ITXVodPlayListener,
-        ITXLivePlayListener {
+        ITXLivePlayListener, ServiceConnection {
 
     private static final String TAG = "FlutterPipImplActivity";
 
@@ -114,6 +117,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         mVideoSurface.getHolder().addCallback(this);
         setVodPlayerListener();
         setLivePlayerListener();
+        bindAndroid12BugServiceIfNeed();
     }
 
     private void setVodPlayerListener() {
@@ -228,8 +232,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         }
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
         sendPipBroadCast(codeEvent, data);
-        overridePendingTransition(0, 0);
-        finish();
+        exitPip(codeEvent == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT);
     }
 
     @Override
@@ -244,7 +247,7 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
             if (TextUtils.equals(action, FTXEvent.PIP_ACTION_START)) {
                 startPipVideoFromIntent(intent);
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_EXIT)) {
-                exitPip();
+                exitPip(false);
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_UPDATE)) {
                 PipParams pipParams = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
                 updatePip(pipParams);
@@ -263,8 +266,32 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
         }
     }
 
-    private void exitPip() {
-        finish();
+    /**
+     * 关闭画中画，使用finish当前界面的方式，关闭画中画
+     *
+     * @param closeImmediately 立刻关闭，不执行延迟，在android 12以上，如果画中画处于非当前app界面下，立刻关闭可能会造成无法返回app问题
+     */
+    private void exitPip(boolean closeImmediately) {
+        if (!isFinishing() && !isDestroyed()) {
+            // 由于android 12 的前台服务启动限制，导致画中画返回后，过早关闭activity界面的话，无法正常拉起app。所以这里增加延时处理
+            if (Build.VERSION.SDK_INT >= VERSION_CODES.S && !closeImmediately) {
+                mVodPlayer.stopPlay(true);
+                mLivePlayer.stopPlay(true);
+                mVideoSurface.setVisibility(View.GONE);
+                mVideoProgress.setVisibility(View.GONE);
+                mVideoProgress.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        overridePendingTransition(0, 0);
+                        finish();
+                    }
+                }, 400);
+            } else {
+                overridePendingTransition(0, 0);
+                finish();
+            }
+        }
+
     }
 
     private void startPipVideoFromIntent(Intent intent) {
@@ -337,7 +364,19 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     protected void onDestroy() {
         unRegisterPipBroadcast();
+        if (Build.VERSION.SDK_INT >= VERSION_CODES.S) {
+            unbindService(this);
+        }
         super.onDestroy();
+    }
+
+
+    private void bindAndroid12BugServiceIfNeed() {
+        if (Build.VERSION.SDK_INT >= VERSION_CODES.S) {
+            Intent serviceIntent = new Intent(this, Android12BridgeService.class);
+            startService(serviceIntent);
+            bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
+        }
     }
 
     private void attachSurface(Surface surface) {
@@ -455,4 +494,13 @@ public class FlutterPipImplActivity extends FlutterActivity implements Callback,
     @Override
     public void onNetStatus(Bundle bundle) {
     }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+    }
+
 }
