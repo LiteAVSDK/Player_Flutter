@@ -15,17 +15,10 @@ import android.util.SparseArray;
 import android.view.OrientationEventListener;
 import android.view.Window;
 import android.view.WindowManager;
-
 import androidx.annotation.NonNull;
-
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
+import com.tencent.vod.flutter.ui.Android12BridgeService;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -34,6 +27,10 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * SuperPlayerPlugin
@@ -286,6 +283,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         if (null != mTxPipManager) {
             mTxPipManager.releaseActivityListener();
         }
+        // 关闭用于解决Android12部分版本上画中画点击还原失灵的问题
+        Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), Android12BridgeService.class);
+        mActivityPluginBinding.getActivity().stopService(serviceIntent);
         unregisterReceiver();
     }
 
