@@ -14,7 +14,6 @@
                 android:resizeableActivity="true"
                 android:launchMode="singleTask"
                 android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-                android:hardwareAccelerated="true"
                 android:windowSoftInputMode="stateHidden"
                 tools:ignore="UnusedAttribute" >
             <intent-filter>
@@ -23,6 +22,8 @@
                 <action android:name="com.tencent.flutter.updatePip"/>
             </intent-filter>
         </activity>
+        
+        <service android:name="com.tencent.vod.flutter.ui.Android12BridgeService"/>
     </application>
 
 </manifest>

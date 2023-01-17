@@ -43,7 +43,6 @@ import java.util.Map;
 public class FTXPIPManager {
 
     private static final String TAG = "FTXPIPManager";
-    private static final int REQUEST_PIP_CODE = 1;
 
     private boolean misInit = false;
     private final Map<Integer, PipCallback> pipCallbacks = new HashMap<>();
@@ -142,7 +141,7 @@ public class FTXPIPManager {
             intent.setAction(FTXEvent.PIP_ACTION_START);
             intent.putExtra(FTXEvent.EXTRA_NAME_PARAMS, params);
             intent.putExtra(FTXEvent.EXTRA_NAME_VIDEO, videoModel);
-            mActivityBinding.getActivity().startActivityForResult(intent, REQUEST_PIP_CODE);
+            mActivityBinding.getActivity().startActivity(intent);
             mIsInPipMode = true;
         }
         return pipResult;
@@ -380,7 +379,7 @@ public class FTXPIPManager {
                 actions.add(nextAction);
             }
 
-            PictureInPictureParams.Builder mPipParams = new Builder();
+            Builder mPipParams = new Builder();
             mPipParams.setActions(actions);
             return mPipParams.build();
         }
