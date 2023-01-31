@@ -3,6 +3,7 @@ part of demo_super_player_lib;
 
 typedef BoolFunction = bool Function();
 typedef DoubleFunction = double Function();
+
 /// 播放器组件更多菜单
 class SuperPlayerMoreView extends StatefulWidget {
   final MoreViewController controller;
@@ -21,30 +22,32 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   bool _isVodPlay = false;
   String _currentRate = "";
   Map<String, double> playRateStr = {"1.0x": 1.0, "1.25x": 1.25, "1.5x": 1.5, "2.0x": 2.0};
-  StreamSubscription? volumeSubscription;
+  StreamSubscription? eventSubscription;
 
   @override
   void initState() {
     super.initState();
     _isVodPlay = widget.controller.getIsVodPlay();
     double playerPlayRate = widget.controller.getPlayRate();
-    for(String rateStr in playRateStr.keys) {
-      if(playerPlayRate == playRateStr[rateStr]) {
+    for (String rateStr in playRateStr.keys) {
+      if (playerPlayRate == playRateStr[rateStr]) {
         _currentRate = rateStr;
         break;
       }
     }
     // if not found in playRateStr,set 1.0
-    if(_currentRate.isEmpty) {
+    if (_currentRate.isEmpty) {
       _currentRate = playRateStr.keys.first;
     }
     _isOpenAccelerate = widget.controller.getAccelerateIsOpen();
     // regist system volume changed event
-    volumeSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
+    eventSubscription = SuperPlayerPlugin.instance.onEventBroadcast.listen((event) {
       int code = event["event"];
-      if(mounted) {
+      if (mounted) {
         if (code == TXVodPlayEvent.EVENT_VOLUME_CHANGED) {
           refreshVolume();
+        } else if (code == TXVodPlayEvent.EVENT_BRIGHTNESS_CHANGED) {
+          refreshBrightness();
         }
       }
     });
@@ -54,6 +57,15 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   void refreshVolume() async {
     _currentVolumn = await SuperPlayerPlugin.getSystemVolume();
     setState(() {});
+  }
+
+  void refreshBrightness() async {
+    double brightness = await SuperPlayerPlugin.getBrightness();
+    if (_currentBrightness != brightness) {
+      setState(() {
+        _currentBrightness = brightness;
+      });
+    }
   }
 
   void _initData() async {
@@ -129,7 +141,9 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
           child: Text(
             rateStr,
             textAlign: TextAlign.center,
-            style: rateStr == _currentRate ? ThemeResource.getCheckedLabelTextStyle() : ThemeResource.getCommonLabelTextStyle(),
+            style: rateStr == _currentRate
+                ? ThemeResource.getCheckedLabelTextStyle()
+                : ThemeResource.getCommonLabelTextStyle(),
           ),
         ),
       ));
@@ -154,7 +168,10 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
           textAlign: TextAlign.center,
           style: ThemeResource.getCommonLabelTextStyle(),
         ),
-        const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_light_min.png", package:StringResource.PKG_NAME)),
+        const Image(
+            width: 30,
+            height: 30,
+            image: AssetImage("images/superplayer_ic_light_min.png", package: StringResource.PKG_NAME)),
         Expanded(
           child: Theme(
               data: ThemeResource.getCommonSliderTheme(),
@@ -165,7 +182,10 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
                 onChanged: _onChangeBrightness,
               )),
         ),
-        const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_light_max.png", package:StringResource.PKG_NAME)),
+        const Image(
+            width: 30,
+            height: 30,
+            image: AssetImage("images/superplayer_ic_light_max.png", package: StringResource.PKG_NAME)),
       ]),
     );
   }
@@ -180,7 +200,10 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
             textAlign: TextAlign.center,
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
-          const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_volume_min.png", package:StringResource.PKG_NAME)),
+          const Image(
+              width: 30,
+              height: 30,
+              image: AssetImage("images/superplayer_ic_volume_min.png", package: StringResource.PKG_NAME)),
           Expanded(
             child: Theme(
                 data: ThemeResource.getCommonSliderTheme(),
@@ -191,7 +214,10 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
                   onChanged: _onChangeVolume,
                 )),
           ),
-          const Image(width: 30, height: 30, image: AssetImage("images/superplayer_ic_volume_max.png", package:StringResource.PKG_NAME)),
+          const Image(
+              width: 30,
+              height: 30,
+              image: AssetImage("images/superplayer_ic_volume_max.png", package: StringResource.PKG_NAME)),
         ],
       ),
     );
@@ -250,7 +276,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
 
   void updatePlayerType(SuperPlayerType playerType) {
     bool isVodPlay = playerType == SuperPlayerType.VOD;
-    if(isVodPlay != _isVodPlay) {
+    if (isVodPlay != _isVodPlay) {
       setState(() {
         _isVodPlay = isVodPlay;
       });
@@ -260,7 +286,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   @override
   void dispose() {
     super.dispose();
-    volumeSubscription?.cancel();
+    eventSubscription?.cancel();
   }
 }
 
@@ -271,5 +297,6 @@ class MoreViewController {
   Function(double playRate) onChangedPlayRate;
   BoolFunction getIsVodPlay;
 
-  MoreViewController(this.getAccelerateIsOpen, this.getPlayRate, this.siwtchAccelerate, this.onChangedPlayRate, this.getIsVodPlay);
+  MoreViewController(
+      this.getAccelerateIsOpen, this.getPlayRate, this.siwtchAccelerate, this.onChangedPlayRate, this.getIsVodPlay);
 }
