@@ -67,6 +67,10 @@ SuperPlayerPlugin* instance;
     [_eventChannel setStreamHandler:self];
     [_pipEventChannel setStreamHandler:self];
 
+    // brightness event
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self selector:@selector(brightnessDidChange:) name:UIScreenBrightnessDidChangeNotification object:[UIScreen mainScreen]];
+    
     [audioManager registerVolumeChangeListener:self];
      _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
     // orientation
@@ -213,6 +217,14 @@ SuperPlayerPlugin* instance;
 -(void) destory
 {
     [audioManager destory:self];
+}
+
+/**
+ 亮度变化
+ */
+- (void)brightnessDidChange:(NSNotification *)notification
+{
+    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_BRIGHTNESS_CHANGED withParams:@{}]];
 }
 
 #pragma mark - FlutterStreamHandler

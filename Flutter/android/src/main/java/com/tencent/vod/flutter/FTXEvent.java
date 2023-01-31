@@ -6,10 +6,11 @@ package com.tencent.vod.flutter;
  * 通用事件码
  */
 public class FTXEvent {
+
     /*
     音量变化
      */
-    public static final int EVENT_VOLUME_CHANGED    = 1;
+    public static final int EVENT_VOLUME_CHANGED = 1;
     /*
     失去音量输出播放焦点
      */
@@ -17,7 +18,11 @@ public class FTXEvent {
     /*
     获得音量输出焦点
      */
-    public static final int EVENT_AUDIO_FOCUS_PLAY  = 3;
+    public static final int EVENT_AUDIO_FOCUS_PLAY = 3;
+    /*
+    亮度发生变化
+     */
+    public static final int EVENT_BRIGHTNESS_CHANGED = 4;
 
     // 视频预下载完成
     public static final int EVENT_PREDOWNLOAD_ON_COMPLETE = 200;
@@ -26,55 +31,55 @@ public class FTXEvent {
     public static final int EVENT_PREDOWNLOAD_ON_ERROR = 201;
 
     // 视频下载开始
-    public static final int EVENT_DOWNLOAD_START    = 301;
+    public static final int EVENT_DOWNLOAD_START = 301;
     // 视频下载进度
     public static final int EVENT_DOWNLOAD_PROGRESS = 302;
     // 视频下载停止
-    public static final int EVENT_DOWNLOAD_STOP     = 303;
+    public static final int EVENT_DOWNLOAD_STOP = 303;
     // 视频下载完成
-    public static final int EVENT_DOWNLOAD_FINISH   = 304;
+    public static final int EVENT_DOWNLOAD_FINISH = 304;
     // 视频下载错误
-    public static final int EVENT_DOWNLOAD_ERROR    = 305;
+    public static final int EVENT_DOWNLOAD_ERROR = 305;
 
-    public static final int NO_ERROR                = 0;
+    public static final int NO_ERROR = 0;
     /**
      * pip 事件
      */
-    public static final String PIP_CHANNEL_NAME              = "cloud.tencent.com/playerPlugin/componentEvent";
+    public static final String PIP_CHANNEL_NAME = "cloud.tencent.com/playerPlugin/componentEvent";
     // pip广播action
-    public static final String ACTION_PIP_PLAY_CONTROL        = "vodPlayControl";
+    public static final String ACTION_PIP_PLAY_CONTROL = "vodPlayControl";
     // pip 操作
-    public static final String EXTRA_NAME_PLAY_OP             = "vodPlayOp";
+    public static final String EXTRA_NAME_PLAY_OP = "vodPlayOp";
     // pip需要操作的播放器
-    public static final String EXTRA_NAME_PLAYER_ID           = "vodPlayerId";
+    public static final String EXTRA_NAME_PLAYER_ID = "vodPlayerId";
     // 进度回退
-    public static final int    EXTRA_PIP_PLAY_BACK            = 101;
+    public static final int EXTRA_PIP_PLAY_BACK = 101;
     // 继续/暂停
-    public static final int    EXTRA_PIP_PLAY_RESUME_OR_PAUSE = 102;
+    public static final int EXTRA_PIP_PLAY_RESUME_OR_PAUSE = 102;
     // 进度前进
-    public static final int    EXTRA_PIP_PLAY_FORWARD         = 103;
+    public static final int EXTRA_PIP_PLAY_FORWARD = 103;
     // pip 错误，android版本过低
-    public static final int    ERROR_PIP_LOWER_VERSION        = -101;
+    public static final int ERROR_PIP_LOWER_VERSION = -101;
     // pip 错误，画中画权限关闭/设备不支持画中画
-    public static final int    ERROR_PIP_DENIED_PERMISSION    = -102;
+    public static final int ERROR_PIP_DENIED_PERMISSION = -102;
     // pip 错误，当前界面已销毁
-    public static final int    ERROR_PIP_ACTIVITY_DESTROYED   = -103;
+    public static final int ERROR_PIP_ACTIVITY_DESTROYED = -103;
     // 来自画中画容器的事件，广播键值
-    public static final String EVENT_PIP_ACTION               = "com.tencent.flutter.pipevent";
+    public static final String EVENT_PIP_ACTION = "com.tencent.flutter.pipevent";
     // 来自画中画容器的事件，事件键值
-    public static final String EVENT_PIP_MODE_NAME            = "pipEventName";
+    public static final String EVENT_PIP_MODE_NAME = "pipEventName";
     // 画中画当前播放时间
-    public static final String EVENT_PIP_PLAY_TIME            = "playTime";
+    public static final String EVENT_PIP_PLAY_TIME = "playTime";
     // 来自画中画容器的事件，已经进入画中画
-    public static final int    EVENT_PIP_MODE_ALREADY_ENTER    = 1;
+    public static final int EVENT_PIP_MODE_ALREADY_ENTER = 1;
     // 来自画中画容器的事件，已经退出画中画
-    public static final int    EVENT_PIP_MODE_ALREADY_EXIT     = 2;
+    public static final int EVENT_PIP_MODE_ALREADY_EXIT = 2;
     // 来自画中画容器的事件，开始进入画中画
-    public static final int    EVENT_PIP_MODE_REQUEST_START    = 3;
+    public static final int EVENT_PIP_MODE_REQUEST_START = 3;
     // 来自画中画容器的事件，画中画UI发生变动，> android 31
-    public static final int    EVENT_PIP_MODE_UI_STATE_CHANGED = 4;
+    public static final int EVENT_PIP_MODE_UI_STATE_CHANGED = 4;
     // 画中画界面恢复，即点击放大按钮
-    public static final int    EVENT_PIP_MODE_RESTORE_UI       = 5;
+    public static final int EVENT_PIP_MODE_RESTORE_UI = 5;
 
     // 启动画中画
     public static final String PIP_ACTION_START = "com.tencent.flutter.startPip";

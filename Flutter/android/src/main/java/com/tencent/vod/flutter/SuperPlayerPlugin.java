@@ -3,12 +3,18 @@
 package com.tencent.vod.flutter;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -28,6 +34,8 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import java.io.File;
+import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -42,26 +50,25 @@ import java.util.Set;
  */
 public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
 
-    static final         String TAG                      = "SuperPlayerPlugin";
-    private static final String VOLUME_CHANGED_ACTION    = "android.media.VOLUME_CHANGED_ACTION";
+    static final String TAG = "SuperPlayerPlugin";
+    private static final String VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION";
     private static final String EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
 
-    private EventChannel            mEventChannel;
-    private FTXPlayerEventSink      mEventSink = new FTXPlayerEventSink();
+    private EventChannel mEventChannel;
+    private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     private VolumeBroadcastReceiver mVolumeBroadcastReceiver;
 
-    private MethodChannel              channel;
-    private FlutterPluginBinding       mFlutterPluginBinding;
-    private ActivityPluginBinding      mActivityPluginBinding;
+    private MethodChannel channel;
+    private FlutterPluginBinding mFlutterPluginBinding;
+    private ActivityPluginBinding mActivityPluginBinding;
     private SparseArray<FTXBasePlayer> mPlayers;
 
     private FTXDownloadManager mFTXDownloadManager;
-
     private FTXAudioManager mTxAudioManager;
-    private FTXPIPManager   mTxPipManager;
+    private FTXPIPManager mTxPipManager;
 
     private OrientationEventListener mOrientationManager;
-    private int                      mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
+    private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
 
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
@@ -75,6 +82,15 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
                     onHandleAudioFocusPlay();
                 }
             };
+
+    private final ContentObserver brightnessObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+        @Override
+        public void onChange(boolean selfChange, @NonNull Collection<Uri> uris, int flags) {
+            super.onChange(selfChange, uris, flags);
+            double systemBrightness = getSystemScreenBrightness();
+            setBrightness(systemBrightness);
+        }
+    };
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -150,23 +166,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             result.success(null);
         } else if (call.method.equals("setBrightness")) {
             Double brightness = call.argument("brightness");
-            if (null != brightness) {
-                Window window = mActivityPluginBinding.getActivity().getWindow();
-                WindowManager.LayoutParams params = window.getAttributes();
-                params.screenBrightness = Float.parseFloat(String.valueOf(brightness));
-                if (params.screenBrightness > 1.0f) {
-                    params.screenBrightness = 1.0f;
-                }
-                if (params.screenBrightness != -1 && params.screenBrightness < 0) {
-                    params.screenBrightness = 0.01f;
-                }
-                window.setAttributes(params);
-            }
+            setBrightness(brightness);
             result.success(null);
         } else if (call.method.equals("getBrightness")) {
-            Window window = mActivityPluginBinding.getActivity().getWindow();
-            WindowManager.LayoutParams params = window.getAttributes();
-            result.success(params.screenBrightness);
+            float screenBrightness = getBrightness();
+            result.success(screenBrightness);
         } else if (call.method.equals("getSystemVolume")) {
             result.success(mTxAudioManager.getSystemCurrentVolume());
         } else if (call.method.equals("setSystemVolume")) {
@@ -205,37 +209,88 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         }
         if (null == mOrientationManager) {
             try {
-               mOrientationManager = new OrientationEventListener(mFlutterPluginBinding.getApplicationContext()) {
-                   @Override
-                   public void onOrientationChanged(int orientation) {
-                       if (isAutoRotateOn()) {
-                           int orientationEvent = mCurrentOrientation;
-                           // 每个方向判断当前方向正负30度，共计60度的区间
-                           if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
-                               orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
-                           } else if (orientation > 240 && orientation < 300) {
-                               orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_RIGHT;
-                           } else if (orientation > 150 && orientation < 210) {
-                               orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_DOWN;
-                           } else if (orientation > 60 && orientation < 110) {
-                               orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_LEFT;
-                           }
-                           if (orientationEvent != mCurrentOrientation) {
-                               mCurrentOrientation = orientationEvent;
-                               Bundle bundle = new Bundle();
-                               bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
-                               mEventSink.success(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle));
-                           }
-                       }
-                   }
-               };
-               mOrientationManager.enable();
-           } catch (Exception e) {
-               Log.getStackTraceString(e);
-               return false;
-           }
+                mOrientationManager = new OrientationEventListener(mFlutterPluginBinding.getApplicationContext()) {
+                    @Override
+                    public void onOrientationChanged(int orientation) {
+                        if (isAutoRotateOn()) {
+                            int orientationEvent = mCurrentOrientation;
+                            // 每个方向判断当前方向正负30度，共计60度的区间
+                            if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
+                                orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
+                            } else if (orientation > 240 && orientation < 300) {
+                                orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_RIGHT;
+                            } else if (orientation > 150 && orientation < 210) {
+                                orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_DOWN;
+                            } else if (orientation > 60 && orientation < 110) {
+                                orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_LEFT;
+                            }
+                            if (orientationEvent != mCurrentOrientation) {
+                                mCurrentOrientation = orientationEvent;
+                                Bundle bundle = new Bundle();
+                                bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
+                                mEventSink.success(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle));
+                            }
+                        }
+                    }
+                };
+                mOrientationManager.enable();
+            } catch (Exception e) {
+                Log.getStackTraceString(e);
+                return false;
+            }
         }
         return true;
+    }
+
+    /**
+     * 设置当前window亮度
+     */
+    private void setBrightness(Double brightness) {
+        if (null != brightness) {
+            // 保留两位小数
+            BigDecimal bigDecimal = new BigDecimal(brightness);
+            brightness = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            Window window = mActivityPluginBinding.getActivity().getWindow();
+            WindowManager.LayoutParams params = window.getAttributes();
+            params.screenBrightness = Float.parseFloat(String.valueOf(brightness));
+            if (params.screenBrightness > 1.0f) {
+                params.screenBrightness = 1.0f;
+            }
+            if (params.screenBrightness != -1 && params.screenBrightness < 0) {
+                params.screenBrightness = 0.01f;
+            }
+            window.setAttributes(params);
+            // 发送亮度变化通知
+            mEventSink.success(getParams(FTXEvent.EVENT_BRIGHTNESS_CHANGED, null));
+        }
+    }
+
+    /**
+     * 获得当前window亮度，如果当前window亮度未赋值，则返回当前系统亮度
+     */
+    private float getBrightness() {
+        Window window = mActivityPluginBinding.getActivity().getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
+        float screenBrightness = params.screenBrightness;
+        if (screenBrightness < 0) {
+            screenBrightness = getSystemScreenBrightness();
+        }
+        // 保留两位小数
+        BigDecimal bigDecimal = new BigDecimal(screenBrightness);
+        bigDecimal = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP);
+        return bigDecimal.floatValue();
+    }
+
+    private float getSystemScreenBrightness() {
+        float screenBrightness = -1;
+        try {
+            ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
+            int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
+            screenBrightness = brightnessInt / 255F;
+        } catch (SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        return screenBrightness;
     }
 
     private void initAudioManagerIfNeed() {
@@ -323,6 +378,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
         mActivityPluginBinding.getActivity().registerReceiver(mVolumeBroadcastReceiver, filter);
+        // brightness observer
+        ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
+        resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
+                true, brightnessObserver);
     }
 
     /**
@@ -332,6 +391,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         try {
             mTxAudioManager.removeAudioFocusChangedListener(audioFocusChangeListener);
             mActivityPluginBinding.getActivity().unregisterReceiver(mVolumeBroadcastReceiver);
+            mActivityPluginBinding.getActivity().getContentResolver().unregisterContentObserver(brightnessObserver);
         } catch (Exception e) {
             e.printStackTrace();
         }
