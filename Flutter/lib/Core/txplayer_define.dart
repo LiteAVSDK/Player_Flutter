@@ -98,10 +98,11 @@ abstract class TXVodPlayEvent {
   static const EVT_IMAGESPRIT_IMAGEURL_LIST = "EVT_IMAGESPRIT_IMAGEURL_LIST"; // 雪碧图图片下载URL
   static const EVT_DRM_TYPE = "EVT_DRM_TYPE"; // 加密类型
 
-  /// superplayer plugin volume event
+  /// superplayer plugin event
   static const EVENT_VOLUME_CHANGED = 1; // 音量变化
   static const EVENT_AUDIO_FOCUS_PAUSE = 2; // 失去音量输出播放焦点 only for android
   static const EVENT_AUDIO_FOCUS_PLAY = 3; // 获得音量输出焦点 only for android
+  static const EVENT_BRIGHTNESS_CHANGED = 4; // 亮度发生变化
   /// pip event
   static const    EVENT_PIP_MODE_ALREADY_ENTER    = 1; // 已经进入画中画模式
   static const    EVENT_PIP_MODE_ALREADY_EXIT     = 2; // 已经退出画中画模式

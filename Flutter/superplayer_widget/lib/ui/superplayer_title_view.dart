@@ -27,9 +27,11 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 6, right: 6),
+      padding: const EdgeInsets.only(left: 10, right: 15),
       decoration: const BoxDecoration(
-          image: DecorationImage(image: AssetImage("images/superplayer_top_shadow.png", package:StringResource.PKG_NAME), fit: BoxFit.fill)),
+          image: DecorationImage(
+              image: AssetImage("images/superplayer_top_shadow.png", package: StringResource.PKG_NAME),
+              fit: BoxFit.fill)),
       child: Row(
         children: [
           InkWell(
@@ -37,7 +39,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
             child: const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_btn_back_play.png", package:StringResource.PKG_NAME),
+              image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
             ),
           ),
           Text(
@@ -50,9 +52,9 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
               child: InkWell(
                 onTap: _onTapMore,
                 child: const Image(
-                  width: 30,
-                  height: 30,
-                  image: AssetImage("images/superplayer_ic_vod_more_normal.png", package:StringResource.PKG_NAME),
+                  width: 40,
+                  height: 40,
+                  image: AssetImage("images/superplayer_ic_vod_more_normal.png", package: StringResource.PKG_NAME),
                 ),
               ))
         ],
