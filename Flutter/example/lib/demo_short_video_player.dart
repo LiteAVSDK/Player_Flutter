@@ -1,12 +1,12 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:super_player/super_player.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'shortvideo/demo_short_video_lib.dart';
 
 class DemoShortVideoPlayer extends StatefulWidget {
-
   @override
   _DemoShortVideoPlayerState createState() => _DemoShortVideoPlayerState();
 }
@@ -19,7 +19,7 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
   @override
   void initState() {
     super.initState();
-    ShortVideoDataLoader loader  = ShortVideoDataLoader();
+    ShortVideoDataLoader loader = ShortVideoDataLoader();
     loader.getPageListDataOneByOneFunction((dataModels) {
       setState(() {
         superPlayerModelList = dataModels;
@@ -33,19 +33,37 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
     List<Widget> widgetList = [];
     for (int i = 0; i < superPlayerModelList.length; i++) {
       widgetList.add(ShortVideoPageWidget(
-          position: i,
-          videoUrl: superPlayerModelList[i].videoURL,
-          coverUrl: superPlayerModelList[i].coverUrl));
+          position: i, videoUrl: superPlayerModelList[i].videoURL, coverUrl: superPlayerModelList[i].coverUrl));
     }
 
-    return PageView(
-      scrollDirection: Axis.vertical,
-      onPageChanged: (int index) {
-        LogUtils.i(TAG,"[onPageEndChanged] outside ${_currentIndex.toString()} ——》 ${index.toString()}");
-        _stopAndPlay(index);
-      },
-      children: widgetList,
+    return Stack(
+      children: [
+        PageView(
+          scrollDirection: Axis.vertical,
+          onPageChanged: (int index) {
+            LogUtils.i(TAG, "[onPageEndChanged] outside ${_currentIndex.toString()} ——》 ${index.toString()}");
+            _stopAndPlay(index);
+          },
+          children: widgetList,
+        ),
+        SafeArea(
+            child: Positioned(
+                left: 0,
+                top: 0,
+                child: InkWell(
+                  onTap: _onBackTap,
+                  child: const Image(
+                    width: 40,
+                    height: 40,
+                    image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
+                  ),
+                ))),
+      ],
     );
+  }
+
+  void _onBackTap() {
+    Navigator.of(context).pop();
   }
 
   @override
@@ -62,7 +80,6 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
         break;
     }
   }
-
 
   _stopAndPlay(int index) async {
     EventBusUtils.getInstance().fire(new StopAndResumeEvent(index));

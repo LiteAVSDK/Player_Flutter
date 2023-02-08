@@ -26,6 +26,7 @@ class SuperVodDataLoader {
     var request = await httpClient.getUrl(Uri.parse(url));
     var response = await request.close();
     if (response.statusCode != HttpStatus.ok) {
+      callback(model);
       return;
     }
     var json = await response.transform(utf8.decoder).join();
@@ -35,6 +36,7 @@ class SuperVodDataLoader {
     String warning = root['warning'];
     LogUtils.d(TAG, "_getVodListData,code=($code, ${PlayInfoProtocol.getV4ErrorCodeDescription(code)}),message=$message,warning=$warning");
     if (code != 0) {
+      callback(model);
       return;
     }
     int version = root['version'];
