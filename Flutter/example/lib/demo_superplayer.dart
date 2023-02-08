@@ -202,23 +202,22 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
               model.appId = appId;
               if (url.isNotEmpty) {
                 model.videoURL = url;
+                playCurrentModel(model, 0);
               } else if (appId != 0 && fileId.isNotEmpty) {
                 model.videoId = new SuperPlayerVideoId();
                 model.videoId!.fileId = fileId;
                 if (pSign.isNotEmpty) {
                   model.videoId!.psign = pSign;
                 }
+                loader.getVideoData(model, (resultModel) {
+                  setState(() {
+                    videoModels.add(resultModel);
+                  });
+                  playCurrentModel(resultModel, 0);
+                });
               } else {
                 EasyLoading.showError("请输入播放地址!");
-                return;
               }
-
-              loader.getVideoData(model, (resultModel) {
-                setState(() {
-                  videoModels.add(resultModel);
-                });
-                playCurrentModel(resultModel, 0);
-              });
             },
             needPisgn: !isLive,
             showFileEdited: !isLive,
