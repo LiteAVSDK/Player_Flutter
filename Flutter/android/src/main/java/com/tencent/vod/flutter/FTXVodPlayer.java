@@ -189,9 +189,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         if (mSurfaceTextureEntry != null && mSurfaceTextureEntry.surfaceTexture() != null) {
             SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
             surfaceTexture.setDefaultBufferSize(width, height);
-            if (mSurface != null) {
-                mSurface.release();
-            }
             mSurface = new Surface(surfaceTexture);
             mVodPlayer.setSurface(mSurface);
         }

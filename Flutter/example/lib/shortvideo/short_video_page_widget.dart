@@ -6,10 +6,7 @@ class ShortVideoPageWidget extends StatefulWidget {
   String coverUrl;
   int position;
 
-  ShortVideoPageWidget(
-      {required this.position,
-      required this.videoUrl,
-      required this.coverUrl});
+  ShortVideoPageWidget({required this.position, required this.videoUrl, required this.coverUrl});
 
   @override
   State<StatefulWidget> createState() {
@@ -33,10 +30,9 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
 
   TXVodPlayerController _controller;
 
-  _TXVodPlayerPageState() : _controller = TXVodPlayerController(){
-      _txPlayerVideo = new TXPlayerVideo(controller: _controller);
+  _TXVodPlayerPageState() : _controller = TXVodPlayerController() {
+    _txPlayerVideo = new TXPlayerVideo(controller: _controller);
   }
-
 
   @override
   void initState() {
@@ -47,7 +43,8 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   _init() async {
     await _controller.initialize();
     _controller.setConfig(FTXVodPlayConfig());
-    LogUtils.i(TAG, " [init] ${widget.position.toString()} ${this.hashCode.toString()} ${_controller.hashCode.toString()}");
+    LogUtils.i(
+        TAG, " [init] ${widget.position.toString()} ${this.hashCode.toString()} ${_controller.hashCode.toString()}");
     _setPlayerListener();
     _setEventBusListener();
     if (widget.position == 0) {
@@ -73,16 +70,13 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
     _playEventSubscription?.cancel();
     await _stop();
     _controller.dispose();
-    LogUtils.i(TAG, " [dispose] ${widget.position.toString()} ${this.hashCode.toString()} ${_controller.hashCode.toString()}");
+    LogUtils.i(
+        TAG, " [dispose] ${widget.position.toString()} ${this.hashCode.toString()} ${_controller.hashCode.toString()}");
   }
 
   Widget _getTXVodPlayerMainPage() {
     return Stack(
-      children: <Widget>[
-        _getGestureDetectorView(),
-        _getPreviewImg(),
-        _getSeekBarView()
-      ],
+      children: <Widget>[_getGestureDetectorView(), _getPreviewImg(), _getSeekBarView()],
     );
   }
 
@@ -103,18 +97,21 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
 
   _onTapPageView() {
     _controller.isPlaying().then((value) {
-      value ? _pause() :_resume();
+      value ? _pause() : _resume();
     });
     LogUtils.i(TAG, "tap ${_isVideoPlaying.toString()}");
   }
 
   Widget _getSeekBarView() {
-    return Positioned(
-      child: VideoSliderView(_controller, _progressSliderKey),
-      bottom: 20,
-      right: 0,
-      left: 0,
-    );
+    return SafeArea(
+        child: Stack(children: [
+          Positioned(
+            child: VideoSliderView(_controller, _progressSliderKey),
+            bottom: 20,
+            right: 0,
+            left: 0,
+          )
+        ],));
   }
 
   Widget _getPauseView() {
@@ -122,7 +119,8 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
         offstage: _isVideoPlaying,
         child: Align(
           child: Container(
-              child: Image(image: AssetImage("images/superplayer_ic_vod_play_normal.png", package:StringResource.PKG_NAME)),
+              child: Image(
+                  image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: StringResource.PKG_NAME)),
               height: 50,
               width: 50),
           alignment: Alignment.center,
@@ -144,7 +142,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
             )));
   }
 
-  _pause() async{
+  _pause() async {
     LogUtils.i(TAG, "[_pause]");
     await _controller.pause();
     setState(() {
@@ -152,7 +150,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
     });
   }
 
-  _resume() async{
+  _resume() async {
     LogUtils.i(TAG, "[_resume]");
     await _controller.resume();
     setState(() {
@@ -161,19 +159,18 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   }
 
   _stopLastAndPlayCurrent(StopAndResumeEvent event) {
-    LogUtils.i(TAG, " [received at not current outside] ${widget.position.toString()} ${this.hashCode.toString()} ${widget.hashCode.toString()} ${_controller.hashCode.toString()}");
-    event.index != widget.position ? _stop() :_startPlay();
+    LogUtils.i(TAG,
+        " [received at not current outside] ${widget.position.toString()} ${this.hashCode.toString()} ${widget.hashCode.toString()} ${_controller.hashCode.toString()}");
+    event.index != widget.position ? _stop() : _startPlay();
   }
 
-  Future<void> _stop() async{
+  Future<void> _stop() async {
     if (!mounted) return;
     LogUtils.i(TAG, " [stop] ${widget.position.toString()} ${widget.hashCode.toString()}");
     _isVideoPrepared = false;
     _isVideoPlaying = true;
     _controller.stop();
   }
-
-
 
   _startPlay() async {
     LogUtils.i(TAG, " [_startPlay]");
@@ -198,11 +195,11 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
     });
 
     _streamSubscriptionApplicationResume = EventBusUtils.getInstance().on<ApplicationResumeEvent>().listen((event) {
-          _resume();
+      _resume();
     });
 
     _streamSubscriptionApplicationPause = EventBusUtils.getInstance().on<ApplicationPauseEvent>().listen((event) {
-          _pause();
+      _pause();
     });
   }
 
