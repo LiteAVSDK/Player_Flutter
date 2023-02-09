@@ -68,7 +68,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
      * 直播播放器
      */
     public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, Activity activity,
-                         FTXPIPManager pipManager) {
+            FTXPIPManager pipManager) {
         super();
         mFlutterPluginBinding = flutterPluginBinding;
         mActivity = activity;
@@ -184,7 +184,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             result.success(null);
         } else if (call.method.equals("startLivePlay")) {
             String url = call.argument("url");
-            int type = call.argument("playType");
+            Integer type = call.argument("playType");
             int r = startLivePlay(url, type);
             result.success(r);
         } else if (call.method.equals("stop")) {
@@ -248,7 +248,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
                     mPipManager.toAndroidPath(playResumeAssetPath),
                     mPipManager.toAndroidPath(playPauseAssetPath),
                     mPipManager.toAndroidPath(playForwardAssetPath),
-                    getPlayerId(),false, false, true);
+                    getPlayerId(), false, false, true);
             mPipParams.setIsPlaying(isPlaying());
             int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
             // 启动成功之后，暂停当前界面视频
@@ -277,8 +277,11 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }
 
-    int startLivePlay(String url, int type) {
+    int startLivePlay(String url, Integer type) {
         Log.d(TAG, "startLivePlay:");
+        if (null == type) {
+            type = TXLivePlayer.PLAY_TYPE_LIVE_FLV;
+        }
         mVideoModel.setVideoUrl(url);
         mVideoModel.setLiveType(type);
         if (mLivePlayer != null) {

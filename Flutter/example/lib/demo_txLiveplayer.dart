@@ -20,8 +20,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   double _progress = 0.0;
   int _volume = 100;
   bool _isMute = false;
-  String _url =
-      "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
+  String _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
   bool _isStop = true;
   bool _isPlaying = false;
   double _maxLiveProgressTime = 0;
@@ -42,12 +41,12 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
         _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
         progressSliderKey.currentState?.updateProgress(1, _maxLiveProgressTime);
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN ||
-          event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         //首帧出现
         _isStop = false;
         _isPlaying = true;
         EasyLoading.dismiss();
+        _resizeVideo(event);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
         //切换流成功
         EasyLoading.dismiss();
@@ -60,24 +59,18 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
         EasyLoading.dismiss();
         EasyLoading.showError("切流失败");
         switchUrl();
-      }else if(event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
         LogUtils.w("PLAY_EVT_CHANGE_RESOLUTION", event);
+        _resizeVideo(event);
       }
     });
 
-    playNetEventSubscription =  _controller.onPlayerNetStatusBroadcast.listen((event) {
-      double w = (event[TXVodNetEvent.NET_STATUS_VIDEO_WIDTH]).toDouble();
-      double h = (event[TXVodNetEvent.NET_STATUS_VIDEO_HEIGHT]).toDouble();
-
-      if (w > 0 && h > 0) {
-        setState(() {
-          _aspectRatio = 1.0 * w / h;
-        });
-      }
+    playNetEventSubscription = _controller.onPlayerNetStatusBroadcast.listen((event) {
+      // 订阅状态变化
     });
 
     playerStateEventSubscription = _controller.onPlayerState.listen((event) {
-      //订阅状态变化
+      // 订阅状态变化
       debugPrint("播放状态 ${event!.name}");
     });
 
@@ -86,6 +79,16 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     await _controller.setConfig(FTXLivePlayConfig());
     // 安卓需要设置hls格式才可正常播放
     await _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV);
+  }
+
+  void _resizeVideo(Map<dynamic, dynamic> event) {
+    int? videoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
+    int? videoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+    if ((videoWidth != null && videoWidth != 0) && (videoHeight != null && videoHeight != 0)) {
+      setState(() {
+        _aspectRatio = 1.0 * videoWidth / videoHeight;
+      });
+    }
   }
 
   @override
@@ -104,7 +107,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.resumed:
-        if(_isPlaying) {
+        if (_isPlaying) {
           _controller.resume();
         }
         break;
@@ -304,7 +307,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "", (String url, int appId, String fileId,String pSign) {
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign) {
             _url = url;
             _controller.stop();
             if (url.isNotEmpty) {
