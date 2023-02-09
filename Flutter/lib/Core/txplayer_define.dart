@@ -83,6 +83,8 @@ abstract class TXVodPlayEvent {
   static const EVT_DESCRIPTION = "EVT_MSG"; // 事件说明
   static const EVT_PARAM1 = "EVT_PARAM1"; // 事件参数1
   static const EVT_PARAM2 = "EVT_PARAM2"; // 事件参数2
+  static const EVT_VIDEO_WIDTH = "EVT_WIDTH"; // 分辨率之width
+  static const EVT_VIDEO_HEIGHT = "EVT_HEIGHT"; // 分辨率之height
   static const EVT_GET_MSG = "EVT_GET_MSG"; // 消息内容，收到PLAY_EVT_GET_MESSAGE事件时，通过该字段获取消息内容
   static const EVT_PLAY_COVER_URL = "EVT_PLAY_COVER_URL"; // 视频封面
   static const EVT_PLAY_URL = "EVT_PLAY_URL"; // 视频地址
