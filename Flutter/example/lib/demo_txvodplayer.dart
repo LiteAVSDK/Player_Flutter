@@ -44,16 +44,13 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     });
     LogUtils.logOpen = true;
 
-    SuperPlayerPlugin.setGlobalMaxCacheSize(200);
-    SuperPlayerPlugin.setGlobalCacheFolderPath("postfixPath");
-
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
       //订阅状态变化
-      if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN ||
-          event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
+      if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
         _supportedBitrates = (await _controller.getSupportedBitrates())!;
         _isPlaying = true;
+        _resizeVideo(event);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
@@ -64,6 +61,8 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
         }
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC) {
         String? playUrl = event[TXVodPlayEvent.EVT_PLAY_URL]?.toString();
+      } else if(event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
+        _resizeVideo(event);
       }
     });
 
@@ -87,6 +86,16 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
 
     _controller.setConfig(FTXVodPlayConfig());
     await _controller.startVodPlay(_url);
+  }
+
+  void _resizeVideo(Map<dynamic, dynamic> event) {
+    int? videoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
+    int? videoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+    if ((videoWidth != null && videoWidth != 0) && (videoHeight != null && videoHeight != 0)) {
+      setState(() {
+        _aspectRatio = 1.0 * videoWidth / videoHeight;
+      });
+    }
   }
 
   @override
@@ -198,26 +207,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
           alignment: Alignment.center,
           child: Text(
             "暂停",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () => {_controller.seek(_currentProgress + 10)},
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "前进",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () => {_controller.seek(_currentProgress - 10)},
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "后退",
             style: TextStyle(fontSize: 18, color: Colors.blue),
           ),
         ),

@@ -41,10 +41,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     id<FlutterTextureRegistry> _textureRegistry;
     
     float currentPlayTime;
+    BOOL volatile isVideoFirstFrameReceived;
+    NSNumber *videoWidth;
+    NSNumber *videoHeight;
+    // 主线程队列，用于保证视频播放部分事件按顺序进行
+    dispatch_queue_t playerMainqueue;
 }
-
-
-BOOL volatile isStop = false;
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
 {
@@ -53,6 +55,10 @@ BOOL volatile isStop = false;
         _lastBuffer = nil;
         _latestPixelBuffer = nil;
         _textureId = -1;
+        isVideoFirstFrameReceived = false;
+        videoWidth = 0;
+        videoHeight = 0;
+        playerMainqueue = dispatch_get_main_queue();
         self.hasEnteredPipMode = NO;
         self.restoreUI = NO;
         _eventSink = [FTXPlayerEventSinkQueue new];
@@ -190,7 +196,6 @@ BOOL volatile isStop = false;
 - (BOOL)stopPlay
 {
     if (_txVodPlayer != nil) {
-        isStop = true;
         return [_txVodPlayer stopPlay];
     }
     return NO;
@@ -517,11 +522,13 @@ BOOL volatile isStop = false;
                                              (void **)&_latestPixelBuffer)) {
         pixelBuffer = _latestPixelBuffer;
     }
-    if(isStop && nil != pixelBuffer) {
-        isStop = false;
-        [_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{}]];
-    }
-    return isStop ? nil : pixelBuffer;
+    dispatch_async(playerMainqueue, ^{
+        if(!self->isVideoFirstFrameReceived && nil != pixelBuffer) {
+            [self->_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{@"EVT_WIDTH":@(self->videoWidth.intValue), @"EVT_HEIGHT":@(self->videoHeight.intValue)}]];
+            self->isVideoFirstFrameReceived = true;
+        }
+    });
+    return pixelBuffer;
 }
 
 #pragma mark - TXVodPlayListener
@@ -531,11 +538,24 @@ BOOL volatile isStop = false;
     // 交给flutter共享纹理处理首帧事件返回时机
     if (EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
         currentPlayTime = 0;
+        dispatch_async(playerMainqueue, ^{
+            self->videoWidth = param[@"EVT_WIDTH"];
+            self->videoHeight = param[@"EVT_HEIGHT"];
+        });
         return;
+    } else if(EvtID == PLAY_EVT_CHANGE_RESOLUTION) {
+        dispatch_async(playerMainqueue, ^{
+            self->videoWidth = param[@"EVT_WIDTH"];
+            self->videoHeight = param[@"EVT_HEIGHT"];
+        });
     } else if(EvtID == PLAY_EVT_PLAY_PROGRESS) {
         currentPlayTime = [param[EVT_PLAY_PROGRESS] floatValue];
     } else if(EvtID == PLAY_EVT_PLAY_BEGIN) {
         currentPlayTime = 0;
+    } else if(EvtID == PLAY_EVT_START_VIDEO_DECODER) {
+        dispatch_async(playerMainqueue, ^{
+            self->isVideoFirstFrameReceived = false;
+        });
     }
     
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];

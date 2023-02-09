@@ -86,6 +86,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         (value) => _playController.enableHardwareDecode(value),
         (playRate) => _playController.setPlayRate(playRate),
         () => _playController.playerType == SuperPlayerType.VOD);
+
     _playController.onPlayerNetStatusBroadcast.listen((event) {
       dynamic wd = (event["VIDEO_WIDTH"]);
       dynamic hd = (event["VIDEO_HEIGHT"]);
@@ -163,6 +164,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, () {
       // onRcvFirstIframe
       _coverViewKey.currentState?.hideCover();
+      // 收到首帧事件后，先用播放器内核解析出来的分辨率对播放器大小进行调整
+      _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
       // onPlayLoading
       setState(() {
