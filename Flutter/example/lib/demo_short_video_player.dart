@@ -47,17 +47,16 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
           children: widgetList,
         ),
         SafeArea(
-            child: Positioned(
-                left: 0,
-                top: 0,
-                child: InkWell(
-                  onTap: _onBackTap,
-                  child: const Image(
-                    width: 40,
-                    height: 40,
-                    image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
-                  ),
-                ))),
+            child: Container(
+              child: InkWell(
+                onTap: _onBackTap,
+                child: const Image(
+                  width: 40,
+                  height: 40,
+                  image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
+                ),
+              ),
+            )),
       ],
     );
   }

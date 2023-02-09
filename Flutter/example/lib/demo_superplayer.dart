@@ -6,6 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/ui/demo_inputdialog.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
+import 'dart:ui';
 
 /// flutter superplayer demo
 class DemoSuperPlayer extends StatefulWidget {
@@ -22,6 +23,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
   static const ARGUMENT_TYPE_POS = "arg_type_pos";
   static const ARGUMENT_VIDEO_DATA = "arg_video_data";
+  static const sPlayerViewDisplayRatio = 720.0 / 1280.0; //当前界面播放器view展示的宽高比，用主流的16：9
 
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
@@ -34,6 +36,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   double? initStartTime;
   TextStyle _textStyleSelected = new TextStyle(fontSize: 16, color: Colors.white);
   TextStyle _textStyleUnSelected = new TextStyle(fontSize: 16, color: Colors.grey);
+  double playerHeight = 220;
 
   @override
   void initState() {
@@ -59,13 +62,19 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     if (null != widget.initParams) {
       tabSelectPos = widget.initParams![ARGUMENT_TYPE_POS];
       initVideoModel = widget.initParams![ARGUMENT_VIDEO_DATA];
-      initStartTime =  widget.initParams![TXPipController.ARGUMENT_PIP_START_TIME];
+      initStartTime = widget.initParams![TXPipController.ARGUMENT_PIP_START_TIME];
     }
+    _adjustSuperPlayerViewHeight();
     if (tabSelectPos == 0) {
       _getLiveListData();
     } else if (tabSelectPos == 1) {
       _getVodListData();
     }
+  }
+
+  /// 竖屏下，播放器始终保持 16 ：9的宽高比，优先保证宽度填充
+  void _adjustSuperPlayerViewHeight() {
+    playerHeight = (window.physicalSize.width / window.devicePixelRatio) * sPlayerViewDisplayRatio;
   }
 
   @override
@@ -136,7 +145,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   Widget _getPlayArea() {
     return Container(
       decoration: BoxDecoration(color: Colors.black),
-      height: 220,
+      height: playerHeight,
       child: SuperPlayerView(_controller),
     );
   }
@@ -203,6 +212,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
               if (url.isNotEmpty) {
                 model.videoURL = url;
                 playCurrentModel(model, 0);
+                _addVideoToCurrentList(model);
               } else if (appId != 0 && fileId.isNotEmpty) {
                 model.videoId = new SuperPlayerVideoId();
                 model.videoId!.fileId = fileId;
@@ -210,9 +220,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                   model.videoId!.psign = pSign;
                 }
                 loader.getVideoData(model, (resultModel) {
-                  setState(() {
-                    videoModels.add(resultModel);
-                  });
+                  _addVideoToCurrentList(resultModel);
                   playCurrentModel(resultModel, 0);
                 });
               } else {
@@ -223,6 +231,12 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             showFileEdited: !isLive,
           );
         });
+  }
+
+  void _addVideoToCurrentList(SuperPlayerModel model) {
+    setState(() {
+      videoModels.add(model);
+    });
   }
 
   void playCurrentModel(SuperPlayerModel model, double startTime) {

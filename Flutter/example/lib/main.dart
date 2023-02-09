@@ -64,6 +64,9 @@ class _MyAppState extends State<MyApp> {
     TXPipController.instance.setNavigatorHandle((params) {
       navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => DemoSuperPlayer(initParams: params)));
     });
+
+    SuperPlayerPlugin.setGlobalMaxCacheSize(200);
+    SuperPlayerPlugin.setGlobalCacheFolderPath("postfixPath");
   }
 
   Future<void> _getflutterSdkVersion() async {

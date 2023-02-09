@@ -57,6 +57,7 @@ class SuperPlayerController {
   double _seekPos = 0; // 记录切换硬解时的播放时间
   /// 该值会改变新播放视频的播放开始时间点
   double startPos = 0;
+  /// 播放器内核解析出来的视频宽高
   double videoWidth = 0;
   double videoHeight = 0;
   double currentPlayRate = 1.0;
@@ -148,6 +149,7 @@ class SuperPlayerController {
           _updatePlayerState(SuperPlayerState.PLAYING);
           break;
         case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME: // PLAY_EVT_RCV_FIRST_I_FRAME
+          _configVideoSize(event);
           if (_needToPause) {
             return;
           }
@@ -175,23 +177,12 @@ class SuperPlayerController {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
           }
           break;
+        case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION:
+          _configVideoSize(event);
+          break;
       }
     });
     _vodNetEventListener = _vodPlayerController.onPlayerNetStatusBroadcast.listen((event) {
-      dynamic wd = (event["VIDEO_WIDTH"]);
-      dynamic hd = (event["VIDEO_HEIGHT"]);
-      if (null != wd && null != hd) {
-        double w = wd.toDouble();
-        double h = hd.toDouble();
-        if (w > 0 && h > 0) {
-          if (w != videoWidth) {
-            videoWidth = w;
-          }
-          if (h != videoHeight) {
-            videoHeight = h;
-          }
-        }
-      }
       _playerNetStatusStreamController.add(event);
     });
   }
@@ -225,6 +216,7 @@ class SuperPlayerController {
           _updatePlayerState(SuperPlayerState.LOADING);
           break;
         case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
+          _configVideoSize(event);
           _updatePlayerState(SuperPlayerState.PLAYING);
           _observer?.onRcvFirstIframe();
           break;
@@ -239,25 +231,25 @@ class SuperPlayerController {
           _maxLiveProgressTime = progress > _maxLiveProgressTime ? progress : _maxLiveProgressTime;
           _observer?.onPlayProgress(progress / 1000, _maxLiveProgressTime / 1000, await getPlayableDuration());
           break;
+        case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION:
+          _configVideoSize(event);
+          break;
       }
     });
     _liveNetEventListener = _livePlayerController.onPlayerNetStatusBroadcast.listen((event) {
-      dynamic wd = (event["VIDEO_WIDTH"]);
-      dynamic hd = (event["VIDEO_HEIGHT"]);
-      if (null != wd && null != hd) {
-        double w = wd.toDouble();
-        double h = hd.toDouble();
-        if (w > 0 && h > 0) {
-          if (w != videoWidth) {
-            videoWidth = w;
-          }
-          if (h != videoHeight) {
-            videoHeight = h;
-          }
-        }
-      }
       _playerNetStatusStreamController.add(event);
     });
+  }
+
+  void _configVideoSize(Map<dynamic, dynamic> event) {
+    int? eventVideoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
+    int? eventVideoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+    if (eventVideoWidth != null && eventVideoWidth != 0) {
+      videoWidth = eventVideoWidth.toDouble();
+    }
+    if (eventVideoHeight != null && eventVideoHeight != 0) {
+      videoHeight = eventVideoHeight.toDouble();
+    }
   }
 
   /// 播放视频.
@@ -643,7 +635,7 @@ class SuperPlayerController {
     _observer?.onDispose();
     playerStreamController.close();
     // 如果处于画中画模式，播放器暂时不释放
-    if(!TXPipController.instance.isPlayerInPip(getCurrentController())) {
+    if (!TXPipController.instance.isPlayerInPip(getCurrentController())) {
       resetPlayer();
       _vodPlayerController.dispose();
       _livePlayerController.dispose();
