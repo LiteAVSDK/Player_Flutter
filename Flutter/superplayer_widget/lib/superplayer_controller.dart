@@ -244,6 +244,8 @@ class SuperPlayerController {
   void _configVideoSize(Map<dynamic, dynamic> event) {
     int? eventVideoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
     int? eventVideoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+    eventVideoWidth ??= event[TXVodPlayEvent.EVT_PARAM1];
+    eventVideoHeight ??= event[TXVodPlayEvent.EVT_PARAM2];
     if (eventVideoWidth != null && eventVideoWidth != 0) {
       videoWidth = eventVideoWidth.toDouble();
     }
