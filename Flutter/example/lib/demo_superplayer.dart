@@ -211,6 +211,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
               model.appId = appId;
               if (url.isNotEmpty) {
                 model.videoURL = url;
+                model.coverUrl = DEFAULT_PLACE_HOLDER;
                 playCurrentModel(model, 0);
                 _addVideoToCurrentList(model);
               } else if (appId != 0 && fileId.isNotEmpty) {
