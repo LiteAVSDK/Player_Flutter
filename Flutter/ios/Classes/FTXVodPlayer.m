@@ -524,7 +524,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     }
     dispatch_async(playerMainqueue, ^{
         if(!self->isVideoFirstFrameReceived && nil != pixelBuffer) {
-            [self->_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{@"EVT_WIDTH":@(self->videoWidth.intValue), @"EVT_HEIGHT":@(self->videoHeight.intValue)}]];
+            [self->_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{@"EVT_WIDTH":@(self->videoWidth.intValue), @"EVT_HEIGHT":@(self->videoHeight.intValue),@"EVT_PARAM1":@(self->videoWidth.intValue), @"EVT_PARAM2":@(self->videoHeight.intValue)}]];
             self->isVideoFirstFrameReceived = true;
         }
     });
