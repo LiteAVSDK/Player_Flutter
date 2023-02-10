@@ -82,8 +82,8 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   }
 
   void _resizeVideo(Map<dynamic, dynamic> event) {
-    int? videoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
-    int? videoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+    int? videoWidth = event[TXVodPlayEvent.EVT_PARAM1];
+    int? videoHeight = event[TXVodPlayEvent.EVT_PARAM2];
     if ((videoWidth != null && videoWidth != 0) && (videoHeight != null && videoHeight != 0)) {
       setState(() {
         _aspectRatio = 1.0 * videoWidth / videoHeight;
