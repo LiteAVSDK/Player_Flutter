@@ -247,8 +247,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isLoading = false;
         _coverViewKey.currentState?.hideCover();
         break;
-      case SuperPlayerState.INIT:
       case SuperPlayerState.LOADING:
+        _isPlaying = false;
+        _isShowCover = false;
+        _isLoading = true;
+        _coverViewKey.currentState?.hideCover();
+        break;
+      case SuperPlayerState.INIT:
         _isPlaying = false;
         _isLoading = true;
         break;
