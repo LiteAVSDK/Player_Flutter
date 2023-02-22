@@ -117,7 +117,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
           Switch(
-              activeColor: const Color(ColorResource.COLOR_MAIN_THEME),
+              activeColor: const Color(ColorResource.COLOR_SLIDER_MAIN_THEME),
               value: _isOpenAccelerate,
               onChanged: _onChangeAccelerate)
         ],

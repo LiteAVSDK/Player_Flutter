@@ -40,3 +40,4 @@ part 'common/color_resource.dart';
 part 'common/string_resource.dart';
 part 'common/theme_resource.dart';
 part 'common/task_executors.dart';
+part 'extra/download_helper.dart';

@@ -4,6 +4,22 @@ part of demo_super_player_lib;
 /// video quality utils
 class VideoQualityUtils {
   static const TAG = "VideoQualityUtils";
+  static const Map<int, String> downloadQualityMap = {
+    DownloadQuality.QUALITY_FLU: StringResource.QUALITY_FLU,
+    DownloadQuality.QUALITY_SD: StringResource.QUALITY_SD,
+    DownloadQuality.QUALITY_HD: StringResource.QUALITY_HD,
+    DownloadQuality.QUALITY_FHD: StringResource.QUALITY_FHD,
+    DownloadQuality.QUALITY_OD: StringResource.QUALITY_OD,
+    DownloadQuality.QUALITY_240P: StringResource.QUALITY_240P,
+    DownloadQuality.QUALITY_360P: StringResource.QUALITY_360P,
+    DownloadQuality.QUALITY_480P: StringResource.QUALITY_480P,
+    DownloadQuality.QUALITY_540P: StringResource.QUALITY_540P,
+    DownloadQuality.QUALITY_720P: StringResource.QUALITY_720P,
+    DownloadQuality.QUALITY_1080P: StringResource.QUALITY_1080P,
+    DownloadQuality.QUALITY_2K: StringResource.QUALITY_2K,
+    DownloadQuality.QUALITY_4K: StringResource.QUALITY_4K,
+    DownloadQuality.QUALITY_UNK: "",
+  };
 
   /// convert to quality by transcodePlayList
   static List<VideoQuality> convertToVideoQualityList(Map<String, PlayInfoStream> transcodePlayList) {
@@ -18,7 +34,7 @@ class VideoQualityUtils {
 
   /// convert to quality by PlayInfoStream
   static VideoQuality convertToVideoQuality(PlayInfoStream stream) {
-    VideoQuality quality = new VideoQuality();
+    VideoQuality quality = VideoQuality();
     quality.bitrate = stream.bitrate;
     quality.name = stream.id;
     quality.title = stream.name;
@@ -29,41 +45,43 @@ class VideoQualityUtils {
 
   /// convert to quality by FTXBitrateItem
   static VideoQuality convertToVideoQualityByBitrate(BuildContext context, FTXBitrateItem bitrateItem) {
-    VideoQuality quality = new VideoQuality();
+    VideoQuality quality = VideoQuality();
     quality.bitrate = bitrateItem.bitrate;
     quality.index = bitrateItem.index;
     quality.height = bitrateItem.height;
     quality.width = bitrateItem.width;
-    formatVideoQuality(quality);
+    quality.title = formatVideoQuality(quality.width, quality.height);
     return quality;
   }
 
   /// format quality title by size
-  static void formatVideoQuality(VideoQuality quality) {
-    int minValue = min(quality.width, quality.height);
+  static String formatVideoQuality(int width, int height) {
+    int minValue = min(width, height);
+    String title = " (${minValue}dp)";
     if (minValue == 240 || minValue == 180) {
-      quality.title = "${StringResource.QUALITY_FLU} (${minValue}dp)";
-    } else if (minValue == 480 || minValue == 360) {
-      quality.title = "${StringResource.QUALITY_SD} (${minValue}dp)";
+      title = StringResource.QUALITY_240P;
+    } else if (minValue == 360) {
+      title = StringResource.QUALITY_360P;
+    } else if (minValue == 480) {
+      title = StringResource.QUALITY_480P;
     } else if (minValue == 540) {
-      quality.title = "${StringResource.QUALITY_FSD} (${minValue}dp)";
+      title = StringResource.QUALITY_540P;
     } else if (minValue == 720) {
-      quality.title = "${StringResource.QUALITY_HD} (${minValue}dp)";
+      title = StringResource.QUALITY_720P;
     } else if (minValue == 1080) {
-      quality.title = "${StringResource.QUALITY_FHD2} (${minValue}dp)";
+      title = StringResource.QUALITY_1080P;
     } else if (minValue == 1440) {
-      quality.title = "${StringResource.QUALITY_2K} (${minValue}dp)";
+      title = StringResource.QUALITY_2K;
     } else if (minValue == 2160) {
-      quality.title = "${StringResource.QUALITY_4K} (${minValue}dp)";
-    } else {
-      quality.title = " (${minValue}dp)";
+      title = StringResource.QUALITY_4K;
     }
+    return title;
   }
 
   /// convert to quality by FTXBitrateItem and resolutionNames
   static VideoQuality convertToVideoQualityByResolution(
       FTXBitrateItem bitrateItem, List<ResolutionName> resolutionNames) {
-    VideoQuality quality = new VideoQuality();
+    VideoQuality quality = VideoQuality();
     quality.bitrate = bitrateItem.bitrate;
     quality.index = bitrateItem.index;
     bool getName = false;
@@ -93,5 +111,17 @@ class VideoQualityUtils {
       }
     }
     return qualityName;
+  }
+
+  /// 根据videoQuality，转化为视频下载需要用到的画质id
+  /// @param width 宽度
+  /// @param height 高度
+  /// @return [DownloadQuality];
+  static int getCacheVideoQualityIndex(int width, int height) {
+    return CommonUtils.getDownloadQualityBySize(width, height);
+  }
+
+  static String getNameByCacheQualityId(int cacheQualityId) {
+    return downloadQualityMap[cacheQualityId] ?? "";
   }
 }

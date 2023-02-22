@@ -41,35 +41,6 @@ public class CommonUtil {
         return param;
     }
 
-    /**
-     * 通过宽高获得对应的缓存视频清晰度
-     */
-    public static int getCacheVideoQuality(Integer width, Integer height) {
-        if (width == null || height == null) {
-            return TXVodDownloadDataSource.QUALITY_FLU;
-        }
-        int minValue = Math.min(width, height);
-        int cacheQualityIndex;
-        if (minValue == 240 || minValue == 180) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_FLU;
-        } else if (minValue == 480 || minValue == 360) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_SD;
-        } else if (minValue == 540) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_SD;
-        } else if (minValue == 720) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_HD;
-        } else if (minValue == 1080) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_FHD;
-        } else if (minValue == 1440) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_2K;
-        } else if (minValue == 2160) {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_4K;
-        } else {
-            cacheQualityIndex = TXVodDownloadDataSource.QUALITY_UNK;
-        }
-        return cacheQualityIndex;
-    }
-
     public static int getDownloadEventByState(int mediaInfoDownloadState) {
         Integer event = DOWNLOAD_STATE_MAP.get(mediaInfoDownloadState);
         return null != event ? event : FTXEvent.EVENT_DOWNLOAD_ERROR;

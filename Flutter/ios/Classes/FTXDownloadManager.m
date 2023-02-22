@@ -93,7 +93,8 @@
         NSString *videoUrl = args[@"url"];
         NSNumber *appIdNum = args[@"appId"];
         NSString *fileId = args[@"fileId"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
+        NSString *userName = args[@"userName"];
+        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
         [[TXVodDownloadManager shareInstance] stopDownload:mediaInfo];
         result(nil);
     } else if([@"setDownloadHeaders" isEqualToString:call.method]) {
@@ -111,7 +112,8 @@
         NSString *videoUrl = args[@"url"];
         NSNumber *appIdNum = args[@"appId"];
         NSString *fileId = args[@"fileId"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
+        NSString *userName = args[@"userName"];
+        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
         NSDictionary *resultDic = [self buildMapFromDownloadMediaInfo:mediaInfo];
         result(resultDic);
     } else if([@"deleteDownloadMediaInfo" isEqualToString:call.method]) {
@@ -119,9 +121,10 @@
         NSString *videoUrl = args[@"url"];
         NSNumber *appIdNum = args[@"appId"];
         NSString *fileId = args[@"fileId"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId];
-        [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
-        result(@(TRUE));
+        NSString *userName = args[@"userName"];
+        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
+        BOOL deleteResult = [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
+        result(@(deleteResult));
     }
 }
 
@@ -188,20 +191,25 @@
      return ([NSNull null] == (NSNull *)quality || nil == quality) ? TXVodQualityFLU : [quality intValue];
  }
 
-- (TXVodDownloadMediaInfo *)parseMediaInfoFromInfo:(NSNumber *)quality url:(NSString *)videoUrl appId:(NSNumber *)pAppId fileId:(NSString *)pFileId {
+- (TXVodDownloadMediaInfo *)parseMediaInfoFromInfo:(NSNumber *)quality url:(NSString *)videoUrl appId:(NSNumber *)pAppId fileId:(NSString *)pFileId name:(NSString*)name {
     TXVodDownloadMediaInfo *mediaInfo = nil;
-    if(nil != videoUrl && [NSNull null] != (NSNull *)videoUrl) {
-        TXVodDownloadMediaInfo *urlInfo = [[TXVodDownloadMediaInfo alloc] init];
-        urlInfo.url = videoUrl;
-        mediaInfo = [[TXVodDownloadManager shareInstance] getDownloadMediaInfo:urlInfo];
-    } else if([NSNull null] != (NSNull *)pFileId && [NSNull null] != (NSNull *)pAppId) {
+    if(name == nil) {
+        name = @"default";
+    }
+    if([NSNull null] != (NSNull *)pFileId && [NSNull null] != (NSNull *)pAppId) {
         TXVodDownloadMediaInfo *fileIdInfo = [[TXVodDownloadMediaInfo alloc] init];
         TXVodDownloadDataSource *dataSource = [[TXVodDownloadDataSource alloc] init];
         dataSource.appId = [pAppId intValue];
         dataSource.fileId = pFileId;;
         dataSource.quality = [self optQuality:quality];
+        dataSource.userName = name;
         fileIdInfo.dataSource = dataSource;
         mediaInfo = [[TXVodDownloadManager shareInstance] getDownloadMediaInfo:fileIdInfo];
+    } else if(nil != videoUrl && [NSNull null] != (NSNull *)videoUrl) {
+        TXVodDownloadMediaInfo *urlInfo = [[TXVodDownloadMediaInfo alloc] init];
+        urlInfo.url = videoUrl;
+        urlInfo.userName = name;
+        mediaInfo = [[TXVodDownloadManager shareInstance] getDownloadMediaInfo:urlInfo];
     }
     return mediaInfo;
 }
