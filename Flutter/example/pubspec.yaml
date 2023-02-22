@@ -10,6 +10,9 @@ environment:
   flutter: ">=2.0.0"
 
 dependencies:
+  # 国际化
+  flutter_localizations:
+    sdk: flutter
   flutter:
     sdk: flutter
   event_bus: ^2.0.0
@@ -48,6 +51,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/json/
     - images/ic_new_vod_bg.png
     - images/addp.png
   # To add assets to your application, add an assets section, like this:

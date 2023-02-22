@@ -33,6 +33,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   bool _isShowControlView = false;
   bool _isShowQualityListView = false;
+  bool _isShowDownload = false;
+  bool _isDownloaded = false;
 
   late BottomViewController _bottomViewController;
   late QualityListViewController _qualitListViewController;
@@ -43,6 +45,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   StreamSubscription? _volumeSubscription;
   StreamSubscription? _pipSubscription;
+  FTXDownloadListener? downloadListener;
 
   /// init
   Timer _controlViewTimer = Timer(const Duration(milliseconds: _controlViewShowTime), () {});
@@ -66,8 +69,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     TXPipController.instance.exitAndReleaseCurrentPip();
     _playController = widget._controller;
     _superPlayerFullUIController = SuperPlayerFullScreenController(_updateState);
-    _titleViewController = _VideoTitleController(_onTapBack, () {
-      _moreViewKey.currentState?.toggleShowMoreView();
+    _titleViewController = _VideoTitleController(
+        _onTapBack,
+        // onTapMore
+        () => _moreViewKey.currentState?.toggleShowMoreView(),
+        // onTapDownload
+        () {
+      if (_playController.videoModel != null) {
+        _playController.startDownload();
+        EasyLoading.showToast("开始下载");
+      }
     });
     _bottomViewController =
         BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView, (value) {
@@ -164,14 +175,15 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, () {
       // onRcvFirstIframe
       _coverViewKey.currentState?.hideCover();
+      _refreshDownloadStatus();
       // 收到首帧事件后，先用播放器内核解析出来的分辨率对播放器大小进行调整
       _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
       // onPlayLoading
       setState(() {
         //预加载模式进行特殊处理
-        if(_playController.videoModel!.playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
-          if(_playController.callResume) {
+        if (_playController.videoModel!.playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
+          if (_playController.callResume) {
             _isLoading = true;
           }
         } else {
@@ -215,6 +227,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       Navigator.of(context).push(MaterialPageRoute(builder: (context) {
         return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
       }));
+      if (null != downloadListener) {
+        DownloadHelper.instance.removeDownloadListener(downloadListener!);
+      }
       WidgetsBinding.instance.removeObserver(this);
       _playController._updatePlayerUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
@@ -229,6 +244,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       hideControlView();
     });
     WidgetsBinding.instance.addObserver(this);
+    _initDownloadStatus();
   }
 
   void _initPlayerState() {
@@ -260,6 +276,26 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
   }
 
+  void _initDownloadStatus() {
+    if (null != downloadListener) {
+      DownloadHelper.instance.removeDownloadListener(downloadListener!);
+    }
+    DownloadHelper.instance.addDownloadListener(downloadListener = FTXDownloadListener((event, info) {
+      if (event == TXVodPlayEvent.EVENT_DOWNLOAD_FINISH) {
+        EasyLoading.showToast("视频下载完成");
+      }
+      _refreshDownloadStatus();
+    }, (errorCode, errorMsg, info) {
+      EasyLoading.showToast("视频下载出错,code:$errorCode,msg:$errorMsg");
+    }));
+    if (null != _playController.videoModel) {
+      // 仅支持点播视频下载
+      _isShowDownload =
+          _playController.videoModel!.isEnableDownload && _playController.playerType == SuperPlayerType.VOD;
+    }
+    _refreshDownloadStatus();
+  }
+
   void _updateState() {
     // 刷新observer的绑定
     _registerObserver();
@@ -269,6 +305,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _initPlayerState();
           _resizeVideo();
         }));
+  }
+
+  void _refreshDownloadStatus() async {
+    _isDownloaded = await _playController.isDownloaded();
   }
 
   @override
@@ -401,7 +441,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   Widget _getQualityListView() {
     return Visibility(
       visible: _isShowQualityListView,
-      child: QualityListView(_qualitListViewController, _playController.currentQualiyList,
+      child: QualityListView(_qualitListViewController, _playController.currentQualityList,
           _playController.currentQuality, _qualityListKey),
     );
   }
@@ -474,6 +514,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
             _titleViewController,
             _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
             _playController._getPlayName(),
+            _isShowDownload,
+            _isDownloaded,
             _videoTitleKey),
       ),
     );
@@ -666,6 +708,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     WidgetsBinding.instance.removeObserver(this);
     _pipSubscription?.cancel();
     _volumeSubscription?.cancel();
+    if (null != downloadListener) {
+      DownloadHelper.instance.removeDownloadListener(downloadListener!);
+    }
     super.dispose();
   }
 }

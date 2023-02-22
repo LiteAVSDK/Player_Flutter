@@ -22,7 +22,7 @@ class SuperPlayerController {
   PlayInfoProtocol? _currentProtocol;
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
-  List<VideoQuality>? currentQualiyList;
+  List<VideoQuality>? currentQualityList;
   StreamController<TXPlayerHolder> playerStreamController = StreamController.broadcast();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
@@ -57,6 +57,7 @@ class SuperPlayerController {
   double _seekPos = 0; // 记录切换硬解时的播放时间
   /// 该值会改变新播放视频的播放开始时间点
   double startPos = 0;
+
   /// 播放器内核解析出来的视频宽高
   double videoWidth = 0;
   double videoHeight = 0;
@@ -252,6 +253,18 @@ class SuperPlayerController {
     if (eventVideoHeight != null && eventVideoHeight != 0) {
       videoHeight = eventVideoHeight.toDouble();
     }
+  }
+
+  Future<bool> isDownloaded() async {
+    if (videoWidth == 0 || videoHeight == 0) {
+      return false;
+    } else {
+      return await DownloadHelper.instance.isDownloaded(videoModel, videoWidth.toInt(), videoHeight.toInt());
+    }
+  }
+
+  void startDownload() {
+    DownloadHelper.instance.startDownloadBySize(videoModel, videoWidth.toInt(), videoHeight.toInt());
   }
 
   /// 播放视频.
@@ -573,7 +586,7 @@ class SuperPlayerController {
 
   void _updateVideoQualityList(List<VideoQuality>? qualityList, VideoQuality? defaultQuality) {
     currentQuality = defaultQuality;
-    currentQualiyList = qualityList;
+    currentQualityList = qualityList;
     _observer?.onVideoQualityListChange(qualityList, defaultQuality);
   }
 
@@ -610,10 +623,12 @@ class SuperPlayerController {
     isPrepared = false;
     _needToResume = false;
     _needToPause = false;
+    videoWidth = 0;
+    videoHeight = 0;
     currentDuration = 0;
     videoDuration = 0;
     currentQuality = null;
-    currentQualiyList?.clear();
+    currentQualityList?.clear();
     _currentProtocol = null;
     // 移除所有事件
     _vodPlayEventListener?.cancel();
