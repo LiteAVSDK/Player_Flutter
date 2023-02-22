@@ -1,0 +1,17 @@
+{
+  "zh": {
+    "player_cache_progress_label" : "缓存进度",
+    "player_cache_size" : "大小",
+    "player_download_list" : "下载列表",
+    "player_tip" : "提示",
+    "player_delete_failed" : "删除失败",
+    "player_caching" : "缓存中",
+    "player_cache_error" : "缓存错误",
+    "player_cache_interrupt" : "缓存暂停",
+    "player_cache_complete" : "缓存结束",
+    "player_confirm" : "确定",
+    "player_cancel" : "取消",
+    "player_check_user_delete_video" : "确定删除视频吗"
+  },
+  "en": {}
+}

@@ -6,8 +6,6 @@
 
 @interface CommonUtil : NSObject
 
-+(NSNumber*)getCacheVideoQuality:(int)width height:(int)pHeight;
-
 +(NSNumber*)getDownloadEventByState:(int)downloadState;
 
 @end

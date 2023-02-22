@@ -4,29 +4,6 @@
 
 @implementation CommonUtil
 
-+ (NSNumber*)getCacheVideoQuality:(int)width height:(int)pHeight{
-    int minValue = MIN(width, pHeight);
-    int cacheQualityIndex;
-   if (minValue == 240 || minValue == 180) {
-       cacheQualityIndex = TXVodQualityFLU;
-   } else if (minValue == 480 || minValue == 360) {
-       cacheQualityIndex = TXVodQualitySD;
-   } else if (minValue == 540) {
-       cacheQualityIndex = TXVodQualitySD;
-   } else if (minValue == 720) {
-       cacheQualityIndex = TXVodQualityHD;
-   } else if (minValue == 1080) {
-       cacheQualityIndex = TXVodQualityFHD;
-   } else if (minValue == 1440) {
-       cacheQualityIndex = TXVodQuality2K;
-   } else if (minValue == 2160) {
-       cacheQualityIndex = TXVodQuality4K;
-   } else {
-       cacheQualityIndex = TXVodQualityFLU;
-   }
-    return [NSNumber numberWithInt:cacheQualityIndex];
-}
-
 + (NSNumber*)getDownloadEventByState:(int)downloadState{
     int result;
     switch (downloadState) {

@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
+import 'package:super_player_example/demo_download_list.dart';
 import 'package:super_player_example/ui/demo_inputdialog.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'dart:ui';
@@ -93,6 +94,21 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                 : AppBar(
                     backgroundColor: Colors.transparent,
                     title: const Text('播放器组件'),
+                    actions: [
+                      InkWell(
+                          onTap: _jumpToDownloadList,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            padding: EdgeInsets.all(8),
+                            margin: EdgeInsets.only(left: 8, right: 8),
+                            child: Image(
+                                image: AssetImage("images/superplayer_ic_vod_download_list.png",
+                                    package: StringResource.PKG_NAME)),
+                          ))
+                    ],
                   ),
             body: SafeArea(
               child: Builder(
@@ -106,6 +122,15 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
   Future<bool> onWillPop() async {
     return !_controller.onBackPress();
+  }
+
+  void _jumpToDownloadList() async {
+    dynamic result = await Navigator.push(context, MaterialPageRoute(builder: (context) => DemoDownloadList()));
+    if(result is SuperPlayerModel) {
+      playVideo(result);
+    } else {
+      print("download list return result is not a videoModel, result is :$result");
+    }
   }
 
   Widget getTabRow() {
@@ -296,6 +321,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId!.fileId = "8602268011437356984";
     model.title = "云点播（fileId播放）";
     model.playAction = playAction;
+    model.isEnableDownload = true;
     models.add(model);
 
     model = SuperPlayerModel();
@@ -304,18 +330,22 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId!.fileId = "5285890781763144364";
     model.title = "腾讯云";
     model.playAction = playAction;
+    model.isEnableDownload = false;
     models.add(model);
 
     model = SuperPlayerModel();
     model.title = "加密视频播放";
-    model.appId = 1254432039;
+    model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = "5285890816303742312";
+    model.videoId!.fileId = "243791578431393746";
     model.videoId!.psign =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTI1NDQzMjAzOSwiZmlsZUlkIjoiNTI4NTg5MDgxNjMwMzc0MjMxMiIsImN1cnJlbnRUaW1lU3"
-        "RhbXAiOjE2MTcyNTc0ODMsInBjZmciOiJiYXNpY0RybVByZXNldCIsInVybEFjY2Vzc0luZm8iOnt9LCJkcm1MaWNlbnNlSW5mbyI6e319.2H1t9dKPpdA41"
-        "a8t1WwI631OWC18HGl60ccBDLylCKE";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTUwMDAwNTgzMCwiZmlsZUlkIjoiMjQzNzkxNTc4NDMxMzkzNzQ2IiwiY"
+        "3VycmVudFRpbWVTdGFtcCI6MTY3MzQyNjIyNywiY29udGVudEluZm8iOnsiYXVkaW9WaWRlb1R5cGUiOiJQcm90ZWN0ZWRBZGFwdGl"
+        "2ZSIsImRybUFkYXB0aXZlSW5mbyI6eyJwcml2YXRlRW5jcnlwdGlvbkRlZmluaXRpb24iOjEyfX0sInVybEFjY2Vzc0luZm8iOnsiZ"
+        "G9tYWluIjoiMTUwMDAwNTgzMC52b2QyLm15cWNsb3VkLmNvbSIsInNjaGVtZSI6IkhUVFBTIn19.q34pq7Bl0ryKDwUHGyzfXKP-C"
+        "DI8vrm0k_y-IaxgF_U";
     model.playAction = playAction;
+    model.isEnableDownload = true;
     models.add(model);
 
     model = SuperPlayerModel();
@@ -323,6 +353,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "4564972819219071568";
     model.playAction = playAction;
+    model.isEnableDownload = false;
     models.add(model);
 
     model = SuperPlayerModel();
@@ -330,6 +361,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "4564972819219071668";
     model.playAction = playAction;
+    model.isEnableDownload = false;
     models.add(model);
 
     model = SuperPlayerModel();
@@ -337,6 +369,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "4564972819219071679";
     model.playAction = playAction;
+    model.isEnableDownload = false;
     models.add(model);
 
     model = SuperPlayerModel();
@@ -344,6 +377,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "4564972819219081699";
     model.playAction = playAction;
+    model.isEnableDownload = false;
     models.add(model);
 
     List<Future<void>> requestList = [];

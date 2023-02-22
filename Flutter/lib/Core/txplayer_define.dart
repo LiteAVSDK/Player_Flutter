@@ -209,14 +209,26 @@ class TXLogLevel {
 }
 
 class DownloadQuality {
+  @deprecated
   static const QUALITY_OD = 0;
+  @deprecated
   static const QUALITY_FLU = 1;
+  @deprecated
   static const QUALITY_SD = 2;
+  @deprecated
   static const QUALITY_HD = 3;
+  @deprecated
   static const QUALITY_FHD = 4;
-  static const QUALITY_2K = 5;
-  static const QUALITY_4K = 6;
-  static const QUALITY_UNK = 1000;
+
+  static const int QUALITY_2K = 5;
+  static const int QUALITY_4K = 6;
+  static const int QUALITY_UNK = 1000;
+  static const int QUALITY_240P = 240;
+  static const int QUALITY_360P = 360;
+  static const int QUALITY_480P = 480;
+  static const int QUALITY_540P = 540;
+  static const int QUALITY_720P = 720;
+  static const int QUALITY_1080P = 1080;
 }
 
 class TXPlayInfoParams {
@@ -264,7 +276,7 @@ class TXVodDownloadDataSource {
 }
 
 /// 视频下载信息
-class TXVodDownloadMedialnfo {
+class TXVodDownloadMediaInfo {
   /// 缓存地址
   String? playPath;
   /// 下载进度
@@ -291,6 +303,9 @@ class TXVodDownloadMedialnfo {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
+    if(null != dataSource) {
+      json.addAll(dataSource!.toJson());
+    }
     json["url"] = url;
     json["downloadState"] = downloadState;
     json["progress"] = progress;
@@ -300,9 +315,6 @@ class TXVodDownloadMedialnfo {
     json["playableDuration"] = playableDuration;
     json["size"] = size;
     json["downloadSize"] = downloadSize;
-    if(null != dataSource) {
-      json.addAll(dataSource!.toJson());
-    }
     return json;
   }
 }
@@ -319,6 +331,6 @@ abstract class TXPlayerType {
 typedef FTXPredownlodOnCompleteListener = void Function(int taskId, String url);
 typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int code, String msg);
 // 视频下载时间回调Listener
-typedef FTXDownlodOnStateChangeListener = void Function(int event, TXVodDownloadMedialnfo info);
-typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg,TXVodDownloadMedialnfo info);
+typedef FTXDownlodOnStateChangeListener = void Function(int event, TXVodDownloadMediaInfo info);
+typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg,TXVodDownloadMediaInfo info);
 

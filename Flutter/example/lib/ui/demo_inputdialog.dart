@@ -38,7 +38,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
 
   _buildActionWidget(BuildContext context) {
     List<Widget> actionWidgets = [
-      FlatButton(
+      TextButton(
         child: Text("确定"),
         onPressed: () {
           Navigator.of(context).pop();
@@ -52,7 +52,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
           }, // 关闭对话框
       ),
       // Padding(padding: EdgeInsets.only(left: 15)),
-      FlatButton(
+      TextButton(
         child: Text("取消"),
         onPressed: (){
           Navigator.of(context).pop();

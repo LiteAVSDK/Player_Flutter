@@ -1638,3 +1638,290 @@ Future<int> switchStream(String url) async;
 | enableMessage | bool | 是否开启消息通道， 默认值为 true |
 | enableMetaData | bool | 是否开启 MetaData 数据回调，默认值为 NO。 true：SDK 通过 EVT_PLAY_GET_METADATA 消息抛出视频流的 MetaData 数据；false：SDK 不抛出视频流的 MetaData 数据。 |
 | flvSessionKey | String | 是否开启 HTTP 头信息回调，默认值为 “” |
+
+
+## TXVodDownloadController类
+
+### startPreLoad
+
+**说明**
+
+启动预下载。启动预下载前，请先设置好播放引擎的缓存目录[SuperPlayerPlugin.setGlobalCacheFolderPath]和缓存大小[SuperPlayerPlugin.setGlobalMaxCacheSize]，这个设置是全局配置需和播放器保持一致，否则会造成播放缓存失效。
+
+**接口**
+
+```dart
+  Future<int> startPreLoad(
+final String playUrl,
+final int preloadSizeMB,
+final int preferredResolution, {
+FTXPredownlodOnCompleteListener? onCompleteListener,
+    FTXPredownlodOnErrorListener? onErrorListener,
+}) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| playUrl | String | 要预下载的url|
+| preloadSizeMB | int | 预下载的大小（单位：MB）|
+| preferredResolution | int | 期望分辨率，值为高x宽。可参考如720*1080。不支持多分辨率或不需指定时，传-1|
+| onCompleteListener | FTXPredownlodOnCompleteListener? | 预下载成功回调，全局|
+| onErrorListener | FTXPredownlodOnErrorListener | 预下载失败回调，全局|
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| taskId | int | 任务ID |
+
+
+### stopPreLoad
+
+**说明**
+
+停止预下载
+
+**接口**
+
+```dart
+Future<void> stopPreLoad(final int taskId) async 
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| taskId | int | 任务ID|
+
+**返回值说明**
+
+无
+
+
+### startDownload
+
+**说明**
+
+开始下载视频
+
+**接口**
+
+```dart
+Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfo | TXVodDownloadMediaInfo | 下载任务信息|
+
+**TXVodDownloadMediaInfo**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| playPath | String? | 缓存地址，获得到的视频缓存会有该值，启动下载可以不赋值|
+| progress | double? | 缓存进度，获得到的视频缓存会有该值，启动下载可以不赋值|
+| downloadState | int? | 缓存状态，获得到的视频缓存会有该值，启动下载可以不赋值|
+| userName | String? | 下载账户名称，用于区分不同账户的下载，传空则为 default|
+| duration | int? | 缓存视频总时长，安卓端单位为毫秒，IOS为秒，获得到的视频缓存会有该值，启动下载可以不赋值|
+| playableDuration | int? | 视频已缓存时长，安卓端单位为毫秒，IOS为秒，获得到的视频缓存会有该值，启动下载可以不赋值|
+| size | int? | 文件总大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值|
+| downloadSize | int? | 文件已下载的大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值|
+| url | String? | 需要下载的视频url，url下载必填,不支持嵌套m3u8和mp4下载|
+| dataSource | TXVodDownloadDataSource? | 需要下载的视频fileId信息，url与该参数可只使用一个|
+
+**TXVodDownloadDataSource**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| appId | int? | 下载文件对应的appId，必填|
+| fileId | String? | 下载文件Id，必填|
+| pSign | String? | 加密签名，加密视频必填|
+| quality | int? | 清晰度ID,必传|
+| token | String? | 加密token|
+| userName | String? | 下载账户名称，用于区分不同账户的下载，传空则为 default|
+
+**返回值说明**
+
+无
+
+
+
+### stopDownload
+
+**说明**
+
+停止下载
+
+**接口**
+
+```dart
+Future<void> stopDownload(TXVodDownloadMediaInfo mediaInfo) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfo | TXVodDownloadMediaInfo | 任务信息|
+
+**返回值说明**
+
+无
+
+
+
+### setDownloadHeaders
+
+**说明**
+
+设置下载任务请求头
+
+**接口**
+
+```dart
+Future<void> setDownloadHeaders(Map<String, String> headers) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| headers | Map<String, String> | 请求头信息|
+
+**返回值说明**
+
+无
+
+
+
+### getDownloadList
+
+**说明**
+
+获得所有下载任务，包括已下载、正在下载以及下载错误的任务
+
+**接口**
+
+```dart
+Future<List<TXVodDownloadMediaInfo>> getDownloadList() async
+```
+
+**参数说明**
+
+无
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfoList | List<TXVodDownloadMediaInfo> | 任务列表，可通过对比userName来区分不同用户的下载|
+
+
+
+### getDownloadInfo
+
+**说明**
+
+获得下载任务信息
+
+**接口**
+
+```dart
+Future<TXVodDownloadMediaInfo> getDownloadInfo(TXVodDownloadMediaInfo mediaInfo) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfo | TXVodDownloadMediaInfo | 任务信息|
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfo | TXVodDownloadMediaInfo | 缓存任务详情信息|
+
+
+
+### setDownloadObserver
+
+**说明**
+
+获得下载任务信息
+
+**接口**
+
+```dart
+void setDownloadObserver(FTXDownlodOnStateChangeListener downlodOnStateChangeListener, FTXDownlodOnErrorListener downlodOnErrorListener) 
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| downlodOnStateChangeListener | FTXDownlodOnStateChangeListener | 任务下载状态回调|
+| downlodOnErrorListener | FTXDownlodOnErrorListener | 任务下载错误回调|
+
+**返回值说明**
+
+无
+
+
+### deleteDownloadMediaInfo
+
+**说明**
+
+删除下载的视频
+
+**接口**
+
+```dart
+Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfo | TXVodDownloadMediaInfo | 任务下载信息|
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| result | bool | 删除结果|
+
+
+### deleteDownloadMediaInfo
+
+**说明**
+
+删除下载的视频
+
+**接口**
+
+```dart
+Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| mediaInfo | TXVodDownloadMediaInfo | 任务下载信息|
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| result | bool | 删除结果|
+
+
+
+
+

@@ -29,11 +29,12 @@ import io.flutter.plugin.common.MethodChannel;
  * 下载管理，预下载、离线下载
  */
 public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXVodDownloadListener {
-    private       FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
-    private final  MethodChannel                      mMethodChannel;
-    private final EventChannel                       mEventChannel;
-    private final FTXPlayerEventSink                 mEventSink = new FTXPlayerEventSink();
-    private       Handler                            mMainHandler;
+
+    private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
+    private final MethodChannel mMethodChannel;
+    private final EventChannel mEventChannel;
+    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
+    private Handler mMainHandler;
 
     /**
      * 视频下载管理
@@ -108,7 +109,8 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
             String videoUrl = call.argument("url");
             Integer appId = call.argument("appId");
             String fileId = call.argument("fileId");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId);
+            String userName = call.argument("userName");
+            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
             TXVodDownloadManager.getInstance().stopDownload(mediaInfo);
             result.success(null);
         } else if (call.method.equals("setDownloadHeaders")) {
@@ -127,15 +129,20 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
             String videoUrl = call.argument("url");
             Integer appId = call.argument("appId");
             String fileId = call.argument("fileId");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId);
+            String userName = call.argument("userName");
+            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
             result.success(buildMapFromDownloadMediaInfo(mediaInfo));
         } else if (call.method.equals("deleteDownloadMediaInfo")) {
             Integer quality = call.argument("quality");
             String videoUrl = call.argument("url");
             Integer appId = call.argument("appId");
             String fileId = call.argument("fileId");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId);
-            boolean deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
+            String userName = call.argument("userName");
+            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
+            boolean deleteResult = false;
+            if (mediaInfo != null) {
+                deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
+            }
             result.success(deleteResult);
         }
     }
@@ -172,7 +179,7 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
         TXVodDownloadManager.getInstance().setListener(null);
     }
 
-    private Map<String,Object> buildMapFromDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) {
+    private Map<String, Object> buildMapFromDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) {
         Map<String, Object> resultMap = new HashMap<>();
         if (null != mediaInfo) {
             resultMap.put("playPath", mediaInfo.getPlayPath());
@@ -206,8 +213,8 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
         bundle.putString("userName", mediaInfo.getUserName());
         bundle.putInt("duration", mediaInfo.getDuration());
         bundle.putInt("playableDuration", mediaInfo.getPlayableDuration());
-        bundle.putInt("size", mediaInfo.getSize());
-        bundle.putInt("downloadSize", mediaInfo.getDownloadSize());
+        bundle.putLong("size", mediaInfo.getSize());
+        bundle.putLong("downloadSize", mediaInfo.getDownloadSize());
         if (!TextUtils.isEmpty(mediaInfo.getUrl())) {
             bundle.putString("url", mediaInfo.getUrl());
         }
@@ -223,18 +230,22 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
     }
 
     private TXVodDownloadMediaInfo parseMediaInfoFromInfo(Integer quality, String url, Integer appId,
-                                                          String fileId) {
+            String fileId, String userName) {
         TXVodDownloadMediaInfo mediaInfo = null;
-        if (!TextUtils.isEmpty(url)) {
+        if (null == userName) {
+            userName = "default";
+        }
+        if (null != appId && null != fileId) {
+            mediaInfo = TXVodDownloadManager.getInstance()
+                    .getDownloadMediaInfo(appId, fileId, optQuality(quality), userName);
+        } else if (!TextUtils.isEmpty(url)) {
             mediaInfo = TXVodDownloadManager.getInstance().getDownloadMediaInfo(url);
-        } else if (null != appId && null != fileId) {
-            mediaInfo = TXVodDownloadManager.getInstance().getDownloadMediaInfo(appId, fileId, optQuality(quality));
         }
         return mediaInfo;
     }
 
     private int optQuality(Integer quality) {
-        return quality == null ? TXVodDownloadDataSource.QUALITY_FLU : quality;
+        return quality == null ? TXVodDownloadDataSource.QUALITY_UNK : quality;
     }
 
     @Override

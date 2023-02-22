@@ -24,12 +24,12 @@ class TXVodDownloadController {
 
   static TXVodDownloadController _sharedInstance() {
     if (_instance == null) {
-      _instance = TXVodDownloadController._createInsatnce();
+      _instance = TXVodDownloadController._createInstance();
     }
     return _instance!;
   }
 
-  TXVodDownloadController._createInsatnce() {
+  TXVodDownloadController._createInstance() {
     EventChannel eventChannel = EventChannel("cloud.tencent.com/txvodplayer/download/event");
     _downloadEventSubscription =
         eventChannel.receiveBroadcastStream('event').listen(_eventHandler, onError: _errorHandler);
@@ -65,16 +65,16 @@ class TXVodDownloadController {
   }
 
   /// 开始下载
-  /// videoDownloadModel: 下载构造体 [TXVodDownloadMedialnfo]
+  /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
   /// userName: 下载用户，用来区分不同用户的下载，可不传，不传则使用默认值
-  Future<void> startDonwload(TXVodDownloadMedialnfo medialnfo) async {
-    await _methodChannel.invokeMethod("startDownload", medialnfo.toJson());
+  Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async {
+    await _methodChannel.invokeMethod("startDownload", mediaInfo.toJson());
   }
 
   /// 停止下载
-  /// videoDownloadModel: 下载构造体 [TXVodDownloadMedialnfo]
-  Future<void> stopDownload(TXVodDownloadMedialnfo medialnfo) async {
-    await _methodChannel.invokeMethod("stopDownload", medialnfo.toJson());
+  /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
+  Future<void> stopDownload(TXVodDownloadMediaInfo mediaInfo) async {
+    await _methodChannel.invokeMethod("stopDownload", mediaInfo.toJson());
   }
 
   /// 设置下载请求头
@@ -83,9 +83,9 @@ class TXVodDownloadController {
   }
 
   /// 获取所有视频下载列表
-  /// return [TXVodDownloadMedialnfo]
-  Future<List<TXVodDownloadMedialnfo>> getDownloadList() async {
-    List<TXVodDownloadMedialnfo> outputList = [];
+  /// return [TXVodDownloadMediaInfo]
+  Future<List<TXVodDownloadMediaInfo>> getDownloadList() async {
+    List<TXVodDownloadMediaInfo> outputList = [];
     List<dynamic> donwloadOrgList = await _methodChannel.invokeMethod("getDownloadList");
     for (dynamic data in donwloadOrgList) {
       outputList.add(_getDownloadInfoFromMap(data));
@@ -94,26 +94,26 @@ class TXVodDownloadController {
   }
 
   /// 获得指定视频的下载信息
-  /// return [TXVodDownloadMedialnfo]
-  Future<TXVodDownloadMedialnfo> getDownloadInfo(TXVodDownloadMedialnfo medialnfo) async {
-    Map<dynamic, dynamic> data = await _methodChannel.invokeMethod("getDownloadInfo", medialnfo.toJson());
+  /// return [TXVodDownloadMediaInfo]
+  Future<TXVodDownloadMediaInfo> getDownloadInfo(TXVodDownloadMediaInfo mediaInfo) async {
+    Map<dynamic, dynamic> data = await _methodChannel.invokeMethod("getDownloadInfo", mediaInfo.toJson());
     return _getDownloadInfoFromMap(data);
   }
 
-  /// 设置下载事件监听，该监听为全局下载监听配置，重复调用，listener会先后覆盖
+  /// 设置下载事件监听，该监听为全局下载监听配置，重复调用
   void setDownloadObserver(
-      FTXDownlodOnStateChangeListener downlodOnStateChangeListener, FTXDownlodOnErrorListener downlodOnErrorListener) {
+      FTXDownlodOnStateChangeListener? downlodOnStateChangeListener, FTXDownlodOnErrorListener? downlodOnErrorListener) {
     _downlodOnStateChangeListener = downlodOnStateChangeListener;
     _downlodOnErrorListener = downlodOnErrorListener;
   }
 
   /// 删除下载任务
-  Future<bool> deleteDownloadMediaInfo(TXVodDownloadMedialnfo medialnfo) async {
-    return await _methodChannel.invokeMethod("deleteDownloadMediaInfo", medialnfo.toJson());
+  Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async {
+    return await _methodChannel.invokeMethod("deleteDownloadMediaInfo", mediaInfo.toJson());
   }
 
-  TXVodDownloadMedialnfo _getDownloadInfoFromMap(Map<dynamic, dynamic> map) {
-    TXVodDownloadMedialnfo medialnfo = TXVodDownloadMedialnfo();
+  TXVodDownloadMediaInfo _getDownloadInfoFromMap(Map<dynamic, dynamic> map) {
+    TXVodDownloadMediaInfo medialnfo = TXVodDownloadMediaInfo();
     medialnfo.playPath = map["playPath"];
     medialnfo.progress = map["progress"];
     medialnfo.downloadState = map["downloadState"];
@@ -169,7 +169,7 @@ class TXVodDownloadController {
         _downlodOnStateChangeListener?.call(eventCode, _getDownloadInfoFromMap(map));
         break;
       case TXVodPlayEvent.EVENT_DOWNLOAD_ERROR:
-        TXVodDownloadMedialnfo info = _getDownloadInfoFromMap(map);
+        TXVodDownloadMediaInfo info = _getDownloadInfoFromMap(map);
         int errorCode = map["errorCode"];
         String errorMsg = map["errorMsg"];
         _downlodOnErrorListener?.call(errorCode, errorMsg, info);

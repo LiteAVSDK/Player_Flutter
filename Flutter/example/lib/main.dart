@@ -4,8 +4,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/demo_superplayer.dart';
+import 'package:super_player_example/res/app_localization_delegate.dart';
 import 'package:super_player_example/shortvideo/demo_short_video_lib.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
 
@@ -79,6 +81,16 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+        GlobalWidgetsLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        AppLocalizationDelegate.delegate
+      ],
+      supportedLocales: [
+        Locale.fromSubtags(languageCode: 'en'),
+        Locale.fromSubtags(languageCode: 'zh'),
+      ],
       navigatorKey: navigatorKey,
       home: Container(
         decoration: BoxDecoration(
