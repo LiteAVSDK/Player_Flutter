@@ -84,6 +84,8 @@ class SuperPlayerModel {
   String coverUrl = ""; // coverUrl from net
   String customeCoverUrl = ""; // custome video cover image
   int duration = 0; // video duration
+  // 是否启用下载能力，默认关闭
+  bool isEnableDownload = false;
 
   // feed流视频描述
   String videoDescription = "";

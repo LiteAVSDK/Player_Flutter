@@ -5,8 +5,11 @@ class _VideoTitleView extends StatefulWidget {
   final String _title;
   final _VideoTitleController _controller;
   final bool initIsFullScreen;
+  final bool showDownload;
+  final bool isDownloaded;
 
-  const _VideoTitleView(this._controller, this.initIsFullScreen, this._title, GlobalKey<_VideoTitleViewState> key)
+  const _VideoTitleView(this._controller, this.initIsFullScreen, this._title, this.showDownload, this.isDownloaded,
+      GlobalKey<_VideoTitleViewState> key)
       : super(key: key);
 
   @override
@@ -34,6 +37,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
               fit: BoxFit.fill)),
       child: Row(
         children: [
+          // back
           InkWell(
             onTap: _onTapBackBtn,
             child: const Image(
@@ -42,11 +46,42 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
               image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
             ),
           ),
+          // video name
           Text(
             _title,
             style: const TextStyle(fontSize: 11, color: Colors.white),
           ),
-          const Expanded(child: SizedBox()),
+          const Expanded(child: SizedBox()), //
+          // download
+          Visibility(
+            visible: _isFullScreen && widget.showDownload,
+            child: InkWell(
+              onTap: _onTapDownload,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(left: 8, right: 8),
+                width: 40,
+                height: 40,
+                child: Stack(
+                  children: [
+                    const Image(
+                        image: AssetImage("images/superplayer_ic_vod_download.png", package: StringResource.PKG_NAME)),
+                    Visibility(
+                        visible: widget.isDownloaded,
+                        child: const Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Image(
+                                width: 12,
+                                height: 12,
+                                image: AssetImage("images/superplayer_ic_vod_check_done.png",
+                                    package: StringResource.PKG_NAME))))
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // more menu
           Visibility(
               visible: _isFullScreen,
               child: InkWell(
@@ -70,6 +105,12 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
     widget._controller._onTapBack();
   }
 
+  void _onTapDownload() {
+    if (!widget.isDownloaded) {
+      widget._controller._onTapDownload();
+    }
+  }
+
   void updateTitle(String name) {
     if (mounted) {
       setState(() {
@@ -88,6 +129,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
 class _VideoTitleController {
   final Function _onTapBack;
   final Function _onTapMore;
+  final Function _onTapDownload;
 
-  _VideoTitleController(this._onTapBack, this._onTapMore);
+  _VideoTitleController(this._onTapBack, this._onTapMore, this._onTapDownload);
 }

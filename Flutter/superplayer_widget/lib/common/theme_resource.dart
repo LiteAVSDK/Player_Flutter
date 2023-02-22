@@ -8,11 +8,11 @@ class ThemeResource {
     return ThemeData(
         sliderTheme: SliderThemeData(
       trackHeight: 2,
-      thumbColor: Color(ColorResource.COLOR_MAIN_THEME),
+      thumbColor: Color(ColorResource.COLOR_SLIDER_MAIN_THEME),
       thumbShape: RoundSliderThumbShape(enabledThumbRadius: 4),
       overlayColor: Colors.white,
       overlayShape: RoundSliderOverlayShape(overlayRadius: 10),
-      activeTrackColor: Color(ColorResource.COLOR_MAIN_THEME),
+      activeTrackColor: Color(ColorResource.COLOR_SLIDER_MAIN_THEME),
       inactiveTrackColor: Color(ColorResource.COLOR_GRAY),
     ));
   }
@@ -22,12 +22,12 @@ class ThemeResource {
     return ThemeData(
         sliderTheme: SliderThemeData(
       trackHeight: 1,
-      thumbColor: Color(ColorResource.COLOR_MAIN_THEME),
+      thumbColor: Color(ColorResource.COLOR_SLIDER_MAIN_THEME),
       thumbShape:
           RoundSliderThumbShape(enabledThumbRadius: 0, disabledThumbRadius: 0, elevation: 0, pressedElevation: 0),
       overlayColor: Colors.white,
       overlayShape: RoundSliderOverlayShape(overlayRadius: 1),
-      activeTrackColor: Color(ColorResource.COLOR_MAIN_THEME),
+      activeTrackColor: Color(ColorResource.COLOR_SLIDER_MAIN_THEME),
       inactiveTrackColor: Color(ColorResource.COLOR_GRAY),
     ));
   }
@@ -37,7 +37,7 @@ class ThemeResource {
   }
 
   static TextStyle getCheckedLabelTextStyle() {
-    return TextStyle(fontSize: 14, color: Color(ColorResource.COLOR_MAIN_THEME));
+    return TextStyle(fontSize: 14, color: Color(ColorResource.COLOR_SLIDER_MAIN_THEME));
   }
 
   static TextStyle getCommonTextStyle() {
@@ -45,6 +45,6 @@ class ThemeResource {
   }
 
   static TextStyle getCheckedTextStyle() {
-    return TextStyle(fontSize: 13, color: Color(ColorResource.COLOR_MAIN_THEME));
+    return TextStyle(fontSize: 13, color: Color(ColorResource.COLOR_SLIDER_MAIN_THEME));
   }
 }

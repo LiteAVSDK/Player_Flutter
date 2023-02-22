@@ -51,6 +51,9 @@ flutter:
     - images/superplayer_ic_vod_fullscreen.png
     - images/superplayer_top_shadow.png
     - images/superplayer_btn_back_play.png
+    - images/superplayer_ic_vod_download.png
+    - images/superplayer_ic_vod_check_done.png
+    - images/superplayer_ic_vod_download_list.png
   # To add assets to your package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
