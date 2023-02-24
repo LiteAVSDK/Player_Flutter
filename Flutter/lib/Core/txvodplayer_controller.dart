@@ -412,7 +412,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     }
   }
 
-  Future<void> initImageSprite(String vvtUrl, List<String> imageUrls) async {
+  Future<void> initImageSprite(String? vvtUrl, List<String>? imageUrls) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("initImageSprite", {"vvtUrl":vvtUrl, "imageUrls":imageUrls});

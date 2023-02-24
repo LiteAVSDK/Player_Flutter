@@ -20,6 +20,7 @@ class DemoSuperPlayer extends StatefulWidget {
 }
 
 class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerRestorePage {
+  static const TAG = "_DemoSuperPlayerState";
   static const DEFAULT_PLACE_HOLDER = "http://xiaozhibo-10055601.file.myqcloud.com/coverImg.jpg";
 
   static const ARGUMENT_TYPE_POS = "arg_type_pos";
@@ -125,11 +126,17 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   void _jumpToDownloadList() async {
+    bool needResume = false;
+    if (_controller.playerState == SuperPlayerState.PLAYING) {
+      _controller.pause();
+      needResume = true;
+    }
     dynamic result = await Navigator.push(context, MaterialPageRoute(builder: (context) => DemoDownloadList()));
-    if(result is SuperPlayerModel) {
+    if (result is SuperPlayerModel) {
       playVideo(result);
-    } else {
-      print("download list return result is not a videoModel, result is :$result");
+    } else if (needResume) {
+      _controller.resume();
+      LogUtils.v(TAG, "download list return result is not a videoModel, result is :$result");
     }
   }
 
@@ -231,9 +238,10 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             "",
             0,
             "",
-            (String url, int appId, String fileId, String pSign) {
+            (String url, int appId, String fileId, String pSign, bool enableDownload) {
               SuperPlayerModel model = new SuperPlayerModel();
               model.appId = appId;
+              model.isEnableDownload = enableDownload;
               if (url.isNotEmpty) {
                 model.videoURL = url;
                 model.coverUrl = DEFAULT_PLACE_HOLDER;
@@ -255,6 +263,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             },
             needPisgn: !isLive,
             showFileEdited: !isLive,
+            needDownload: !isLive,
           );
         });
   }
@@ -388,13 +397,16 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     await Future.wait(requestList);
     videoModels.clear();
     videoModels.addAll(models);
-    setState(() {
-      if (videoModels.isNotEmpty) {
-        playVideo(videoModels[0]);
-      } else {
-        EasyLoading.showError("video list request error");
-      }
-    });
+
+    if(mounted) {
+      setState(() {
+        if (videoModels.isNotEmpty) {
+          playVideo(videoModels[0]);
+        } else {
+          EasyLoading.showError("video list request error");
+        }
+      });
+    }
   }
 
   @override

@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Surface;
 import androidx.annotation.NonNull;
 import com.tencent.rtmp.ITXVodPlayListener;
@@ -33,6 +34,8 @@ import java.util.Map;
  * vodPlayer plugin processor
  */
 public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodCallHandler, ITXVodPlayListener {
+
+    private static final String TAG = "FTXVodPlayer";
 
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
@@ -143,6 +146,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         mMethodChannel.setMethodCallHandler(null);
         mEventChannel.setStreamHandler(null);
         mNetChannel.setStreamHandler(null);
+        releaseTXImageSprite();
         if (null != mPipManager) {
             mPipManager.releaseCallback(getPlayerId());
         }
@@ -352,10 +356,20 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         } else if (call.method.equals("initImageSprite")) {
             String vvtUrl = call.argument("vvtUrl");
             List<String> imageUrls = call.argument("imageUrls");
-            mTxImageSprite.setVTTUrlAndImageUrls(vvtUrl,imageUrls);
+            releaseTXImageSprite();
+            mTxImageSprite = new TXImageSprite(mFlutterPluginBinding.getApplicationContext());
+            mTxImageSprite.setVTTUrlAndImageUrls(vvtUrl, imageUrls);
             result.success(null);
         } else if (call.method.equals("getImageSprite")) {
             final Double time = call.argument("time");
+            getImageSprite(time, result);
+        } else {
+            result.notImplemented();
+        }
+    }
+
+    private void getImageSprite(final Double time, final MethodChannel.Result result) {
+        if (mTxImageSprite != null && null != time) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -371,7 +385,15 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
                 }
             }).start();
         } else {
-            result.notImplemented();
+            Log.e(TAG, "getImageSprite failed, time is null or initImageSprite not invoke");
+            result.success(null);
+        }
+    }
+
+    private void releaseTXImageSprite() {
+        if (mTxImageSprite != null) {
+            mTxImageSprite.release();
+            mTxImageSprite = null;
         }
     }
 
@@ -380,7 +402,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
             mVodPlayer = new TXVodPlayer(mFlutterPluginBinding.getApplicationContext());
             mVodPlayer.setVodListener(this);
             setPlayer(onlyAudio);
-            mTxImageSprite = new TXImageSprite(mFlutterPluginBinding.getApplicationContext());
         }
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }
@@ -427,6 +448,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements MethodChannel.MethodC
         if (mVodPlayer != null) {
             return mVodPlayer.stopPlay(isNeedClearLastImg);
         }
+        releaseTXImageSprite();
         mHardwareDecodeFail = false;
         return Uninitialized;
     }

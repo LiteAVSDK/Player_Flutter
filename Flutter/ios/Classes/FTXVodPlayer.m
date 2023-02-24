@@ -132,6 +132,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     
     [_netStatusChannel setStreamHandler:nil];
     _netStatusChannel = nil;
+    [self releaseImageSprite];
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
@@ -158,7 +159,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         _txVodPlayer.vodDelegate = self;
         [self setupPlayerWithBool:onlyAudio];
     }
-    _txImageSprite = [[TXImageSprite alloc] init];
     return [NSNumber numberWithLongLong:_textureId];
 }
 
@@ -198,6 +198,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (_txVodPlayer != nil) {
         return [_txVodPlayer stopPlay];
     }
+    [self releaseImageSprite];
     return NO;
 }
 
@@ -296,6 +297,48 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 {
     if (_txVodPlayer != nil) {
         [_txVodPlayer setMirror:isMirror];
+    }
+}
+
+- (void)releaseImageSprite
+{
+    if(_txImageSprite) {
+        _txImageSprite = nil;
+    }
+}
+
+- (void)setImageSprite:(NSString*)urlStr withImgArray:(NSArray*)imgStrArray result:(FlutterResult)result {
+    [self releaseImageSprite];
+    _txImageSprite = [[TXImageSprite alloc] init];
+    NSMutableArray *imageUrls = @[].mutableCopy;
+    NSURL *vvtUrl = nil;
+    if(imgStrArray && [NSNull null] != (NSNull *)imgStrArray) {
+        for(NSString *url in imgStrArray) {
+            NSURL *nsurl = [NSURL URLWithString:url];
+            if (nsurl) {
+                [imageUrls addObject:nsurl];
+            }
+        }
+    }
+    if(urlStr && [NSNull null] != (NSNull *)urlStr) {
+        vvtUrl =  [NSURL URLWithString:urlStr];
+    }
+    [_txImageSprite setVTTUrl:vvtUrl imageUrls:imageUrls];
+    result(nil);
+}
+
+- (void)getImageSprite:(NSNumber*)time result:(FlutterResult)result {
+    if(_txImageSprite && [NSNull null] != (NSNull*)time) {
+        UIImage *imageSprite = [_txImageSprite getThumbnail:time.floatValue];
+        if(nil != imageSprite) {
+            NSData *data = UIImagePNGRepresentation(imageSprite);
+            result(data);
+        } else {
+            result(nil);
+        }
+    } else {
+        NSLog(@"getImageSprite failed, time is null or initImageSprite not invoke");
+        result(nil);
     }
 }
 
@@ -439,27 +482,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         NSDictionary *args = call.arguments;
         NSString *vvtStr = args[@"vvtUrl"];
         NSArray *imageStrs = args[@"imageUrls"];
-        
-        NSMutableArray *imageUrls = @[].mutableCopy;
-        for(NSString *url in imageStrs) {
-            NSURL *nsurl = [NSURL URLWithString:url];
-            if (nsurl) {
-                [imageUrls addObject:nsurl];
-            }
-        }
-        [_txImageSprite setVTTUrl: [NSURL URLWithString:vvtStr] imageUrls:imageUrls];
-        result(nil);
+        [self setImageSprite:vvtStr withImgArray:imageStrs result:result];
     }
     else if ([@"getImageSprite" isEqualToString:call.method]) {
         NSDictionary *args = call.arguments;
-        NSInteger time = [args[@"time"] intValue];
-        UIImage *imageSprite = [_txImageSprite getThumbnail:time];
-        if(nil != imageSprite) {
-            NSData *data = UIImagePNGRepresentation(imageSprite);
-            result(data);
-        } else {
-            result(nil);
-        }
+        NSNumber *time = args[@"time"];
+        [self getImageSprite:time result:result];
     }
     else if ([@"exitPictureInPictureMode" isEqualToString:call.method]) {
         if(_txVodPlayer != nil) {
@@ -760,7 +788,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (UIView *)txPipView {
     if (!_txPipView) {
-        _txPipView = [[UIView alloc] initWithFrame:CGRectZero];
+        // 给定1像素的大小，使得画中画正常显示
+        _txPipView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1, 1)];
         _txPipView.hidden = YES;
     }
     return _txPipView;
