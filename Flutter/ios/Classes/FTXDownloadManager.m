@@ -125,7 +125,27 @@
         TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
         BOOL deleteResult = [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
         result(@(deleteResult));
+    } else if([@"resumeDownload" isEqualToString:call.method]) {
+        NSNumber *quality = args[@"quality"];
+        NSString *videoUrl = args[@"url"];
+        NSNumber *appIdNum = args[@"appId"];
+        NSString *fileId = args[@"fileId"];
+        NSString *pSign = args[@"pSign"];
+        NSString *userName = args[@"userName"];
+        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
+        BOOL deleteResult = NO;
+        if (nil != mediaInfo) {
+            TXVodDownloadDataSource *dataSource = mediaInfo.dataSource;
+            if (nil != dataSource) {
+                [[TXVodDownloadManager shareInstance] startDownload:dataSource];
+            } else {
+                [[TXVodDownloadManager shareInstance] startDownload:mediaInfo.userName url:mediaInfo.url];
+            }
+            deleteResult = YES;
+        }
+        result(@(deleteResult));
     }
+    
 }
 
 

@@ -20,6 +20,7 @@ class DemoSuperPlayer extends StatefulWidget {
 }
 
 class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerRestorePage {
+  static const TAG = "_DemoSuperPlayerState";
   static const DEFAULT_PLACE_HOLDER = "http://xiaozhibo-10055601.file.myqcloud.com/coverImg.jpg";
 
   static const ARGUMENT_TYPE_POS = "arg_type_pos";
@@ -125,11 +126,17 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   void _jumpToDownloadList() async {
+    bool needResume = false;
+    if (_controller.playerState == SuperPlayerState.PLAYING) {
+      _controller.pause();
+      needResume = true;
+    }
     dynamic result = await Navigator.push(context, MaterialPageRoute(builder: (context) => DemoDownloadList()));
-    if(result is SuperPlayerModel) {
+    if (result is SuperPlayerModel) {
       playVideo(result);
-    } else {
-      print("download list return result is not a videoModel, result is :$result");
+    } else if (needResume) {
+      _controller.resume();
+      LogUtils.v(TAG, "download list return result is not a videoModel, result is :$result");
     }
   }
 

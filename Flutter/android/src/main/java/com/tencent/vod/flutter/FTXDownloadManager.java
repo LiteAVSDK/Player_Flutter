@@ -144,6 +144,25 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
                 deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
             }
             result.success(deleteResult);
+        } else if (call.method.equals("resumeDownload")) {
+            Integer quality = call.argument("quality");
+            String videoUrl = call.argument("url");
+            Integer appId = call.argument("appId");
+            String fileId = call.argument("fileId");
+            String pSign = call.argument("pSign");
+            String userName = call.argument("userName");
+            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
+            boolean resumeResult = false;
+            if (null != mediaInfo) {
+                TXVodDownloadDataSource dataSource = mediaInfo.getDataSource();
+                if (dataSource != null) {
+                    TXVodDownloadManager.getInstance().startDownload(dataSource);
+                } else {
+                    TXVodDownloadManager.getInstance().startDownloadUrl(mediaInfo.getUrl(), mediaInfo.getUserName());
+                }
+                resumeResult = true;
+            }
+            result.success(resumeResult);
         }
     }
 

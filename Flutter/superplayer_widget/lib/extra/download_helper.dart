@@ -82,6 +82,10 @@ class DownloadHelper {
     return TXVodDownloadController.instance.startDownload(mediaInfo);
   }
 
+  Future<void> resumeDownloadOrg(TXVodDownloadMediaInfo mediaInfo) async {
+    return TXVodDownloadController.instance.resumeDownload(mediaInfo);
+  }
+
   Future<bool> deleteDownload(TXVodDownloadMediaInfo mediaInfo) async {
     return TXVodDownloadController.instance.deleteDownloadMediaInfo(mediaInfo);
   }
