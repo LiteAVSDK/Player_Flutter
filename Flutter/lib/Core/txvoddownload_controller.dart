@@ -66,9 +66,15 @@ class TXVodDownloadController {
 
   /// 开始下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
-  /// userName: 下载用户，用来区分不同用户的下载，可不传，不传则使用默认值
   Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async {
     await _methodChannel.invokeMethod("startDownload", mediaInfo.toJson());
+  }
+
+  /// 继续下载，与开始下载接口有区别，该接口会寻找对应的缓存，复用之前的缓存来续点下载，
+  /// 而开始下载接口会启动一个全新的下载
+  /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
+  Future<void> resumeDownload(TXVodDownloadMediaInfo mediaInfo) async {
+    await _methodChannel.invokeMethod("resumeDownload", mediaInfo.toJson());
   }
 
   /// 停止下载
