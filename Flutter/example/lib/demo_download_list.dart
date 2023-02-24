@@ -32,10 +32,11 @@ class _DemoDownloadListState extends State<StatefulWidget> {
   void registerListener() {
     DownloadHelper.instance.addDownloadListener(listener = FTXDownloadListener((event, info) {
       List<DownloadModel> tempModels = models;
-      for (DownloadModel downloadModel in tempModels) {
+      for (int i = 0; i < models.length; i++) {
+        DownloadModel downloadModel = models[i];
         if (_compareMediaInfo(downloadModel.mediaInfo, info)) {
-          tempModels.remove(downloadModel);
-          tempModels.add(DownloadModel(downloadModel.videoModel, info));
+          tempModels.removeAt(i);
+          tempModels.insert(i, DownloadModel(downloadModel.videoModel, info));
         }
       }
       setState(() {
@@ -43,10 +44,11 @@ class _DemoDownloadListState extends State<StatefulWidget> {
       });
     }, (errorCode, errorMsg, info) {
       List<DownloadModel> tempModels = models;
-      for (DownloadModel downloadModel in tempModels) {
+      for (int i = 0; i < models.length; i++) {
+        DownloadModel downloadModel = models[i];
         if (_compareMediaInfo(downloadModel.mediaInfo, info)) {
-          tempModels.remove(downloadModel);
-          tempModels.add(DownloadModel(downloadModel.videoModel, info));
+          tempModels.removeAt(i);
+          tempModels.insert(i, DownloadModel(downloadModel.videoModel, info));
         }
       }
       setState(() {
@@ -147,8 +149,8 @@ class _DemoDownloadListState extends State<StatefulWidget> {
     SuperPlayerModel playModel = downloadModel.videoModel;
     TXVodDownloadMediaInfo mediaInfo = downloadModel.mediaInfo;
     int duration = 0;
-    if (mediaInfo.duration != null) {
-      if(Platform.isIOS) {
+    if (mediaInfo.duration != null && mediaInfo.duration != 0) {
+      if (Platform.isIOS) {
         duration = mediaInfo.duration!;
       } else {
         duration = mediaInfo.duration! ~/ 1000;
@@ -247,7 +249,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
       stateText = AppLocalizations.of(context).playerCacheError;
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_STOP) {
       stateColor = ColorResource.COLOR_DOWNLOAD_COMPELETE;
-      stateText = AppLocalizations.of(context).playerCacheError;
+      stateText = AppLocalizations.of(context).playerCacheInterrupt;
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_FINISH) {
       stateColor = ColorResource.COLOR_DOWNLOAD_COMPELETE;
       stateText = AppLocalizations.of(context).playerCacheComplete;
@@ -304,10 +306,12 @@ class _DemoDownloadListState extends State<StatefulWidget> {
       playerModel.videoURL = downloadModel.mediaInfo.playPath!;
       // 置空videoId，避免播放器组件对url进行额外的参数拼接
       playerModel.videoId = null;
+      // 置空multiVideoURLs，避免播放器组件有限对多码率url进行播放
+      playerModel.multiVideoURLs = [];
       Navigator.of(context).pop(playerModel);
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_STOP ||
         mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_ERROR) {
-      DownloadHelper.instance.startDownloadOrg(downloadModel.mediaInfo);
+      DownloadHelper.instance.resumeDownloadOrg(downloadModel.mediaInfo);
       refreshDownloadList();
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_PROGRESS ||
         mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_START) {
