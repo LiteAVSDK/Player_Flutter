@@ -213,8 +213,8 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
         bundle.putString("userName", mediaInfo.getUserName());
         bundle.putInt("duration", mediaInfo.getDuration());
         bundle.putInt("playableDuration", mediaInfo.getPlayableDuration());
-        bundle.putInt("size", mediaInfo.getSize());
-        bundle.putInt("downloadSize", mediaInfo.getDownloadSize());
+        bundle.putLong("size", mediaInfo.getSize());
+        bundle.putLong("downloadSize", mediaInfo.getDownloadSize());
         if (!TextUtils.isEmpty(mediaInfo.getUrl())) {
             bundle.putString("url", mediaInfo.getUrl());
         }
