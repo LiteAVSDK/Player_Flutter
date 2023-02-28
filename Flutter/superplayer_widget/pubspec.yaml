@@ -1,6 +1,6 @@
 name: superplayer_widget
 description: superplayer,base on vodplayer
-version: "1.0.1"
+version: "11.0.0"
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
