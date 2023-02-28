@@ -79,9 +79,7 @@ class TXPipController {
 
   Future<void> exitAndReleaseCurrentPip() async {
     if (null != _playerData && _playerData?._playerController != null) {
-      if (Platform.isAndroid) {
-        await _playerData?._playerController.exitPictureInPictureMode();
-      }
+      await _playerData?._playerController.exitPictureInPictureMode();
       await _playerData?._playerController.stop();
       _playerData?._playerController.dispose();
     }
