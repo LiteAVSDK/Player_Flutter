@@ -389,7 +389,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
         context: context,
         builder: (context) {
           return DemoInputDialog("", 0, "",
-                  (String url, int appId, String fileId,String pSign) {
+                  (String url, int appId, String fileId,String pSign, bool enableDownload) {
                 _url = url;
                 _appId = appId;
                 _fileId = fileId;

@@ -238,9 +238,10 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             "",
             0,
             "",
-            (String url, int appId, String fileId, String pSign) {
+            (String url, int appId, String fileId, String pSign, bool enableDownload) {
               SuperPlayerModel model = new SuperPlayerModel();
               model.appId = appId;
+              model.isEnableDownload = enableDownload;
               if (url.isNotEmpty) {
                 model.videoURL = url;
                 model.coverUrl = DEFAULT_PLACE_HOLDER;
@@ -262,6 +263,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             },
             needPisgn: !isLive,
             showFileEdited: !isLive,
+            needDownload: !isLive,
           );
         });
   }
@@ -395,13 +397,16 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     await Future.wait(requestList);
     videoModels.clear();
     videoModels.addAll(models);
-    setState(() {
-      if (videoModels.isNotEmpty) {
-        playVideo(videoModels[0]);
-      } else {
-        EasyLoading.showError("video list request error");
-      }
-    });
+
+    if(mounted) {
+      setState(() {
+        if (videoModels.isNotEmpty) {
+          playVideo(videoModels[0]);
+        } else {
+          EasyLoading.showError("video list request error");
+        }
+      });
+    }
   }
 
   @override

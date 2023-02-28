@@ -149,6 +149,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _playController._observer = _SuperPlayerObserver(() {
       // preparePlayVideo
       setState(() {
+        _currentSprite = null;
+        _isShowSprite = false;
         _isShowControlView = false;
         _isLoading = _playController.videoModel!.playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
       });
@@ -334,7 +336,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   }
 
   void _calculateSize(double videoWidth, double videoHeight) {
-    if ((0 != videoWidth && 0 != videoHeight) && (_videoWidth != videoWidth && _videoHeight != videoHeight)) {
+    if (mounted && (0 != videoWidth && 0 != videoHeight) &&
+        (_videoWidth != videoWidth && _videoHeight != videoHeight)) {
       _videoWidth = videoWidth;
       _videoHeight = videoHeight;
       _resizeVideo();

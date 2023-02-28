@@ -149,7 +149,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
     SuperPlayerModel playModel = downloadModel.videoModel;
     TXVodDownloadMediaInfo mediaInfo = downloadModel.mediaInfo;
     int duration = 0;
-    if (mediaInfo.duration != null) {
+    if (mediaInfo.duration != null && mediaInfo.duration != 0) {
       if (Platform.isIOS) {
         duration = mediaInfo.duration!;
       } else {
@@ -306,6 +306,8 @@ class _DemoDownloadListState extends State<StatefulWidget> {
       playerModel.videoURL = downloadModel.mediaInfo.playPath!;
       // 置空videoId，避免播放器组件对url进行额外的参数拼接
       playerModel.videoId = null;
+      // 置空multiVideoURLs，避免播放器组件有限对多码率url进行播放
+      playerModel.multiVideoURLs = [];
       Navigator.of(context).pop(playerModel);
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_STOP ||
         mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_ERROR) {
