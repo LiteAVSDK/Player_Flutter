@@ -2,6 +2,7 @@
 
 package com.tencent.vod.flutter.ui;
 
+import android.app.Activity;
 import android.app.PictureInPictureParams;
 import android.app.PictureInPictureUiState;
 import android.content.BroadcastReceiver;
@@ -36,9 +37,8 @@ import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
-import io.flutter.embedding.android.FlutterActivity;
 
-public class FlutterPipImplActivity extends FlutterActivity implements Callback, ITXVodPlayListener,
+public class FlutterPipImplActivity extends Activity implements Callback, ITXVodPlayListener,
         ITXLivePlayListener, ServiceConnection {
 
     private static final String TAG = "FlutterPipImplActivity";
