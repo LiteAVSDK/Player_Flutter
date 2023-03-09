@@ -94,6 +94,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        Log.i(TAG, "onAttachedToEngine");
         mFlutterPluginBinding = flutterPluginBinding;
         channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_super_player");
         channel.setMethodCallHandler(this);
@@ -309,6 +310,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        Log.i(TAG, "onAttachedToEngine");
         channel.setMethodCallHandler(null);
         mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
