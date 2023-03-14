@@ -2,9 +2,9 @@
 
 ##### 分支描述：
 
-main 分支：Android & iOS 端集成TXLiteAVSDK_Player lastest版本 
+main 分支：Android & iOS 端集成TXLiteAVSDK_Player lastest版本
 
-Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版本 
+Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版本
 
 版本特性：
 
