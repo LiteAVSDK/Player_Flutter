@@ -1,15 +1,14 @@
-#### Version: 1.0.3  当前最新版本
+#### Version: 1.0.3
 
 ##### 分支描述：
 
-main 分支：Android & iOS 端集成TXLiteAVSDK_Player lastest版本 
+main 分支：Android & iOS 端集成TXLiteAVSDK_Player lastest版本
 
-Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版本 
+Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版本
 
 版本特性：
 
 - iOS 端新增画中画（PIP) 功能
-
 
 
 #### Version: 1.0.2  2022.07.05
@@ -20,16 +19,16 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - 播放器组件（superplayer）用Dart重写，方便自定义集成
 - 修复通过appId 、fileId和 psign 播放失败问题
 
-- set Android TXLiteAVSDK_Professional to 10.2.0.11131，tag：release_player_v1.0.2
-- set iOS TXLiteAVSDK_Professional to 10.2.11418， tag：release_pro_v1.0.2
+- set Android TXLiteAVSDK_Player to 10.2.0.11131，tag：release_player_v1.0.2
+- set iOS TXLiteAVSDK_Player to 10.2.11418， tag：release_pro_v1.0.2
 
 #### Version: 1.0.3  2022.07.13
 
 ##### 版本特性：
 
 - iOS端新增画中画（PIP) 功能
-- set Android TXLiteAVSDK_Professional to 10.3.0.11144，tag：release_player_v1.0.3
-- set iOS TXLiteAVSDK_Professional to 10.3.11513， tag：release_pro_v1.0.3
+- set Android TXLiteAVSDK_Player to 10.3.0.11144，tag：release_player_v1.0.3
+- set iOS TXLiteAVSDK_Player to 10.3.11513， tag：release_pro_v1.0.3
 
 #### Version: 1.0.4  2022.08.16
 
@@ -44,3 +43,50 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 
 - set Android TXLiteAVSDK_Player to 10.5.0.11177，tag：release_player_v1.0.5
 - set iOS TXLiteAVSDK_Player to 10.5.11726， tag：release_player_v1.0.5
+
+#### Version: 1.0.6  2022.09.19
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.6.0.11182，tag：release_player_v1.0.6
+- set iOS TXLiteAVSDK_Player to 10.6.11822， tag：release_player_v1.0.6
+
+
+#### Version: 1.0.7  2022.10.27
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.7.0.13053，tag：release_player_v1.0.7
+- set iOS TXLiteAVSDK_Player to 10.7.11936， tag：release_player_v1.0.7
+
+
+#### Version: 10.8.0  2022.12.01
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.8.0.13052，tag：release_player_v10.0.8
+- set iOS TXLiteAVSDK_Player to 10.8.12015， tag：release_player_v10.0.8
+
+
+#### Version: 10.8.0_stable 2022.12.01
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.8.0.13065，tag：release_player_v10.0.8_stable
+- set iOS TXLiteAVSDK_Player to 10.8.12025， tag：release_player_v10.0.8_stable
+
+
+#### Version: 10.9.0 2023.01.03
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.9.0.13092，tag：release_player_v10.9.0
+- set iOS TXLiteAVSDK_Player to 10.9.13148， tag：release_player_v10.9.0
+
+
+#### Version: 10.9.1 2023.02.24
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 10.9.0.13102，tag：release_player_v10.9.1
+- set iOS TXLiteAVSDK_Player to 10.9.13161， tag：release_player_v10.9.1
