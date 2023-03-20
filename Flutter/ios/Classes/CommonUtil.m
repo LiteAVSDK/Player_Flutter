@@ -1,6 +1,7 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "CommonUtil.h"
+#import <Flutter/Flutter.h>
 
 @implementation CommonUtil
 
@@ -29,5 +30,48 @@
     return [NSNumber numberWithInt:result];;
 }
 
++(PlayerMsg*)playerMsgWith:(NSNumber*)playerId {
+    PlayerMsg* msg = [[PlayerMsg alloc] init];
+    msg.playerId = playerId;
+    return msg;
+}
+
++(StringMsg*)stringMsgWith:(NSString*)str {
+    StringMsg *msg = [[StringMsg alloc] init];
+    msg.value = str;
+    return msg;
+}
+
++(DoubleMsg*)doubleMsgWith:(double)value {
+    DoubleMsg *msg = [[DoubleMsg alloc] init];
+    msg.value = @(value);
+    return msg;
+}
+
++(BoolMsg *)boolMsgWith:(bool)value {
+    BoolMsg *msg = [[BoolMsg alloc] init];
+    msg.value = @(value);
+    return msg;
+}
+
++ (IntMsg *)intMsgWith:(NSNumber *)value {
+    IntMsg *msg = [[IntMsg alloc] init];
+    msg.value = value;
+    return msg;
+}
+
++ (UInt8ListMsg *)uInt8MsgWith:(NSData *)value {
+    UInt8ListMsg *msg = [[UInt8ListMsg alloc] init];
+    if(nil != value) {
+        msg.value = [FlutterStandardTypedData typedDataWithBytes:value];
+    }
+    return msg;
+}
+
++ (ListMsg *)listMsgWith:(NSArray *)value {
+    ListMsg *msg = [[ListMsg alloc] init];
+    msg.value = value;
+    return msg;
+}
 
 @end

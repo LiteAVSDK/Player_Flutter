@@ -3,9 +3,24 @@
 #import <TXLiteAVSDK_Player/TXVodDownloadManager.h>
 #import <Foundation/Foundation.h>
 #import "FTXEvent.h"
+#import "FtxMessages.h"
 
 @interface CommonUtil : NSObject
 
 +(NSNumber*)getDownloadEventByState:(int)downloadState;
+
++(PlayerMsg*)playerMsgWith:(NSNumber*)playerId;
+
++(StringMsg*)stringMsgWith:(NSString*)str;
+
++(DoubleMsg*)doubleMsgWith:(double)value;
+
++(BoolMsg*)boolMsgWith:(bool)value;
+
++(IntMsg*)intMsgWith:(NSNumber*)value;
+
++(UInt8ListMsg*)uInt8MsgWith:(NSData*)value;
+
++(ListMsg*)listMsgWith:(NSArray*)value;
 
 @end

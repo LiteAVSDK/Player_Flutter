@@ -16,7 +16,7 @@ class SuperPlayerMoreView extends StatefulWidget {
 
 class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   double _currentBrightness = 0.01;
-  double _currentVolumn = 0;
+  double _currentVolume = 0;
   bool _isShowMoreView = false;
   bool _isOpenAccelerate = true;
   bool _isVodPlay = false;
@@ -55,27 +55,27 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   }
 
   void refreshVolume() async {
-    _currentVolumn = await SuperPlayerPlugin.getSystemVolume();
+    _currentVolume = await SuperPlayerPlugin.getSystemVolume() ?? _currentVolume;
     setState(() {});
   }
 
   void refreshBrightness() async {
-    double brightness = await SuperPlayerPlugin.getBrightness();
+    double? brightness = await SuperPlayerPlugin.getBrightness();
     if (_currentBrightness != brightness) {
       setState(() {
-        _currentBrightness = brightness;
+        _currentBrightness = brightness ?? _currentBrightness;
       });
     }
   }
 
   void _initData() async {
-    double tempBrightness = await SuperPlayerPlugin.getBrightness();
+    double? tempBrightness = await SuperPlayerPlugin.getBrightness();
     if (tempBrightness == -1) {
       _onChangeBrightness(1);
     } else {
-      _currentBrightness = tempBrightness;
+      _currentBrightness = tempBrightness ?? _currentBrightness;
     }
-    _currentVolumn = await SuperPlayerPlugin.getSystemVolume();
+    _currentVolume = await SuperPlayerPlugin.getSystemVolume() ?? _currentVolume;
     setState(() {});
   }
 
@@ -210,7 +210,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
                 child: Slider(
                   min: 0,
                   max: 1,
-                  value: _currentVolumn,
+                  value: _currentVolume,
                   onChanged: _onChangeVolume,
                 )),
           ),
@@ -243,9 +243,9 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   }
 
   void _onChangeVolume(double value) {
-    if (_currentVolumn != value) {
+    if (_currentVolume != value) {
       setState(() {
-        _currentVolumn = value;
+        _currentVolume = value;
       });
       SuperPlayerPlugin.setSystemVolume(value);
     }

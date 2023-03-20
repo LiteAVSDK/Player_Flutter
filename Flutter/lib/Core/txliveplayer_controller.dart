@@ -1,6 +1,8 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
+final TXFlutterLivePlayerApi _livePlayerApi = TXFlutterLivePlayerApi();
+
 class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
   int? _playerId = -1;
   static String kTag = "TXLivePlayerController";
@@ -9,7 +11,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   final Completer<int> _createTexture;
   bool _isDisposed = false;
   bool _isNeedDisposed = false;
-  late MethodChannel _channel;
   TXPlayerValue? _value;
   TXPlayerState? _state;
 
@@ -39,7 +40,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
 
   Future<void> _create() async {
     _playerId = await SuperPlayerPlugin.createLivePlayer();
-    _channel = MethodChannel("cloud.tencent.com/txliveplayer/$_playerId");
     _eventSubscription = EventChannel("cloud.tencent.com/txliveplayer/event/$_playerId")
         .receiveBroadcastStream("event")
         .listen(_eventHandler, onError: _errorHandler);
@@ -56,7 +56,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   _eventHandler(event) {
     if (event == null) return;
     final Map<dynamic, dynamic> map = event;
-    //debugPrint("= event = ${map.toString()}");
     switch (map["event"]) {
       case TXVodPlayEvent.PLAY_EVT_RTMP_STREAM_BEGIN:
         break;
@@ -138,7 +137,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 参考: [PlayType.LIVE_RTMP] ...
   @deprecated
   Future<bool> play(String url, {int? playType}) async {
-    printVersionInfo();
     return await startLivePlay(url, playType: playType);
   }
 
@@ -154,8 +152,11 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
     printVersionInfo();
-    final result = await _channel.invokeMethod("startLivePlay", {"url": url, "playType": playType});
-    return result == 0;
+    BoolMsg boolMsg = await _livePlayerApi.startLivePlay(StringIntPlayerMsg()
+      ..strValue = url
+      ..intValue = playType
+      ..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 播放器初始化，创建共享纹理、初始化播放器
@@ -164,10 +165,10 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> initialize({bool? onlyAudio}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    final textureId = await _channel.invokeMethod("init", {
-      "onlyAudio": onlyAudio ?? false,
-    });
-    _createTexture.complete(textureId);
+    IntMsg intMsg = await _livePlayerApi.initialize(BoolPlayerMsg()
+      ..value = onlyAudio ?? false
+      ..playerId = _playerId);
+    _createTexture.complete(intMsg.value);
     _state = TXPlayerState.paused;
   }
 
@@ -182,7 +183,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> setAutoPlay({bool? isAutoPlay}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
+    await _livePlayerApi.setAutoPlay(BoolPlayerMsg()
+      ..value = isAutoPlay ?? false
+      ..playerId = _playerId);
   }
 
   /// 停止播放
@@ -191,16 +194,18 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<bool> stop({bool isNeedClear = false}) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    final result = await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
-    _changeState(TXPlayerState.stopped);
-    return result == 0;
+    BoolMsg boolMsg = await _livePlayerApi.stop(BoolPlayerMsg()
+      ..value = isNeedClear
+      ..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 视频是否处于正在播放中
   @override
   Future<bool> isPlaying() async {
     await _initPlayer.future;
-    return await _channel.invokeMethod("isPlaying");
+    BoolMsg boolMsg = await _livePlayerApi.isPlaying(PlayerMsg()..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 视频暂停，必须在播放器开始播放的时候调用
@@ -208,7 +213,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> pause() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("pause");
+    await _livePlayerApi.pause(PlayerMsg()..playerId = _playerId);
     if (_state != TXPlayerState.paused) _changeState(TXPlayerState.paused);
   }
 
@@ -217,7 +222,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> resume() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("resume");
+    await _livePlayerApi.resume(PlayerMsg()..playerId = _playerId);
     if (_state != TXPlayerState.playing) _changeState(TXPlayerState.playing);
   }
 
@@ -225,14 +230,18 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> setLiveMode(TXPlayerLiveMode mode) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setLiveMode", {"type": mode.index});
+    await _livePlayerApi.setLiveMode(IntPlayerMsg()
+      ..value = mode.index
+      ..playerId = _playerId);
   }
 
   /// 设置视频声音 0~100
   Future<void> setVolume(int volume) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setVolume", {"volume": volume});
+    await _livePlayerApi.setVolume(IntPlayerMsg()
+      ..value = volume
+      ..playerId = _playerId);
   }
 
   /// 设置是否静音
@@ -240,14 +249,19 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> setMute(bool mute) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setMute", {"mute": mute});
+    await _livePlayerApi.setMute(BoolPlayerMsg()
+      ..value = mute
+      ..playerId = _playerId);
   }
 
   /// 切换播放流
   Future<int> switchStream(String url) async {
     if (_isNeedDisposed) return -1;
     await _initPlayer.future;
-    return await _channel.invokeMethod("switchStream", {"url": url});
+    IntMsg intMsg = await _livePlayerApi.switchStream(StringPlayerMsg()
+      ..value = url
+      ..playerId = _playerId);
+    return intMsg.value ?? -1;
   }
 
   /// 将视频播放进度定位到指定的进度进行播放
@@ -256,14 +270,18 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> seek(double progress) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("seek", {"progress": progress});
+    await _livePlayerApi.seek(DoublePlayerMsg()
+      ..value = progress
+      ..playerId = _playerId);
   }
 
   /// 设置appId
   Future<void> setAppID(int appId) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("seek", {"appId": appId});
+    await _livePlayerApi.setAppID(StringPlayerMsg()
+      ..value = appId.toString()
+      ..playerId = _playerId);
   }
 
   /// 时移 暂不支持
@@ -271,14 +289,18 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> prepareLiveSeek(String domain, int bizId) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("prepareLiveSeek", {"domain": domain, "bizId": bizId});
+    await _livePlayerApi.prepareLiveSeek(StringIntPlayerMsg()
+      ..strValue = domain
+      ..intValue = bizId
+      ..playerId = _playerId);
   }
 
   /// 停止时移播放，返回直播
   Future<int> resumeLive() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("resumeLive");
+    IntMsg intMsg = await _livePlayerApi.resumeLive(PlayerMsg()..playerId = _playerId);
+    return intMsg.value ?? 0;
   }
 
   /// 设置播放速率,暂不支持
@@ -287,7 +309,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> setRate(double rate) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setRate", {"rate": rate});
+    await _livePlayerApi.setRate(DoublePlayerMsg()
+      ..value = rate
+      ..playerId = _playerId);
   }
 
   /// 设置播放器配置
@@ -295,7 +319,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> setConfig(FTXLivePlayConfig config) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setConfig", {"config": config.toJson()});
+    await _livePlayerApi.setConfig(config.toMsg()..playerId = _playerId);
   }
 
   /// 开启/关闭硬件编码
@@ -303,7 +327,10 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<bool> enableHardwareDecode(bool enable) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    return await _channel.invokeMethod("enableHardwareDecode", {"enable": enable});
+    BoolMsg boolMsg = await _livePlayerApi.enableHardwareDecode(BoolPlayerMsg()
+      ..value = enable
+      ..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
@@ -319,6 +346,13 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       String? pauseIconForAndroid,
       String? forwardIconForAndroid}) async {
     /// live not support
+    // IntMsg intMsg = await _livePlayerApi.enterPictureInPictureMode(PipParamsPlayerMsg()
+    //   ..backIconForAndroid = backIconForAndroid
+    //   ..playIconForAndroid = playIconForAndroid
+    //   ..pauseIconForAndroid = pauseIconForAndroid
+    //   ..forwardIconForAndroid = forwardIconForAndroid
+    //   ..playerId = _playerId);
+    // return intMsg.value ?? -1;
     return -1;
   }
 
@@ -326,12 +360,12 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   @override
   Future<void> exitPictureInPictureMode() async {
     /// live not support
+    // await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
   }
 
   /// 释放播放器资源占用
   Future<void> _release() async {
     await _initPlayer.future;
-    // await _channel.invokeMethod("destory");
     await SuperPlayerPlugin.releasePlayer(_playerId);
   }
 

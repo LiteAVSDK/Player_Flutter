@@ -7,10 +7,12 @@
 #import <Flutter/Flutter.h>
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
+#import "FtxMessages.h"
+#import "CommonUtil.h"
 
 static const int uninitialized = -1;
 
-@interface FTXLivePlayer ()<FlutterStreamHandler, FlutterTexture, TXLivePlayListener, TXVideoCustomProcessDelegate>
+@interface FTXLivePlayer ()<FlutterStreamHandler, FlutterTexture, TXLivePlayListener, TXVideoCustomProcessDelegate, TXFlutterLivePlayerApi>
 
 @end
 
@@ -18,7 +20,6 @@ static const int uninitialized = -1;
     TXLivePlayer *_txLivePlayer;
     FTXPlayerEventSinkQueue *_eventSink;
     FTXPlayerEventSinkQueue *_netStatusSink;
-    FlutterMethodChannel *_methodChannel;
     FlutterEventChannel *_eventChannel;
     FlutterEventChannel *_netStatusChannel;
     // 最新的一帧
@@ -40,12 +41,6 @@ static const int uninitialized = -1;
         _textureId = -1;
         _eventSink = [FTXPlayerEventSinkQueue new];
         _netStatusSink = [FTXPlayerEventSinkQueue new];
-        
-        __weak typeof(self) weakSelf = self;
-        _methodChannel = [FlutterMethodChannel methodChannelWithName:[@"cloud.tencent.com/txliveplayer/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
-        [_methodChannel setMethodCallHandler:^(FlutterMethodCall * _Nonnull call, FlutterResult  _Nonnull result) {
-            [weakSelf handleMethodCall:call result:result];
-        }];
         
         _eventChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txliveplayer/event/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
@@ -82,9 +77,6 @@ static const int uninitialized = -1;
         CVPixelBufferRelease(_lastBuffer);
         _lastBuffer = nil;
     }
-    
-    [_methodChannel setMethodCallHandler:nil];
-    _methodChannel = nil;
 
     [_eventSink setDelegate:nil];
     _eventSink = nil;
@@ -271,93 +263,11 @@ static const int uninitialized = -1;
     return false;
 }
 
-- (void)setPlayConfig:(NSDictionary *)args
+- (void)setPlayerConfig:(FTXLivePlayConfigPlayerMsg *)args
 {
-    if (_txLivePlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
-        _txLivePlayer.config = [FTXTransformation transformToLiveConfig:args];
+    if (_txLivePlayer != nil && nil != args) {
+        _txLivePlayer.config = [FTXTransformation transformMsgToLiveConfig:args];
     }
-}
-
-#pragma mark -
-
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result
-{
-    NSDictionary *args = call.arguments;
-    
-    if([@"init" isEqualToString:call.method]){
-        BOOL onlyAudio = [args[@"onlyAudio"] boolValue];
-        NSNumber* textureId = [self createPlayer:onlyAudio];
-        result(textureId);
-    }else if([@"isAutoPlay" isEqualToString:call.method]) {
-        BOOL isAutoPlay = [args[@"isAutoPlay"] boolValue];
-        [self setIsAutoPlay:isAutoPlay];
-        result(nil);
-    }else if([@"startLivePlay" isEqualToString:call.method]){
-        NSString *url = args[@"url"];
-        int type = -1;
-        if(![[args objectForKey:@"playType"] isEqual:[NSNull null]]){
-            type = [args[@"playType"] intValue];
-        }
-        int r = [self startLivePlay:url type:type];
-        result(@(r));
-    }else if([@"stop" isEqualToString:call.method]){
-        BOOL r = [self stopPlay];
-        result([NSNumber numberWithBool:r]);
-    }else if([@"isPlaying" isEqualToString:call.method]){
-        result([NSNumber numberWithBool:[self isPlaying]]);
-    }else if([@"pause" isEqualToString:call.method]){
-        [self pause];
-        result(nil);
-    }else if([@"resume" isEqualToString:call.method]){
-        [self resume];
-        result(nil);
-    }else if([@"setMute" isEqualToString:call.method]){
-        BOOL mute = [args[@"mute"] boolValue];
-        [self setMute:mute];
-        result(nil);
-    }else if([@"setVolume" isEqualToString:call.method]){
-        int volume = [args[@"volume"] intValue];
-        [self setVolume:volume];
-        result(nil);
-    }else if([@"setLiveMode" isEqualToString:call.method]){
-        int type = [args[@"type"] intValue];
-        [self setLiveMode:type];
-        result(nil);
-    }else if([@"destory" isEqualToString:call.method]) {
-        [self destory];
-        result(nil);
-    }else if([@"setRenderRotation" isEqualToString:call.method]) {
-        int rotation = [args[@"rotation"] intValue];
-        [self setRenderRotation:rotation];
-        result(nil);
-    }else if([@"switchStream" isEqualToString:call.method]) {
-        NSString *url = args[@"url"];
-        int switchResult = [self switchStream:url];
-        result(@(switchResult));
-    }else if ([@"seek" isEqualToString:call.method]) {
-        result(FlutterMethodNotImplemented);
-    }else if ([@"setAppID" isEqualToString:call.method]) {
-        [self setAppID:args[@"appId"]];
-        result(nil);
-    }else if ([@"prepareLiveSeek" isEqualToString:call.method]) {
-        result(FlutterMethodNotImplemented);
-    }else if([@"setRate" isEqualToString:call.method]) {
-        result(FlutterMethodNotImplemented);
-    }else if([@"resumeLive" isEqualToString:call.method]) {
-        int r = [self resumeLive];
-        result(@(r));
-    }else if([@"enableHardwareDecode" isEqualToString:call.method]) {
-        BOOL enable = [args[@"enable"] boolValue];
-        int r = [self enableHardwareDecode:enable];
-        result(@(r));
-    }else if([@"setConfig" isEqualToString:call.method]){
-        [self setPlayConfig:args];
-        result(nil);
-    }else {
-      result(FlutterMethodNotImplemented);
-    }
-    
-    NSLog(@"handleMethodCall ==== %@", call.method);
 }
 
 + (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
@@ -481,6 +391,94 @@ static const int uninitialized = -1;
     }
     
     return NO;
+}
+
+#pragma mark - TXFlutterLivePlayerApi
+
+- (nullable BoolMsg *)enableHardwareDecodeEnable:(nonnull BoolPlayerMsg *)enable error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int r = [self enableHardwareDecode:enable.value];
+    return [CommonUtil boolMsgWith:r];
+}
+
+- (nullable IntMsg *)enterPictureInPictureModePipParamsMsg:(nonnull PipParamsPlayerMsg *)pipParamsMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    //FlutterMethodNotImplemented
+    return nil;
+}
+
+- (void)exitPictureInPictureModePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    //FlutterMethodNotImplemented
+}
+
+- (nullable IntMsg *)initializeOnlyAudio:(nonnull BoolPlayerMsg *)onlyAudio error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSNumber* textureId = [self createPlayer:onlyAudio.value.boolValue];
+    return [CommonUtil intMsgWith:textureId];
+}
+
+- (nullable BoolMsg *)isPlayingPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    return [CommonUtil boolMsgWith:[self isPlaying]];
+}
+
+- (void)pausePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self pause];
+}
+
+- (void)prepareLiveSeekPlayerMsg:(nonnull StringIntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // FlutterMethodNotImplemented
+}
+
+- (nullable IntMsg *)resumeLivePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int r = [self resumeLive];
+    return [CommonUtil intMsgWith:@(r)];
+}
+
+- (void)resumePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self resume];
+}
+
+- (void)seekProgress:(nonnull DoublePlayerMsg *)progress error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // FlutterMethodNotImplemented
+}
+
+- (void)setAppIDAppId:(nonnull StringPlayerMsg *)appId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setAppID:appId.value];
+}
+
+- (void)setAutoPlayIsAutoPlay:(nonnull BoolPlayerMsg *)isAutoPlay error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setIsAutoPlay:isAutoPlay.value.boolValue];
+}
+
+- (void)setConfigConfig:(nonnull FTXLivePlayConfigPlayerMsg *)config error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setPlayerConfig:config];
+}
+
+- (void)setLiveModeMode:(nonnull IntPlayerMsg *)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setLiveMode:mode.value.intValue];
+}
+
+- (void)setMuteMute:(nonnull BoolPlayerMsg *)mute error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setMute:mute.value.boolValue];
+}
+
+- (void)setRateRate:(nonnull DoublePlayerMsg *)rate error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setRate:rate.value.floatValue];
+}
+
+- (void)setVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setVolume:volume.value.intValue];
+}
+
+- (nullable BoolMsg *)startLivePlayPlayerMsg:(nonnull StringIntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int r = [self startLivePlay:playerMsg.strValue type:playerMsg.intValue.intValue];
+    return [CommonUtil boolMsgWith:r];
+}
+
+- (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    return [CommonUtil boolMsgWith:[self stopPlay]];
+}
+
+- (nullable IntMsg *)switchStreamUrl:(nonnull StringPlayerMsg *)url error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int r = [self switchStream:url.value];
+    return [CommonUtil intMsgWith:@(r)];
 }
 
 @end

@@ -249,14 +249,16 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                   ),
                   new GestureDetector(
                     onTap: () async {
-                      _controller.setMute(!_isMute);
-                      _isMute = !_isMute;
+                      setState(() {
+                        _isMute = !_isMute;
+                        _controller.setMute(_isMute);
+                      });
                     },
                     child: Container(
                       color: Colors.transparent,
                       alignment: Alignment.center,
                       child: Text(
-                        "设置静音",
+                        _isMute ? "取消静音" : "设置静音",
                         style: TextStyle(fontSize: 18, color: Colors.blue),
                       ),
                     ),

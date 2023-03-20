@@ -2,7 +2,6 @@
 
 package com.tencent.vod.flutter;
 
-import android.app.Activity;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,24 +12,31 @@ import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.DoublePlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.IntPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.PipParamsPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.StringIntPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
-import java.util.Map;
 
 /**
  * live player processor
  */
-public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.MethodCallHandler, ITXLivePlayListener {
+public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener, TXFlutterLivePlayerApi {
 
     private static final String TAG = "FTXLivePlayer";
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
-    private final MethodChannel mMethodChannel;
     private final EventChannel mEventChannel;
     private final EventChannel mNetChannel;
 
@@ -45,7 +51,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     private boolean mEnableHardwareDecode = true;
     private boolean mHardwareDecodeFail = false;
     private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
-    private Activity mActivity;
 
     private int mSurfaceWidth = 0;
     private int mSurfaceHeight = 0;
@@ -59,7 +64,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
             boolean isPipPlaying = result.isPlaying();
             if (isPipPlaying) {
-                resume();
+                resumePlayer();
             }
         }
     };
@@ -67,11 +72,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     /**
      * 直播播放器
      */
-    public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, Activity activity,
-            FTXPIPManager pipManager) {
+    public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
         super();
         mFlutterPluginBinding = flutterPluginBinding;
-        mActivity = activity;
         mPipManager = pipManager;
         mVideoModel = new VideoModel();
         mVideoModel.setPlayerType(FTXEvent.PLAYER_LIVE);
@@ -79,10 +82,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
         mSurface = new Surface(mSurfaceTexture);
-
-        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(),
-                "cloud.tencent.com/txliveplayer/" + super.getPlayerId());
-        mMethodChannel.setMethodCallHandler(this);
 
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
                 "cloud.tencent.com/txliveplayer/event/" + super.getPlayerId());
@@ -135,7 +134,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             mSurface = null;
         }
 
-        mMethodChannel.setMethodCallHandler(null);
         mEventChannel.setStreamHandler(null);
         mNetChannel.setStreamHandler(null);
     }
@@ -161,7 +159,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
     private void setDefaultBufferSizeForSoftDecode(int width, int height) {
-        if (mSurfaceTextureEntry != null && mSurfaceTextureEntry.surfaceTexture() != null) {
+        if (mSurfaceTextureEntry != null) {
+            mSurfaceTextureEntry.surfaceTexture();
             SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
             surfaceTexture.setDefaultBufferSize(width, height);
             if (mSurface != null) {
@@ -172,112 +171,16 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         }
     }
 
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        if (call.method.equals("init")) {
-            boolean onlyAudio = call.argument("onlyAudio");
-            long id = init(onlyAudio);
-            result.success(id);
-        } else if (call.method.equals("setIsAutoPlay")) {
-            boolean loop = call.argument("isAutoPlay");
-            setIsAutoPlay(loop);
-            result.success(null);
-        } else if (call.method.equals("startLivePlay")) {
-            String url = call.argument("url");
-            Integer type = call.argument("playType");
-            int r = startLivePlay(url, type);
-            result.success(r);
-        } else if (call.method.equals("stop")) {
-            Boolean isNeedClear = call.argument("isNeedClear");
-            int r = stopPlay(isNeedClear);
-            result.success(r);
-        } else if (call.method.equals("isPlaying")) {
-            boolean r = isPlaying();
-            result.success(r);
-        } else if (call.method.equals("pause")) {
-            pause();
-            result.success(null);
-        } else if (call.method.equals("resume")) {
-            resume();
-            result.success(null);
-        } else if (call.method.equals("setMute")) {
-            boolean mute = call.argument("mute");
-            setMute(mute);
-            result.success(null);
-        } else if (call.method.equals("seek")) {
-            result.notImplemented();
-        } else if (call.method.equals("setRate")) {
-            result.notImplemented();
-        } else if (call.method.equals("setVolume")) {
-            Integer volume = call.argument("volume");
-            setVolume(volume);
-            result.success(null);
-        } else if (call.method.equals("setRenderRotation")) {
-            int rotation = call.argument("rotation");
-            setRenderRotation(rotation);
-            result.success(null);
-        } else if (call.method.equals("setLiveMode")) {
-            int type = call.argument("type");
-            setLiveMode(type);
-            result.success(null);
-        } else if (call.method.equals("switchStream")) {
-            String url = call.argument("url");
-            int switchResult = switchStream(url);
-            result.success(switchResult);
-        } else if (call.method.equals("setAppID")) {
-            String appId = call.argument("appId");
-            setAppID(appId);
-            result.success(null);
-        } else if (call.method.equals("prepareLiveSeek")) {
-            result.notImplemented();
-        } else if (call.method.equals("resumeLive")) {
-            int r = resumeLive();
-            result.success(r);
-        } else if (call.method.equals("enableHardwareDecode")) {
-            Boolean enable = call.argument("enable");
-            boolean r = enableHardwareDecode(enable);
-            result.success(r);
-        } else if (call.method.equals("enterPictureInPictureMode")) {
-            String playBackAssetPath = call.argument("backIcon");
-            String playResumeAssetPath = call.argument("playIcon");
-            String playPauseAssetPath = call.argument("pauseIcon");
-            String playForwardAssetPath = call.argument("forwardIcon");
-            mPipManager.addCallback(getPlayerId(), pipCallback);
-            mPipParams = new FTXPIPManager.PipParams(
-                    mPipManager.toAndroidPath(playBackAssetPath),
-                    mPipManager.toAndroidPath(playResumeAssetPath),
-                    mPipManager.toAndroidPath(playPauseAssetPath),
-                    mPipManager.toAndroidPath(playForwardAssetPath),
-                    getPlayerId(), false, false, true);
-            mPipParams.setIsPlaying(isPlaying());
-            int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
-            // 启动成功之后，暂停当前界面视频
-            if (pipResult == FTXEvent.NO_ERROR) {
-                pause();
-            }
-            result.success(pipResult);
-        } else if (call.method.equals("exitPictureInPictureMode")) {
-            mPipManager.exitPip();
-            result.success(null);
-        } else if (call.method.equals("setConfig")) {
-            Map<Object, Object> config = call.argument("config");
-            setPlayConfig(config);
-            result.success(null);
-        } else {
-            result.notImplemented();
-        }
-    }
-
     protected long init(boolean onlyAudio) {
         if (mLivePlayer == null) {
-            mLivePlayer = new TXLivePlayer(mActivity);
+            mLivePlayer = new TXLivePlayer(mFlutterPluginBinding.getApplicationContext());
             mLivePlayer.setPlayListener(this);
         }
         Log.d("AndroidLog", "textureId :" + mSurfaceTextureEntry.id());
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }
 
-    int startLivePlay(String url, Integer type) {
+    int startPlayerLivePlay(String url, Integer type) {
         Log.d(TAG, "startLivePlay:");
         if (null == type) {
             type = TXLivePlayer.PLAY_TYPE_LIVE_FLV;
@@ -317,62 +220,56 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         return Uninitialized;
     }
 
-    boolean isPlaying() {
+    boolean isPlayerPlaying() {
         if (mLivePlayer != null) {
             return mLivePlayer.isPlaying();
         }
         return false;
     }
 
-    void pause() {
+    void pausePlayer() {
         if (mLivePlayer != null) {
             mLivePlayer.pause();
         }
     }
 
-    void resume() {
+    void resumePlayer() {
         if (mLivePlayer != null) {
             mLivePlayer.resume();
         }
     }
 
-    void setMute(boolean mute) {
+    void setPlayerMute(boolean mute) {
         if (mLivePlayer != null) {
             mLivePlayer.setMute(mute);
         }
     }
 
-    void setVolume(int volume) {
+    void setPlayerVolume(int volume) {
         if (mLivePlayer != null) {
             mLivePlayer.setVolume(volume);
         }
     }
 
-    void setIsAutoPlay(boolean isAutoPlay) {
+    void setPlayerAutoPlay(boolean isAutoPlay) {
         if (mLivePlayer != null) {
             mLivePlayer.setAutoPlay(isAutoPlay);
         }
     }
 
-    void seek(float progress) {
+    void seekPlayer(float progress) {
         if (mLivePlayer != null) {
             mLivePlayer.seek((int) progress);
         }
     }
 
-    void setRate(float rate) {
+    void setPlayerRate(float rate) {
         if (mLivePlayer != null) {
             mLivePlayer.setRate(rate);
         }
     }
 
-    void setRenderRotation(int rotation) {
-        if (mLivePlayer != null) {
-            mLivePlayer.setRenderRotation(rotation);
-        }
-    }
-
-    void setLiveMode(int type) {
+    void setPlayerLiveMode(int type) {
         if (mLivePlayer != null) {
             TXLivePlayConfig config = new TXLivePlayConfig();
             if (type == 0) {
@@ -395,32 +292,32 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         }
     }
 
-    int switchStream(String url) {
+    int switchPlayerStream(String url) {
         if (mLivePlayer != null) {
             return mLivePlayer.switchStream(url);
         }
         return -1;
     }
 
-    private void setAppID(String appId) {
+    private void setPlayerAppID(String appId) {
         TXLiveBase.setAppID(appId);
     }
 
-    private int prepareLiveSeek(String domain, int bizId) {
+    private int preparePlayerLiveSeek(String domain, int bizId) {
         if (mLivePlayer != null) {
             return mLivePlayer.prepareLiveSeek(domain, bizId);
         }
         return Uninitialized;
     }
 
-    private int resumeLive() {
+    private int resumePlayerLive() {
         if (mLivePlayer != null) {
             return mLivePlayer.resumeLive();
         }
         return Uninitialized;
     }
 
-    private boolean enableHardwareDecode(Boolean enable) {
+    private boolean enablePlayerHardwareDecode(Boolean enable) {
         if (mLivePlayer != null) {
             mEnableHardwareDecode = enable;
             return mLivePlayer.enableHardwareDecode(enable);
@@ -428,16 +325,154 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         return false;
     }
 
-    private void setRenderMode(int renderMode) {
-        if (mLivePlayer != null) {
-            mLivePlayer.setRenderMode(renderMode);
-        }
-    }
-
-    void setPlayConfig(Map<Object, Object> config) {
+    void setPlayerConfig(FTXLivePlayConfigPlayerMsg config) {
         if (mLivePlayer != null) {
             TXLivePlayConfig playConfig = FTXTransformation.transformToLiveConfig(config);
             mLivePlayer.setConfig(playConfig);
         }
+    }
+
+
+    @NonNull
+    @Override
+    public IntMsg initialize(@NonNull BoolPlayerMsg onlyAudio) {
+        long textureId = init(onlyAudio.getValue() != null ? onlyAudio.getValue() : false);
+        return CommonUtil.intMsgWith(textureId);
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg startLivePlay(@NonNull StringIntPlayerMsg playerMsg) {
+        int r = startPlayerLivePlay(playerMsg.getStrValue(),
+                null != playerMsg.getIntValue() ? playerMsg.getIntValue().intValue() : null);
+        return CommonUtil.boolMsgWith(r == 1);
+    }
+
+    @Override
+    public void setAutoPlay(@NonNull BoolPlayerMsg isAutoPlay) {
+        if (null != isAutoPlay.getValue()) {
+            setPlayerAutoPlay(isAutoPlay.getValue());
+        }
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg stop(@NonNull BoolPlayerMsg isNeedClear) {
+        boolean flag = null != isNeedClear.getValue() ? isNeedClear.getValue() : false;
+        return CommonUtil.boolMsgWith(stopPlay(flag) == 1);
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg isPlaying(@NonNull PlayerMsg playerMsg) {
+        return CommonUtil.boolMsgWith(isPlayerPlaying());
+    }
+
+    @Override
+    public void pause(@NonNull PlayerMsg playerMsg) {
+        pausePlayer();
+    }
+
+    @Override
+    public void resume(@NonNull PlayerMsg playerMsg) {
+        resumePlayer();
+    }
+
+    @Override
+    public void setLiveMode(@NonNull IntPlayerMsg mode) {
+        if (null != mode.getValue()) {
+            setPlayerLiveMode(mode.getValue().intValue());
+        }
+    }
+
+    @Override
+    public void setVolume(@NonNull IntPlayerMsg volume) {
+        if (null != volume.getValue()) {
+            setPlayerVolume(volume.getValue().intValue());
+        }
+    }
+
+    @Override
+    public void setMute(@NonNull BoolPlayerMsg mute) {
+        if (null != mute.getValue()) {
+            setPlayerMute(mute.getValue());
+        }
+    }
+
+    @NonNull
+    @Override
+    public IntMsg switchStream(@NonNull StringPlayerMsg url) {
+        return CommonUtil.intMsgWith((long) switchPlayerStream(url.getValue()));
+    }
+
+    @Override
+    public void seek(@NonNull DoublePlayerMsg progress) {
+        if (progress.getValue() != null) {
+            seekPlayer(progress.getValue().floatValue());
+        }
+    }
+
+    @Override
+    public void setAppID(@NonNull StringPlayerMsg appId) {
+        if (null != appId.getValue()) {
+            setPlayerAppID(appId.getValue());
+        }
+    }
+
+    @Override
+    public void prepareLiveSeek(@NonNull StringIntPlayerMsg playerMsg) {
+        preparePlayerLiveSeek(playerMsg.getStrValue(),
+                null != playerMsg.getIntValue() ? playerMsg.getIntValue().intValue() : 0);
+    }
+
+    @NonNull
+    @Override
+    public IntMsg resumeLive(@NonNull PlayerMsg playerMsg) {
+        return CommonUtil.intMsgWith((long) resumePlayerLive());
+    }
+
+    @Override
+    public void setRate(@NonNull DoublePlayerMsg rate) {
+        if (null != rate.getValue()) {
+            setPlayerRate(rate.getValue().floatValue());
+        }
+    }
+
+    @Override
+    public void setConfig(@NonNull FTXLivePlayConfigPlayerMsg config) {
+        setPlayerConfig(config);
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg enableHardwareDecode(@NonNull BoolPlayerMsg enable) {
+        if (null != enable.getValue()) {
+            return CommonUtil.boolMsgWith(enablePlayerHardwareDecode(enable.getValue()));
+        }
+        return CommonUtil.boolMsgWith(false);
+    }
+
+    @NonNull
+    @Override
+    public IntMsg enterPictureInPictureMode(@NonNull PipParamsPlayerMsg pipParamsMsg) {
+        mPipManager.addCallback(getPlayerId(), pipCallback);
+        mPipParams = new FTXPIPManager.PipParams(
+                mPipManager.toAndroidPath(pipParamsMsg.getBackIconForAndroid()),
+                mPipManager.toAndroidPath(pipParamsMsg.getPlayIconForAndroid()),
+                mPipManager.toAndroidPath(pipParamsMsg.getPauseIconForAndroid()),
+                mPipManager.toAndroidPath(pipParamsMsg.getForwardIconForAndroid()),
+                getPlayerId(), false, false, true);
+        mPipParams.setIsPlaying(isPlayerPlaying());
+        int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
+        // 启动成功之后，暂停当前界面视频
+        if (pipResult == FTXEvent.NO_ERROR) {
+            pausePlayer();
+        }
+        return CommonUtil.intMsgWith((long) pipResult);
+    }
+
+    @Override
+    public void exitPictureInPictureMode(@NonNull PlayerMsg playerMsg) {
+        mPipManager.exitPip();
     }
 }

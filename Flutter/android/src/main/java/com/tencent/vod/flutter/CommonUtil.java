@@ -3,11 +3,16 @@
 package com.tencent.vod.flutter;
 
 import android.os.Bundle;
-
-import com.tencent.rtmp.downloader.TXVodDownloadDataSource;
 import com.tencent.rtmp.downloader.TXVodDownloadMediaInfo;
-
+import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.DoubleMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.ListMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,5 +49,47 @@ public class CommonUtil {
     public static int getDownloadEventByState(int mediaInfoDownloadState) {
         Integer event = DOWNLOAD_STATE_MAP.get(mediaInfoDownloadState);
         return null != event ? event : FTXEvent.EVENT_DOWNLOAD_ERROR;
+    }
+
+    public static PlayerMsg playerMsgWith(Long textureId) {
+        PlayerMsg msg = new PlayerMsg();
+        msg.setPlayerId(textureId);
+        return msg;
+    }
+
+    public static StringMsg stringMsgWith(String str) {
+        StringMsg msg = new StringMsg();
+        msg.setValue(str);
+        return msg;
+    }
+
+    public static DoubleMsg doubleMsgWith(Double value) {
+        DoubleMsg msg = new DoubleMsg();
+        msg.setValue(value);
+        return msg;
+    }
+
+    public static BoolMsg boolMsgWith(Boolean value) {
+        BoolMsg msg = new BoolMsg();
+        msg.setValue(value);
+        return msg;
+    }
+
+    public static IntMsg intMsgWith(Long value) {
+        IntMsg msg = new IntMsg();
+        msg.setValue(value);
+        return msg;
+    }
+
+    public static UInt8ListMsg uInt8ListMsg(byte[] data) {
+        UInt8ListMsg msg = new UInt8ListMsg();
+        msg.setValue(data);
+        return msg;
+    }
+
+    public static ListMsg listMsgWith(List<Object> value) {
+        ListMsg msg = new ListMsg();
+        msg.setValue(value);
+        return msg;
     }
 }

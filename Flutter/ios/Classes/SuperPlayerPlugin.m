@@ -9,8 +9,11 @@
 #import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
 #import "FTXAudioManager.h"
 #import "FTXDownloadManager.h"
+#import "FtxMessages.h"
+#import "FTXVodPlayerDispatcher.h"
+#import "FTXLivePlayerDispatcher.h"
 
-@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate>
+@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, IPlayersBridge>
 
 @property (nonatomic, strong) NSObject<FlutterPluginRegistrar>* registrar;
 @property (nonatomic, strong) NSMutableDictionary *players;
@@ -24,26 +27,26 @@
     FTXPlayerEventSinkQueue *_eventSink;
     FTXPlayerEventSinkQueue *_pipEventSink;
     FTXAudioManager *audioManager;
-    FTXDownloadManager *_FTXDownloadManager;
+    FTXDownloadManager *_fTXDownloadManager;
     int mCurrentOrientation;
 }
 
 SuperPlayerPlugin* instance;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-    FlutterMethodChannel* channel = [FlutterMethodChannel
-                                     methodChannelWithName:@"flutter_super_player"
-                                     binaryMessenger:[registrar messenger]];
     instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
-    [registrar addMethodCallDelegate:instance channel:channel];
+    TXFlutterSuperPlayerPluginAPISetup([registrar messenger], instance);
+    TXFlutterNativeAPISetup([registrar messenger], instance);
+    TXFlutterVodPlayerApiSetup([registrar messenger], [[FTXVodPlayerDispatcher alloc] initWithBridge:instance]);
+    TXFlutterLivePlayerApiSetup([registrar messenger], [[FTXLivePlayerDispatcher alloc] initWithBridge:instance]);
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     if(nil != instance) {
         [instance destory];
     }
-    if (nil != _FTXDownloadManager) {
-        [_FTXDownloadManager destroy];
+    if (nil != _fTXDownloadManager) {
+        [_fTXDownloadManager destroy];
     }
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
@@ -72,7 +75,7 @@ SuperPlayerPlugin* instance;
     [center addObserver:self selector:@selector(brightnessDidChange:) name:UIScreenBrightnessDidChangeNotification object:[UIScreen mainScreen]];
     
     [audioManager registerVolumeChangeListener:self];
-     _FTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
+     _fTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
     // orientation
     mCurrentOrientation = ORIENTATION_PORTRAIT_UP;
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -88,123 +91,6 @@ SuperPlayerPlugin* instance;
     [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_VOLUME_CHANGED withParams:@{}]];
 }
 
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    if ([@"getPlatformVersion" isEqualToString:call.method]) {
-        result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
-    }else if([@"createLivePlayer" isEqualToString:call.method]){
-        FTXLivePlayer* player = [[FTXLivePlayer alloc] initWithRegistrar:self.registrar];
-        NSNumber *playerId = player.playerId;
-        _players[playerId] = player;
-        result(playerId);
-    }else if([@"createVodPlayer" isEqualToString:call.method]){
-        FTXVodPlayer* player = [[FTXVodPlayer alloc] initWithRegistrar:self.registrar];
-        player.delegate = self;
-        NSNumber *playerId = player.playerId;
-        _players[playerId] = player;
-        result(playerId);
-    }else if([@"releasePlayer" isEqualToString:call.method]){
-        NSDictionary *args = call.arguments;
-        NSNumber *pid = args[@"playerId"];
-        FTXBasePlayer *player = [_players objectForKey:pid];
-        [player destory];
-        if (player != nil) {
-            [_players removeObjectForKey:pid];
-        }
-        result(nil);
-    }else if([@"setConsoleEnabled" isEqualToString:call.method]){
-        NSDictionary *args = call.arguments;
-        BOOL enabled = [args[@"enabled"] boolValue];
-        [TXLiveBase setConsoleEnabled:enabled];
-        result(nil);
-    }else if([@"setGlobalMaxCacheSize" isEqualToString:call.method]){
-        NSDictionary *args = call.arguments;
-        NSInteger maxCacheItemSize = [args[@"size"] integerValue];
-        if (maxCacheItemSize > 0) {
-            [TXPlayerGlobalSetting setMaxCacheSize:maxCacheItemSize];
-        }
-        result(nil);
-    }else if([@"setGlobalCacheFolderPath" isEqualToString:call.method]){
-        NSDictionary *args = call.arguments;
-        NSString* postfixPath = args[@"postfixPath"];
-        if(postfixPath != nil && postfixPath.length > 0) {
-            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-            NSString *documentDirectory = [[paths objectAtIndex:0] stringByAppendingString:@"/"];
-            NSString *preloadDataPath = [documentDirectory stringByAppendingPathComponent:postfixPath];
-            if (![[NSFileManager defaultManager] fileExistsAtPath:preloadDataPath]) {
-                NSError *error = nil;
-                [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
-                [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
-            }
-            result([NSNumber numberWithBool:true]);
-        } else {
-            result([NSNumber numberWithBool:false]);
-        }
-        
-    }else if([@"setGlobalLicense" isEqualToString:call.method]) {
-        NSDictionary *args = call.arguments;
-        NSString *licenceUrl = args[@"licenceUrl"];
-        NSString *licenceKey = args[@"licenceKey"];
-        [TXLiveBase setLicenceURL:licenceUrl key:licenceKey];
-        result(nil);
-    } else if([@"setBrightness" isEqualToString:call.method]) {
-        NSNumber *brightness = call.arguments[@"brightness"];
-        if(brightness.floatValue > 1.0) {
-            brightness = [NSNumber numberWithFloat:1.0];
-        }
-        if(brightness.intValue != -1 && brightness.floatValue < 0) {
-            brightness = [NSNumber numberWithFloat:0.01];
-        }
-        if(brightness.intValue == -1) {
-            [[UIScreen mainScreen] setBrightness:orginBrightness];
-        } else {
-            [[UIScreen mainScreen] setBrightness:brightness.floatValue];
-        }
-        result(nil);
-    } else if([@"getBrightness" isEqualToString:call.method]) {
-        NSNumber *brightness = [NSNumber numberWithFloat:[UIScreen mainScreen].brightness];
-        result(brightness);
-    } else if([@"getSystemVolume" isEqualToString:call.method]) {
-        NSNumber *volume = [NSNumber numberWithFloat:[audioManager getVolume]];
-        result(volume);
-    } else if([@"setSystemVolume" isEqualToString:call.method]) {
-        NSNumber *volume = call.arguments[@"volume"];
-        if (volume.floatValue < 0) {
-            volume = [NSNumber numberWithFloat:0];
-        }
-        if (volume.floatValue > 1) {
-            volume = [NSNumber numberWithFloat:1];
-        }
-        [audioManager setVolume:volume.floatValue];
-        result(nil);
-    } else if ([@"abandonAudioFocus" isEqualToString:call.method]) {
-        // only for android
-        result(nil);
-    } else if ([@"requestAudioFocus" isEqualToString:call.method]) {
-        // only for android
-        result(nil);
-    } else if([@"setLogLevel" isEqualToString:call.method]) {
-        NSDictionary *args = call.arguments;
-        int logLevel = [args[@"logLevel"] intValue];
-        [TXLiveBase setLogLevel:logLevel];
-        result(nil);
-    } else if([@"getLiteAVSDKVersion" isEqualToString:call.method]) {
-        result([TXLiveBase getSDKVersionStr]);
-    } else if ([@"isDeviceSupportPip" isEqualToString:call.method]) {
-        BOOL isSupport = [TXVodPlayer isSupportPictureInPicture];
-        int pipSupportResult = isSupport ? 0 : ERROR_IOS_PIP_DEVICE_NOT_SUPPORT;
-        result(@(pipSupportResult));
-    } else if([@"setGlobalEnv" isEqualToString:call.method]) {
-        NSString *envConfig = call.arguments[@"envConfig"];
-        int setResult = [TXLiveBase setGlobalEnv:[envConfig UTF8String]];
-        result(@(setResult));
-    } else if([@"startVideoOrientationService" isEqualToString:call.method]) {
-        // only for android
-        result(@(YES));
-    } else {
-        result(FlutterMethodNotImplemented);
-    }
-}
-
 + (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
 {
     NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:@"event"];
@@ -217,6 +103,20 @@ SuperPlayerPlugin* instance;
 -(void) destory
 {
     [audioManager destory:self];
+}
+
+-(void) setSysBrightness:(NSNumber*)brightness {
+    if(brightness.floatValue > 1.0) {
+        brightness = [NSNumber numberWithFloat:1.0];
+    }
+    if(brightness.intValue != -1 && brightness.floatValue < 0) {
+        brightness = [NSNumber numberWithFloat:0.01];
+    }
+    if(brightness.intValue == -1) {
+        [[UIScreen mainScreen] setBrightness:orginBrightness];
+    } else {
+        [[UIScreen mainScreen] setBrightness:brightness.floatValue];
+    }
 }
 
 /**
@@ -313,6 +213,137 @@ SuperPlayerPlugin* instance;
             @"event" : @(EVENT_ORIENTATION_CHANGED),
             EXTRA_NAME_ORIENTATION : @(tempOrientationCode)}];
     }
+}
+
+#pragma mark - superPlayerPluginAPI
+
+- (nullable PlayerMsg *)createLivePlayerWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    FTXLivePlayer* player = [[FTXLivePlayer alloc] initWithRegistrar:self.registrar];
+    NSNumber *playerId = player.playerId;
+    _players[playerId] = player;
+    return [CommonUtil playerMsgWith:playerId];
+}
+
+- (nullable PlayerMsg *)createVodPlayerWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    FTXVodPlayer* player = [[FTXVodPlayer alloc] initWithRegistrar:self.registrar];
+    player.delegate = self;
+    NSNumber *playerId = player.playerId;
+    _players[playerId] = player;
+    return [CommonUtil playerMsgWith:playerId];
+}
+
+- (nullable StringMsg *)getLiteAVSDKVersionWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    return [CommonUtil stringMsgWith:[TXLiveBase getSDKVersionStr]];
+}
+
+- (nullable StringMsg *)getPlatformVersionWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    return [CommonUtil stringMsgWith:[@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]];
+}
+
+- (void)releasePlayerPlayerId:(nonnull PlayerMsg *)playerId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSNumber *pid = playerId.playerId;
+    FTXBasePlayer *player = [_players objectForKey:pid];
+    [player destory];
+    if (player != nil) {
+        [_players removeObjectForKey:pid];
+    }
+}
+
+- (void)setConsoleEnabledEnabled:(nonnull BoolMsg *)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [TXLiveBase setConsoleEnabled:enabled.value];
+}
+
+- (nullable BoolMsg *)setGlobalCacheFolderPathPostfixPath:(nonnull StringMsg *)postfixPath error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSString* postfixPathStr = postfixPath.value;
+    if(postfixPathStr != nil && postfixPathStr.length > 0) {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentDirectory = [[paths objectAtIndex:0] stringByAppendingString:@"/"];
+        NSString *preloadDataPath = [documentDirectory stringByAppendingPathComponent:postfixPathStr];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:preloadDataPath]) {
+            NSError *error = nil;
+            [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
+            [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
+        }
+        return [CommonUtil boolMsgWith:YES];
+    } else {
+        return [CommonUtil boolMsgWith:NO];
+    }
+    
+}
+
+- (nullable IntMsg *)setGlobalEnvEnvConfig:(nonnull StringMsg *)envConfig error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int setResult = [TXLiveBase setGlobalEnv:[envConfig.value UTF8String]];
+    return [CommonUtil intMsgWith:@(setResult)];
+}
+
+- (void)setGlobalLicenseLicenseMsg:(nonnull LicenseMsg *)licenseMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [TXLiveBase setLicenceURL:licenseMsg.licenseUrl key:licenseMsg.licenseKey];
+}
+
+- (void)setGlobalMaxCacheSizeSize:(nonnull IntMsg *)size error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if (size.value > 0) {
+        [TXPlayerGlobalSetting setMaxCacheSize:size.value.intValue];
+    }
+}
+
+- (void)setLogLevelLogLevel:(nonnull IntMsg *)logLevel error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [TXLiveBase setLogLevel:logLevel.value.intValue];
+}
+
+- (nullable BoolMsg *)startVideoOrientationServiceWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // only for android
+    return [CommonUtil boolMsgWith:YES];
+}
+
+#pragma mark nativeAPI
+
+- (void)abandonAudioFocusWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // only for android
+}
+
+- (nullable DoubleMsg *)getBrightnessWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSNumber *brightness = [NSNumber numberWithFloat:[UIScreen mainScreen].brightness];
+    return [CommonUtil doubleMsgWith:brightness.doubleValue];
+}
+
+- (nullable DoubleMsg *)getSystemVolumeWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSNumber *volume = [NSNumber numberWithFloat:[audioManager getVolume]];
+    return [CommonUtil doubleMsgWith:volume.doubleValue];
+}
+
+- (nullable IntMsg *)isDeviceSupportPipWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    BOOL isSupport = [TXVodPlayer isSupportPictureInPicture];
+    int pipSupportResult = isSupport ? 0 : ERROR_IOS_PIP_DEVICE_NOT_SUPPORT;
+    return [CommonUtil intMsgWith:@(pipSupportResult)];
+}
+
+- (void)requestAudioFocusWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // only for android
+}
+
+- (void)restorePageBrightnessWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setSysBrightness:@(-1)];
+}
+
+- (void)setBrightnessBrightness:(nonnull DoubleMsg *)brightness error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setSysBrightness:brightness.value];
+}
+
+- (void)setSystemVolumeVolume:(nonnull DoubleMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSNumber *volumeNum = volume.value;
+    if (volumeNum.floatValue < 0) {
+        volumeNum = [NSNumber numberWithFloat:0];
+    }
+    if (volumeNum.floatValue > 1) {
+        volumeNum = [NSNumber numberWithFloat:1];
+    }
+    [audioManager setVolume:volumeNum.floatValue];
+}
+
+#pragma mark DataBridge
+
+- (NSMutableDictionary *)getPlayers {
+    return self.players;
 }
 
 @end
