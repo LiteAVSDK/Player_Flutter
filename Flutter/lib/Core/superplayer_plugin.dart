@@ -1,10 +1,14 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
+final TXFlutterSuperPlayerPluginAPI _playerPluginApi = TXFlutterSuperPlayerPluginAPI();
+final TXFlutterNativeAPI _nativeAPI = TXFlutterNativeAPI();
+
 class SuperPlayerPlugin {
   static const TAG = "SuperPlayerPlugin";
 
   static SuperPlayerPlugin? _instance;
+
   static SuperPlayerPlugin get instance => _sharedInstance();
 
   /// SuperPlayerPlugin单例
@@ -49,37 +53,37 @@ class SuperPlayerPlugin {
 
   _errorHandler(error) {}
 
-  static const MethodChannel _channel = const MethodChannel('flutter_super_player');
-
   static Future<String?> get platformVersion async {
-    final String? version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+    StringMsg stringMsg = await _playerPluginApi.getLiteAVSDKVersion();
+    return stringMsg.value;
   }
 
   /// 创建直播播放器
   static Future<int?> createLivePlayer() async {
-    return await _channel.invokeMethod('createLivePlayer');
+    PlayerMsg playerMsg = await _playerPluginApi.createLivePlayer();
+    return playerMsg.playerId;
   }
 
   /// 创建点播播放器
   static Future<int?> createVodPlayer() async {
-    return await _channel.invokeMethod('createVodPlayer');
+    PlayerMsg playerMsg = await _playerPluginApi.createVodPlayer();
+    return playerMsg.playerId;
   }
 
   /// 开关log输出
   static Future<void> setConsoleEnabled(bool enabled) async {
-    return await _channel.invokeMethod('setConsoleEnabled', {"enabled": enabled});
+    return await _playerPluginApi.setConsoleEnabled(BoolMsg()..value = enabled);
   }
 
   /// 释放播放器资源
   static Future<void> releasePlayer(int? playerId) async {
-    return await _channel.invokeMethod('releasePlayer', {"playerId": playerId});
+    return await _playerPluginApi.releasePlayer(PlayerMsg()..playerId = playerId);
   }
 
   /// 设置播放引擎的最大缓存大小。设置后会根据设定值自动清理Cache目录的文件
   /// @param size 最大缓存大小（单位：MB)
   static Future<void> setGlobalMaxCacheSize(int size) async {
-    return await _channel.invokeMethod('setGlobalMaxCacheSize', {"size": size});
+    return await _playerPluginApi.setGlobalMaxCacheSize(IntMsg()..value = size);
   }
 
   /// 在短视频播放场景中，视频文件的本地缓存是很刚需的一个特性，对于普通用户而言，一个已经看过的视频再次观看时，不应该再消耗一次流量。
@@ -93,53 +97,58 @@ class SuperPlayerPlugin {
   /// iOS 平台：视频将会缓存到沙盒的Documents/testCache 目录。
   /// @param postfixPath 缓存目录
   /// @return true 设置成功 false 设置失败
-  static Future<bool> setGlobalCacheFolderPath(String postfixPath) async {
-    return await _channel.invokeMethod('setGlobalCacheFolderPath', {"postfixPath": postfixPath});
+  static Future<bool?> setGlobalCacheFolderPath(String postfixPath) async {
+    BoolMsg boolMsg = await _playerPluginApi.setGlobalCacheFolderPath(StringMsg()..value = postfixPath);
+    return boolMsg.value;
   }
 
   /// 设置全局license
   static Future<void> setGlobalLicense(String licenceUrl, String licenceKey) async {
-    return await _channel.invokeMethod("setGlobalLicense", {"licenceUrl": licenceUrl, "licenceKey": licenceKey});
+    return await _playerPluginApi.setGlobalLicense(LicenseMsg()
+      ..licenseKey = licenceKey
+      ..licenseUrl = licenceUrl);
   }
 
   /// 设置log输出级别 [TXLogLevel]
   static Future<void> setLogLevel(int logLevel) async {
-    return await _channel.invokeMethod("setLogLevel", {"logLevel": logLevel});
+    return await _playerPluginApi.setLogLevel(IntMsg()..value = logLevel);
   }
 
   /// 修改当前界面亮度
   static Future<void> setBrightness(double brightness) async {
-    return await _channel.invokeMethod("setBrightness", {"brightness": brightness});
+    return await _nativeAPI.setBrightness(DoubleMsg()..value = brightness);
   }
 
   /// 恢复当前界面亮度
   static Future<void> restorePageBrightness() async {
-    return await _channel.invokeMethod("setBrightness", {"brightness": -1.0});
+    return await _nativeAPI.restorePageBrightness();
   }
 
   /// 获得当前界面亮度 0.0 ~ 1.0
-  static Future<double> getBrightness() async {
-    return await _channel.invokeMethod("getBrightness");
+  static Future<double?> getBrightness() async {
+    DoubleMsg doubleMsg = await _nativeAPI.getBrightness();
+    return doubleMsg.value;
   }
 
   /// 设置当前系统音量，0.0 ~ 1.0
   static Future<void> setSystemVolume(double volume) async {
-    return await _channel.invokeMethod("setSystemVolume", {"volume": volume});
+    return await _nativeAPI.setSystemVolume(DoubleMsg()..value = volume);
   }
 
   /// 获得当前系统音量，范围：0.0 ~ 1.0
-  static Future<double> getSystemVolume() async {
-    return await _channel.invokeMethod("getSystemVolume");
+  static Future<double?> getSystemVolume() async {
+    DoubleMsg doubleMsg =  await _nativeAPI.getSystemVolume();
+    return doubleMsg.value;
   }
 
   /// 释放音频焦点，只用于安卓端
   static Future<void> abandonAudioFocus() async {
-    return await _channel.invokeMethod("abandonAudioFocus");
+    return await _nativeAPI.abandonAudioFocus();
   }
 
   /// 请求获得音频焦点，只用于安卓端
   static Future<void> requestAudioFocus() async {
-    return await _channel.invokeMethod("requestAudioFocus");
+    return await _nativeAPI.requestAudioFocus();
   }
 
   /// 当前设备是否支持画中画模式
@@ -148,13 +157,15 @@ class SuperPlayerPlugin {
   ///  -101  android版本过低
   ///  -102  画中画权限关闭/设备不支持画中画
   ///  -103  当前界面已销毁
-  static Future<int> isDeviceSupportPip() async {
-    return await _channel.invokeMethod("isDeviceSupportPip");
+  static Future<int?> isDeviceSupportPip() async {
+    IntMsg intMsg = await _nativeAPI.isDeviceSupportPip();
+    return intMsg.value;
   }
 
   /// 获取依赖Native端的 LiteAVSDK 的版本
   static Future<String?> getLiteAVSDKVersion() async {
-    return await _channel.invokeMethod('getLiteAVSDKVersion');
+    StringMsg stringMsg = await _playerPluginApi.getLiteAVSDKVersion();
+    return stringMsg.value;
   }
 
   ///
@@ -165,8 +176,9 @@ class SuperPlayerPlugin {
   /// @return 0：成功；其他：错误
   /// @note 目标市场为中国大陆的客户请不要调用此接口，如果目标市场为海外用户，请通过技术支持联系我们，了解 env_config 的配置方法，以确保 App 遵守 GDPR 标准。
   ///
-  static Future<int> setGlobalEnv(String envConfig) async {
-    return await _channel.invokeMethod("setGlobalEnv", {"envConfig": envConfig});
+  static Future<int?> setGlobalEnv(String envConfig) async {
+    IntMsg intMsg = await _playerPluginApi.setGlobalEnv(StringMsg()..value = envConfig);
+    return intMsg.value;
   }
 
   ///
@@ -176,8 +188,8 @@ class SuperPlayerPlugin {
   /// 如有需要，请确认是否有获取旋转sensor的权限。
   /// @return true : 开启成功
   ///         false : 开启失败，如开启过早，还未等到上下文初始化、获取sensor失败等原因
-  static Future<bool> startVideoOrientationService() async {
-    return await _channel.invokeMethod("startVideoOrientationService");
+  static Future<bool?> startVideoOrientationService() async {
+    BoolMsg boolMsg = await _playerPluginApi.startVideoOrientationService();
+    return boolMsg.value;
   }
-
 }

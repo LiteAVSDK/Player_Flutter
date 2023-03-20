@@ -1,6 +1,8 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
+final TXFlutterVodPlayerApi _vodPlayerApi = TXFlutterVodPlayerApi();
+
 class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
   int? _playerId = -1;
   static String kTag = "TXVodPlayerController";
@@ -9,7 +11,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   final Completer<int> _createTexture;
   bool _isDisposed = false;
   bool _isNeedDisposed = false;
-  late MethodChannel _channel;
   TXPlayerValue? _value;
   TXPlayerState? _state;
 
@@ -40,7 +41,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   Future<void> _create() async {
     _playerId = await SuperPlayerPlugin.createVodPlayer();
-    _channel = MethodChannel("cloud.tencent.com/txvodplayer/$_playerId");
     _eventSubscription = EventChannel("cloud.tencent.com/txvodplayer/event/$_playerId")
         .receiveBroadcastStream("event")
         .listen(_eventHandler, onError: _errorHandler);
@@ -90,7 +90,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
           }
         }
         int videoDegree = map['EVT_KEY_VIDEO_ROTATION'] ?? 0;
-        if(Platform.isIOS && videoDegree == -1) {
+        if (Platform.isIOS && videoDegree == -1) {
           videoDegree = 0;
         }
         value = _value!.copyWith(degree: videoDegree);
@@ -155,11 +155,13 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
     printVersionInfo();
-    final result = await _channel.invokeMethod("startVodPlay", {"url": url});
-    return result == 0;
+    BoolMsg boolMsg = await _vodPlayerApi.startVodPlay(StringPlayerMsg()
+      ..value = url
+      ..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
-  /// 通过fileld播放视频
+  /// 通过fileId播放视频
   /// 10.7版本开始，startPlayWithParams变更为startVodPlayWithParams，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
   /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
@@ -171,7 +173,11 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
     printVersionInfo();
-    await _channel.invokeMethod("startVodPlayWithParams", params.toJson());
+    await _vodPlayerApi.startVodPlayWithParams(TXPlayInfoParamsPlayerMsg()
+      ..playerId = _playerId
+      ..appId = params.appId
+      ..fileId = params.fileId
+      ..psign = params.psign);
   }
 
   /// 共享纹理id，原生层的纹理准备好之后，会将纹理id传递回来。
@@ -186,10 +192,10 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> initialize({bool? onlyAudio}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    final textureId = await _channel.invokeMethod("init", {
-      "onlyAudio": onlyAudio ?? false,
-    });
-    _createTexture.complete(textureId);
+    final textureId = await _vodPlayerApi.initialize(BoolPlayerMsg()
+      ..value = onlyAudio ?? false
+      ..playerId = _playerId);
+    _createTexture.complete(textureId.value);
     _changeState(TXPlayerState.paused);
   }
 
@@ -198,7 +204,9 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> setAutoPlay({bool? isAutoPlay}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setAutoPlay", {"isAutoPlay": isAutoPlay ?? false});
+    await _vodPlayerApi.setAutoPlay(BoolPlayerMsg()
+      ..value = isAutoPlay ?? false
+      ..playerId = _playerId);
   }
 
   /// 停止播放
@@ -207,16 +215,19 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<bool> stop({bool isNeedClear = false}) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    final result = await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
+    final result = await _vodPlayerApi.stop(BoolPlayerMsg()
+      ..value = isNeedClear
+      ..playerId = _playerId);
     _changeState(TXPlayerState.stopped);
-    return result == 0;
+    return result.value ?? false;
   }
 
   /// 视频是否处于正在播放中
   @override
   Future<bool> isPlaying() async {
     await _initPlayer.future;
-    return await _channel.invokeMethod("isPlaying");
+    BoolMsg boolMsg = await _vodPlayerApi.isPlaying(PlayerMsg()..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 视频暂停，必须在播放器开始播放的时候调用
@@ -224,7 +235,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> pause() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("pause");
+    await _vodPlayerApi.pause(PlayerMsg()..playerId = _playerId);
     _changeState(TXPlayerState.paused);
   }
 
@@ -233,7 +244,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> resume() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("resume");
+    await _vodPlayerApi.resume(PlayerMsg()..playerId = _playerId);
   }
 
   /// 设置是否静音
@@ -241,14 +252,18 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> setMute(bool mute) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setMute", {"mute": mute});
+    await _vodPlayerApi.setMute(BoolPlayerMsg()
+      ..value = mute
+      ..playerId = _playerId);
   }
 
   /// 设置是否循环播放
   Future<void> setLoop(bool loop) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setLoop", {"loop": loop});
+    await _vodPlayerApi.setLoop(BoolPlayerMsg()
+      ..value = loop
+      ..playerId = _playerId);
   }
 
   /// 将视频播放进度定位到指定的进度进行播放
@@ -257,7 +272,9 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> seek(double progress) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("seek", {"progress": progress});
+    await _vodPlayerApi.seek(DoublePlayerMsg()
+      ..value = progress
+      ..playerId = _playerId);
   }
 
   /// 设置播放速率，默认速率 1
@@ -265,7 +282,9 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> setRate(double rate) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setRate", {"rate": rate});
+    await _vodPlayerApi.setRate(DoublePlayerMsg()
+      ..value = rate
+      ..playerId = _playerId);
   }
 
   /// 获得播放视频解析出来的码率信息
@@ -275,42 +294,53 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<List?> getSupportedBitrates() async {
     if (_isNeedDisposed) return [];
     await _initPlayer.future;
-    return _channel.invokeMethod("getSupportedBitrates");
+    ListMsg listMsg = await _vodPlayerApi.getSupportedBitrate(PlayerMsg()..playerId = _playerId);
+    return listMsg.value;
   }
 
   /// 获得当前设置的码率序号
   Future<int> getBitrateIndex() async {
     if (_isNeedDisposed) return -1;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getBitrateIndex");
+    IntMsg intMsg = await _vodPlayerApi.getBitrateIndex(PlayerMsg()..playerId = _playerId);
+    return intMsg.value ?? -1;
   }
 
   /// 设置码率序号
   Future<void> setBitrateIndex(int index) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setBitrateIndex", {"index": index});
+    await _vodPlayerApi.setBitrateIndex(IntPlayerMsg()
+      ..value = index
+      ..playerId = _playerId);
   }
 
   /// 设置视频播放开始时间，单位 秒
   Future<void> setStartTime(double startTime) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setStartTime", {"startTime": startTime});
+    await _vodPlayerApi.setStartTime(DoublePlayerMsg()
+      ..value = startTime
+      ..playerId = _playerId);
   }
 
   /// 设置视频声音 0~100
   Future<void> setAudioPlayoutVolume(int volume) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setAudioPlayoutVolume", {"volume": volume});
+    await _vodPlayerApi.setAudioPlayOutVolume(IntPlayerMsg()
+      ..value = volume
+      ..playerId = _playerId);
   }
 
   /// 请求获得音频焦点
   Future<bool> setRequestAudioFocus(bool focus) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    return await _channel.invokeMethod("setRequestAudioFocus", {"focus": focus});
+    BoolMsg boolMsg = await _vodPlayerApi.setRequestAudioFocus(BoolPlayerMsg()
+      ..value = focus
+      ..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 释放播放器资源占用
@@ -324,56 +354,64 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> setConfig(FTXVodPlayConfig config) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setConfig", {"config": config.toJson()});
+    await _vodPlayerApi.setConfig(config.toMsg()..playerId = _playerId);
   }
 
   /// 获得当前已经播放的时间，单位 秒
   Future<double> getCurrentPlaybackTime() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getCurrentPlaybackTime");
+    DoubleMsg doubleMsg = await _vodPlayerApi.getCurrentPlaybackTime(PlayerMsg()..playerId = _playerId);
+    return doubleMsg.value ?? 0;
   }
 
   /// 获得当前视频已缓存的时间
   Future<double> getBufferDuration() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getBufferDuration");
+    DoubleMsg doubleMsg = await _vodPlayerApi.getBufferDuration(PlayerMsg()..playerId = _playerId);
+    return doubleMsg.value ?? 0;
   }
 
   /// 获得当前视频的可播放时间
   Future<double> getPlayableDuration() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getPlayableDuration");
+    DoubleMsg doubleMsg = await _vodPlayerApi.getPlayableDuration(PlayerMsg()..playerId = _playerId);
+    return doubleMsg.value ?? 0;
   }
 
   /// 获得当前播放视频的宽度
   Future<int> getWidth() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getWidth");
+    IntMsg intMsg = await _vodPlayerApi.getWidth(PlayerMsg()..playerId = _playerId);
+    return intMsg.value ?? 0;
   }
 
   /// 获得当前播放视频的高度
   Future<int> getHeight() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getHeight");
+    IntMsg intMsg = await _vodPlayerApi.getHeight(PlayerMsg()..playerId = _playerId);
+    return intMsg.value ?? 0;
   }
 
   /// 设置播放视频的token
   Future<void> setToken(String? token) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("setToken", {"token": token ?? ""});
+    await _vodPlayerApi.setToken(StringPlayerMsg()
+      ..value = token
+      ..playerId = _playerId);
   }
 
   /// 当前播放的视频是否循环播放
   Future<bool> isLoop() async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    return await _channel.invokeMethod("isLoop");
+    BoolMsg boolMsg = await _vodPlayerApi.isLoop(PlayerMsg()..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 开启/关闭硬件编码
@@ -381,7 +419,10 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<bool> enableHardwareDecode(bool enable) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    return await _channel.invokeMethod("enableHardwareDecode", {"enable": enable});
+    BoolMsg boolMsg = await _vodPlayerApi.enableHardwareDecode(BoolPlayerMsg()
+      ..value = enable
+      ..playerId = _playerId);
+    return boolMsg.value ?? false;
   }
 
   /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
@@ -398,36 +439,38 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       String? forwardIconForAndroid}) async {
     if (_isNeedDisposed) return -1;
     await _initPlayer.future;
-    if (Platform.isAndroid) {
-      return await _channel.invokeMethod("enterPictureInPictureMode", {
-        "backIcon": backIconForAndroid,
-        "playIcon": playIconForAndroid,
-        "pauseIcon": pauseIconForAndroid,
-        "forwardIcon": forwardIconForAndroid
-      });
-    } else if (Platform.isIOS) {
-      return await _channel.invokeMethod("enterPictureInPictureMode");
-    } else {
-      return -1;
-    }
+    IntMsg intMsg = await _vodPlayerApi.enterPictureInPictureMode(PipParamsPlayerMsg()
+      ..backIconForAndroid = backIconForAndroid
+      ..playIconForAndroid = playIconForAndroid
+      ..pauseIconForAndroid = pauseIconForAndroid
+      ..forwardIconForAndroid = forwardIconForAndroid
+      ..playerId = _playerId);
+    return intMsg.value ?? -1;
   }
 
   Future<void> initImageSprite(String? vvtUrl, List<String>? imageUrls) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("initImageSprite", {"vvtUrl":vvtUrl, "imageUrls":imageUrls});
+    await _vodPlayerApi.initImageSprite(StringListPlayerMsg()
+      ..vvtUrl = vvtUrl
+      ..imageUrls = imageUrls
+      ..playerId = _playerId);
   }
 
   Future<Uint8List?> getImageSprite(double time) async {
     await _initPlayer.future;
-    return await _channel.invokeMethod("getImageSprite",{"time":time});
+    UInt8ListMsg int8listMsg = await _vodPlayerApi.getImageSprite(DoublePlayerMsg()
+      ..value = time
+      ..playerId = _playerId);
+    return int8listMsg.value;
   }
 
   /// 获取总时长
   Future<double> getDuration() async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
-    return await _channel.invokeMethod("getDuration");
+    DoubleMsg doubleMsg = await _vodPlayerApi.getDuration(PlayerMsg()..playerId = _playerId);
+    return doubleMsg.value ?? 0;
   }
 
   /// 退出画中画，如果该播放器处于画中画模式
@@ -435,7 +478,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> exitPictureInPictureMode() async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    return await _channel.invokeMethod("exitPictureInPictureMode");
+    await _vodPlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
   }
 
   /// 释放controller
@@ -458,9 +501,9 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
     super.dispose();
   }
-  
+
   @override
-  TXPlayerValue? playerValue () {
+  TXPlayerValue? playerValue() {
     return _value;
   }
 
@@ -479,5 +522,4 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   double? videoTop = 0;
   double? videoRight = 0;
   double? videoBottom = 0;
-
 }
