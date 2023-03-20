@@ -5,36 +5,35 @@ package com.tencent.vod.flutter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-
 import androidx.annotation.NonNull;
-
 import com.tencent.rtmp.downloader.ITXVodDownloadListener;
 import com.tencent.rtmp.downloader.ITXVodPreloadListener;
 import com.tencent.rtmp.downloader.TXVodDownloadDataSource;
 import com.tencent.rtmp.downloader.TXVodDownloadManager;
 import com.tencent.rtmp.downloader.TXVodDownloadMediaInfo;
 import com.tencent.rtmp.downloader.TXVodPreloadManager;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.MapMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.PreLoadMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.TXDownloadListMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterDownloadApi;
+import com.tencent.vod.flutter.messages.FtxMessages.TXVodDownloadMediaMsg;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 下载管理，预下载、离线下载
  */
-public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXVodDownloadListener {
+public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDownloadApi {
 
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
-    private final MethodChannel mMethodChannel;
     private final EventChannel mEventChannel;
     private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
-    private Handler mMainHandler;
+    private final Handler mMainHandler;
 
     /**
      * 视频下载管理
@@ -42,9 +41,8 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
     public FTXDownloadManager(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         mFlutterPluginBinding = flutterPluginBinding;
         mMainHandler = new Handler(mFlutterPluginBinding.getApplicationContext().getMainLooper());
-        mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(),
-                "cloud.tencent.com/txvodplayer/download/api");
-        mMethodChannel.setMethodCallHandler(this);
+
+        TXFlutterDownloadApi.setup(mFlutterPluginBinding.getBinaryMessenger(), this);
 
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
                 "cloud.tencent.com/txvodplayer/download/event");
@@ -60,110 +58,6 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
             }
         });
         TXVodDownloadManager.getInstance().setListener(this);
-    }
-
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        if (call.method.equals("startPreLoad")) {
-            String playUrl = call.argument("playUrl");
-            int preloadSizeMB = call.argument("preloadSizeMB");
-            int preferredResolution = call.argument("preferredResolution");
-            final TXVodPreloadManager downloadManager =
-                    TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
-            final int retTaskID = downloadManager.startPreload(playUrl, preloadSizeMB, preferredResolution,
-                    new ITXVodPreloadListener() {
-                        @Override
-                        public void onComplete(int taskID, String url) {
-                            onCompleteEvent(taskID, url);
-                        }
-
-                        @Override
-                        public void onError(int taskID, String url, int code, String msg) {
-                            onErrorEvent(taskID, url, code, msg);
-                        }
-                    });
-            result.success(retTaskID);
-        } else if (call.method.equals("stopPreLoad")) {
-            final TXVodPreloadManager downloadManager =
-                    TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
-            int taskId = call.argument("taskId");
-            downloadManager.stopPreload(taskId);
-            result.success(null);
-        } else if (call.method.equals("startDownload")) {
-            Integer quality = call.argument("quality");
-            String videoUrl = call.argument("url");
-            Integer appId = call.argument("appId");
-            String fileId = call.argument("fileId");
-            String pSign = call.argument("pSign");
-            String userName = call.argument("userName");
-            if (!TextUtils.isEmpty(videoUrl)) {
-                TXVodDownloadManager.getInstance().startDownloadUrl(videoUrl, userName);
-            } else if (null != appId && null != fileId) {
-                TXVodDownloadDataSource dataSource =
-                        new TXVodDownloadDataSource(appId, fileId, optQuality(quality), pSign, userName);
-                TXVodDownloadManager.getInstance().startDownload(dataSource);
-            }
-            result.success(null);
-        } else if (call.method.equals("stopDownload")) {
-            Integer quality = call.argument("quality");
-            String videoUrl = call.argument("url");
-            Integer appId = call.argument("appId");
-            String fileId = call.argument("fileId");
-            String userName = call.argument("userName");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
-            TXVodDownloadManager.getInstance().stopDownload(mediaInfo);
-            result.success(null);
-        } else if (call.method.equals("setDownloadHeaders")) {
-            Map<String, String> headers = call.argument("headers");
-            TXVodDownloadManager.getInstance().setHeaders(headers);
-            result.success(null);
-        } else if (call.method.equals("getDownloadList")) {
-            List<TXVodDownloadMediaInfo> medias = TXVodDownloadManager.getInstance().getDownloadMediaInfoList();
-            List<Map<String, Object>> mediaResults = new ArrayList<>();
-            for (TXVodDownloadMediaInfo mediaInfo : medias) {
-                mediaResults.add(buildMapFromDownloadMediaInfo(mediaInfo));
-            }
-            result.success(mediaResults);
-        } else if (call.method.equals("getDownloadInfo")) {
-            Integer quality = call.argument("quality");
-            String videoUrl = call.argument("url");
-            Integer appId = call.argument("appId");
-            String fileId = call.argument("fileId");
-            String userName = call.argument("userName");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
-            result.success(buildMapFromDownloadMediaInfo(mediaInfo));
-        } else if (call.method.equals("deleteDownloadMediaInfo")) {
-            Integer quality = call.argument("quality");
-            String videoUrl = call.argument("url");
-            Integer appId = call.argument("appId");
-            String fileId = call.argument("fileId");
-            String userName = call.argument("userName");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
-            boolean deleteResult = false;
-            if (mediaInfo != null) {
-                deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
-            }
-            result.success(deleteResult);
-        } else if (call.method.equals("resumeDownload")) {
-            Integer quality = call.argument("quality");
-            String videoUrl = call.argument("url");
-            Integer appId = call.argument("appId");
-            String fileId = call.argument("fileId");
-            String pSign = call.argument("pSign");
-            String userName = call.argument("userName");
-            TXVodDownloadMediaInfo mediaInfo = parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
-            boolean resumeResult = false;
-            if (null != mediaInfo) {
-                TXVodDownloadDataSource dataSource = mediaInfo.getDataSource();
-                if (dataSource != null) {
-                    TXVodDownloadManager.getInstance().startDownload(dataSource);
-                } else {
-                    TXVodDownloadManager.getInstance().startDownloadUrl(mediaInfo.getUrl(), mediaInfo.getUserName());
-                }
-                resumeResult = true;
-            }
-            result.success(resumeResult);
-        }
     }
 
     private void onCompleteEvent(int taskId, String url) {
@@ -193,35 +87,46 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
 
 
     public void destroy() {
-        mMethodChannel.setMethodCallHandler(null);
         mEventChannel.setStreamHandler(null);
         TXVodDownloadManager.getInstance().setListener(null);
     }
 
-    private Map<String, Object> buildMapFromDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) {
-        Map<String, Object> resultMap = new HashMap<>();
+    private TXVodDownloadMediaMsg buildMsgFromDownloadInfo(TXVodDownloadMediaInfo mediaInfo) {
+        TXVodDownloadMediaMsg msg = new TXVodDownloadMediaMsg();
         if (null != mediaInfo) {
-            resultMap.put("playPath", mediaInfo.getPlayPath());
-            resultMap.put("progress", mediaInfo.getProgress());
-            resultMap.put("downloadState", CommonUtil.getDownloadEventByState(mediaInfo.getDownloadState()));
-            resultMap.put("userName", mediaInfo.getUserName());
-            resultMap.put("duration", mediaInfo.getDuration());
-            resultMap.put("playableDuration", mediaInfo.getPlayableDuration());
-            resultMap.put("size", mediaInfo.getSize());
-            resultMap.put("downloadSize", mediaInfo.getDownloadSize());
+            msg.setPlayPath(mediaInfo.getPlayPath());
+            msg.setDownloadState((long) CommonUtil.getDownloadEventByState(mediaInfo.getDownloadState()));
+            msg.setUserName(mediaInfo.getUserName());
+            msg.setDuration((long) mediaInfo.getDuration());
+            msg.setPlayableDuration((long) mediaInfo.getPlayableDuration());
+            msg.setSize(mediaInfo.getSize());
+            msg.setDownloadSize(mediaInfo.getDownloadSize());
             if (!TextUtils.isEmpty(mediaInfo.getUrl())) {
-                resultMap.put("url", mediaInfo.getUrl());
+                msg.setUrl(mediaInfo.getUrl());
             }
-            if (mediaInfo.getDataSource() != null) {
+
+            BigDecimal progressDec = BigDecimal.valueOf(mediaInfo.getProgress());
+            msg.setProgress(progressDec.doubleValue());
+            if (null != mediaInfo.getDataSource()) {
                 TXVodDownloadDataSource dataSource = mediaInfo.getDataSource();
-                resultMap.put("appId", dataSource.getAppId());
-                resultMap.put("fileId", dataSource.getFileId());
-                resultMap.put("pSign", dataSource.getPSign());
-                resultMap.put("quality", dataSource.getQuality());
-                resultMap.put("token", dataSource.getToken());
+                msg.setAppId((long) dataSource.getAppId());
+                msg.setFileId(dataSource.getFileId());
+                msg.setPSign(dataSource.getPSign());
+                msg.setQuality((long) dataSource.getQuality());
+                msg.setToken(dataSource.getToken());
             }
         }
-        return resultMap;
+        return msg;
+    }
+
+    private TXVodDownloadMediaInfo getDownloadInfoFromMsg(TXVodDownloadMediaMsg msg) {
+        Integer quality = null != msg.getQuality() ? msg.getQuality().intValue() : 0;
+        String videoUrl = msg.getUrl();
+        Integer appId = null != msg.getAppId() ? msg.getAppId().intValue() : null;
+        String fileId = msg.getFileId();
+        String pSign = msg.getPSign();
+        String userName = msg.getUserName();
+        return parseMediaInfoFromInfo(quality, videoUrl, appId, fileId, userName);
     }
 
     private Bundle buildCommonDownloadBundle(TXVodDownloadMediaInfo mediaInfo) {
@@ -306,5 +211,113 @@ public class FTXDownloadManager implements MethodChannel.MethodCallHandler, ITXV
     @Override
     public int hlsKeyVerify(TXVodDownloadMediaInfo txVodDownloadMediaInfo, String s, byte[] bytes) {
         return 0;
+    }
+
+    @NonNull
+    @Override
+    public IntMsg startPreLoad(@NonNull PreLoadMsg msg) {
+        String playUrl = msg.getPlayUrl();
+        int preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().intValue() : 0;
+        long preferredResolution = msg.getPreferredResolution() != null ? msg.getPreferredResolution() : 0;
+        final TXVodPreloadManager downloadManager =
+                TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
+        final int retTaskID = downloadManager.startPreload(playUrl, preloadSizeMB, preferredResolution,
+                new ITXVodPreloadListener() {
+                    @Override
+                    public void onComplete(int taskID, String url) {
+                        onCompleteEvent(taskID, url);
+                    }
+
+                    @Override
+                    public void onError(int taskID, String url, int code, String msg) {
+                        onErrorEvent(taskID, url, code, msg);
+                    }
+                });
+        IntMsg res = new IntMsg();
+        res.setValue((long) retTaskID);
+        return res;
+    }
+
+    @Override
+    public void stopPreLoad(@NonNull IntMsg msg) {
+        if (null != msg.getValue()) {
+            final TXVodPreloadManager downloadManager =
+                    TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
+            downloadManager.stopPreload(msg.getValue().intValue());
+        }
+    }
+
+    @Override
+    public void startDownload(@NonNull TXVodDownloadMediaMsg msg) {
+        Integer quality = null != msg.getQuality() ? msg.getQuality().intValue() : 0;
+        String videoUrl = msg.getUrl();
+        Integer appId = null != msg.getAppId() ? msg.getAppId().intValue() : null;
+        String fileId = msg.getFileId();
+        String pSign = msg.getPSign();
+        String userName = msg.getUserName();
+        if (!TextUtils.isEmpty(videoUrl)) {
+            TXVodDownloadManager.getInstance().startDownloadUrl(videoUrl, userName);
+        } else if (null != appId && null != fileId) {
+            TXVodDownloadDataSource dataSource =
+                    new TXVodDownloadDataSource(appId, fileId, optQuality(quality), pSign, userName);
+            TXVodDownloadManager.getInstance().startDownload(dataSource);
+        }
+    }
+
+    @Override
+    public void resumeDownload(@NonNull TXVodDownloadMediaMsg msg) {
+        TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
+        if (null != mediaInfo) {
+            TXVodDownloadDataSource dataSource = mediaInfo.getDataSource();
+            if (dataSource != null) {
+                TXVodDownloadManager.getInstance().startDownload(dataSource);
+            } else {
+                TXVodDownloadManager.getInstance().startDownloadUrl(mediaInfo.getUrl(), mediaInfo.getUserName());
+            }
+        }
+    }
+
+    @Override
+    public void stopDownload(@NonNull TXVodDownloadMediaMsg msg) {
+        TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
+        TXVodDownloadManager.getInstance().stopDownload(mediaInfo);
+    }
+
+    @Override
+    public void setDownloadHeaders(@NonNull MapMsg headers) {
+        TXVodDownloadManager.getInstance().setHeaders(headers.getMap());
+    }
+
+    @NonNull
+    @Override
+    public TXDownloadListMsg getDownloadList() {
+        List<TXVodDownloadMediaInfo> medias = TXVodDownloadManager.getInstance().getDownloadMediaInfoList();
+        List<TXVodDownloadMediaMsg> mediaResults = new ArrayList<>();
+        for (TXVodDownloadMediaInfo mediaInfo : medias) {
+            mediaResults.add(buildMsgFromDownloadInfo(mediaInfo));
+        }
+        TXDownloadListMsg res = new TXDownloadListMsg();
+        res.setInfoList(mediaResults);
+        return res;
+    }
+
+    @NonNull
+    @Override
+    public TXVodDownloadMediaMsg getDownloadInfo(@NonNull TXVodDownloadMediaMsg msg) {
+        TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
+        return buildMsgFromDownloadInfo(mediaInfo);
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg deleteDownloadMediaInfo(@NonNull TXVodDownloadMediaMsg msg) {
+        TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
+        boolean deleteResult = false;
+        if (mediaInfo != null) {
+            deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
+        }
+        BoolMsg res = new BoolMsg();
+        res.setValue(deleteResult);
+        return res;
     }
 }

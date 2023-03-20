@@ -18,10 +18,7 @@ class TXPlayerValue {
     TXPlayerState? state,
     int? degree,
   }) {
-    return TXPlayerValue(
-      state: state ?? this.state,
-      degree: degree ?? this.degree
-    );
+    return TXPlayerValue(state: state ?? this.state, degree: degree ?? this.degree);
   }
 }
 
@@ -106,12 +103,12 @@ abstract class TXVodPlayEvent {
   static const EVENT_AUDIO_FOCUS_PLAY = 3; // 获得音量输出焦点 only for android
   static const EVENT_BRIGHTNESS_CHANGED = 4; // 亮度发生变化
   /// pip event
-  static const    EVENT_PIP_MODE_ALREADY_ENTER    = 1; // 已经进入画中画模式
-  static const    EVENT_PIP_MODE_ALREADY_EXIT     = 2; // 已经退出画中画模式
-  static const    EVENT_PIP_MODE_REQUEST_START    = 3; // 开始请求进入画中画模式
-  static const    EVENT_PIP_MODE_UI_STATE_CHANGED = 4; // pip UI状态发生变动，only support android > 31
-  static const    EVENT_IOS_PIP_MODE_RESTORE_UI   = 5; // 重置UI only support iOS
-  static const    EVENT_IOS_PIP_MODE_WILL_EXIT    = 6; // 将要退出画中画 only support iOS
+  static const EVENT_PIP_MODE_ALREADY_ENTER = 1; // 已经进入画中画模式
+  static const EVENT_PIP_MODE_ALREADY_EXIT = 2; // 已经退出画中画模式
+  static const EVENT_PIP_MODE_REQUEST_START = 3; // 开始请求进入画中画模式
+  static const EVENT_PIP_MODE_UI_STATE_CHANGED = 4; // pip UI状态发生变动，only support android > 31
+  static const EVENT_IOS_PIP_MODE_RESTORE_UI = 5; // 重置UI only support iOS
+  static const EVENT_IOS_PIP_MODE_WILL_EXIT = 6; // 将要退出画中画 only support iOS
 
   static const EVENT_ORIENTATION_CHANGED = 401; // 屏幕发生旋转
   static const EXTRA_NAME_ORIENTATION = "orientation"; // 屏幕旋转方向
@@ -121,28 +118,28 @@ abstract class TXVodPlayEvent {
   static const ORIENTATION_LANDSCAPE_LEFT = 414; // 横屏，顶部在右，底部在左
 
   static const NO_ERROR = 0;
-  static const ERROR_PIP_LOWER_VERSION            = -101; // pip 错误，android版本过低
-  static const ERROR_PIP_DENIED_PERMISSION        = -102; // pip 错误，画中画权限关闭/设备不支持画中画
-  static const ERROR_PIP_ACTIVITY_DESTROYED       = -103; // pip 错误，当前界面已销毁
-  static const ERROR_IOS_PIP_DEVICE_NOT_SUPPORT   = -104; // pip 错误，设备或系统版本不支持（iPad iOS9+ 才支持PIP）
-  static const ERROR_IOS_PIP_PLAYER_NOT_SUPPORT   = -105; // pip 错误，播放器不支持 only support iOS
-  static const ERROR_IOS_PIP_VIDEO_NOT_SUPPORT    = -106; // pip 错误，视频不支持 only support iOS
-  static const ERROR_IOS_PIP_IS_NOT_POSSIBLE      = -107; // pip 错误，PIP控制器不可用 only support iOS
-  static const ERROR_IOS_PIP_FROM_SYSTEM          = -108; // pip 错误，PIP控制器报错 only support iOS
-  static const ERROR_IOS_PIP_PLAYER_NOT_EXIST     = -109; // pip 错误，播放器对象不存在 only support iOS
-  static const ERROR_IOS_PIP_IS_RUNNING           = -110; // pip 错误，PIP功能已经运行 only support iOS
-  static const ERROR_IOS_PIP_NOT_RUNNING          = -111; // pip 错误，PIP功能没有启动 only support iOS
-  static const ERROR_PIP_CAN_NOT_ENTER            = -120; // pip 错误，当前不能进入pip模式，例如正处于全屏模式下
+  static const ERROR_PIP_LOWER_VERSION = -101; // pip 错误，android版本过低
+  static const ERROR_PIP_DENIED_PERMISSION = -102; // pip 错误，画中画权限关闭/设备不支持画中画
+  static const ERROR_PIP_ACTIVITY_DESTROYED = -103; // pip 错误，当前界面已销毁
+  static const ERROR_IOS_PIP_DEVICE_NOT_SUPPORT = -104; // pip 错误，设备或系统版本不支持（iPad iOS9+ 才支持PIP）
+  static const ERROR_IOS_PIP_PLAYER_NOT_SUPPORT = -105; // pip 错误，播放器不支持 only support iOS
+  static const ERROR_IOS_PIP_VIDEO_NOT_SUPPORT = -106; // pip 错误，视频不支持 only support iOS
+  static const ERROR_IOS_PIP_IS_NOT_POSSIBLE = -107; // pip 错误，PIP控制器不可用 only support iOS
+  static const ERROR_IOS_PIP_FROM_SYSTEM = -108; // pip 错误，PIP控制器报错 only support iOS
+  static const ERROR_IOS_PIP_PLAYER_NOT_EXIST = -109; // pip 错误，播放器对象不存在 only support iOS
+  static const ERROR_IOS_PIP_IS_RUNNING = -110; // pip 错误，PIP功能已经运行 only support iOS
+  static const ERROR_IOS_PIP_NOT_RUNNING = -111; // pip 错误，PIP功能没有启动 only support iOS
+  static const ERROR_PIP_CAN_NOT_ENTER = -120; // pip 错误，当前不能进入pip模式，例如正处于全屏模式下
 
   /// 视频下载相关事件
-  static const EVENT_PREDOWNLOAD_ON_COMPLETE = 200;  // 视频预下载完成
-  static const EVENT_PREDOWNLOAD_ON_ERROR = 201;  // 视频预下载出错
+  static const EVENT_PREDOWNLOAD_ON_COMPLETE = 200; // 视频预下载完成
+  static const EVENT_PREDOWNLOAD_ON_ERROR = 201; // 视频预下载出错
 
-  static const EVENT_DOWNLOAD_START    = 301; // 视频下载开始
+  static const EVENT_DOWNLOAD_START = 301; // 视频下载开始
   static const EVENT_DOWNLOAD_PROGRESS = 302; // 视频下载进度
-  static const EVENT_DOWNLOAD_STOP     = 303; // 视频下载停止
-  static const EVENT_DOWNLOAD_FINISH   = 304; // 视频下载完成
-  static const EVENT_DOWNLOAD_ERROR    = 305; // 视频下载错误
+  static const EVENT_DOWNLOAD_STOP = 303; // 视频下载停止
+  static const EVENT_DOWNLOAD_FINISH = 304; // 视频下载完成
+  static const EVENT_DOWNLOAD_ERROR = 305; // 视频下载错误
 }
 
 abstract class TXVodNetEvent {
@@ -247,19 +244,23 @@ class TXPlayInfoParams {
   }
 }
 
-
 /// fileId存储
 class TXVodDownloadDataSource {
   /// 下载文件对应的appId，fileId下载必填
   int? appId;
+
   /// 下载文件Id，fileId下载必填
   String? fileId;
+
   /// 加密签名，加密视频必填
   String? pSign;
+
   /// 清晰度ID,fileId下载必传，通过[CommonUtils.getDownloadQualityBySize]进行转换
   int? quality;
+
   /// 加密token
   String? token;
+
   /// 账户名称,用于url下载设置账户名称
   String? userName;
 
@@ -279,31 +280,40 @@ class TXVodDownloadDataSource {
 class TXVodDownloadMediaInfo {
   /// 缓存地址
   String? playPath;
+
   /// 下载进度
   double? progress;
+
   /// 下载状态
   int? downloadState;
+
   /// 账户名称,用于url下载设置账户名称
   String? userName;
+
   /// 总时长
   int? duration;
+
   /// 已下载的可播放时长
   int? playableDuration;
+
   /// 文件总大小，单位：byte
   int? size;
+
   /// 已下载大小，单位：byte
   int? downloadSize;
+
   /// 需要下载的视频url，url下载必填
   /// <h1>
   /// url下载不支持嵌套m3u8和mp4下载
   /// </h1>
   String? url;
+
   /// fileId 存储
   TXVodDownloadDataSource? dataSource;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
-    if(null != dataSource) {
+    if (null != dataSource) {
       json.addAll(dataSource!.toJson());
     }
     json["url"] = url;
@@ -316,6 +326,28 @@ class TXVodDownloadMediaInfo {
     json["size"] = size;
     json["downloadSize"] = downloadSize;
     return json;
+  }
+
+  TXVodDownloadMediaMsg toMsg() {
+    TXVodDownloadMediaMsg msg = TXVodDownloadMediaMsg();
+    if (null != dataSource) {
+      msg.appId = dataSource!.appId;
+      msg.fileId = dataSource!.fileId;
+      msg.pSign = dataSource!.pSign;
+      msg.quality = dataSource!.quality;
+      msg.token = dataSource!.token;
+      msg.userName = dataSource!.userName;
+    }
+    msg.url = url;
+    msg.downloadState = downloadState;
+    msg.progress = progress;
+    msg.playPath = playPath;
+    msg.userName = userName;
+    msg.duration = duration;
+    msg.playableDuration = playableDuration;
+    msg.size = size;
+    msg.downloadSize = downloadSize;
+    return msg;
   }
 }
 
@@ -332,5 +364,4 @@ typedef FTXPredownlodOnCompleteListener = void Function(int taskId, String url);
 typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int code, String msg);
 // 视频下载时间回调Listener
 typedef FTXDownlodOnStateChangeListener = void Function(int event, TXVodDownloadMediaInfo info);
-typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg,TXVodDownloadMediaInfo info);
-
+typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg, TXVodDownloadMediaInfo info);

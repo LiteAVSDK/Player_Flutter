@@ -11,10 +11,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  pigeon: ^9.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  pigeon: ^9.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

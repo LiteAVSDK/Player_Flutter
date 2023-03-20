@@ -1,6 +1,8 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
+final TXFlutterDownloadApi _api = TXFlutterDownloadApi();
+
 /// include features:
 /// 1. Video predownlaod
 /// 2. Video download
@@ -14,7 +16,6 @@ class TXVodDownloadController {
   final StreamController<Map<dynamic, dynamic>> _downloadEventStreamController = StreamController.broadcast();
 
   Stream<Map<dynamic, dynamic>> get onDownloadEventBroadcast => _downloadEventStreamController.stream;
-  late MethodChannel _methodChannel;
 
   FTXPredownlodOnCompleteListener? _onPreDownloadOnCompleteListener;
   FTXPredownlodOnErrorListener? _onPreDownloadOnErrorListener;
@@ -33,7 +34,6 @@ class TXVodDownloadController {
     EventChannel eventChannel = EventChannel("cloud.tencent.com/txvodplayer/download/event");
     _downloadEventSubscription =
         eventChannel.receiveBroadcastStream('event').listen(_eventHandler, onError: _errorHandler);
-    _methodChannel = MethodChannel("cloud.tencent.com/txvodplayer/download/api");
   }
 
   /// 启动预下载。
@@ -53,48 +53,54 @@ class TXVodDownloadController {
   }) async {
     _onPreDownloadOnCompleteListener = onCompleteListener;
     _onPreDownloadOnErrorListener = onErrorListener;
-    var map = {"playUrl": playUrl, "preloadSizeMB": preloadSizeMB, "preferredResolution": preferredResolution};
-    return await _methodChannel.invokeMethod("startPreLoad", map);
+    IntMsg msg = await _api.startPreLoad(PreLoadMsg()
+      ..playUrl = playUrl
+      ..preloadSizeMB = preloadSizeMB
+      ..preferredResolution = preferredResolution);
+    return msg.value ?? -1;
   }
 
   /// 停止预下载。
   /// taskId： 任务id,[startPreLoad]返回值
   Future<void> stopPreLoad(final int taskId) async {
-    var map = {"taskId": taskId};
-    await _methodChannel.invokeMethod("stopPreLoad", map);
+    await _api.stopPreLoad(IntMsg()..value = taskId);
   }
 
   /// 开始下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
   Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async {
-    await _methodChannel.invokeMethod("startDownload", mediaInfo.toJson());
+    await _api.startDownload(mediaInfo.toMsg());
   }
 
   /// 继续下载，与开始下载接口有区别，该接口会寻找对应的缓存，复用之前的缓存来续点下载，
   /// 而开始下载接口会启动一个全新的下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
   Future<void> resumeDownload(TXVodDownloadMediaInfo mediaInfo) async {
-    await _methodChannel.invokeMethod("resumeDownload", mediaInfo.toJson());
+    await _api.resumeDownload(mediaInfo.toMsg());
   }
 
   /// 停止下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
   Future<void> stopDownload(TXVodDownloadMediaInfo mediaInfo) async {
-    await _methodChannel.invokeMethod("stopDownload", mediaInfo.toJson());
+    await _api.stopDownload(mediaInfo.toMsg());
   }
 
   /// 设置下载请求头
   Future<void> setDownloadHeaders(Map<String, String> headers) async {
-    await _methodChannel.invokeMethod("setDownloadHeaders", {"headers": headers});
+    await _api.setDownloadHeaders(new MapMsg()..map = headers);
   }
 
   /// 获取所有视频下载列表
   /// return [TXVodDownloadMediaInfo]
   Future<List<TXVodDownloadMediaInfo>> getDownloadList() async {
+    TXDownloadListMsg listMsg = await _api.getDownloadList();
     List<TXVodDownloadMediaInfo> outputList = [];
-    List<dynamic> donwloadOrgList = await _methodChannel.invokeMethod("getDownloadList");
-    for (dynamic data in donwloadOrgList) {
-      outputList.add(_getDownloadInfoFromMap(data));
+    if (null != listMsg.infoList) {
+      for (TXVodDownloadMediaMsg? msg in listMsg.infoList!) {
+        if (null != msg) {
+          outputList.add(_getDownloadInfoFromMsg(msg));
+        }
+      }
     }
     return outputList;
   }
@@ -102,20 +108,21 @@ class TXVodDownloadController {
   /// 获得指定视频的下载信息
   /// return [TXVodDownloadMediaInfo]
   Future<TXVodDownloadMediaInfo> getDownloadInfo(TXVodDownloadMediaInfo mediaInfo) async {
-    Map<dynamic, dynamic> data = await _methodChannel.invokeMethod("getDownloadInfo", mediaInfo.toJson());
-    return _getDownloadInfoFromMap(data);
+    TXVodDownloadMediaMsg msg = await _api.getDownloadInfo(mediaInfo.toMsg());
+    return _getDownloadInfoFromMsg(msg);
   }
 
   /// 设置下载事件监听，该监听为全局下载监听配置，重复调用
-  void setDownloadObserver(
-      FTXDownlodOnStateChangeListener? downlodOnStateChangeListener, FTXDownlodOnErrorListener? downlodOnErrorListener) {
+  void setDownloadObserver(FTXDownlodOnStateChangeListener? downlodOnStateChangeListener,
+      FTXDownlodOnErrorListener? downlodOnErrorListener) {
     _downlodOnStateChangeListener = downlodOnStateChangeListener;
     _downlodOnErrorListener = downlodOnErrorListener;
   }
 
   /// 删除下载任务
   Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async {
-    return await _methodChannel.invokeMethod("deleteDownloadMediaInfo", mediaInfo.toJson());
+    BoolMsg msg = await _api.deleteDownloadMediaInfo(mediaInfo.toMsg());
+    return msg.value ?? false;
   }
 
   TXVodDownloadMediaInfo _getDownloadInfoFromMap(Map<dynamic, dynamic> map) {
@@ -129,7 +136,7 @@ class TXVodDownloadController {
     medialnfo.size = map["size"];
     medialnfo.downloadSize = map["downloadSize"];
     medialnfo.url = map["url"];
-    if(map.keys.contains("appId")) {
+    if (map.keys.contains("appId")) {
       TXVodDownloadDataSource dataSource = TXVodDownloadDataSource();
       dataSource.appId = map["appId"];
       dataSource.fileId = map["fileId"];
@@ -140,6 +147,30 @@ class TXVodDownloadController {
       medialnfo.dataSource = dataSource;
     }
     return medialnfo;
+  }
+
+  TXVodDownloadMediaInfo _getDownloadInfoFromMsg(TXVodDownloadMediaMsg msg) {
+    TXVodDownloadMediaInfo mediaInfo = TXVodDownloadMediaInfo();
+    mediaInfo.playPath = msg.playPath;
+    mediaInfo.progress = msg.progress;
+    mediaInfo.downloadState = msg.downloadState;
+    mediaInfo.userName = msg.userName;
+    mediaInfo.duration = msg.duration;
+    mediaInfo.playableDuration = msg.playableDuration;
+    mediaInfo.size = msg.size;
+    mediaInfo.downloadSize = msg.downloadSize;
+    mediaInfo.url = msg.url;
+    if (null != msg.appId) {
+      TXVodDownloadDataSource dataSource = TXVodDownloadDataSource();
+      dataSource.appId = msg.appId;
+      dataSource.fileId = msg.fileId;
+      dataSource.pSign = msg.pSign;
+      dataSource.token = msg.token;
+      dataSource.userName = msg.userName;
+      dataSource.quality = msg.quality;
+      mediaInfo.dataSource = dataSource;
+    }
+    return mediaInfo;
   }
 
   _eventHandler(event) {

@@ -7,6 +7,8 @@ import android.text.TextUtils;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXVodPlayConfig;
 
+import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.FTXVodPlayConfigPlayerMsg;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +16,62 @@ import java.util.Map;
  * 对象转化
  */
 public class FTXTransformation {
+
+    /**
+     * 将msg转换为config
+     */
+    public static TXVodPlayConfig transformToVodConfig(FTXVodPlayConfigPlayerMsg configPlayerMsg) {
+        TXVodPlayConfig playConfig = new TXVodPlayConfig();
+        if (null != configPlayerMsg.getConnectRetryCount()) {
+            playConfig.setConnectRetryCount(configPlayerMsg.getConnectRetryCount().intValue());
+        }
+        if (null != configPlayerMsg.getProgressInterval()) {
+            playConfig.setConnectRetryInterval(configPlayerMsg.getProgressInterval().intValue());
+        }
+        if (null != configPlayerMsg.getTimeout()) {
+            playConfig.setTimeout(configPlayerMsg.getTimeout().intValue());
+        }
+        if (null != configPlayerMsg.getPlayerType()) {
+            playConfig.setPlayerType(configPlayerMsg.getPlayerType().intValue());
+        }
+        playConfig.setHeaders(configPlayerMsg.getHeaders());
+        if (null != configPlayerMsg.getEnableAccurateSeek()) {
+            playConfig.setEnableAccurateSeek(configPlayerMsg.getEnableAccurateSeek());
+        }
+        if (null != configPlayerMsg.getAutoRotate()) {
+            playConfig.setAutoRotate(configPlayerMsg.getAutoRotate());
+        }
+        if (null != configPlayerMsg.getSmoothSwitchBitrate()) {
+            playConfig.setSmoothSwitchBitrate(configPlayerMsg.getSmoothSwitchBitrate());
+        }
+        playConfig.setCacheMp4ExtName(configPlayerMsg.getCacheMp4ExtName());
+        if (null != configPlayerMsg.getProgressInterval()) {
+            playConfig.setProgressInterval(configPlayerMsg.getProgressInterval().intValue());
+        }
+        if (null != configPlayerMsg.getMaxBufferSize()) {
+            playConfig.setMaxBufferSize(configPlayerMsg.getMaxBufferSize().intValue());
+        }
+        if (null != configPlayerMsg.getMaxPreloadSize()) {
+            playConfig.setMaxPreloadSize(configPlayerMsg.getMaxPreloadSize().intValue());
+        }
+        if (null != configPlayerMsg.getFirstStartPlayBufferTime()) {
+            playConfig.setFirstStartPlayBufferTime(configPlayerMsg.getFirstStartPlayBufferTime().intValue());
+        }
+        if (null != configPlayerMsg.getNextStartPlayBufferTime()) {
+            playConfig.setNextStartPlayBufferTime(configPlayerMsg.getNextStartPlayBufferTime().intValue());
+        }
+        playConfig.setOverlayKey(configPlayerMsg.getOverlayKey());
+        playConfig.setOverlayIv(configPlayerMsg.getOverlayIv());
+        playConfig.setExtInfo(configPlayerMsg.getExtInfoMap());
+        if (null != configPlayerMsg.getEnableRenderProcess()) {
+            playConfig.setEnableRenderProcess(configPlayerMsg.getEnableRenderProcess());
+        }
+        if (null != configPlayerMsg.getPreferredResolution()) {
+            playConfig.setPreferredResolution(configPlayerMsg.getPreferredResolution());
+        }
+
+        return playConfig;
+    }
 
     /**
      * 将map转换为config
@@ -103,6 +161,45 @@ public class FTXTransformation {
         }
 
         return playConfig;
+    }
+
+    /**
+     * msg转config
+     */
+    public static TXLivePlayConfig transformToLiveConfig(FTXLivePlayConfigPlayerMsg config) {
+        TXLivePlayConfig livePlayConfig = new TXLivePlayConfig();
+        if (null != config.getCacheTime()) {
+            livePlayConfig.setCacheTime(config.getCacheTime().floatValue());
+        }
+        if (null != config.getMaxAutoAdjustCacheTime()) {
+            livePlayConfig.setMaxAutoAdjustCacheTime(config.getMaxAutoAdjustCacheTime().floatValue());
+        }
+        if (null != config.getMinAutoAdjustCacheTime()) {
+            livePlayConfig.setMinAutoAdjustCacheTime(config.getMinAutoAdjustCacheTime().floatValue());
+        }
+        if (null != config.getVideoBlockThreshold()) {
+            livePlayConfig.setVideoBlockThreshold(config.getVideoBlockThreshold().intValue());
+        }
+        if (null != config.getConnectRetryCount()) {
+            livePlayConfig.setConnectRetryCount(config.getConnectRetryCount().intValue());
+        }
+        if (null != config.getConnectRetryInterval()) {
+            livePlayConfig.setConnectRetryInterval(config.getConnectRetryInterval().intValue());
+        }
+        if (null != config.getAutoAdjustCacheTime()) {
+            livePlayConfig.setAutoAdjustCacheTime(config.getAutoAdjustCacheTime());
+        }
+        if (null != config.getEnableAec()) {
+            livePlayConfig.setEnableAEC(config.getEnableAec());
+        }
+        if (null != config.getEnableMessage()) {
+            livePlayConfig.setEnableMessage(config.getEnableMessage());
+        }
+        if (null != config.getEnableMetaData()) {
+            livePlayConfig.setEnableMetaData(config.getEnableMetaData());
+        }
+        livePlayConfig.setFlvSessionKey(config.getFlvSessionKey());
+        return livePlayConfig;
     }
 
     /**
