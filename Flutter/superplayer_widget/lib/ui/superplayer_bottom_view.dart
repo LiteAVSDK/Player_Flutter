@@ -117,7 +117,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
       child: InkWell(
           onTap: onTapQualityView,
           child: Container(
-            padding: const EdgeInsets.only(left: 5),
+            padding: const EdgeInsets.only(left: 5, right: 10),
             child: _currentQuality != null
                 ? Text(
                     VideoQualityUtils.transformToQualityName(_currentQuality!.title),

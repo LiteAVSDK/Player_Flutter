@@ -8,13 +8,13 @@
 #import <TXLiteAVSDK_Player/TXVodDownloadManager.h>
 #import "FTXEvent.h"
 #import "CommonUtil.h"
+#import "FtxMessages.h"
 
-@interface FTXDownloadManager ()<FlutterStreamHandler, TXVodPreloadManagerDelegate, TXVodDownloadDelegate>
+@interface FTXDownloadManager ()<FlutterStreamHandler, TXVodPreloadManagerDelegate, TXVodDownloadDelegate, TXFlutterDownloadApi>
     
 @end
 
 @implementation FTXDownloadManager {
-    FlutterMethodChannel *_methodChannel;
     FlutterEventChannel *_eventChannel;
     FTXPlayerEventSinkQueue *_eventSink;
 }
@@ -22,11 +22,7 @@
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
 {
     if (self = [self init]) {
-        __weak typeof(self) weakSelf = self;
-        _methodChannel = [FlutterMethodChannel methodChannelWithName:@"cloud.tencent.com/txvodplayer/download/api" binaryMessenger:[registrar messenger]];
-        [_methodChannel setMethodCallHandler:^(FlutterMethodCall * _Nonnull call, FlutterResult  _Nonnull result) {
-            [weakSelf handleMethodCall:call result:result];
-        }];
+        TXFlutterDownloadApiSetup([registrar messenger], self);
         
         _eventSink = [FTXPlayerEventSinkQueue new];
         _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/txvodplayer/download/event" binaryMessenger:[registrar messenger]];
@@ -42,112 +38,12 @@
 
 - (void)destroy
 {
-    [_methodChannel setMethodCallHandler:nil];
-    _methodChannel = nil;
-    
     [_eventChannel setStreamHandler:nil];
     _eventChannel = nil;
     
     [_eventSink setDelegate:nil];
     _eventSink = nil;
 }
-
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSDictionary *args = call.arguments;
-    if([@"startPreLoad" isEqualToString:call.method]) {
-        NSString *playUrl = args[@"playUrl"];
-        int preloadSizeMB = [args[@"preloadSizeMB"] intValue];
-        int preferredResolution = [args[@"preferredResolution"] intValue];
-        int taskID = [[TXVodPreloadManager sharedManager] startPreload:playUrl
-                                                           preloadSize:preloadSizeMB
-                                                   preferredResolution:preferredResolution
-                                                              delegate:self];
-        result(@(taskID));
-    } else if([@"stopPreLoad" isEqualToString:call.method]) {
-        int taskId = [args[@"taskId"] intValue];
-        [[TXVodPreloadManager sharedManager] stopPreload:taskId];
-        result(nil);
-    } else if([@"startDownload" isEqualToString:call.method]) {
-        NSNumber *quality = args[@"quality"];
-        NSString *videoUrl = args[@"url"];
-        NSNumber *appIdNum = args[@"appId"];
-        NSString *fileId = args[@"fileId"];
-        NSString *pSign = args[@"pSign"];
-        NSString *userName = args[@"userName"];
-        if([NSNull null] != (NSNull *)videoUrl) {
-            [[TXVodDownloadManager shareInstance] startDownload:userName url:videoUrl];
-        } else if([NSNull null] != (NSNull *)appIdNum && [NSNull null] != (NSNull *)fileId) {
-            TXVodDownloadDataSource *dataSource = [[TXVodDownloadDataSource alloc] init];
-            dataSource.appId = [appIdNum intValue];
-            dataSource.fileId = fileId;
-            dataSource.userName = userName;
-            dataSource.quality = [self optQuality:quality];
-            if([NSNull null] != (NSNull *)pSign) {
-                dataSource.pSign = pSign;
-            }
-            [[TXVodDownloadManager shareInstance] startDownload:dataSource];
-        }
-        result(nil);
-    } else if([@"stopDownload" isEqualToString:call.method]) {
-        NSNumber *quality = args[@"quality"];
-        NSString *videoUrl = args[@"url"];
-        NSNumber *appIdNum = args[@"appId"];
-        NSString *fileId = args[@"fileId"];
-        NSString *userName = args[@"userName"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
-        [[TXVodDownloadManager shareInstance] stopDownload:mediaInfo];
-        result(nil);
-    } else if([@"setDownloadHeaders" isEqualToString:call.method]) {
-        [[TXVodDownloadManager shareInstance] setHeaders:args];
-        result(nil);
-    } else if([@"getDownloadList" isEqualToString:call.method]) {
-        NSArray<TXVodDownloadMediaInfo *> *mediaInfoList = [[TXVodDownloadManager shareInstance] getDownloadMediaInfoList];
-        NSMutableArray<NSDictionary *> *resultDicArray = [[NSMutableArray alloc] init];
-        for (int i = 0; i < mediaInfoList.count; i++) {
-            [resultDicArray addObject:[self buildMapFromDownloadMediaInfo:mediaInfoList[i]]];
-        }
-        result(resultDicArray);
-    } else if([@"getDownloadInfo" isEqualToString:call.method]) {
-        NSNumber *quality = args[@"quality"];
-        NSString *videoUrl = args[@"url"];
-        NSNumber *appIdNum = args[@"appId"];
-        NSString *fileId = args[@"fileId"];
-        NSString *userName = args[@"userName"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
-        NSDictionary *resultDic = [self buildMapFromDownloadMediaInfo:mediaInfo];
-        result(resultDic);
-    } else if([@"deleteDownloadMediaInfo" isEqualToString:call.method]) {
-        NSNumber *quality = args[@"quality"];
-        NSString *videoUrl = args[@"url"];
-        NSNumber *appIdNum = args[@"appId"];
-        NSString *fileId = args[@"fileId"];
-        NSString *userName = args[@"userName"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
-        BOOL deleteResult = [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
-        result(@(deleteResult));
-    } else if([@"resumeDownload" isEqualToString:call.method]) {
-        NSNumber *quality = args[@"quality"];
-        NSString *videoUrl = args[@"url"];
-        NSNumber *appIdNum = args[@"appId"];
-        NSString *fileId = args[@"fileId"];
-        NSString *pSign = args[@"pSign"];
-        NSString *userName = args[@"userName"];
-        TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:quality url:videoUrl appId:appIdNum fileId:fileId name:userName];
-        BOOL deleteResult = NO;
-        if (nil != mediaInfo) {
-            TXVodDownloadDataSource *dataSource = mediaInfo.dataSource;
-            if (nil != dataSource) {
-                [[TXVodDownloadManager shareInstance] startDownload:dataSource];
-            } else {
-                [[TXVodDownloadManager shareInstance] startDownload:mediaInfo.userName url:mediaInfo.url];
-            }
-            deleteResult = YES;
-        }
-        result(@(deleteResult));
-    }
-    
-}
-
 
 #pragma mark - FlutterStreamHandler
 
@@ -208,7 +104,7 @@
 
 
 - (int)optQuality:(NSNumber *)quality {
-     return ([NSNull null] == (NSNull *)quality || nil == quality) ? TXVodQualityFLU : [quality intValue];
+     return nil == quality ? TXVodQualityFLU : [quality intValue];
  }
 
 - (TXVodDownloadMediaInfo *)parseMediaInfoFromInfo:(NSNumber *)quality url:(NSString *)videoUrl appId:(NSNumber *)pAppId fileId:(NSString *)pFileId name:(NSString*)name {
@@ -216,7 +112,7 @@
     if(name == nil) {
         name = @"default";
     }
-    if([NSNull null] != (NSNull *)pFileId && [NSNull null] != (NSNull *)pAppId) {
+    if(nil != pFileId && nil != pAppId) {
         TXVodDownloadMediaInfo *fileIdInfo = [[TXVodDownloadMediaInfo alloc] init];
         TXVodDownloadDataSource *dataSource = [[TXVodDownloadDataSource alloc] init];
         dataSource.appId = [pAppId intValue];
@@ -225,7 +121,7 @@
         dataSource.userName = name;
         fileIdInfo.dataSource = dataSource;
         mediaInfo = [[TXVodDownloadManager shareInstance] getDownloadMediaInfo:fileIdInfo];
-    } else if(nil != videoUrl && [NSNull null] != (NSNull *)videoUrl) {
+    } else if(nil != videoUrl) {
         TXVodDownloadMediaInfo *urlInfo = [[TXVodDownloadMediaInfo alloc] init];
         urlInfo.url = videoUrl;
         urlInfo.userName = name;
@@ -236,7 +132,7 @@
 
 - (NSMutableDictionary *)buildMapFromDownloadMediaInfo:(TXVodDownloadMediaInfo *)info{
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-    if(nil != info && [NSNull null] != (NSNull *)info) {
+    if(nil != info) {
         [dict setValue:info.playPath forKey:@"playPath"];
         [dict setValue:@(info.progress) forKey:@"progress"];
         [dict setValue:[CommonUtil getDownloadEventByState:(int)info.downloadState] forKey:@"downloadState"];
@@ -245,10 +141,10 @@
         [dict setValue:@(info.playableDuration) forKey:@"playableDuration"];
         [dict setValue:@(info.size) forKey:@"size"];
         [dict setValue:@(info.downloadSize) forKey:@"downloadSize"];
-        if([NSNull null] != (NSNull *)info.url && info.url.length > 0) {
+        if(nil != info.url && info.url.length > 0) {
             [dict setValue:info.url forKey:@"url"];
         }
-        if(nil != info.dataSource && [NSNull null] != (NSNull *)info.dataSource) {
+        if(nil != info.dataSource) {
             TXVodDownloadDataSource *dataSource = info.dataSource;
             [dict setValue:@(dataSource.appId) forKey:@"appId"];
             [dict setValue:dataSource.fileId forKey:@"fileId"];
@@ -258,6 +154,32 @@
         }
     }
     return dict;
+}
+
+- (TXVodDownloadMediaMsg *)buildMsgFromDownloadInfo:(TXVodDownloadMediaInfo *)info{
+    TXVodDownloadMediaMsg *msg = [[TXVodDownloadMediaMsg alloc] init];
+    if(nil != info) {
+        msg.playPath = info.playPath;
+        msg.progress = @(info.progress);
+        msg.downloadState = [CommonUtil getDownloadEventByState:(int)info.downloadState];
+        msg.userName = info.userName;
+        msg.duration = @(info.duration);
+        msg.playableDuration = @(info.playableDuration);
+        msg.size = @(info.size);
+        msg.downloadSize = @(info.downloadSize);
+        if(nil != info.url && info.url.length > 0) {
+            msg.url = info.url;
+        }
+        if(nil != info.dataSource) {
+            TXVodDownloadDataSource *dataSource = info.dataSource;
+            msg.appId = @(dataSource.appId);
+            msg.fileId = dataSource.fileId;
+            msg.pSign = dataSource.pSign;
+            msg.quality = @(dataSource.quality);
+            msg.token = dataSource.token;
+        }
+    }
+    return msg;
 }
 
 /// 下载开始
@@ -297,6 +219,79 @@
  */
 - (int)hlsKeyVerify:(TXVodDownloadMediaInfo *)mediaInfo url:(NSString *)url data:(NSData *)data {
     return 0;
+}
+
+#pragma mark TXFlutterDownloadApi
+
+- (nullable BoolMsg *)deleteDownloadMediaInfoMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:msg.quality url:msg.url appId:msg.appId fileId:msg.fileId name:msg.userName];
+    BOOL deleteResult = [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
+    return [CommonUtil boolMsgWith:deleteResult];
+}
+
+- (nullable TXVodDownloadMediaMsg *)getDownloadInfoMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:msg.quality url:msg.url appId:msg.appId fileId:msg.fileId name:msg.userName];
+    return [self buildMsgFromDownloadInfo:mediaInfo];
+}
+
+- (nullable TXDownloadListMsg *)getDownloadListWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSArray<TXVodDownloadMediaInfo *> *mediaInfoList = [[TXVodDownloadManager shareInstance] getDownloadMediaInfoList];
+    NSMutableArray<TXVodDownloadMediaMsg *> *resultMsgArray = [[NSMutableArray alloc] init];
+    for (int i = 0; i < mediaInfoList.count; i++) {
+        [resultMsgArray addObject:[self buildMsgFromDownloadInfo:mediaInfoList[i]]];
+    }
+    TXDownloadListMsg *res = [[TXDownloadListMsg alloc] init];
+    res.infoList = resultMsgArray;
+    return res;
+}
+
+- (void)resumeDownloadMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:msg.quality url:msg.url appId:msg.appId fileId:msg.fileId name:msg.userName];
+    if (nil != mediaInfo) {
+        TXVodDownloadDataSource *dataSource = mediaInfo.dataSource;
+        if (nil != dataSource) {
+            [[TXVodDownloadManager shareInstance] startDownload:dataSource];
+        } else {
+            [[TXVodDownloadManager shareInstance] startDownload:mediaInfo.userName url:mediaInfo.url];
+        }
+    }
+}
+
+- (void)setDownloadHeadersHeaders:(nonnull MapMsg *)headers error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [[TXVodDownloadManager shareInstance] setHeaders:headers.map];
+}
+
+- (void)startDownloadMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if(nil != msg.url) {
+        [[TXVodDownloadManager shareInstance] startDownload:msg.userName url:msg.url];
+    } else if(nil != msg.appId && nil != msg.fileId) {
+        TXVodDownloadDataSource *dataSource = [[TXVodDownloadDataSource alloc] init];
+        dataSource.appId = [msg.appId intValue];
+        dataSource.fileId = msg.fileId;
+        dataSource.userName = msg.userName;
+        dataSource.quality = [self optQuality:msg.quality];
+        dataSource.pSign = msg.pSign;
+        [[TXVodDownloadManager shareInstance] startDownload:dataSource];
+    }
+}
+
+- (nullable IntMsg *)startPreLoadMsg:(nonnull PreLoadMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int preloadSizeMB = [msg.preloadSizeMB intValue];
+    int preferredResolution = [msg.preferredResolution intValue];
+    int taskID = [[TXVodPreloadManager sharedManager] startPreload:msg.playUrl
+                                                       preloadSize:preloadSizeMB
+                                               preferredResolution:preferredResolution
+                                                          delegate:self];
+    return [CommonUtil intMsgWith:@(taskID)];
+}
+
+- (void)stopDownloadMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:msg.quality url:msg.url appId:msg.appId fileId:msg.fileId name:msg.userName];
+    [[TXVodDownloadManager shareInstance] stopDownload:mediaInfo];
+}
+
+- (void)stopPreLoadMsg:(nonnull IntMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [[TXVodPreloadManager sharedManager] stopPreload:msg.value.intValue];
 }
 
 @end

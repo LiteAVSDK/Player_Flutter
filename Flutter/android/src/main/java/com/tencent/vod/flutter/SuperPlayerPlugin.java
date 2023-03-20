@@ -24,15 +24,23 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
+import com.tencent.vod.flutter.messages.FTXLivePlayerDispatcher;
+import com.tencent.vod.flutter.messages.FTXVodPlayerDispatcher;
+import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.DoubleMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.LicenseMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
+import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
+import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterNativeAPI;
+import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAPI;
+import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterVodPlayerApi;
 import com.tencent.vod.flutter.ui.Android12BridgeService;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.EventChannel;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -48,7 +56,8 @@ import java.util.Set;
  * when the Flutter Engine is detached from the Activity
  * </p>
  */
-public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
+        TXFlutterSuperPlayerPluginAPI, TXFlutterNativeAPI {
 
     static final String TAG = "SuperPlayerPlugin";
     private static final String VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION";
@@ -58,7 +67,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     private VolumeBroadcastReceiver mVolumeBroadcastReceiver;
 
-    private MethodChannel channel;
     private FlutterPluginBinding mFlutterPluginBinding;
     private ActivityPluginBinding mActivityPluginBinding;
     private SparseArray<FTXBasePlayer> mPlayers;
@@ -88,17 +96,21 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         public void onChange(boolean selfChange, @NonNull Collection<Uri> uris, int flags) {
             super.onChange(selfChange, uris, flags);
             double systemBrightness = getSystemScreenBrightness();
-            setBrightness(systemBrightness);
+            setWindowBrightness(systemBrightness);
         }
     };
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         Log.i(TAG, "onAttachedToEngine");
+        TXFlutterSuperPlayerPluginAPI.setup(flutterPluginBinding.getBinaryMessenger(), this);
+        TXFlutterNativeAPI.setup(flutterPluginBinding.getBinaryMessenger(), this);
+        TXFlutterVodPlayerApi.setup(flutterPluginBinding.getBinaryMessenger(), new FTXVodPlayerDispatcher(
+                () -> mPlayers));
+        TXFlutterLivePlayerApi.setup(flutterPluginBinding.getBinaryMessenger(), new FTXLivePlayerDispatcher(
+                () -> mPlayers));
         mFlutterPluginBinding = flutterPluginBinding;
-        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_super_player");
-        channel.setMethodCallHandler(this);
-        mPlayers = new SparseArray();
+        mPlayers = new SparseArray<>();
         initAudioManagerIfNeed();
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
                 "cloud.tencent.com/playerPlugin/event");
@@ -116,95 +128,123 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
         mFTXDownloadManager = new FTXDownloadManager(flutterPluginBinding);
     }
 
+    /******* native method call start *******/
+
+    @NonNull
     @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        if (call.method.equals("getPlatformVersion")) {
-            result.success("Android " + android.os.Build.VERSION.RELEASE);
-        } else if (call.method.equals("createVodPlayer")) {
-            FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
-            int playerId = player.getPlayerId();
-            mPlayers.append(playerId, player);
-            result.success(playerId);
-        } else if (call.method.equals("createLivePlayer")) {
-            FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mActivityPluginBinding.getActivity(),
-                    mTxPipManager);
-            int playerId = player.getPlayerId();
-            mPlayers.append(playerId, player);
-            result.success(playerId);
-        } else if (call.method.equals("releasePlayer")) {
-            Integer playerId = call.argument("playerId");
-            FTXBasePlayer player = mPlayers.get(playerId);
-            if (player != null) {
-                player.destroy();
-                mPlayers.remove(playerId);
-            }
-            result.success(null);
-        } else if (call.method.equals("setConsoleEnabled")) {
-            boolean enabled = call.argument("enabled");
-            TXLiveBase.setConsoleEnabled(enabled);
-            result.success(null);
-        } else if (call.method.equals("setGlobalMaxCacheSize")) {
-            Integer size = call.argument("size");
-            if (null != size && size > 0) {
-                TXPlayerGlobalSetting.setMaxCacheSize(size);
-            }
-            result.success(null);
-        } else if (call.method.equals("setGlobalCacheFolderPath")) {
-            String postfixPath = call.argument("postfixPath");
-            boolean configResult = false;
-            if (!TextUtils.isEmpty(postfixPath)) {
-                File sdcardDir = mFlutterPluginBinding.getApplicationContext().getExternalFilesDir(null);
-                if (null != sdcardDir) {
-                    TXPlayerGlobalSetting.setCacheFolderPath(sdcardDir.getPath() + File.separator + postfixPath);
-                    configResult = true;
-                }
-            }
-            result.success(configResult);
-        } else if (call.method.equals("setGlobalLicense")) {
-            String licenceUrl = call.argument("licenceUrl");
-            String licenceKey = call.argument("licenceKey");
-            TXLiveBase.getInstance().setLicence(mFlutterPluginBinding.getApplicationContext(), licenceUrl, licenceKey);
-            result.success(null);
-        } else if (call.method.equals("setBrightness")) {
-            Double brightness = call.argument("brightness");
-            setBrightness(brightness);
-            result.success(null);
-        } else if (call.method.equals("getBrightness")) {
-            float screenBrightness = getBrightness();
-            result.success(screenBrightness);
-        } else if (call.method.equals("getSystemVolume")) {
-            result.success(mTxAudioManager.getSystemCurrentVolume());
-        } else if (call.method.equals("setSystemVolume")) {
-            Double volume = call.argument("volume");
-            mTxAudioManager.setSystemVolume(volume);
-            result.success(null);
-        } else if (call.method.equals("abandonAudioFocus")) {
-            mTxAudioManager.abandonAudioFocus();
-            result.success(null);
-        } else if (call.method.equals("requestAudioFocus")) {
-            mTxAudioManager.requestAudioFocus();
-            result.success(null);
-        } else if (call.method.equals("setLogLevel")) {
-            Integer logLevel = call.argument("logLevel");
-            TXLiveBase.setLogLevel(logLevel);
-            result.success(null);
-        } else if (call.method.equals("isDeviceSupportPip")) {
-            result.success(mTxPipManager.isSupportDevice());
-        } else if (call.method.equals("getLiteAVSDKVersion")) {
-            result.success(TXLiveBase.getSDKVersionStr());
-        } else if (call.method.equals("setGlobalEnv")) {
-            String envConfig = call.argument("envConfig");
-            int setResult = TXLiveBase.setGlobalEnv(envConfig);
-            result.success(setResult);
-        } else if (call.method.equals("startVideoOrientationService")) {
-            boolean setResult = startVideoOrientationService();
-            result.success(setResult);
-        } else {
-            result.notImplemented();
+    public StringMsg getPlatformVersion() {
+        StringMsg stringMsg = new StringMsg();
+        stringMsg.setValue("Android " + android.os.Build.VERSION.RELEASE);
+        return stringMsg;
+    }
+
+    @NonNull
+    @Override
+    public PlayerMsg createVodPlayer() {
+        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
+        int playerId = player.getPlayerId();
+        mPlayers.append(playerId, player);
+        PlayerMsg playerMsg = new PlayerMsg();
+        playerMsg.setPlayerId((long) playerId);
+        return playerMsg;
+    }
+
+    @NonNull
+    @Override
+    public PlayerMsg createLivePlayer() {
+        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mTxPipManager);
+        int playerId = player.getPlayerId();
+        mPlayers.append(playerId, player);
+        PlayerMsg playerMsg = new PlayerMsg();
+        playerMsg.setPlayerId((long) playerId);
+        return playerMsg;
+    }
+
+    @Override
+    public void setConsoleEnabled(@NonNull BoolMsg enabled) {
+        if (enabled.getValue() != null) {
+            TXLiveBase.setConsoleEnabled(enabled.getValue());
         }
     }
 
-    private boolean startVideoOrientationService() {
+    @Override
+    public void releasePlayer(@NonNull PlayerMsg playerId) {
+        if (null != playerId.getPlayerId()) {
+            int intPlayerId = playerId.getPlayerId().intValue();
+            FTXBasePlayer player = mPlayers.get(intPlayerId);
+            if (player != null) {
+                player.destroy();
+                mPlayers.remove(intPlayerId);
+            }
+        }
+    }
+
+    @Override
+    public void setGlobalMaxCacheSize(@NonNull IntMsg size) {
+        if (null != size.getValue() && size.getValue() > 0) {
+            TXPlayerGlobalSetting.setMaxCacheSize(size.getValue().intValue());
+        }
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg setGlobalCacheFolderPath(@NonNull StringMsg postfixPath) {
+        boolean configResult = false;
+        if (!TextUtils.isEmpty(postfixPath.getValue())) {
+            File sdcardDir = mFlutterPluginBinding.getApplicationContext().getExternalFilesDir(null);
+            if (null != sdcardDir) {
+                TXPlayerGlobalSetting.setCacheFolderPath(sdcardDir.getPath() + File.separator + postfixPath.getValue());
+                configResult = true;
+            }
+        }
+        BoolMsg boolMsg = new BoolMsg();
+        boolMsg.setValue(configResult);
+        return boolMsg;
+    }
+
+    @Override
+    public void setGlobalLicense(@NonNull LicenseMsg licenseMsg) {
+        TXLiveBase.getInstance().setLicence(mFlutterPluginBinding.getApplicationContext(), licenseMsg.getLicenseUrl(),
+                licenseMsg.getLicenseKey());
+    }
+
+    @Override
+    public void setLogLevel(@NonNull IntMsg logLevel) {
+        if (null != logLevel.getValue()) {
+            TXLiveBase.setLogLevel(logLevel.getValue().intValue());
+        }
+    }
+
+    @NonNull
+    @Override
+    public StringMsg getLiteAVSDKVersion() {
+        StringMsg stringMsg = new StringMsg();
+        stringMsg.setValue(TXLiveBase.getSDKVersionStr());
+        return stringMsg;
+    }
+
+    @NonNull
+    @Override
+    public IntMsg setGlobalEnv(@NonNull StringMsg envConfig) {
+        int setResult = TXLiveBase.setGlobalEnv(envConfig.getValue());
+        IntMsg intMsg = new IntMsg();
+        intMsg.setValue((long) setResult);
+        return intMsg;
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg startVideoOrientationService() {
+        boolean setResult = innerStartVideoOrientationService();
+        BoolMsg boolMsg = new BoolMsg();
+        boolMsg.setValue(setResult);
+        return boolMsg;
+    }
+
+    /******* native method call end *******/
+
+
+    private boolean innerStartVideoOrientationService() {
         if (null == mFlutterPluginBinding) {
             return false;
         }
@@ -213,7 +253,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
                 mOrientationManager = new OrientationEventListener(mFlutterPluginBinding.getApplicationContext()) {
                     @Override
                     public void onOrientationChanged(int orientation) {
-                        if (isAutoRotateOn()) {
+                        if (isDeviceAutoRotateOn()) {
                             int orientationEvent = mCurrentOrientation;
                             // 每个方向判断当前方向正负30度，共计60度的区间
                             if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
@@ -246,7 +286,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     /**
      * 设置当前window亮度
      */
-    private void setBrightness(Double brightness) {
+    private void setWindowBrightness(Double brightness) {
         if (null != brightness) {
             // 保留两位小数
             BigDecimal bigDecimal = new BigDecimal(brightness);
@@ -269,7 +309,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     /**
      * 获得当前window亮度，如果当前window亮度未赋值，则返回当前系统亮度
      */
-    private float getBrightness() {
+    private float getWindowBrightness() {
         Window window = mActivityPluginBinding.getActivity().getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         float screenBrightness = params.screenBrightness;
@@ -311,7 +351,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         Log.i(TAG, "onAttachedToEngine");
-        channel.setMethodCallHandler(null);
         mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
         if (null != mOrientationManager) {
@@ -359,7 +398,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
      *
      * @return
      */
-    protected boolean isAutoRotateOn() {
+    protected boolean isDeviceAutoRotateOn() {
         //获取系统是否允许自动旋转屏幕
         try {
             return (android.provider.Settings.System.getInt(
@@ -413,6 +452,58 @@ public class SuperPlayerPlugin implements FlutterPlugin, MethodCallHandler, Acti
             }
         }
         return param;
+    }
+
+    @Override
+    public void setBrightness(@NonNull DoubleMsg brightness) {
+        setWindowBrightness(brightness.getValue());
+    }
+
+    @Override
+    public void restorePageBrightness() {
+        setWindowBrightness(-1D);
+    }
+
+    @NonNull
+    @Override
+    public DoubleMsg getBrightness() {
+        float brightness = getWindowBrightness();
+        BigDecimal bigDecimal = BigDecimal.valueOf(brightness);
+        DoubleMsg doubleMsg = new DoubleMsg();
+        doubleMsg.setValue(bigDecimal.doubleValue());
+        return doubleMsg;
+    }
+
+    @Override
+    public void setSystemVolume(@NonNull DoubleMsg volume) {
+        mTxAudioManager.setSystemVolume(volume.getValue());
+    }
+
+    @NonNull
+    @Override
+    public DoubleMsg getSystemVolume() {
+        BigDecimal bigDecimal = BigDecimal.valueOf(mTxAudioManager.getSystemCurrentVolume());
+        DoubleMsg doubleMsg = new DoubleMsg();
+        doubleMsg.setValue(bigDecimal.doubleValue());
+        return doubleMsg;
+    }
+
+    @Override
+    public void abandonAudioFocus() {
+        mTxAudioManager.abandonAudioFocus();
+    }
+
+    @Override
+    public void requestAudioFocus() {
+        mTxAudioManager.requestAudioFocus();
+    }
+
+    @NonNull
+    @Override
+    public IntMsg isDeviceSupportPip() {
+        IntMsg intMsg = new IntMsg();
+        intMsg.setValue((long) mTxPipManager.isSupportDevice());
+        return intMsg;
     }
 
     private class VolumeBroadcastReceiver extends BroadcastReceiver {

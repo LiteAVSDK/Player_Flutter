@@ -9,11 +9,13 @@
 #import <Flutter/Flutter.h>
 #import <AVKit/AVKit.h>
 #import "FTXEvent.h"
+#import "FtxMessages.h"
+#import "CommonUtil.h"
 
 static const int uninitialized = -1;
 static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
-@interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate>
+@interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate, TXFlutterVodPlayerApi>
 
 @property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) BOOL hasEnteredPipMode;
@@ -28,7 +30,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     TXImageSprite *_txImageSprite;
     FTXPlayerEventSinkQueue *_eventSink;
     FTXPlayerEventSinkQueue *_netStatusSink;
-    FlutterMethodChannel *_methodChannel;
     FlutterEventChannel *_eventChannel;
     FlutterEventChannel *_netStatusChannel;
     // 最新的一帧
@@ -63,12 +64,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         self.restoreUI = NO;
         _eventSink = [FTXPlayerEventSinkQueue new];
         _netStatusSink = [FTXPlayerEventSinkQueue new];
-        
-        __weak typeof(self) weakSelf = self;
-        _methodChannel = [FlutterMethodChannel methodChannelWithName:[@"cloud.tencent.com/txvodplayer/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
-        [_methodChannel setMethodCallHandler:^(FlutterMethodCall * _Nonnull call, FlutterResult  _Nonnull result) {
-            [weakSelf handleMethodCall:call result:result];
-        }];
         
         _eventChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txvodplayer/event/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
@@ -118,9 +113,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         CVPixelBufferRelease(_lastBuffer);
         _lastBuffer = nil;
     }
-    
-    [_methodChannel setMethodCallHandler:nil];
-    _methodChannel = nil;
 
     [_eventSink setDelegate:nil];
     _eventSink = nil;
@@ -177,16 +169,14 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     return uninitialized;
 }
 
-
-- (int)startVodPlayWithParams:(NSDictionary *)params
+- (int)startVodPlayWithParams:(int)appId fileId:(NSString *)fileId sign:(NSString *)sign
 {
     if (_txVodPlayer != nil) {
         TXPlayerAuthParams *p = [TXPlayerAuthParams new];
-        p.appId = [params[@"appId"] unsignedIntValue];
-        p.fileId = params[@"fileId"];
-        NSString *psign = params[@"psign"];
-        if (psign.length > 0) {
-            p.sign = params[@"psign"];
+        p.appId = appId;
+        p.fileId = fileId;
+        if (sign.length > 0) {
+            p.sign = sign;
         }
         return [_txVodPlayer startVodPlayWithParams:p];
     }
@@ -307,7 +297,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     }
 }
 
-- (void)setImageSprite:(NSString*)urlStr withImgArray:(NSArray*)imgStrArray result:(FlutterResult)result {
+- (void)setPlayerImageSprite:(NSString*)urlStr withImgArray:(NSArray*)imgStrArray {
     [self releaseImageSprite];
     _txImageSprite = [[TXImageSprite alloc] init];
     NSMutableArray *imageUrls = @[].mutableCopy;
@@ -324,181 +314,21 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         vvtUrl =  [NSURL URLWithString:urlStr];
     }
     [_txImageSprite setVTTUrl:vvtUrl imageUrls:imageUrls];
-    result(nil);
 }
 
-- (void)getImageSprite:(NSNumber*)time result:(FlutterResult)result {
+- (NSData*)getPlayerImageSprite:(NSNumber*)time {
     if(_txImageSprite && [NSNull null] != (NSNull*)time) {
         UIImage *imageSprite = [_txImageSprite getThumbnail:time.floatValue];
         if(nil != imageSprite) {
             NSData *data = UIImagePNGRepresentation(imageSprite);
-            result(data);
-        } else {
-            result(nil);
+            return data;
         }
     } else {
         NSLog(@"getImageSprite failed, time is null or initImageSprite not invoke");
-        result(nil);
     }
+    return nil;
 }
 
-#pragma mark -
-
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result
-{
-    NSDictionary *args = call.arguments;
-    if([@"init" isEqualToString:call.method]){
-        BOOL onlyAudio = [args[@"onlyAudio"] boolValue];
-        NSNumber* textureId = [self createPlayer:onlyAudio];
-        result(textureId);
-    }else if([@"setAutoPlay" isEqualToString:call.method]) {
-        BOOL isAutoPlay = [args[@"isAutoPlay"] boolValue];
-        [self setIsAutoPlay:isAutoPlay];
-        result(nil);
-    }else if([@"startVodPlay" isEqualToString:call.method]){
-        NSString *url = args[@"url"];
-        int r = [self startVodPlay:url];
-        result(@(r));
-    }else if([@"startVodPlayWithParams" isEqualToString:call.method]) {
-        int r = [self startVodPlayWithParams:args];
-        result(@(r));
-    } else if([@"stop" isEqualToString:call.method]){
-        BOOL r = [self stopPlay];
-        result([NSNumber numberWithBool:r]);
-    }else if([@"isPlaying" isEqualToString:call.method]){
-        result([NSNumber numberWithBool:[self isPlaying]]);
-    }else if([@"pause" isEqualToString:call.method]){
-        [self pause];
-        result(nil);
-    }else if([@"resume" isEqualToString:call.method]){
-        [self resume];
-        result(nil);
-    }else if([@"setMute" isEqualToString:call.method]){
-        BOOL mute = [args[@"mute"] boolValue];
-        [self setMute:mute];
-        result(nil);
-    }else if([@"setLiveMode" isEqualToString:call.method]){
-        result(nil);
-    }else if([@"setLoop" isEqualToString:call.method]){
-        BOOL loop = [args[@"loop"] boolValue];
-        [self setLoop:loop];
-        result(nil);
-    }else if ([@"seek" isEqualToString:call.method]) {
-        double progress = [args[@"progress"] floatValue];
-        [self seek:progress];
-        result(nil);
-    }else if ([@"setRate" isEqualToString:call.method]) {
-        double rate = [args[@"rate"] floatValue];
-        [self setRate:rate];
-        result(nil);
-    }else if([@"getSupportedBitrates" isEqualToString:call.method]) {
-        NSArray *supportedBitrates = [self supportedBitrates];
-        result(supportedBitrates);
-    }else if([@"setBitrateIndex" isEqualToString:call.method]) {
-        int index = [args[@"index"] intValue];
-        [self setBitrateIndex:index];
-        result(nil);
-    }else if([@"setStartTime" isEqualToString:call.method]) {
-        float startTime = [args[@"startTime"] floatValue];
-        [self setStartTime:startTime];
-        result(nil);
-    }else if([@"setAudioPlayoutVolume" isEqualToString:call.method]) {
-        int volume = [args[@"volume"] intValue];
-        [self setAudioPlayoutVolume:volume];
-        result(nil);
-    }else if([@"setRenderRotation" isEqualToString:call.method]) {
-        int rotation = [args[@"rotation"] intValue];
-        [self setRenderRotation:rotation];
-        result(nil);
-    }
-    else if([@"setMirror" isEqualToString:call.method]){
-        BOOL isMirror = [args[@"isMirror"] boolValue];
-        [self setMirror:isMirror];
-        result(nil);
-    }
-    else if([@"setConfig" isEqualToString:call.method]){
-        [self setPlayConfig:args];
-        result(nil);
-    }
-    else if([@"getCurrentPlaybackTime" isEqualToString:call.method]){
-        float time = [self getCurrentPlaybackTime];
-        result(@(time));
-    }
-    else if([@"getBufferDuration" isEqualToString:call.method]){
-        result(FlutterMethodNotImplemented);
-    }
-    else if([@"getWidth" isEqualToString:call.method]){
-        int width = [self getWidth];
-        result(@(width));
-    }
-    else if([@"getHeight" isEqualToString:call.method]){
-        int height = [self getHeight];
-        result(@(height));
-    }
-    else if([@"setToken" isEqualToString:call.method]){
-        NSString *token = args[@"token"];
-        [self setToken:token];
-        result(nil);
-    }
-    else if([@"isLoop" isEqualToString:call.method]){
-        BOOL r = [self isLoop];
-        result(@(r));
-    }
-    else if([@"enableHardwareDecode" isEqualToString:call.method]){
-        BOOL enable = [args[@"enable"] boolValue];
-        BOOL r = [self enableHardwareDecode:enable];
-        result(@(r));
-    }
-    else if([@"snapshot" isEqualToString:call.method]){
-        [self snapShot:^(UIImage *image) {
-            if(image != nil) {
-                NSData *data = UIImagePNGRepresentation(image);
-                result(data);
-            } else {
-                result(nil);
-            }
-        }];
-    }
-    else if([@"setRequestAudioFocus" isEqualToString:call.method]){
-        result(FlutterMethodNotImplemented);
-    }
-    else if([@"getBitrateIndex" isEqualToString:call.method]){
-        long index = [self getBitrateIndex];
-        result(@(index));
-    }
-    else if([@"getPlayableDuration" isEqualToString:call.method]){
-        float time = [self getPlayableDuration];
-        result(@(time));
-    }
-    else if([@"getDuration" isEqualToString:call.method]){
-        float time = [self getDuration];
-        result(@(time));
-    }
-    else if ([@"enterPictureInPictureMode" isEqualToString:call.method]) {
-        int ret = [self enterPictureInPictureMode];
-        result(@(ret));
-    }
-    else if ([@"initImageSprite" isEqualToString:call.method]) {
-        NSDictionary *args = call.arguments;
-        NSString *vvtStr = args[@"vvtUrl"];
-        NSArray *imageStrs = args[@"imageUrls"];
-        [self setImageSprite:vvtStr withImgArray:imageStrs result:result];
-    }
-    else if ([@"getImageSprite" isEqualToString:call.method]) {
-        NSDictionary *args = call.arguments;
-        NSNumber *time = args[@"time"];
-        [self getImageSprite:time result:result];
-    }
-    else if ([@"exitPictureInPictureMode" isEqualToString:call.method]) {
-        if(_txVodPlayer != nil) {
-            [_txVodPlayer exitPictureInPicture];
-        }
-        result(nil);
-    }
-    else {
-        result(FlutterMethodNotImplemented);
-    }
-}
 
 + (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
 {
@@ -668,10 +498,10 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     return [self CVPixelBufferRefFromUiImage:image];
 }
 
-- (void)setPlayConfig:(NSDictionary *)args
+- (void)setPlayerConfig:(FTXVodPlayConfigPlayerMsg *)args
 {
-    if (_txVodPlayer != nil && [args[@"config"] isKindOfClass:[NSDictionary class]]) {
-        _txVodPlayer.config = [FTXTransformation transformToVodConfig:args];
+    if (_txVodPlayer != nil && args != nil) {
+        _txVodPlayer.config = [FTXTransformation transformMsgToVodConfig:args];
     }
 }
 
@@ -879,6 +709,15 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     }
 }
 
+- (void)onPlayer:(TXVodPlayer *)player airPlayErrorDidOccur:(TX_VOD_PLAYER_AIRPLAY_ERROR_TYPE)errorType withParam:(NSDictionary *)param {
+}
+
+
+- (void)onPlayer:(TXVodPlayer *)player airPlayStateDidChange:(TX_VOD_PLAYER_AIRPLAY_STATE)airPlayState withParam:(NSDictionary *)param {
+}
+
+
+
 #pragma mark - UIImage转CVPixelBufferRef
 
 - (CVPixelBufferRef)CVPixelBufferRefFromUiImage:(UIImage *)img {
@@ -940,6 +779,155 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
                       alphaInfo == kCGImageAlphaNoneSkipFirst ||
                       alphaInfo == kCGImageAlphaNoneSkipLast);
     return hasAlpha;
+}
+
+#pragma mark - TXFlutterVodPlayerApi
+
+- (nullable BoolMsg *)enableHardwareDecodeEnable:(nonnull BoolPlayerMsg *)enable error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    bool res = [self enableHardwareDecode:enable.value];
+    return [CommonUtil boolMsgWith:res];
+}
+
+- (nullable IntMsg *)enterPictureInPictureModePipParamsMsg:(nonnull PipParamsPlayerMsg *)pipParamsMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int res = [self enterPictureInPictureMode];
+    return [CommonUtil intMsgWith:@(res)];
+}
+
+- (void)exitPictureInPictureModePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if(_txVodPlayer != nil) {
+        [_txVodPlayer exitPictureInPicture];
+    }
+}
+
+- (nullable IntMsg *)getBitrateIndexPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    long index = [self getBitrateIndex];
+    return [CommonUtil intMsgWith:@(index)];
+}
+
+- (nullable DoubleMsg *)getBufferDurationPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // FlutterMethodNotImplemented
+    return nil;
+}
+
+- (nullable DoubleMsg *)getCurrentPlaybackTimePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    float time = [self getCurrentPlaybackTime];
+    return [CommonUtil doubleMsgWith:time];
+}
+
+- (nullable DoubleMsg *)getDurationPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    float time = [self getDuration];
+    return [CommonUtil doubleMsgWith:time];
+}
+
+- (nullable IntMsg *)getHeightPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int height = [self getHeight];
+    return [CommonUtil intMsgWith:@(height)];
+}
+
+- (nullable UInt8ListMsg *)getImageSpriteTime:(nonnull DoublePlayerMsg *)time error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSData *data = [self getPlayerImageSprite:time.value];
+    return [CommonUtil uInt8MsgWith:data];
+}
+
+- (nullable DoubleMsg *)getPlayableDurationPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    float time = [self getPlayableDuration];
+    return [CommonUtil doubleMsgWith:time];
+}
+
+- (nullable ListMsg *)getSupportedBitratePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSArray *supportedBitrates = [self supportedBitrates];
+    ListMsg *msg = [[ListMsg alloc] init];
+    msg.value = supportedBitrates;
+    return msg;
+}
+
+- (nullable IntMsg *)getWidthPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int width = [self getWidth];
+    return [CommonUtil intMsgWith:@(width)];
+}
+
+- (void)initImageSpriteSpriteInfo:(nonnull StringListPlayerMsg *)spriteInfo error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setPlayerImageSprite:spriteInfo.vvtUrl withImgArray:spriteInfo.imageUrls];
+}
+
+- (nullable IntMsg *)initializeOnlyAudio:(nonnull BoolPlayerMsg *)onlyAudio error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSNumber* textureId = [self createPlayer:onlyAudio.value.boolValue];
+    return [CommonUtil intMsgWith:textureId];
+}
+
+- (nullable BoolMsg *)isLoopPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    return [CommonUtil boolMsgWith:[self isLoop]];
+}
+
+- (nullable BoolMsg *)isPlayingPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    return [CommonUtil boolMsgWith:[self isPlaying]];
+}
+
+- (void)pausePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self pause];
+}
+
+- (void)resumePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self resume];
+}
+
+- (void)seekProgress:(nonnull DoublePlayerMsg *)progress error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self seek:progress.value.floatValue];
+}
+
+- (void)setAudioPlayOutVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setAudioPlayoutVolume:volume.value.intValue];
+}
+
+- (void)setAutoPlayIsAutoPlay:(nonnull BoolPlayerMsg *)isAutoPlay error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setIsAutoPlay:isAutoPlay.value.boolValue];
+}
+
+- (void)setBitrateIndexIndex:(nonnull IntPlayerMsg *)index error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setBitrateIndex:index.value.intValue];
+}
+
+- (void)setConfigConfig:(nonnull FTXVodPlayConfigPlayerMsg *)config error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setPlayerConfig:config];
+}
+
+- (void)setLoopLoop:(nonnull BoolPlayerMsg *)loop error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setLoop:loop.value.boolValue];
+}
+
+- (void)setMuteMute:(nonnull BoolPlayerMsg *)mute error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setMute:mute.value.boolValue];
+}
+
+- (void)setRateRate:(nonnull DoublePlayerMsg *)rate error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setRate:rate.value.doubleValue];
+}
+
+- (nullable BoolMsg *)setRequestAudioFocusFocus:(nonnull BoolPlayerMsg *)focus error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    // FlutterMethodNotImplemented
+    return [CommonUtil boolMsgWith:YES];
+}
+
+- (void)setStartTimeStartTime:(nonnull DoublePlayerMsg *)startTime error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setStartTime:startTime.value.floatValue];
+}
+
+- (void)setTokenToken:(nonnull StringPlayerMsg *)token error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self setToken:token.value];
+}
+
+- (nullable BoolMsg *)startVodPlayUrl:(nonnull StringPlayerMsg *)url error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    int r = [self startVodPlay:url.value];
+    return [CommonUtil boolMsgWith:r];
+}
+
+- (void)startVodPlayWithParamsParams:(nonnull TXPlayInfoParamsPlayerMsg *)params error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self startVodPlayWithParams:params.appId.unsignedIntValue fileId:params.fileId sign:params.psign];
+}
+
+- (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    BOOL r = [self stopPlay];
+    return [CommonUtil boolMsgWith:r];
 }
 
 @end
