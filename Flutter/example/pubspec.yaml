@@ -17,8 +17,6 @@ dependencies:
     sdk: flutter
   event_bus: ^2.0.0
 
-  auto_orientation: ^2.2.1
-
   flutter_easyloading: ^3.0.0
 
   super_player:
