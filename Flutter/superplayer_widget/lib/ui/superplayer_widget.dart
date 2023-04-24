@@ -790,20 +790,17 @@ class FullScreenController {
       exitFullScreen();
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
-      AutoOrientation.portraitUpMode();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
       enterFullScreen();
       SystemChrome.setPreferredOrientations(
           Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      AutoOrientation.landscapeRightMode();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
       enterFullScreen();
       SystemChrome.setPreferredOrientations(
           Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      AutoOrientation.landscapeLeftMode();
     }
   }
 
