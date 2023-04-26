@@ -461,7 +461,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (old && old != pixelBuffer) {
         CFRelease(old);
     }
-    if (_textureId >= 0) {
+    if (_textureId >= 0 && nil != _textureRegistry) {
         [_textureRegistry textureFrameAvailable:_textureId];
     }
     
