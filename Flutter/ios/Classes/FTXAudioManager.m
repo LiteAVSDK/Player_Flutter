@@ -29,7 +29,6 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
          }
          
          audioSession = [AVAudioSession sharedInstance];
-         [audioSession setActive:true error:nil];
      }
      return self;
  };
@@ -44,6 +43,8 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 {
     // 需要设置 showsVolumeSlider 为 YES
     volumeView.showsVolumeSlider = YES;
+    // 获取音频焦点
+    [audioSession setActive:true error:nil];
     [_volumeSlider setValue:value animated:NO];
     [_volumeSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
     [_volumeSlider sizeToFit];
@@ -51,6 +52,8 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 
 - (void)setVolumeUIVisible:(BOOL)volumeUIVisible
 {
+    // 获取音频焦点
+    [audioSession setActive:true error:nil];
     volumeView.hidden = !volumeUIVisible;
 }
 

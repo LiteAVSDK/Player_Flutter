@@ -2,7 +2,7 @@
 import 'package:pigeon/pigeon.dart';
 import 'package:super_player/super_player.dart';
 /// pigeon原始原件，由此文件生成messages原生通信代码
-/// 生成命令如下
+/// 生成命令如下，使用生成命令的时候，需要实现注释掉以上两个import导入
 /*
     flutter pub run pigeon \
     --input lib/Core/pigeons/txplayer_message.dart \
@@ -334,6 +334,9 @@ abstract class TXFlutterNativeAPI {
 
   /// 获得当前界面亮度 0.0 ~ 1.0
   DoubleMsg getBrightness();
+
+  /// 获取系统界面亮度，IOS系统与界面亮度一致，安卓可能会有差异
+  DoubleMsg getSysBrightness();
 
   /// 设置当前系统音量，0.0 ~ 1.0
   void setSystemVolume(DoubleMsg volume);
