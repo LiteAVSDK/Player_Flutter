@@ -318,6 +318,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         // 页面从后台回来
         // 不更新状态，直接resume
         _playController.getCurrentController().resume();
+        checkBrightness();
         // 从后台回来之后，如果手机横竖屏状态发生更改，被改为竖屏，那么这里根据判断切换横屏
         if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE &&
             defaultTargetPlatform == TargetPlatform.iOS) {
@@ -332,6 +333,14 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         // 不更新状态，直接pause
         _playController.getCurrentController().pause();
       }
+    }
+  }
+
+  void checkBrightness() async {
+    double? sysBrightness = await SuperPlayerPlugin.getSysBrightness();
+    double? windowBrightness = await SuperPlayerPlugin.getBrightness();
+    if(sysBrightness != windowBrightness && null != sysBrightness) {
+      SuperPlayerPlugin.setBrightness(sysBrightness);
     }
   }
 

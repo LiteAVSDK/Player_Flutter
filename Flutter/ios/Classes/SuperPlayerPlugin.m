@@ -306,6 +306,11 @@ SuperPlayerPlugin* instance;
     return [CommonUtil doubleMsgWith:brightness.doubleValue];
 }
 
+- (DoubleMsg *)getSysBrightnessWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    NSNumber *brightness = [NSNumber numberWithFloat:[UIScreen mainScreen].brightness];
+    return [CommonUtil doubleMsgWith:brightness.doubleValue];
+}
+
 - (nullable DoubleMsg *)getSystemVolumeWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber *volume = [NSNumber numberWithFloat:[audioManager getVolume]];
     return [CommonUtil doubleMsgWith:volume.doubleValue];
