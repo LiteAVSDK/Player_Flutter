@@ -474,6 +474,16 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         return doubleMsg;
     }
 
+    @NonNull
+    @Override
+    public DoubleMsg getSysBrightness() {
+        float brightness = getSystemScreenBrightness();
+        BigDecimal bigDecimal = BigDecimal.valueOf(brightness);
+        DoubleMsg doubleMsg = new DoubleMsg();
+        doubleMsg.setValue(bigDecimal.doubleValue());
+        return doubleMsg;
+    }
+
     @Override
     public void setSystemVolume(@NonNull DoubleMsg volume) {
         mTxAudioManager.setSystemVolume(volume.getValue());

@@ -130,6 +130,12 @@ class SuperPlayerPlugin {
     return doubleMsg.value;
   }
 
+  /// 获取系统界面亮度，IOS系统与界面亮度一致，安卓可能会有差异 范围：0.0 ~ 1.0
+  static Future<double?> getSysBrightness() async {
+    DoubleMsg doubleMsg = await _nativeAPI.getSysBrightness();
+    return doubleMsg.value;
+  }
+
   /// 设置当前系统音量，0.0 ~ 1.0
   static Future<void> setSystemVolume(double volume) async {
     return await _nativeAPI.setSystemVolume(DoubleMsg()..value = volume);
