@@ -9,6 +9,6 @@ rootProject.ext {
     在此处可以更换需要的SDK版本，替换为专业版为 com.tencent.liteav:LiteAVSDK_Professional:latest.release
     其中 latest.release 可指定为自己需要的版本号，例如 "com.tencent.liteav:LiteAVSDK_Player:9.5.29035" ，写成 latest.release 则默认使用最新版本
      */
-    liteavSdk="com.tencent.liteav:LiteAVSDK_Player:latest.release"
+    liteavSdk="com.tencent.liteav:LiteAVSDK_Player:11.1.0.13141"
 //    liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:latest.release"
 }
