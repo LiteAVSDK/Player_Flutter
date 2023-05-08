@@ -10,5 +10,5 @@ rootProject.ext {
     其中 latest.release 可指定为自己需要的版本号，例如 "com.tencent.liteav:LiteAVSDK_Player:9.5.29035" ，写成 latest.release 则默认使用最新版本
      */
     // liteavSdk="com.tencent.liteav:LiteAVSDK_Player:latest.release"
-   liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:latest.release"
+   liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:11.1.0.13141"
 }
