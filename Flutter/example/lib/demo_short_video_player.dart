@@ -15,6 +15,7 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
   static const TAG = "ShortVideo::ShortVideoListViewState";
   int _currentIndex = 0;
   List<SuperPlayerModel> superPlayerModelList = [];
+  VideoEventDispatcher eventDispatcher = VideoEventDispatcher();
 
   @override
   void initState() {
@@ -33,7 +34,11 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
     List<Widget> widgetList = [];
     for (int i = 0; i < superPlayerModelList.length; i++) {
       widgetList.add(ShortVideoPageWidget(
-          position: i, videoUrl: superPlayerModelList[i].videoURL, coverUrl: superPlayerModelList[i].coverUrl));
+        position: i,
+        videoUrl: superPlayerModelList[i].videoURL,
+        coverUrl: superPlayerModelList[i].coverUrl,
+        eventDispatcher: eventDispatcher,
+      ));
     }
 
     return Stack(
@@ -48,15 +53,15 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
         ),
         SafeArea(
             child: Container(
-              child: InkWell(
-                onTap: _onBackTap,
-                child: const Image(
-                  width: 40,
-                  height: 40,
-                  image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
-                ),
-              ),
-            )),
+          child: InkWell(
+            onTap: _onBackTap,
+            child: const Image(
+              width: 40,
+              height: 40,
+              image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
+            ),
+          ),
+        )),
       ],
     );
   }
@@ -81,20 +86,21 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
   }
 
   _stopAndPlay(int index) async {
-    EventBusUtils.getInstance().fire(new StopAndResumeEvent(index));
+    eventDispatcher.notifyEvent(ShortVideoEvent(index, BaseEvent.PLAY_AND_STOP));
     _currentIndex = index;
   }
 
   _onApplicationPause() {
-    EventBusUtils.getInstance().fire(new ApplicationPauseEvent());
+    eventDispatcher.notifyEvent(ShortVideoEvent(_currentIndex, BaseEvent.PAUSE));
   }
 
   _onApplicationResume() {
-    EventBusUtils.getInstance().fire(new ApplicationResumeEvent());
+    eventDispatcher.notifyEvent(ShortVideoEvent(_currentIndex, BaseEvent.RESUME));
   }
 
   @override
   void dispose() {
+    eventDispatcher.closeStream();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

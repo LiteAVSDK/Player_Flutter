@@ -1,6 +1,6 @@
 group 'com.tencent.vod.flutter'
 apply from:'config.gradle'
-version '11.0.0'
+version '11.1.1'
 
 buildscript {
     repositories {
