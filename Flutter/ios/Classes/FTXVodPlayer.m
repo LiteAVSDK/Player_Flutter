@@ -441,25 +441,29 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
  */
 - (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
-    if (_lastBuffer == nil) {
-        _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-        CFRetain(pixelBuffer);
-    } else if (_lastBuffer != pixelBuffer) {
-        CVPixelBufferRelease(_lastBuffer);
-        _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-        CFRetain(pixelBuffer);
-    }
-    
-    CVPixelBufferRef newBuffer = pixelBuffer;
+    if(pixelBuffer) {
+        if (_lastBuffer == nil) {
+            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
+            CFRetain(pixelBuffer);
+        } else if (_lastBuffer != pixelBuffer) {
+            CVPixelBufferRelease(_lastBuffer);
+            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
+            CFRetain(pixelBuffer);
+        }
 
-    CVPixelBufferRef old = _latestPixelBuffer;
-    while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
-                                             (void **)&_latestPixelBuffer)) {
-        old = _latestPixelBuffer;
-    }
+        CVPixelBufferRef newBuffer = pixelBuffer;
 
-    if (old && old != pixelBuffer) {
-        CFRelease(old);
+        CVPixelBufferRef old = _latestPixelBuffer;
+        while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
+                                                 (void **)&_latestPixelBuffer)) {
+            old = _latestPixelBuffer;
+        }
+
+        if (old && old != pixelBuffer) {
+            CFRelease(old);
+        }
+    } else {
+        NSLog(@"receive a nil pixel");
     }
     if (_textureId >= 0 && nil != _textureRegistry) {
         [_textureRegistry textureFrameAvailable:_textureId];
