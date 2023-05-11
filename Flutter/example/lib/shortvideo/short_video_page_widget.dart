@@ -5,8 +5,9 @@ class ShortVideoPageWidget extends StatefulWidget {
   String videoUrl;
   String coverUrl;
   int position;
+  VideoEventDispatcher eventDispatcher;
 
-  ShortVideoPageWidget({required this.position, required this.videoUrl, required this.coverUrl});
+  ShortVideoPageWidget({required this.position, required this.videoUrl, required this.coverUrl, required this.eventDispatcher});
 
   @override
   State<StatefulWidget> createState() {
@@ -20,12 +21,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   bool _isVideoPrepared = false;
   bool _isVideoPlaying = true;
   GlobalKey<VideoSliderViewState> _progressSliderKey = GlobalKey();
-  late StreamSubscription _streamSubscriptionStopAndPlay;
-
-  late StreamSubscription _streamSubscriptionApplicationResume;
-
-  late StreamSubscription _streamSubscriptionApplicationPause;
-
+  late StreamSubscription _eventSubscription;
   StreamSubscription? _playEventSubscription;
 
   TXVodPlayerController _controller;
@@ -64,9 +60,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   }
 
   _dispose() async {
-    _streamSubscriptionStopAndPlay.cancel();
-    _streamSubscriptionApplicationResume.cancel();
-    _streamSubscriptionApplicationPause.cancel();
+    _eventSubscription.cancel();
     _playEventSubscription?.cancel();
     await _stop();
     _controller.dispose();
@@ -158,10 +152,10 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
     });
   }
 
-  _stopLastAndPlayCurrent(StopAndResumeEvent event) {
+  _stopLastAndPlayCurrent(int index) {
     LogUtils.i(TAG,
         " [received at not current outside] ${widget.position.toString()} ${this.hashCode.toString()} ${widget.hashCode.toString()} ${_controller.hashCode.toString()}");
-    event.index != widget.position ? _stop() : _startPlay();
+    index != widget.position ? _stop() : _startPlay();
   }
 
   Future<void> _stop() async {
@@ -190,16 +184,16 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   }
 
   _setEventBusListener() {
-    _streamSubscriptionStopAndPlay = EventBusUtils.getInstance().on<StopAndResumeEvent>().listen((event) {
-      _stopLastAndPlayCurrent(event);
-    });
-
-    _streamSubscriptionApplicationResume = EventBusUtils.getInstance().on<ApplicationResumeEvent>().listen((event) {
-      _resume();
-    });
-
-    _streamSubscriptionApplicationPause = EventBusUtils.getInstance().on<ApplicationPauseEvent>().listen((event) {
-      _pause();
+    _eventSubscription = widget.eventDispatcher.getEventStream().listen((event) {
+      if (event.eventType == BaseEvent.PLAY_AND_STOP) {
+        _stopLastAndPlayCurrent(event.playerIndex);
+      } else if (event.eventType == BaseEvent.PAUSE) {
+        _pause();
+      } else if(event.eventType == BaseEvent.RESUME) {
+        _resume();
+      } else {
+        LogUtils.e(TAG, "receive unknown eventType${event.eventType}");
+      }
     });
   }
 
