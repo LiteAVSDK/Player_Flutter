@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar;
 
+- (void)notifyAppTerminate:(UIApplication *)application;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -25,3 +25,4 @@ part 'Core/txliveplayer_config.dart';
 part 'Core/tools/common_utils.dart';
 part 'Core/provider/txplayer_holder.dart';
 part 'Core/txplayer_messages.dart';
+part 'Core/common/common_config.dart';

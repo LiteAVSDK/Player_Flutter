@@ -141,6 +141,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   void printVersionInfo() async {
     LogUtils.d(kTag, "dart SDK version:${Platform.version}");
     LogUtils.d(kTag, "liteAV SDK version:${await SuperPlayerPlugin.platformVersion}");
+    LogUtils.d(kTag, "superPlayer SDK version:${FPlayerPckInfo.PLAYER_VERSION}");
   }
 
   /// 通过url开始播放视频

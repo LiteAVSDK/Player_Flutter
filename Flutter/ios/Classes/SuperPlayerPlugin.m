@@ -13,7 +13,7 @@
 #import "FTXVodPlayerDispatcher.h"
 #import "FTXLivePlayerDispatcher.h"
 
-@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, IPlayersBridge>
+@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, IPlayersBridge, FlutterPlugin>
 
 @property (nonatomic, strong) NSObject<FlutterPluginRegistrar>* registrar;
 @property (nonatomic, strong) NSMutableDictionary *players;
@@ -39,6 +39,8 @@ SuperPlayerPlugin* instance;
     TXFlutterNativeAPISetup([registrar messenger], instance);
     TXFlutterVodPlayerApiSetup([registrar messenger], [[FTXVodPlayerDispatcher alloc] initWithBridge:instance]);
     TXFlutterLivePlayerApiSetup([registrar messenger], [[FTXLivePlayerDispatcher alloc] initWithBridge:instance]);
+    [registrar addApplicationDelegate:self];
+    
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -125,6 +127,17 @@ SuperPlayerPlugin* instance;
 - (void)brightnessDidChange:(NSNotification *)notification
 {
     [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_BRIGHTNESS_CHANGED withParams:@{}]];
+}
+
+#pragma mark - FlutterPlugin
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+    for(id key in self.players) {
+        id player = self.players[key];
+        if([player respondsToSelector:@selector(notifyAppTerminate:)]) {
+            [player notifyAppTerminate:application];
+        }
+    }
 }
 
 #pragma mark - FlutterStreamHandler
