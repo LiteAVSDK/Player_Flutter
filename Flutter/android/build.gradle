@@ -1,5 +1,6 @@
 group 'com.tencent.vod.flutter'
 apply from:'config.gradle'
+apply plugin: 'com.android.library'
 version rootProject.ext.playerVersion
 
 buildscript {
@@ -19,9 +20,6 @@ rootProject.allprojects {
         mavenCentral()
     }
 }
-
-apply plugin: 'com.android.library'
-
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion

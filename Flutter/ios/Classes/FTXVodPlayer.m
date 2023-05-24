@@ -20,6 +20,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 @property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) BOOL hasEnteredPipMode;
 @property (nonatomic, assign) BOOL restoreUI;
+@property (atomic, assign) BOOL isStoped;
+@property (atomic) BOOL isTerminate;
 
 @end
 /**
@@ -59,6 +61,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         isVideoFirstFrameReceived = false;
         videoWidth = 0;
         videoHeight = 0;
+        _isStoped = NO;
+        _isTerminate = NO;
         playerMainqueue = dispatch_get_main_queue();
         self.hasEnteredPipMode = NO;
         self.restoreUI = NO;
@@ -78,10 +82,16 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 }
 
 - (void)onApplicationTerminateClick {
+    _isTerminate = YES;
     [_txVodPlayer removeVideoWidget];
     _txVodPlayer = nil;
     _txVodPlayer.videoProcessDelegate = nil;
     _textureId = -1;
+}
+
+- (void)notifyAppTerminate:(UIApplication *)application {
+    _isTerminate = YES;
+    _textureRegistry = nil;
 }
 
 - (void)destory
@@ -108,7 +118,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (old) {
         CFRelease(old);
     }
-
+    
     if (_lastBuffer) {
         CVPixelBufferRelease(_lastBuffer);
         _lastBuffer = nil;
@@ -164,6 +174,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (int)startVodPlay:(NSString *)url
 {
     if (_txVodPlayer != nil) {
+        _isStoped = NO;
         return [_txVodPlayer startVodPlay:url];
     }
     return uninitialized;
@@ -178,6 +189,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         if (sign.length > 0) {
             p.sign = sign;
         }
+        _isStoped = NO;
         return [_txVodPlayer startVodPlayWithParams:p];
     }
     return uninitialized;
@@ -186,6 +198,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (BOOL)stopPlay
 {
     if (_txVodPlayer != nil) {
+        _isStoped = YES;
         return [_txVodPlayer stopPlay];
     }
     [self releaseImageSprite];
@@ -441,7 +454,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
  */
 - (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
-    if(pixelBuffer) {
+    if(!_isTerminate && !_isStoped) {
         if (_lastBuffer == nil) {
             _lastBuffer = CVPixelBufferRetain(pixelBuffer);
             CFRetain(pixelBuffer);
@@ -462,11 +475,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         if (old && old != pixelBuffer) {
             CFRelease(old);
         }
-    } else {
-        NSLog(@"receive a nil pixel");
-    }
-    if (_textureId >= 0 && nil != _textureRegistry) {
-        [_textureRegistry textureFrameAvailable:_textureId];
+        if (_textureId >= 0 && _textureRegistry) {
+            [_textureRegistry textureFrameAvailable:_textureId];
+        }
     }
     
     return NO;

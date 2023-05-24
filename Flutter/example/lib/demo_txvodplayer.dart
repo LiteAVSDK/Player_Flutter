@@ -49,9 +49,9 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
         _supportedBitrates = (await _controller.getSupportedBitrates())!;
-        _isPlaying = true;
         _resizeVideo(event);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
+        _isPlaying = true;
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
         if (videoDuration == 0.0) {
@@ -112,14 +112,12 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     print("didChangeAppLifecycleState $state");
     switch (state) {
       case AppLifecycleState.inactive:
+        _controller.pause();
         break;
       case AppLifecycleState.resumed:
         if(_isPlaying) {
           _controller.resume();
         }
-        break;
-      case AppLifecycleState.paused:
-        _controller.pause();
         break;
       default:
         break;
