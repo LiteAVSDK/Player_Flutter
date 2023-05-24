@@ -30,6 +30,8 @@ static const int uninitialized = -1;
     
     id<FlutterPluginRegistrar> _registrar;
     id<FlutterTextureRegistry> _textureRegistry;
+    BOOL _isTerminate;
+    BOOL _isStoped;
 }
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
@@ -38,6 +40,8 @@ static const int uninitialized = -1;
         _registrar = registrar;
         _lastBuffer = nil;
         _latestPixelBuffer = nil;
+        _isTerminate = NO;
+        _isStoped = NO;
         _textureId = -1;
         _eventSink = [FTXPlayerEventSinkQueue new];
         _netStatusSink = [FTXPlayerEventSinkQueue new];
@@ -84,6 +88,11 @@ static const int uninitialized = -1;
     _eventChannel = nil;
     [_netStatusSink setDelegate:nil];
     _netStatusSink = nil;
+}
+
+- (void)notifyAppTerminate:(UIApplication *)application {
+    _isTerminate = YES;
+    _textureRegistry = nil;
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
@@ -149,6 +158,7 @@ static const int uninitialized = -1;
 - (int)startLivePlay:(NSString *)url type:(TX_Enum_PlayType)playType
 {
     if (_txLivePlayer != nil) {
+        _isStoped = NO;
         return [_txLivePlayer startLivePlay:url type:playType];
     }
     return uninitialized;
@@ -157,6 +167,7 @@ static const int uninitialized = -1;
 - (BOOL)stopPlay
 {
     if (_txLivePlayer != nil) {
+        _isStoped = YES;
         return [_txLivePlayer stopPlay];
     }
     return NO;
@@ -366,30 +377,31 @@ static const int uninitialized = -1;
  */
 - (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
-    if (_lastBuffer == nil) {
-        _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-        CFRetain(pixelBuffer);
-    } else if (_lastBuffer != pixelBuffer) {
-        CVPixelBufferRelease(_lastBuffer);
-        _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-        CFRetain(pixelBuffer);
-    }
+    if(!_isTerminate && !_isStoped) {
+        if (_lastBuffer == nil) {
+            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
+            CFRetain(pixelBuffer);
+        } else if (_lastBuffer != pixelBuffer) {
+            CVPixelBufferRelease(_lastBuffer);
+            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
+            CFRetain(pixelBuffer);
+        }
 
-    CVPixelBufferRef newBuffer = pixelBuffer;
+        CVPixelBufferRef newBuffer = pixelBuffer;
 
-    CVPixelBufferRef old = _latestPixelBuffer;
-    while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
-                                             (void **)&_latestPixelBuffer)) {
-        old = _latestPixelBuffer;
-    }
+        CVPixelBufferRef old = _latestPixelBuffer;
+        while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
+                                                 (void **)&_latestPixelBuffer)) {
+            old = _latestPixelBuffer;
+        }
 
-    if (old && old != pixelBuffer) {
-        CFRelease(old);
+        if (old && old != pixelBuffer) {
+            CFRelease(old);
+        }
+        if (_textureId >= 0 && _textureRegistry) {
+            [_textureRegistry textureFrameAvailable:_textureId];
+        }
     }
-    if (_textureId >= 0) {
-        [_textureRegistry textureFrameAvailable:_textureId];
-    }
-    
     return NO;
 }
 
