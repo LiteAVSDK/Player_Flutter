@@ -6,8 +6,8 @@ description: Demonstrates how to use the super_player plugin.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
-  flutter: ">=2.0.0"
+  sdk: '>=2.17.0 <4.0.0'
+  flutter: ">=3.0.0"
 
 dependencies:
   # 国际化
@@ -16,7 +16,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_easyloading: ^3.0.0
+  flutter_easyloading: ^3.0.5
 
   super_player:
     # When depending on this package from a real application you should use:

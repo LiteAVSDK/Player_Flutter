@@ -7,6 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -326,12 +327,31 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         float screenBrightness = -1;
         try {
             ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
-            int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
-            screenBrightness = brightnessInt / 255F;
+            final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
+            final float maxBrightness = getBrightnessMax();
+            screenBrightness = brightnessInt / maxBrightness;
         } catch (SettingNotFoundException e) {
             e.printStackTrace();
         }
         return screenBrightness;
+    }
+
+    /**
+     * 获取最大亮度,兼容部分系统亮度最大值不是255的情况，例如MIUI上最大值被改为了上千
+     *
+     * @return max
+     */
+    private float getBrightnessMax() {
+        try {
+            Resources system = Resources.getSystem();
+            int resId = system.getIdentifier("config_screenBrightnessSettingMaximum", "integer", "android");
+            if (resId != 0) {
+                return system.getInteger(resId);
+            }
+        } catch (Exception e) {
+            Log.getStackTraceString(e);
+        }
+        return 255F;
     }
 
     private void initAudioManagerIfNeed() {
