@@ -308,6 +308,12 @@ class TXVodDownloadMediaInfo {
   /// </h1>
   String? url;
 
+  /// 下载速度，单位：KByte/秒
+  int? speed;
+
+  /// 资源是否已损坏, 如：资源被删除了
+  bool? isResourceBroken;
+
   /// fileId 存储
   TXVodDownloadDataSource? dataSource;
 
@@ -325,6 +331,8 @@ class TXVodDownloadMediaInfo {
     json["playableDuration"] = playableDuration;
     json["size"] = size;
     json["downloadSize"] = downloadSize;
+    json["speed"] = speed;
+    json["isResourceBroken"] = isResourceBroken;
     return json;
   }
 
@@ -347,6 +355,8 @@ class TXVodDownloadMediaInfo {
     msg.playableDuration = playableDuration;
     msg.size = size;
     msg.downloadSize = downloadSize;
+    msg.speed = speed;
+    msg.isResourceBroken = isResourceBroken;
     return msg;
   }
 }

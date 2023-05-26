@@ -115,6 +115,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                 msg.setQuality((long) dataSource.getQuality());
                 msg.setToken(dataSource.getToken());
             }
+            msg.setSpeed((long)mediaInfo.getSpeed());
+            msg.setIsResourceBroken(mediaInfo.isResourceBroken());
         }
         return msg;
     }
@@ -150,6 +152,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
             bundle.putInt("quality", dataSource.getQuality());
             bundle.putString("token", dataSource.getToken());
         }
+        bundle.putInt("speed", mediaInfo.getSpeed());
+        bundle.putBoolean("isResourceBroken", mediaInfo.isResourceBroken());
         return bundle;
     }
 

@@ -152,6 +152,8 @@
             [dict setValue:@(dataSource.quality) forKey:@"quality"];
             [dict setValue:dataSource.token forKey:@"token"];
         }
+        [dict setValue:@(info.speed) forKey:@"speed"];
+        [dict setValue:@(info.isResourceBroken) forKey:@"isResourceBroken"];
     }
     return dict;
 }

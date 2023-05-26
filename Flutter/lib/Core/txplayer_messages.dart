@@ -502,6 +502,8 @@ class TXVodDownloadMediaMsg {
     this.pSign,
     this.quality,
     this.token,
+    this.speed,
+    this.isResourceBroken,
   });
 
   /// 缓存地址
@@ -549,6 +551,12 @@ class TXVodDownloadMediaMsg {
   /// 加密token
   String? token;
 
+  /// 下载速度，单位：KByte/秒
+  int? speed;
+
+  /// 资源是否已损坏, 如：资源被删除了
+  bool? isResourceBroken;
+
   Object encode() {
     return <Object?>[
       playPath,
@@ -565,6 +573,8 @@ class TXVodDownloadMediaMsg {
       pSign,
       quality,
       token,
+      speed,
+      isResourceBroken,
     ];
   }
 
@@ -585,6 +595,8 @@ class TXVodDownloadMediaMsg {
       pSign: result[11] as String?,
       quality: result[12] as int?,
       token: result[13] as String?,
+      speed: result[14] as int?,
+      isResourceBroken: result[15] as bool?,
     );
   }
 }
