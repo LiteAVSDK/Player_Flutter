@@ -19,6 +19,8 @@ import com.tencent.vod.flutter.messages.FtxMessages.PreLoadMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXDownloadListMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterDownloadApi;
 import com.tencent.vod.flutter.messages.FtxMessages.TXVodDownloadMediaMsg;
+import com.tencent.vod.flutter.tools.CommonUtil;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
 import java.math.BigDecimal;
