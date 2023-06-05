@@ -344,13 +344,13 @@ class TXVodDownloadMediaInfo {
       msg.pSign = dataSource!.pSign;
       msg.quality = dataSource!.quality;
       msg.token = dataSource!.token;
-      msg.userName = dataSource!.userName;
+      msg.userName = dataSource!.userName ?? "default";
     }
     msg.url = url;
     msg.downloadState = downloadState;
     msg.progress = progress;
     msg.playPath = playPath;
-    msg.userName = userName;
+    msg.userName = userName ?? "default";
     msg.duration = duration;
     msg.playableDuration = playableDuration;
     msg.size = size;
