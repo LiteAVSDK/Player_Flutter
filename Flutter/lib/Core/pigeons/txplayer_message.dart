@@ -222,6 +222,10 @@ class TXVodDownloadMediaMsg {
   int? quality;
   /// 加密token
   String? token;
+  /// 下载速度，单位：KByte/秒
+  int? speed;
+  /// 资源是否已损坏, 如：资源被删除了
+  bool? isResourceBroken;
 }
 
 class TXDownloadListMsg {

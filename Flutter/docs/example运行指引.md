@@ -1,13 +1,15 @@
 ## 环境准备
 
-- Flutter 2.0 及以上版本。
+- Flutter 3.0 及以上版本。
 - Android 端开发：
     - Android Studio 3.5及以上版本。
     - App 要求 Android 4.1及以上版本设备。
+    - SDK 最低要求 19 以上
 - iOS 端开发：
     - Xcode 11.0及以上版本。
     - osx 系统版本要求 10.11 及以上版本
     - 请确保您的项目已设置有效的开发者签名。
+    - IOS 系统最低要求取决于您的flutter环境
     
 
 ## example下载

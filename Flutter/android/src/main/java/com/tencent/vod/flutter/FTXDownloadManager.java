@@ -19,6 +19,8 @@ import com.tencent.vod.flutter.messages.FtxMessages.PreLoadMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXDownloadListMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterDownloadApi;
 import com.tencent.vod.flutter.messages.FtxMessages.TXVodDownloadMediaMsg;
+import com.tencent.vod.flutter.tools.CommonUtil;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
 import java.math.BigDecimal;
@@ -115,6 +117,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                 msg.setQuality((long) dataSource.getQuality());
                 msg.setToken(dataSource.getToken());
             }
+            msg.setSpeed((long)mediaInfo.getSpeed());
+            msg.setIsResourceBroken(mediaInfo.isResourceBroken());
         }
         return msg;
     }
@@ -150,6 +154,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
             bundle.putInt("quality", dataSource.getQuality());
             bundle.putString("token", dataSource.getToken());
         }
+        bundle.putInt("speed", mediaInfo.getSpeed());
+        bundle.putBoolean("isResourceBroken", mediaInfo.isResourceBroken());
         return bundle;
     }
 

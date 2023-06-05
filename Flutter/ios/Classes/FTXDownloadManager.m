@@ -152,6 +152,8 @@
             [dict setValue:@(dataSource.quality) forKey:@"quality"];
             [dict setValue:dataSource.token forKey:@"token"];
         }
+        [dict setValue:@(info.speed) forKey:@"speed"];
+        [dict setValue:@(info.isResourceBroken) forKey:@"isResourceBroken"];
     }
     return dict;
 }
@@ -262,15 +264,19 @@
 }
 
 - (void)startDownloadMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    if(nil != msg.url) {
+    if(nil != msg.url && ![msg.url isEqual:[NSNull null]]) {
         [[TXVodDownloadManager shareInstance] startDownload:msg.userName url:msg.url];
-    } else if(nil != msg.appId && nil != msg.fileId) {
+    } else if(nil != msg.appId && nil != msg.fileId && ![msg.fileId isEqual:[NSNull null]]) {
         TXVodDownloadDataSource *dataSource = [[TXVodDownloadDataSource alloc] init];
         dataSource.appId = [msg.appId intValue];
         dataSource.fileId = msg.fileId;
         dataSource.userName = msg.userName;
         dataSource.quality = [self optQuality:msg.quality];
-        dataSource.pSign = msg.pSign;
+        if(msg.pSign != nil && [msg.pSign isEqual:[NSNull null]]) {
+            dataSource.pSign = nil;
+        } else {
+            dataSource.pSign = msg.pSign;
+        }
         [[TXVodDownloadManager shareInstance] startDownload:dataSource];
     }
 }

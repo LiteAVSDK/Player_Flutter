@@ -4,7 +4,7 @@ rootProject.ext {
     supportSdkVersion = "26.0.1"
     minSdkVersion = 19
     targetSdkVersion = 28
-    playerVersion = '11.1.1'
+    playerVersion = '11.2.0'
     /*
     在此处可以更换需要的SDK版本，替换为专业版为 com.tencent.liteav:LiteAVSDK_Professional:latest.release
     其中 latest.release 可指定为自己需要的版本号，例如 "com.tencent.liteav:LiteAVSDK_Player:9.5.29035" ，写成 latest.release 则默认使用最新版本

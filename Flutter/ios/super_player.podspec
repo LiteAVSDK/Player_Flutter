@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version          = '11.1.1'
+  s.version          = '11.2.0'
   s.summary          = 'player plugin.'
   s.description      = <<-DESC
 player plugin.

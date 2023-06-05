@@ -1732,6 +1732,8 @@ Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async
 | downloadSize | int? | 文件已下载的大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值|
 | url | String? | 需要下载的视频url，url下载必填,不支持嵌套m3u8和mp4下载|
 | dataSource | TXVodDownloadDataSource? | 需要下载的视频fileId信息，url与该参数可只使用一个|
+| speed | int? | 下载速度，单位：KByte/秒 |
+| isResourceBroken | bool? | 资源是否已损坏, 如：资源被删除了 |
 
 **TXVodDownloadDataSource**
 

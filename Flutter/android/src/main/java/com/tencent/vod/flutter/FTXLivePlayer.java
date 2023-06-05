@@ -25,6 +25,8 @@ import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
+import com.tencent.vod.flutter.tools.CommonUtil;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.view.TextureRegistry;
