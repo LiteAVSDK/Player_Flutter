@@ -26,6 +26,7 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
+import com.tencent.vod.flutter.tools.CommonUtil;
 import com.tencent.vod.flutter.ui.FlutterPipImplActivity;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding;

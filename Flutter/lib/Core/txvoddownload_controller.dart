@@ -146,6 +146,9 @@ class TXVodDownloadController {
       dataSource.quality = map["quality"];
       medialnfo.dataSource = dataSource;
     }
+    medialnfo.speed = map["speed"];
+    medialnfo.isResourceBroken = map["isResourceBroken"];
+
     return medialnfo;
   }
 
