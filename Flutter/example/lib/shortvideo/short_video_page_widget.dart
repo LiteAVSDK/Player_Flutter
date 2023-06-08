@@ -17,7 +17,6 @@ class ShortVideoPageWidget extends StatefulWidget {
 
 class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   static const TAG = "ShortVideo::TXVodPlayerPageState";
-  late TXPlayerVideo _txPlayerVideo;
   bool _isVideoPrepared = false;
   bool _isVideoPlaying = true;
   GlobalKey<VideoSliderViewState> _progressSliderKey = GlobalKey();
@@ -26,9 +25,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
 
   TXVodPlayerController _controller;
 
-  _TXVodPlayerPageState() : _controller = TXVodPlayerController() {
-    _txPlayerVideo = new TXPlayerVideo(controller: _controller);
-  }
+  _TXVodPlayerPageState() : _controller = TXVodPlayerController();
 
   @override
   void initState() {
@@ -79,7 +76,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
         child: Stack(
           children: <Widget>[
             Container(
-              child: _txPlayerVideo,
+              child: TXPlayerVideo(controller: _controller),
             ),
             _getPauseView()
           ],
