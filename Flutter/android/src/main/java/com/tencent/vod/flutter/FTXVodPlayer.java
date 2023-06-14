@@ -651,6 +651,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
                 getPlayerId());
         mPipParams.setIsPlaying(isPlayerPlaying());
         mPipParams.setCurrentPlayTime(getPlayerCurrentPlaybackTime());
+        if (null != mVodPlayer) {
+            mPipParams.setRadio(mVodPlayer.getWidth(), mVodPlayer.getHeight());
+        }
         int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
         // 启动成功之后，暂停当前界面视频
         if (pipResult == FTXEvent.NO_ERROR) {
