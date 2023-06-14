@@ -10,10 +10,10 @@
                 android:supportsPictureInPicture="true"
                 android:screenOrientation="portrait"
                 android:excludeFromRecents="true"
+                android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
                 android:exported="true"
-                android:resizeableActivity="true"
                 android:launchMode="singleTask"
-                android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                android:resizeableActivity="true"
                 android:windowSoftInputMode="stateHidden"
                 tools:ignore="UnusedAttribute" >
             <intent-filter>

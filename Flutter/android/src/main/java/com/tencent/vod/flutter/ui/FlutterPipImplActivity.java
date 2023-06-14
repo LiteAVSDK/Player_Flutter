@@ -12,10 +12,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,7 +27,9 @@ import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ProgressBar;
+
 import androidx.annotation.NonNull;
+
 import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXLiveConstants;
@@ -63,6 +67,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private VideoModel mVideoModel;
     private boolean mIsRegisterReceiver = false;
     private PipParams mCurrentParams;
+    private Handler mMainHandler;
 
     private final BroadcastReceiver pipActionReceiver = new BroadcastReceiver() {
         @Override
@@ -94,6 +99,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mMainHandler = new Handler(getMainLooper());
+        bindAndroid12BugServiceIfNeed();
         Intent intent = getIntent();
         PipParams params = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
         if (null == params) {
@@ -108,7 +115,6 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             }
         }
         registerPipBroadcast();
-        handleIntent(intent);
         setContentView(R.layout.activity_flutter_pip_impl);
         mVodPlayer = new TXVodPlayer(this);
         mLivePlayer = new TXLivePlayer(this);
@@ -117,7 +123,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         mVideoSurface.getHolder().addCallback(this);
         setVodPlayerListener();
         setLivePlayerListener();
-        bindAndroid12BugServiceIfNeed();
+        handleIntent(intent);
     }
 
     private void setVodPlayerListener() {
@@ -272,23 +278,27 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
      * @param closeImmediately 立刻关闭，不执行延迟，在android 12以上，如果画中画处于非当前app界面下，立刻关闭可能会造成无法返回app问题
      */
     private void exitPip(boolean closeImmediately) {
-        if (!isFinishing() && !isDestroyed()) {
+        if (!isDestroyed()) {
             // 由于android 12 的前台服务启动限制，导致画中画返回后，过早关闭activity界面的话，无法正常拉起app。所以这里增加延时处理
-            if (Build.VERSION.SDK_INT >= VERSION_CODES.S && !closeImmediately) {
+            if (VERSION.SDK_INT >= VERSION_CODES.S && !closeImmediately) {
                 mVodPlayer.stopPlay(true);
                 mLivePlayer.stopPlay(true);
                 mVideoSurface.setVisibility(View.GONE);
                 mVideoProgress.setVisibility(View.GONE);
-                mVideoProgress.postDelayed(new Runnable() {
+                mMainHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         overridePendingTransition(0, 0);
-                        finish();
+                        finishAndRemoveTask();
                     }
                 }, 400);
             } else {
                 overridePendingTransition(0, 0);
-                finish();
+                if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                    finishAndRemoveTask();
+                } else {
+                    finish();
+                }
             }
         }
 
@@ -332,6 +342,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         mIsSurfaceCreated = true;
+        holder.setFormat(PixelFormat.TRANSLUCENT);
         attachSurface(holder.getSurface());
         startPlay();
     }
@@ -453,6 +464,13 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         mVideoProgress.setVisibility(View.VISIBLE);
     }
 
+    private void controlPipPlayStatus(boolean isPlaying) {
+        if (null != mCurrentParams) {
+            mCurrentParams.setIsPlaying(isPlaying);
+            updatePip(mCurrentParams);
+        }
+    }
+
     @Override
     public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
         if (VERSION.SDK_INT >= VERSION_CODES.N && isInPictureInPictureMode()) {
@@ -466,7 +484,13 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 }
                 updatePip(mCurrentParams);
             }
-            if (event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
+            if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
+                // 播放完毕的时候，自动将播放按钮置为播放
+                controlPipPlayStatus(false);
+            } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
+                // 播放开始的时候，自动将播放按钮置为暂停
+                controlPipPlayStatus(true);
+            } else if (event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
                 int progress = bundle.getInt(TXLiveConstants.EVT_PLAY_PROGRESS_MS);
                 int duration = bundle.getInt(TXLiveConstants.EVT_PLAY_DURATION_MS);
                 float percentage = (progress / 1000F) / (duration / 1000F);
