@@ -39,7 +39,7 @@ SuperPlayerPlugin* instance;
     TXFlutterNativeAPISetup([registrar messenger], instance);
     TXFlutterVodPlayerApiSetup([registrar messenger], [[FTXVodPlayerDispatcher alloc] initWithBridge:instance]);
     TXFlutterLivePlayerApiSetup([registrar messenger], [[FTXLivePlayerDispatcher alloc] initWithBridge:instance]);
-    [registrar addApplicationDelegate:self];
+    [registrar addApplicationDelegate:instance];
     
 }
 
