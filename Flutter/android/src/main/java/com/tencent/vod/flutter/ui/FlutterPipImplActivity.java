@@ -3,6 +3,7 @@
 package com.tencent.vod.flutter.ui;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.PictureInPictureParams;
 import android.app.PictureInPictureUiState;
 import android.content.BroadcastReceiver;
@@ -41,6 +42,9 @@ import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.PipResult;
 import com.tencent.vod.flutter.model.VideoModel;
+
+import java.util.List;
+import java.util.Set;
 
 public class FlutterPipImplActivity extends Activity implements Callback, ITXVodPlayListener,
         ITXLivePlayListener, ServiceConnection {
@@ -101,6 +105,13 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         super.onCreate(savedInstanceState);
         mMainHandler = new Handler(getMainLooper());
         bindAndroid12BugServiceIfNeed();
+        registerPipBroadcast();
+        setContentView(R.layout.activity_flutter_pip_impl);
+        mVodPlayer = new TXVodPlayer(this);
+        mLivePlayer = new TXLivePlayer(this);
+        mVideoSurface = findViewById(R.id.sv_video_container);
+        mVideoProgress = findViewById(R.id.pb_video_progress);
+        mVideoSurface.getHolder().addCallback(this);
         Intent intent = getIntent();
         PipParams params = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
         if (null == params) {
@@ -114,13 +125,6 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 configPipMode(null);
             }
         }
-        registerPipBroadcast();
-        setContentView(R.layout.activity_flutter_pip_impl);
-        mVodPlayer = new TXVodPlayer(this);
-        mLivePlayer = new TXLivePlayer(this);
-        mVideoSurface = findViewById(R.id.sv_video_container);
-        mVideoProgress = findViewById(R.id.pb_video_progress);
-        mVideoSurface.getHolder().addCallback(this);
         setVodPlayerListener();
         setLivePlayerListener();
         handleIntent(intent);
@@ -199,13 +203,18 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void configPipMode(PictureInPictureParams params) {
-        if (VERSION.SDK_INT >= VERSION_CODES.N) {
-            if (VERSION.SDK_INT >= VERSION_CODES.O) {
-                enterPictureInPictureMode(params);
-            } else {
-                enterPictureInPictureMode();
+        mVideoSurface.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (VERSION.SDK_INT >= VERSION_CODES.N) {
+                    if (VERSION.SDK_INT >= VERSION_CODES.O) {
+                        enterPictureInPictureMode(params);
+                    } else {
+                        enterPictureInPictureMode();
+                    }
+                }
             }
-        }
+        }, 200);
     }
 
     private void registerPipBroadcast() {
@@ -273,9 +282,29 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     /**
+     * move task to from。Prevent the issue of picture-in-picture windows failing to launch the app in certain cases.
+     */
+    public void moveAppToFront() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        ActivityManager activityManager =
+                (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+        final List<ActivityManager.AppTask> appTasks = activityManager.getAppTasks();
+        for (ActivityManager.AppTask task : appTasks) {
+            final Intent baseIntent = task.getTaskInfo().baseIntent;
+            final Set<String> categories = baseIntent.getCategories();
+            if (categories != null && categories.contains(Intent.CATEGORY_LAUNCHER)) {
+                task.moveToFront();
+                return;
+            }
+        }
+    }
+
+    /**
      * 关闭画中画，使用finish当前界面的方式，关闭画中画
      *
-     * @param closeImmediately 立刻关闭，不执行延迟，在android 12以上，如果画中画处于非当前app界面下，立刻关闭可能会造成无法返回app问题
+     * @param closeImmediately 立刻关闭，不执行延迟，一般关闭画中画为true，还原画中画为false。
      */
     private void exitPip(boolean closeImmediately) {
         if (!isDestroyed()) {
@@ -301,7 +330,9 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 }
             }
         }
-
+        if (closeImmediately) {
+            moveAppToFront();
+        }
     }
 
     private void startPipVideoFromIntent(Intent intent) {
