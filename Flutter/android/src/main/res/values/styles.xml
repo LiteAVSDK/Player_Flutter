@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- 取消界面转场动画使用-->
-    <style name="Theme" parent="android:Theme.Translucent.NoTitleBar.Fullscreen">
+    <style name="Theme" parent="android:Theme.Holo.NoActionBar">
         <item name="android:windowAnimationStyle">@style/Animation</item>
         <item name="android:background">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
