@@ -201,7 +201,6 @@ class SuperPlayerController {
         case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT:
         case TXVodPlayEvent.PLAY_EVT_PLAY_END:
           if (playerType == SuperPlayerType.LIVE_SHIFT) {
-            _livePlayerController.resumeLive();
             _observer?.onError(SuperPlayerCode.LIVE_SHIFT_FAIL, "时移失败,返回直播");
             _updatePlayerState(SuperPlayerState.PLAYING);
           } else {
@@ -712,12 +711,7 @@ class SuperPlayerController {
       }
     } else {
       _updatePlayerType(SuperPlayerType.LIVE_SHIFT);
-      _livePlayerController.seek(progress);
-      bool isPlaying = await _livePlayerController.isPlaying();
-      // resume when not playing.if isPlaying is null,not resume
-      if (!isPlaying) {
-        resume();
-      }
+      LogUtils.w(TAG, "live not support seek");
     }
     _observer?.onSeek(progress);
   }

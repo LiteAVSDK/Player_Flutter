@@ -172,22 +172,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _state = TXPlayerState.paused;
   }
 
-  /// 设置是否自动播放
-  @deprecated
-  Future<void> setIsAutoPlay({bool? isAutoPlay}) async {
-    await setAutoPlay(isAutoPlay: isAutoPlay);
-  }
-
-  /// 设置是否自动播放
-  @override
-  Future<void> setAutoPlay({bool? isAutoPlay}) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _livePlayerApi.setAutoPlay(BoolPlayerMsg()
-      ..value = isAutoPlay ?? false
-      ..playerId = _playerId);
-  }
-
   /// 停止播放
   /// return 是否停止成功
   @override
@@ -264,53 +248,12 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return intMsg.value ?? -1;
   }
 
-  /// 将视频播放进度定位到指定的进度进行播放
-  /// progress 要定位的视频时间，单位 秒
-  @override
-  Future<void> seek(double progress) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _livePlayerApi.seek(DoublePlayerMsg()
-      ..value = progress
-      ..playerId = _playerId);
-  }
-
   /// 设置appId
   Future<void> setAppID(int appId) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _livePlayerApi.setAppID(StringPlayerMsg()
       ..value = appId.toString()
-      ..playerId = _playerId);
-  }
-
-  /// 时移 暂不支持
-  @deprecated
-  Future<void> prepareLiveSeek(String domain, int bizId) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _livePlayerApi.prepareLiveSeek(StringIntPlayerMsg()
-      ..strValue = domain
-      ..intValue = bizId
-      ..playerId = _playerId);
-  }
-
-  /// 停止时移播放，返回直播
-  Future<int> resumeLive() async {
-    if (_isNeedDisposed) return 0;
-    await _initPlayer.future;
-    IntMsg intMsg = await _livePlayerApi.resumeLive(PlayerMsg()..playerId = _playerId);
-    return intMsg.value ?? 0;
-  }
-
-  /// 设置播放速率,暂不支持
-  @deprecated
-  @override
-  Future<void> setRate(double rate) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _livePlayerApi.setRate(DoublePlayerMsg()
-      ..value = rate
       ..playerId = _playerId);
   }
 
