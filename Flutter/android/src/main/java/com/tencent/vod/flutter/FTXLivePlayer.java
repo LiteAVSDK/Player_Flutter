@@ -12,6 +12,7 @@ import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.rtmp.TXVodConstants;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.DoublePlayerMsg;
@@ -151,6 +152,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
             mHardwareDecodeFail = true;
         }
+        if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
+            Log.e(TAG, "onLivePlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
+        }
         mEventSink.success(CommonUtil.getParams(event, bundle));
     }
 
@@ -253,22 +257,16 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         }
     }
 
+    @Deprecated
     void setPlayerAutoPlay(boolean isAutoPlay) {
-        if (mLivePlayer != null) {
-            mLivePlayer.setAutoPlay(isAutoPlay);
-        }
     }
 
+    @Deprecated
     void seekPlayer(float progress) {
-        if (mLivePlayer != null) {
-            mLivePlayer.seek((int) progress);
-        }
     }
 
+    @Deprecated
     void setPlayerRate(float rate) {
-        if (mLivePlayer != null) {
-            mLivePlayer.setRate(rate);
-        }
     }
 
     void setPlayerLiveMode(int type) {
@@ -305,17 +303,13 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         TXLiveBase.setAppID(appId);
     }
 
+    @Deprecated
     private int preparePlayerLiveSeek(String domain, int bizId) {
-        if (mLivePlayer != null) {
-            return mLivePlayer.prepareLiveSeek(domain, bizId);
-        }
         return Uninitialized;
     }
 
+    @Deprecated
     private int resumePlayerLive() {
-        if (mLivePlayer != null) {
-            return mLivePlayer.resumeLive();
-        }
         return Uninitialized;
     }
 
@@ -348,13 +342,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         int r = startPlayerLivePlay(playerMsg.getStrValue(),
                 null != playerMsg.getIntValue() ? playerMsg.getIntValue().intValue() : null);
         return CommonUtil.boolMsgWith(r == 1);
-    }
-
-    @Override
-    public void setAutoPlay(@NonNull BoolPlayerMsg isAutoPlay) {
-        if (null != isAutoPlay.getValue()) {
-            setPlayerAutoPlay(isAutoPlay.getValue());
-        }
     }
 
     @NonNull
@@ -408,35 +395,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     }
 
     @Override
-    public void seek(@NonNull DoublePlayerMsg progress) {
-        if (progress.getValue() != null) {
-            seekPlayer(progress.getValue().floatValue());
-        }
-    }
-
-    @Override
     public void setAppID(@NonNull StringPlayerMsg appId) {
         if (null != appId.getValue()) {
             setPlayerAppID(appId.getValue());
-        }
-    }
-
-    @Override
-    public void prepareLiveSeek(@NonNull StringIntPlayerMsg playerMsg) {
-        preparePlayerLiveSeek(playerMsg.getStrValue(),
-                null != playerMsg.getIntValue() ? playerMsg.getIntValue().intValue() : 0);
-    }
-
-    @NonNull
-    @Override
-    public IntMsg resumeLive(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.intMsgWith((long) resumePlayerLive());
-    }
-
-    @Override
-    public void setRate(@NonNull DoublePlayerMsg rate) {
-        if (null != rate.getValue()) {
-            setPlayerRate(rate.getValue().floatValue());
         }
     }
 

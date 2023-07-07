@@ -2,5 +2,5 @@
 part of SuperPlayer;
 
 abstract class FPlayerPckInfo {
-  static const String PLAYER_VERSION = "11.2.0";
+  static const String PLAYER_VERSION = "11.3.0";
 }

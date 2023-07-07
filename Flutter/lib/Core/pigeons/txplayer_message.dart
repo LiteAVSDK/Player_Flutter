@@ -499,10 +499,6 @@ abstract class TXFlutterLivePlayerApi {
   /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
   BoolMsg startLivePlay(StringIntPlayerMsg playerMsg);
 
-  /// 设置是否自动播放
-  @deprecated
-  void setAutoPlay(BoolPlayerMsg isAutoPlay);
-
   /// 停止播放
   /// return 是否停止成功
   BoolMsg stop(BoolPlayerMsg isNeedClear);
@@ -528,25 +524,8 @@ abstract class TXFlutterLivePlayerApi {
   /// 切换播放流
   IntMsg switchStream(StringPlayerMsg url);
 
-  /// 将视频播放进度定位到指定的进度进行播放
-  /// progress 要定位的视频时间，单位 秒
-  void seek(DoublePlayerMsg progress);
-
   /// 设置appId
   void setAppID(StringPlayerMsg appId);
-
-  /// 时移 暂不支持
-  /// @param domain
-  /// @param bizId
-  @deprecated
-  void prepareLiveSeek(StringIntPlayerMsg playerMsg);
-
-  /// 停止时移播放，返回直播
-  IntMsg resumeLive(PlayerMsg playerMsg);
-
-  /// 设置播放速率,暂不支持
-  @deprecated
-  void setRate(DoublePlayerMsg rate);
 
   /// 设置播放器配置
   /// config @see [FTXLivePlayConfig]

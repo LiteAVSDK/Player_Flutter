@@ -53,8 +53,7 @@ class VideoSliderViewState extends State<VideoSliderView> {
                 TXVodPlayerController controller = widget._controller as TXVodPlayerController;
                 controller.seek(_currentProgress * _videoDuration);
               } else if (widget._controller is TXLivePlayerController) {
-                TXLivePlayerController controller = widget._controller as TXLivePlayerController;
-                controller.seek(_currentProgress * _videoDuration);
+                LogUtils.w("Slider", "live not support seek");
               }
               
               print("_currentProgress:$_currentProgress,_videoDuration:"
