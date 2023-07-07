@@ -125,13 +125,6 @@ static const int uninitialized = -1;
     return [NSNumber numberWithLongLong:_textureId];
 }
 
-- (void)setIsAutoPlay:(BOOL)b
-{
-    if (_txLivePlayer != nil) {
-        _txLivePlayer.isAutoPlay = b;
-    }
-}
-
 - (void)setRenderRotation:(int)rotation
 {
     if (_txLivePlayer != nil) {
@@ -145,14 +138,6 @@ static const int uninitialized = -1;
         return [_txLivePlayer switchStream:url];
     }
     return -1;
-}
-
-- (int)seek:(float)progress
-{
-    if (_txLivePlayer != nil) {
-        return [_txLivePlayer seek:progress];
-    }
-    return uninitialized;
 }
 
 - (int)startLivePlay:(NSString *)url type:(TX_Enum_PlayType)playType
@@ -235,30 +220,6 @@ static const int uninitialized = -1;
 - (void)setAppID:(NSString *)appId
 {
     [TXLiveBase setAppID:appId];
-}
-
-- (int)prepareLiveSeek:(NSString *)domain
-                 bizId:(NSInteger)bizId
-{
-    if (_txLivePlayer != nil) {
-        return [_txLivePlayer prepareLiveSeek:domain bizId:bizId];
-    }
-    
-    return uninitialized;
-}
-
-- (int)resumeLive {
-    if (_txLivePlayer != nil) {
-        return [_txLivePlayer resumeLive];
-    }
-    
-    return uninitialized;
-}
-
-- (void)setRate:(float)rate {
-    if (_txLivePlayer != nil) {
-       [_txLivePlayer setRate:rate];
-    }
 }
 
 - (void)setRenderMode:(int)renderMode {
@@ -356,6 +317,7 @@ static const int uninitialized = -1;
 //        default:
 //            break;
 //    }
+    NSLog(@"onLivePlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
 }
 
 /**
@@ -438,11 +400,6 @@ static const int uninitialized = -1;
     // FlutterMethodNotImplemented
 }
 
-- (nullable IntMsg *)resumeLivePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    int r = [self resumeLive];
-    return [CommonUtil intMsgWith:@(r)];
-}
-
 - (void)resumePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [self resume];
 }
@@ -455,10 +412,6 @@ static const int uninitialized = -1;
     [self setAppID:appId.value];
 }
 
-- (void)setAutoPlayIsAutoPlay:(nonnull BoolPlayerMsg *)isAutoPlay error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    [self setIsAutoPlay:isAutoPlay.value.boolValue];
-}
-
 - (void)setConfigConfig:(nonnull FTXLivePlayConfigPlayerMsg *)config error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [self setPlayerConfig:config];
 }
@@ -469,10 +422,6 @@ static const int uninitialized = -1;
 
 - (void)setMuteMute:(nonnull BoolPlayerMsg *)mute error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [self setMute:mute.value.boolValue];
-}
-
-- (void)setRateRate:(nonnull DoublePlayerMsg *)rate error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    [self setRate:rate.value.floatValue];
 }
 
 - (void)setVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {

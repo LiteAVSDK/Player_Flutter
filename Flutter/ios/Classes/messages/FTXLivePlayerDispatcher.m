@@ -57,21 +57,6 @@
     }
 }
 
-- (void)prepareLiveSeekPlayerMsg:(nonnull StringIntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
-    id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
-    if(api) {
-        [api prepareLiveSeekPlayerMsg:playerMsg error:error];
-    }
-}
-
-- (nullable IntMsg *)resumeLivePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
-    id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
-    if(api) {
-        return [api resumeLivePlayerMsg:playerMsg error:error];
-    }
-    return nil;
-}
-
 - (void)resumePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
     id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
     if(api) {
@@ -79,24 +64,10 @@
     }
 }
 
-- (void)seekProgress:(nonnull DoublePlayerMsg *)progress error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
-    id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[progress.playerId];
-    if(api) {
-        [api seekProgress:progress error:error];
-    }
-}
-
 - (void)setAppIDAppId:(nonnull StringPlayerMsg *)appId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
     id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[appId.playerId];
     if(api) {
         [api setAppIDAppId:appId error:error];
-    }
-}
-
-- (void)setAutoPlayIsAutoPlay:(nonnull BoolPlayerMsg *)isAutoPlay error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
-    id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[isAutoPlay.playerId];
-    if(api) {
-        [api setAutoPlayIsAutoPlay:isAutoPlay error:error];
     }
 }
 
@@ -121,14 +92,7 @@
     }
 }
 
-- (void)setRateRate:(nonnull DoublePlayerMsg *)rate error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
-    id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[rate.playerId];
-    if(api) {
-        [api setRateRate:rate error:error];
-    }
-}
-
-- (void)setVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+- (void)setVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     id<TXFlutterLivePlayerApi> api = self.bridge.getPlayers[volume.playerId];
     if(api) {
         [api setVolumeVolume:volume error:error];
