@@ -201,7 +201,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置是否自动播放
-  @override
   Future<void> setAutoPlay({bool? isAutoPlay}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -269,7 +268,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   /// 将视频播放进度定位到指定的进度进行播放
   /// progress 要定位的视频时间，单位 秒
-  @override
   Future<void> seek(double progress) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -279,7 +277,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// 设置播放速率，默认速率 1
-  @override
   Future<void> setRate(double rate) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;

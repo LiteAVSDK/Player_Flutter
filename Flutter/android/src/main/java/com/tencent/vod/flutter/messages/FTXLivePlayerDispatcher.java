@@ -55,14 +55,6 @@ public class FTXLivePlayerDispatcher implements FtxMessages.TXFlutterLivePlayerA
         return null;
     }
 
-    @Override
-    public void setAutoPlay(@NonNull BoolPlayerMsg isAutoPlay) {
-        TXFlutterLivePlayerApi api = getPlayer(isAutoPlay.getPlayerId());
-        if (null != api) {
-            api.setAutoPlay(isAutoPlay);
-        }
-    }
-
     @NonNull
     @Override
     public BoolMsg stop(@NonNull BoolPlayerMsg isNeedClear) {
@@ -134,44 +126,10 @@ public class FTXLivePlayerDispatcher implements FtxMessages.TXFlutterLivePlayerA
     }
 
     @Override
-    public void seek(@NonNull DoublePlayerMsg progress) {
-        TXFlutterLivePlayerApi api = getPlayer(progress.getPlayerId());
-        if (null != api) {
-            api.seek(progress);
-        }
-    }
-
-    @Override
     public void setAppID(@NonNull StringPlayerMsg appId) {
         TXFlutterLivePlayerApi api = getPlayer(appId.getPlayerId());
         if (null != api) {
             api.setAppID(appId);
-        }
-    }
-
-    @Override
-    public void prepareLiveSeek(@NonNull StringIntPlayerMsg playerMsg) {
-        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
-        if (null != api) {
-            api.prepareLiveSeek(playerMsg);
-        }
-    }
-
-    @NonNull
-    @Override
-    public IntMsg resumeLive(@NonNull PlayerMsg playerMsg) {
-        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
-        if (null != api) {
-            return api.resumeLive(playerMsg);
-        }
-        return null;
-    }
-
-    @Override
-    public void setRate(@NonNull DoublePlayerMsg rate) {
-        TXFlutterLivePlayerApi api = getPlayer(rate.getPlayerId());
-        if (null != api) {
-            api.setRate(rate);
         }
     }
 

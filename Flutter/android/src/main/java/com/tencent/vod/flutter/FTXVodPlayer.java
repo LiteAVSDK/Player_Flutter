@@ -14,6 +14,7 @@ import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXImageSprite;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXPlayInfoParams;
+import com.tencent.rtmp.TXVodConstants;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.messages.FtxMessages;
@@ -194,6 +195,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             }
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
             mHardwareDecodeFail = true;
+        }
+        if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
+            Log.e(TAG, "onPlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
         }
         mEventSink.success(CommonUtil.getParams(event, bundle));
     }
