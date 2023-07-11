@@ -5,7 +5,9 @@ package com.tencent.vod.flutter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
+
 import com.tencent.rtmp.downloader.ITXVodDownloadListener;
 import com.tencent.rtmp.downloader.ITXVodPreloadListener;
 import com.tencent.rtmp.downloader.TXVodDownloadDataSource;
@@ -23,6 +25,7 @@ import com.tencent.vod.flutter.tools.CommonUtil;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +120,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                 msg.setQuality((long) dataSource.getQuality());
                 msg.setToken(dataSource.getToken());
             }
-            msg.setSpeed((long)mediaInfo.getSpeed());
+            msg.setSpeed((long) mediaInfo.getSpeed());
             msg.setIsResourceBroken(mediaInfo.isResourceBroken());
         }
         return msg;
@@ -160,7 +163,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     }
 
     private TXVodDownloadMediaInfo parseMediaInfoFromInfo(Integer quality, String url, Integer appId,
-            String fileId, String userName) {
+                                                          String fileId, String userName) {
         TXVodDownloadMediaInfo mediaInfo = null;
         if (null == userName) {
             userName = "default";
@@ -169,9 +172,38 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
             mediaInfo = TXVodDownloadManager.getInstance()
                     .getDownloadMediaInfo(appId, fileId, optQuality(quality), userName);
         } else if (!TextUtils.isEmpty(url)) {
-            mediaInfo = TXVodDownloadManager.getInstance().getDownloadMediaInfo(url);
+            mediaInfo = TXVodDownloadManager.getInstance().getDownloadMediaInfo(url, -1L, userName);
+            // To prevent the issue where downloading from the URL does not support specifying the userName
+            if (null == mediaInfo) {
+                mediaInfo = parseMediaInfoFromInfoByAll(quality, url, appId, fileId, userName);
+            }
         }
         return mediaInfo;
+    }
+
+    private TXVodDownloadMediaInfo parseMediaInfoFromInfoByAll(Integer quality, String url, Integer appId,
+                                                               String fileId, String userName) {
+        boolean isFileIdInfo = null != appId && null != fileId;
+        boolean isUrlInfo = !TextUtils.isEmpty(url);
+        List<TXVodDownloadMediaInfo> mediaInfoList = TXVodDownloadManager.getInstance().getDownloadMediaInfoList();
+        if (null != mediaInfoList && (isFileIdInfo || isUrlInfo)) {
+            for (TXVodDownloadMediaInfo mediaInfo : mediaInfoList) {
+                if (TextUtils.equals(userName, mediaInfo.getUserName())) {
+                    if (isFileIdInfo) {
+                        TXVodDownloadDataSource dataSource = mediaInfo.getDataSource();
+                        if (null != dataSource) {
+                            if (dataSource.getAppId() == appId && TextUtils.equals(dataSource.getFileId(), fileId)
+                                    && optQuality(quality) == dataSource.getQuality()) {
+                                return mediaInfo;
+                            }
+                        }
+                    } else if (TextUtils.equals(url, mediaInfo.getUrl())) {
+                        return mediaInfo;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private int optQuality(Integer quality) {
