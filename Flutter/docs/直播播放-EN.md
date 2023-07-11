@@ -138,30 +138,6 @@ _controller.switchStream("http://5815.liveplay.myqcloud.com/live/5815_62fe94d692
 
 > You need to configure PTS alignment on the backend to use the seamless video quality change feature. To do this, please [submit a ticket](https://console.cloud.tencent.com/workorder).
 
-
-### Step 8. Replay a live stream
-The time shifting feature allows you to return to any previous time point during a live stream and resume playback from that time point. It is highly suitable for scenarios in which there is no need for interaction but viewers may want to rewind and replay a video, such as sports and gaming events.
-
-```dart
-// Call `startLivePlay` first before setting time shifting
-// Start playback
-await _controller.setAppID(appId); // Configure `appId`
-await _controller.prepareLiveSeek(domian, bizidNum);    // The backend requests the live streaming start time 
-```
-After correct configuration, the current progress will not start from 0 in the `LAY_EVT_PLAY_PROGRESS` event, but will be calculated based on the actual playback start time.
-Call the `seek` method to start live streaming again from a previous time point
-```dart
-await _controller.seek(600); // Start playback from the 10th minute
-```
-
-Configure the following settings on the backend to connect to time shifting:
-
-1. Recording: Configure the time shifting duration and time shifting storage period.
-2. Playback: Enable metadata acquisition in time shifting.
-
-The time shifting feature is currently in beta testing. To use it, please submit a ticket.
-
-
 <h2 id="Delay">Latency Adjustment</h2>
 The live playback feature of the SDK is not based on FFmpeg, but Tencent Cloud's proprietary playback engine, which is why the SDK offers better latency control than open-source players do. We provide three latency control modes, which can be used for showrooms, game streaming, and hybrid scenarios.
 
