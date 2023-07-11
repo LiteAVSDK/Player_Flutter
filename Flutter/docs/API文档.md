@@ -1171,7 +1171,72 @@ Future<int> enterPictureInPictureMode({String? backIconForAndroid, String? playI
 | ERROR_IOS_PIP_IS_RUNNING | -110 | PIP功能已经运行，只适用于 iOS
 | ERROR_IOS_PIP_NOT_RUNNING | -111 | PIP功能没有启动，只适用于 iOS
 
+### initImageSprite
 
+**说明**
+
+初始化视频雪碧图
+
+**接口**
+
+```dart
+Future<void> initImageSprite(String? vvtUrl, List<String>? imageUrls) async;
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| vvtUrl | String | 雪碧图 web vtt 描述文件下载 URL |
+| imageUrls | List<String> | 雪碧图图片下载 URL |
+
+**返回值说明**
+
+无
+
+### getImageSprite
+
+**说明**
+
+获取加载的雪碧图
+
+**接口**
+
+```dart
+Future<Uint8List?> getImageSprite(double time) async;
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| time | double | 时间点，单位秒 |
+
+**返回值说明**
+
+| 参数名 | 类型   | 描述               |
+| ------ | ------ | ------------------ |
+| thumb | Uint8List | 雪碧图 |
+
+### exitPictureInPictureMode
+
+**说明**
+
+退出画中画，如果该播放器处于画中画模式
+
+**接口**
+
+```dart
+Future<void> exitPictureInPictureMode() async;
+```
+
+**参数说明**
+
+无
+
+**返回值说明**
+
+无
 
 ## FTXVodPlayConfig类
 
@@ -1324,29 +1389,6 @@ Future<bool> stop({bool isNeedClear = false}) async;
 | result | bool | 停止是否成功 |
 
 
-### setIsAutoPlay
-
-**说明**
-
-设置即将播放的视频，在startVodPlay加载视频地址之后，是否直接自动播放
-
-**接口**
-
-```dart
-Future<void> setIsAutoPlay({bool? isAutoPlay}) async;
-```
-
-**参数说明**
-
-| 参数名 | 类型   | 描述               |
-| ------ | ------ | ------------------ |
-| isAutoPlay | bool | 是否自动播放 |
-
-**返回值说明**
-
-无
-
-
 ### isPlaying
 
 **说明**
@@ -1460,29 +1502,6 @@ Future<void> setAppID(int appId) async;
 **返回值说明**
 
 无
-
-
-### resumeLive
-
-**说明**
-
-停止时移播放，返回直播
-
-**接口**
-
-```dart
-Future<int> resumeLive() async;
-```
-
-**参数说明**
-
-无
-
-**返回值说明**
-
-| 参数名 | 类型   | 描述               |
-| ------ | ------ | ------------------ |
-| result | int | 1 成功， 0 失败 |
 
 
 ### setConfig
@@ -1898,30 +1917,6 @@ Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async
 | ------ | ------ | ------------------ |
 | result | bool | 删除结果|
 
-
-### deleteDownloadMediaInfo
-
-**说明**
-
-删除下载的视频
-
-**接口**
-
-```dart
-Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async
-```
-
-**参数说明**
-
-| 参数名 | 类型   | 描述               |
-| ------ | ------ | ------------------ |
-| mediaInfo | TXVodDownloadMediaInfo | 任务下载信息|
-
-**返回值说明**
-
-| 参数名 | 类型   | 描述               |
-| ------ | ------ | ------------------ |
-| result | bool | 删除结果|
 
 
 
