@@ -47,7 +47,7 @@ public class CommonUtil {
 
     public static boolean isMIUI() {
         String pro = getProp(KEY_MIUI_VERSION_NAME);
-        return !TextUtils.equals(pro,"MIUI");
+        return TextUtils.equals(pro,"MIUI");
     }
 
     public static String getProp(String name) {
