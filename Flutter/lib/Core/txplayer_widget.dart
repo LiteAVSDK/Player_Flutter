@@ -41,10 +41,7 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     int remainTextureId = await controller.textureId;
     if (remainTextureId >= 0) {
       if (remainTextureId != _textureId) {
-        setState(() {
-          LogUtils.d(TAG, "_textureId = $remainTextureId");
-          _textureId = remainTextureId;
-        });
+        _refreshTextureId(remainTextureId);
       }
     } else {
       setState(() {
@@ -52,12 +49,17 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
       });
       controller.textureId.then((newTextureId) {
         if (_textureId != newTextureId) {
-          setState(() {
-            LogUtils.d(TAG, "_textureId = $newTextureId");
-            _textureId = newTextureId;
-          });
+          _refreshTextureId(newTextureId);
         }
       });
+    }
+  }
+
+  void _refreshTextureId(int textureId) {
+    LogUtils.d(TAG, "_textureId = $textureId");
+    _textureId = textureId;
+    if (mounted) {
+      setState(() {});
     }
   }
 
