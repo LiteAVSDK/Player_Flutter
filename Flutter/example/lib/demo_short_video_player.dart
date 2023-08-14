@@ -12,7 +12,7 @@ class DemoShortVideoPlayer extends StatefulWidget {
 }
 
 class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with WidgetsBindingObserver {
-  static const TAG = "ShortVideo::ShortVideoListViewState";
+  static const TAG = "ShortVideo";
   int _currentIndex = 0;
   List<SuperPlayerModel> superPlayerModelList = [];
   VideoEventDispatcher eventDispatcher = VideoEventDispatcher();
@@ -58,7 +58,7 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
             child: const Image(
               width: 40,
               height: 40,
-              image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
+              image: AssetImage("images/superplayer_btn_back_play.png", package: PlayerConstants.PKG_NAME),
             ),
           ),
         )),
@@ -81,6 +81,8 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
       case AppLifecycleState.resumed:
         LogUtils.i(TAG, "[AppLifecycleState.resumed]");
         _onApplicationResume();
+        break;
+      default:
         break;
     }
   }

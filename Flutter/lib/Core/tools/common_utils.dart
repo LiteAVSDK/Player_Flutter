@@ -1,8 +1,10 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
+/// Common utility class
 /// 通用工具类
 class CommonUtils {
+  /// Get the corresponding qualityId for download based on the resolution
   /// 通过分辨率获取下载对应的qualityId
   static int getDownloadQualityBySize(int width, int height) {
     int minValue = min(width, height);

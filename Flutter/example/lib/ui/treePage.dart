@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/demo_txLiveplayer.dart';
 import 'package:super_player_example/demo_txvodplayer.dart';
+import 'package:super_player_example/res/app_localizations.dart';
 
 import '../demo_short_video_player.dart';
 import 'demo_define.dart';
@@ -17,9 +18,9 @@ class TreePage extends StatefulWidget {
 }
 
 class _TreePageState extends State<TreePage> {
-  List<TreeData> _datas = [];
+  List<TreeData> _data = [];
   ScrollController _scrollController = ScrollController();
-  int _panelIndex = 0; //展开下标
+  int _panelIndex = 0; // Expanded index
   List<IconData> _icons = [
     Icons.star_border,
     Icons.child_care,
@@ -33,19 +34,18 @@ class _TreePageState extends State<TreePage> {
     super.initState();
 
     _scrollController.addListener(() {
-      //当前位置==最大滑动范围 表示已经滑动到了底部
+      // Current position = maximum sliding range means that it has already been scrolled to the bottom.
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
       }
     });
-
-    _datas = [
+    _data = [
       TreeData([
-        TreeDatachild("直播播放"),
-        TreeDatachild("点播播放"),
-        TreeDatachild("播放器组件"),
-        TreeDatachild("短视频播放")
-      ], "播放器", false),
+        TreeDataChild("player_live_play"),
+        TreeDataChild("player_vod_player"),
+        TreeDataChild("player_play_widget"),
+        TreeDataChild("player_short_video_play")
+      ], "player_video_player", false),
     ];
   }
 
@@ -53,38 +53,38 @@ class _TreePageState extends State<TreePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: RefreshIndicator(
-        //指示器颜色
+        // Indicator color
         color: Theme.of(context).primaryColor,
-        //指示器显示时距顶部位置
+        // Distance from the top when the indicator is displayed
         displacement: 40,
         child: SingleChildScrollView(
           controller: _scrollController,
           child: ExpansionPanelList(
-            //开关动画时长
+            // Switch animation duration
             animationDuration: Duration(milliseconds: 500),
-            //开关回调
+            // Switch callback
             expansionCallback: (panelIndex, isExpanded) {
               setState(() {
                 _panelIndex = panelIndex;
-                _datas[panelIndex].isExpanded = !isExpanded;
+                _data[panelIndex].isExpanded = !isExpanded;
               });
             },
-            //内容区
-            children: _datas.map<ExpansionPanel>((TreeData treeData) {
+            // Content area
+            children: _data.map<ExpansionPanel>((TreeData treeData) {
               return ExpansionPanel(
-                //标题
+                // title
                 headerBuilder: (context, isExpanded) {
                   return ListTile(
                     contentPadding: EdgeInsets.all(10.0),
                     title: Text(
-                      treeData.name,
+                      AppLocals.current.findStr(treeData.name)!,
                       style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
-                    //取随机icon
+                    // random icon
                     leading: Icon(_icons[Random().nextInt(_icons.length)]),
                   );
                 },
-                //展开内容
+                // expand content
                 body: Container(
                   height: 250,
                   padding: EdgeInsets.symmetric(horizontal: 5.0),
@@ -95,13 +95,13 @@ class _TreePageState extends State<TreePage> {
                     },
                   ),
                 ),
-                //是否展开
+                // is expanded
                 isExpanded: treeData.isExpanded,
               );
             }).toList(),
           ),
         ),
-        //下拉刷新回调
+        // Pull-down refresh callback
         onRefresh: () async {
           await Future.delayed(Duration(seconds: 2), () {
           });
@@ -116,7 +116,7 @@ class _TreePageState extends State<TreePage> {
         padding: EdgeInsets.symmetric(horizontal: 5.0),
         child: ListTile(
           title: Text(
-            treeData.children[i].name,
+            AppLocals.current.findStr(treeData.children[i].name)!,
             style: TextStyle(color: DemoDefine.color_999),
           ),
           trailing: Icon(

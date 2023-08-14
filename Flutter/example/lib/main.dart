@@ -8,7 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/res/app_localization_delegate.dart';
-import 'package:super_player_example/shortvideo/demo_short_video_lib.dart';
+import 'package:super_player_example/res/app_localizations.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
 
 import 'ui/treePage.dart';
@@ -33,15 +33,15 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     initPlatformState();
     initPlayerLicense();
-    _getflutterSdkVersion();
+    _getFlutterSdkVersion();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     LogUtils.logOpen = true;
   }
 
   /// set player license
-  Future<void> initPlayerLicense() async{
-    String licenceURL = ""; // 获取到的 licence url
-    String licenceKey = ""; // 获取到的 licence key
+  Future<void> initPlayerLicense() async {
+    String licenceURL = ""; // The obtained license URL
+    String licenceKey = ""; // The obtained license key
     await SuperPlayerPlugin.setGlobalLicense(licenceURL, licenceKey);
   }
 
@@ -71,10 +71,10 @@ class _MyAppState extends State<MyApp> {
     SuperPlayerPlugin.setGlobalCacheFolderPath("postfixPath");
   }
 
-  Future<void> _getflutterSdkVersion() async {
-    String? liteavSdkVersion = await SuperPlayerPlugin.getLiteAVSDKVersion();
+  Future<void> _getFlutterSdkVersion() async {
+    String? liteAVSdkVersion = await SuperPlayerPlugin.getLiteAVSDKVersion();
     setState(() {
-      _liteAVSdkVersion = liteavSdkVersion;
+      _liteAVSdkVersion = liteAVSdkVersion;
     });
   }
 
@@ -82,15 +82,18 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       localizationsDelegates: [
+        AppLocalizationDelegate.delegate,
+        SuperPlayerWidgetLocals.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
-        AppLocalizationDelegate.delegate
       ],
+      onGenerateTitle: (context) => AppLocals.current.playerTitle,
       supportedLocales: [
         Locale.fromSubtags(languageCode: 'en'),
         Locale.fromSubtags(languageCode: 'zh'),
       ],
+      localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales) {},
       navigatorKey: navigatorKey,
       home: Container(
         decoration: BoxDecoration(
@@ -102,9 +105,12 @@ class _MyAppState extends State<MyApp> {
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
-            title: const Text(
-              '腾讯云Flutter播放器',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+            // To wait for the context to be ready in the widget.
+            title: Builder(
+              builder: (context) => Text(
+                AppLocals.of(context).playerTitle,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+              ),
             ),
           ),
           body: Builder(builder: (context) {
@@ -117,7 +123,7 @@ class _MyAppState extends State<MyApp> {
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: new EdgeInsets.all(20.0),
-                        child: Text('LiteAVSDKVersion: ${_liteAVSdkVersion}'),
+                        child: Text('LiteAVSDKVersion: $_liteAVSdkVersion'),
                       )),
                 ],
               ),

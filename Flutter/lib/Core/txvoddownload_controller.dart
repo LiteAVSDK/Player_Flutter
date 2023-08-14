@@ -36,6 +36,15 @@ class TXVodDownloadController {
         eventChannel.receiveBroadcastStream('event').listen(_eventHandler, onError: _errorHandler);
   }
 
+  /// Start pre-downloading.
+  /// [Important] Before starting pre-download, please set the cache directory [SuperPlayerPlugin.setGlobalCacheFolderPath] and cache size [SuperPlayerPlugin.setGlobalMaxCacheSize] of the playback engine first. This setting is a global configuration and needs to be consistent with the player to avoid invalidation of playback cache.
+  /// playUrl: The URL to be pre-downloaded.
+  /// preloadSizeMB: The pre-downloaded size (unit: MB).
+  /// preferredResolution: The expected resolution, long type, value is height x width. For example, 720*1080. If multiple resolutions are not supported or not specified, pass -1.
+  /// onCompleteListener: Pre-download successful callback.
+  /// onErrorListener: Pre-download failed callback.
+  /// Return value: Task ID, which can be used to stop pre-download [stopPreload].
+  ///
   /// 启动预下载。
   /// 【重要】启动预下载前，请先设置好播放引擎的缓存目录[SuperPlayerPlugin.setGlobalCacheFolderPath]和缓存大小[SuperPlayerPlugin.setGlobalMaxCacheSize]，这个设置是全局配置需和播放器保持一致，否则会造成播放缓存失效。
   /// playUrl: 要预下载的url
@@ -60,18 +69,29 @@ class TXVodDownloadController {
     return msg.value ?? -1;
   }
 
+  /// Stop pre-downloading.
+  /// taskId: Task ID, returned by [startPreLoad].
+  ///
   /// 停止预下载。
   /// taskId： 任务id,[startPreLoad]返回值
   Future<void> stopPreLoad(final int taskId) async {
     await _api.stopPreLoad(IntMsg()..value = taskId);
   }
 
+  /// Start downloading.
+  /// videoDownloadModel: Download constructor [TXVodDownloadMediaInfo].
+  ///
   /// 开始下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
   Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async {
     await _api.startDownload(mediaInfo.toMsg());
   }
 
+  /// Resume downloading. This interface is different from the start downloading interface.
+  /// This interface will find the corresponding cache and reuse the previous cache to resume downloading,
+  /// while the start downloading interface will start a brand new download.
+  /// videoDownloadModel: Download constructor [TXVodDownloadMediaInfo].
+  ///
   /// 继续下载，与开始下载接口有区别，该接口会寻找对应的缓存，复用之前的缓存来续点下载，
   /// 而开始下载接口会启动一个全新的下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
@@ -79,17 +99,25 @@ class TXVodDownloadController {
     await _api.resumeDownload(mediaInfo.toMsg());
   }
 
+  /// Stop downloading.
+  /// videoDownloadModel: Download constructor [TXVodDownloadMediaInfo].
+  ///
   /// 停止下载
   /// videoDownloadModel: 下载构造体 [TXVodDownloadMediaInfo]
   Future<void> stopDownload(TXVodDownloadMediaInfo mediaInfo) async {
     await _api.stopDownload(mediaInfo.toMsg());
   }
 
+  /// Set download request headers.
+  ///
   /// 设置下载请求头
   Future<void> setDownloadHeaders(Map<String, String> headers) async {
     await _api.setDownloadHeaders(new MapMsg()..map = headers);
   }
 
+  /// Get all video download lists.
+  /// return [TXVodDownloadMediaInfo].
+  ///
   /// 获取所有视频下载列表
   /// return [TXVodDownloadMediaInfo]
   Future<List<TXVodDownloadMediaInfo>> getDownloadList() async {
@@ -105,6 +133,9 @@ class TXVodDownloadController {
     return outputList;
   }
 
+  /// Get the download information of the specified video.
+  /// return [TXVodDownloadMediaInfo].
+  ///
   /// 获得指定视频的下载信息
   /// return [TXVodDownloadMediaInfo]
   Future<TXVodDownloadMediaInfo> getDownloadInfo(TXVodDownloadMediaInfo mediaInfo) async {
@@ -112,6 +143,8 @@ class TXVodDownloadController {
     return _getDownloadInfoFromMsg(msg);
   }
 
+  /// Set the download event listener. This listener is a global download listener configuration and can be called repeatedly.
+  ///
   /// 设置下载事件监听，该监听为全局下载监听配置，重复调用
   void setDownloadObserver(FTXDownlodOnStateChangeListener? downlodOnStateChangeListener,
       FTXDownlodOnErrorListener? downlodOnErrorListener) {
@@ -119,6 +152,8 @@ class TXVodDownloadController {
     _downlodOnErrorListener = downlodOnErrorListener;
   }
 
+  /// Delete download task.
+  ///
   /// 删除下载任务
   Future<bool> deleteDownloadMediaInfo(TXVodDownloadMediaInfo mediaInfo) async {
     BoolMsg msg = await _api.deleteDownloadMediaInfo(mediaInfo.toMsg());
@@ -126,16 +161,16 @@ class TXVodDownloadController {
   }
 
   TXVodDownloadMediaInfo _getDownloadInfoFromMap(Map<dynamic, dynamic> map) {
-    TXVodDownloadMediaInfo medialnfo = TXVodDownloadMediaInfo();
-    medialnfo.playPath = map["playPath"];
-    medialnfo.progress = map["progress"];
-    medialnfo.downloadState = map["downloadState"];
-    medialnfo.userName = map["userName"];
-    medialnfo.duration = map["duration"];
-    medialnfo.playableDuration = map["playableDuration"];
-    medialnfo.size = map["size"];
-    medialnfo.downloadSize = map["downloadSize"];
-    medialnfo.url = map["url"];
+    TXVodDownloadMediaInfo mediaInfo = TXVodDownloadMediaInfo();
+    mediaInfo.playPath = map["playPath"];
+    mediaInfo.progress = map["progress"];
+    mediaInfo.downloadState = map["downloadState"];
+    mediaInfo.userName = map["userName"];
+    mediaInfo.duration = map["duration"];
+    mediaInfo.playableDuration = map["playableDuration"];
+    mediaInfo.size = map["size"];
+    mediaInfo.downloadSize = map["downloadSize"];
+    mediaInfo.url = map["url"];
     if (map.keys.contains("appId")) {
       TXVodDownloadDataSource dataSource = TXVodDownloadDataSource();
       dataSource.appId = map["appId"];
@@ -144,12 +179,12 @@ class TXVodDownloadController {
       dataSource.token = map["token"];
       dataSource.userName = map["userName"];
       dataSource.quality = map["quality"];
-      medialnfo.dataSource = dataSource;
+      mediaInfo.dataSource = dataSource;
     }
-    medialnfo.speed = map["speed"];
-    medialnfo.isResourceBroken = map["isResourceBroken"];
+    mediaInfo.speed = map["speed"];
+    mediaInfo.isResourceBroken = map["isResourceBroken"];
 
-    return medialnfo;
+    return mediaInfo;
   }
 
   TXVodDownloadMediaInfo _getDownloadInfoFromMsg(TXVodDownloadMediaMsg msg) {
@@ -180,14 +215,14 @@ class TXVodDownloadController {
     if (null == event) {
       return;
     }
-    LogUtils.d(TAG, '_eventHandler, event= ${event}');
+    LogUtils.d(TAG, '_eventHandler, event= $event');
     final Map<dynamic, dynamic> map = event;
     int eventCode = map["event"];
     switch (eventCode) {
       case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_COMPLETE:
         int taskId = map['taskId'];
         String url = map['url'];
-        LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_COMPLETE, taskID=${taskId} ,url=${url}');
+        LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_COMPLETE, taskID=$taskId ,url=$url');
         if (_onPreDownloadOnCompleteListener != null) {
           _onPreDownloadOnCompleteListener!(taskId, url);
         }
@@ -197,7 +232,7 @@ class TXVodDownloadController {
         String url = map['url'];
         int code = map['code'] ?? 0;
         String msg = map['msg'] ?? '';
-        LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_ERROR, taskID=${taskId} ,url=${url}, code=${code} , msg=${msg}');
+        LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_ERROR, taskID=$taskId ,url=$url, code=$code , msg=$msg');
         if (_onPreDownloadOnErrorListener != null) {
           _onPreDownloadOnErrorListener!(taskId, url, code, msg);
         }

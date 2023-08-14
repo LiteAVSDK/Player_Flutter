@@ -6,7 +6,7 @@ import 'package:super_player_example/res/app_localizations.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'dart:io';
 
-/// 下载列表demo
+/// Download list demo
 class DemoDownloadList extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _DemoDownloadListState();
@@ -82,7 +82,6 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         model.videoId!.psign = mediaInfo.dataSource!.pSign ?? "";
         model.playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
         model.videoURL = mediaInfo.playPath!;
-        // 通过fieId获得标题、封面图等信息
         requestList.add(loader.getVideoData(model, (resultModel) {
           tempModels.add(DownloadModel(resultModel, mediaInfo));
         }));
@@ -92,7 +91,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         model.videoURL = mediaInfo.playPath!;
         model.playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
         model.coverUrl = DEFAULT_PLACE_HOLDER;
-        model.title = StringResource.TEST_VIDEO_TITLE;
+        model.title = FSPLocal.current.txSpwTestVideo;
         tempModels.add(DownloadModel(model, mediaInfo));
       }
       await Future.wait(requestList);
@@ -115,7 +114,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: Text(AppLocalizations.of(context).playerDownloadList),
+          title: Text(AppLocals.of(context).playerDownloadList),
         ),
         body: SafeArea(
           child: Builder(
@@ -131,7 +130,6 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         shrinkWrap: true, itemCount: models.length, itemBuilder: (context, index) => buildDownloadItem(models[index]));
   }
 
-  /// 构建下载item
   Widget buildDownloadItem(DownloadModel downloadModel) {
     return InkWell(
       onTap: () => onTapCacheVideo(downloadModel),
@@ -179,7 +177,8 @@ class _DemoDownloadListState extends State<StatefulWidget> {
                   ))
             ],
           ),
-          // 增加Expanded，占满剩余空间，确定宽度大小，确保子View能够找到容器边界
+          // Add Expanded to fill the remaining space, determine the width size,
+          // and ensure that the child view can find the container boundary.
           Expanded(
             child: Container(
               margin: EdgeInsets.only(left: 8, right: 8),
@@ -239,20 +238,20 @@ class _DemoDownloadListState extends State<StatefulWidget> {
 
   Widget _buildItemDownloadInfo(TXVodDownloadMediaInfo mediaInfo) {
     int stateColor = ColorResource.COLOR_DOWNLOAD_CACHING;
-    String stateText = AppLocalizations.of(context).playerCaching;
+    String stateText = AppLocals.of(context).playerCaching;
     if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_START ||
         mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_PROGRESS) {
       stateColor = ColorResource.COLOR_DOWNLOAD_CACHING;
-      stateText = AppLocalizations.of(context).playerCaching;
+      stateText = AppLocals.of(context).playerCaching;
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_ERROR) {
       stateColor = ColorResource.COLOR_DOWNLOAD_INTERUPT;
-      stateText = AppLocalizations.of(context).playerCacheError;
+      stateText = AppLocals.of(context).playerCacheError;
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_STOP) {
       stateColor = ColorResource.COLOR_DOWNLOAD_COMPELETE;
-      stateText = AppLocalizations.of(context).playerCacheInterrupt;
+      stateText = AppLocals.of(context).playerCacheInterrupt;
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_FINISH) {
       stateColor = ColorResource.COLOR_DOWNLOAD_COMPELETE;
-      stateText = AppLocalizations.of(context).playerCacheComplete;
+      stateText = AppLocals.of(context).playerCacheComplete;
     }
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -264,7 +263,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
             Container(
               margin: EdgeInsets.only(right: 4),
               child: Text(
-                "${AppLocalizations.of(context).playerCacheSize}:${(mediaInfo.size != null ? mediaInfo.size! / 1024 ~/ 1024 : 0)}MB",
+                "${AppLocals.of(context).playerCacheSize}:${(mediaInfo.size != null ? mediaInfo.size! / 1024 ~/ 1024 : 0)}MB",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.start,
@@ -272,10 +271,10 @@ class _DemoDownloadListState extends State<StatefulWidget> {
                 style: TextStyle(color: Colors.grey, fontSize: 10),
               ),
             ),
-            // 超出部分省略
+            // Ellipsis for overflow
             Expanded(
                 child: Text(
-              "${AppLocalizations.of(context).playerCacheProgressLabel}:${((mediaInfo.progress ?? 0) * 100).toInt()}%",
+              "${AppLocals.of(context).playerCacheProgressLabel}:${((mediaInfo.progress ?? 0) * 100).toInt()}%",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.start,
@@ -302,11 +301,11 @@ class _DemoDownloadListState extends State<StatefulWidget> {
     TXVodDownloadMediaInfo mediaInfo = downloadModel.mediaInfo;
     if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_FINISH) {
       SuperPlayerModel playerModel = downloadModel.videoModel;
-      // 使用本地播放地址
+      // Use local playback address
       playerModel.videoURL = downloadModel.mediaInfo.playPath!;
-      // 置空videoId，避免播放器组件对url进行额外的参数拼接
+      // Set videoId to null to avoid additional parameter concatenation by the player component for the URL
       playerModel.videoId = null;
-      // 置空multiVideoURLs，避免播放器组件有限对多码率url进行播放
+      // Set multiVideoURLs to null to avoid limited playback of multi-bitrate URLs by the player component
       playerModel.multiVideoURLs = [];
       Navigator.of(context).pop(playerModel);
     } else if (mediaInfo.downloadState == TXVodPlayEvent.EVENT_DOWNLOAD_STOP ||
@@ -328,14 +327,14 @@ class _DemoDownloadListState extends State<StatefulWidget> {
             backgroundColor: Color(ColorResource.COLOR_APP_MAIN_THEME),
             contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 10),
             title: Text(
-              AppLocalizations.of(context).playerTip,
+              AppLocals.of(context).playerTip,
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(ColorResource.COLOR_WHITE), fontSize: 16),
             ),
             content: Container(
               margin: EdgeInsets.only(top: 15),
               child: Text(
-                AppLocalizations.of(context).playerCheckUserDeleteVideo,
+                AppLocals.of(context).playerCheckUserDeleteVideo,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Color(ColorResource.COLOR_TRANS_GRAY_4), fontSize: 14),
               ),
@@ -344,13 +343,13 @@ class _DemoDownloadListState extends State<StatefulWidget> {
               TextButton(
                   onPressed: () => _onDialogDeleteDownload(downloadModel),
                   child: Text(
-                    AppLocalizations.of(context).playerConfirm,
+                    AppLocals.of(context).playerConfirm,
                     style: TextStyle(color: Color(ColorResource.COLOR_BTN_BULUE), fontSize: 14),
                   )),
               TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
-                    AppLocalizations.of(context).playerCancel,
+                    AppLocals.of(context).playerCancel,
                     style: TextStyle(color: Color(ColorResource.COLOR_TRANS_GRAY_4), fontSize: 14),
                   )),
             ],
@@ -366,7 +365,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         models.remove(downloadModel);
       });
     } else {
-      EasyLoading.showToast(AppLocalizations.of(context).playerDeleteFailed);
+      EasyLoading.showToast(AppLocals.of(context).playerDeleteFailed);
     }
   }
 
