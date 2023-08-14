@@ -7,11 +7,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,6 +39,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterNativeAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterVodPlayerApi;
 import com.tencent.vod.flutter.tools.CommonUtil;
+import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.Android12BridgeService;
 
 import java.io.File;
@@ -84,6 +83,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     private OrientationEventListener mOrientationManager;
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
+    private final TXFlutterEngineHolder mEngineHolder = new TXFlutterEngineHolder();
 
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
@@ -102,8 +102,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         @Override
         public void onChange(boolean selfChange, @NonNull Collection<Uri> uris, int flags) {
             super.onChange(selfChange, uris, flags);
-            double systemBrightness = getSystemScreenBrightness();
-            setWindowBrightness(systemBrightness);
+            if (mEngineHolder.isInForeground()) {
+                double systemBrightness = getSystemScreenBrightness();
+                setWindowBrightness(systemBrightness);
+            }
         }
     };
 
@@ -340,7 +342,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         try {
             ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
             final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
-            final float maxBrightness = getBrightnessMax();
+            final float maxBrightness = CommonUtil.getBrightnessMax();
             screenBrightness = brightnessInt / maxBrightness;
         } catch (SettingNotFoundException e) {
             e.printStackTrace();
@@ -348,33 +350,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         return screenBrightness;
     }
 
-    /**
-     * 获取最大亮度,兼容MIUI部分系统亮度最大值不是255的情况.
-     * MIUI在android 13以后，系统最大亮度与配置不符，变为128
-     *
-     * Get the maximum brightness, compatible with some MIUI systems where the maximum brightness is not 255.
-     * After Android 13, MIUI's maximum brightness is inconsistent with the configuration and becomes 128.
-     *
-     * @return max
-     */
-    private float getBrightnessMax() {
-        if (CommonUtil.isMIUI()) {
-            if (Build.VERSION.SDK_INT < 33) {
-                try {
-                    Resources system = Resources.getSystem();
-                    int resId = system.getIdentifier("config_screenBrightnessSettingMaximum", "integer", "android");
-                    if (resId != 0) {
-                        return system.getInteger(resId);
-                    }
-                } catch (Exception e) {
-                    Log.getStackTraceString(e);
-                }
-            } else {
-                return 128;
-            }
-        }
-        return 255F;
-    }
 
     private void initAudioManagerIfNeed() {
         if (null == mTxAudioManager) {
@@ -402,10 +377,14 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        if (null != mActivityPluginBinding && mActivityPluginBinding != binding) {
+            mEngineHolder.destroy(binding);
+        }
         mActivityPluginBinding = binding;
         initAudioManagerIfNeed();
         initPipManagerIfNeed();
         registerReceiver();
+        mEngineHolder.attachBindLife(binding);
     }
 
     @Override
@@ -427,6 +406,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), Android12BridgeService.class);
         mActivityPluginBinding.getActivity().stopService(serviceIntent);
         unregisterReceiver();
+        mEngineHolder.destroy(mActivityPluginBinding);
     }
 
     void onHandleAudioFocusPause() {
