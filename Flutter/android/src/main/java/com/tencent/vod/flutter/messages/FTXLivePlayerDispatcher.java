@@ -3,10 +3,10 @@
 package com.tencent.vod.flutter.messages;
 
 import androidx.annotation.NonNull;
+
 import com.tencent.vod.flutter.FTXBasePlayer;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
-import com.tencent.vod.flutter.messages.FtxMessages.DoublePlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntPlayerMsg;

@@ -21,7 +21,9 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXPlayInfoParamsPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 
 /**
- * 点播分发
+ * VOD event distribution.
+ * 
+ * 点播事件分发
  */
 @SuppressWarnings("ConstantConditions")
 public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi {

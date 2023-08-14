@@ -2,17 +2,17 @@
 part of demo_super_player_lib;
 
 enum SuperPlayerState {
-  INIT,       // 初始状态
-  PLAYING,    // 播放中
-  PAUSE,      // 暂停中
-  LOADING,    // 缓冲中
-  END,         // 播放结束
+  INIT,       // Initial state
+  PLAYING,    // Playing
+  PAUSE,      // Paused
+  LOADING,    // Buffering
+  END,         // Playback finished
 }
 
 enum SuperPlayerType {
-  VOD,        // 点播
-  LIVE,       // 直播
-  LIVE_SHIFT  // 直播回
+  VOD,        // VOD (Video on Demand)
+  LIVE,       // Live streaming
+  LIVE_SHIFT  // Live streaming playback
 }
 
 class EncryptedURLType {
@@ -35,14 +35,15 @@ class SuperPlayerCode {
 }
 
 class SuperPlayerViewEvent {
-  static const onStartFullScreenPlay = "onStartFullScreenPlay"; //进入全屏播放
-  static const onStopFullScreenPlay = "onStopFullScreenPlay"; //退出全屏播放
-  static const onSuperPlayerDidStart = "onSuperPlayerDidStart"; //播放开始通知
-  static const onSuperPlayerDidEnd = "onSuperPlayerDidEnd"; //播放结束通知
-  static const onSuperPlayerError = "onSuperPlayerError"; //播放错误通知
-  static const onSuperPlayerBackAction = "onSuperPlayerBackAction"; //返回事件
+  static const onStartFullScreenPlay = "onStartFullScreenPlay"; // Enter full screen playback
+  static const onStopFullScreenPlay = "onStopFullScreenPlay"; // Exit full screen playback
+  static const onSuperPlayerDidStart = "onSuperPlayerDidStart"; // Playback start notification
+  static const onSuperPlayerDidEnd = "onSuperPlayerDidEnd"; // Playback end notification
+  static const onSuperPlayerError = "onSuperPlayerError"; // Playback error notification
+  static const onSuperPlayerBackAction = "onSuperPlayerBackAction"; // Back event
 }
 
+/// Current layout state of the player plugin.
 /// 播放器插件当前所处的布局状态
 class SuperPlayerUIStatus {
   static const WINDOW_MODE = 0;

@@ -1,6 +1,7 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
+/// Video progress bar, double progress.
 /// 视频进度条，双进度
 class VideoSlider extends StatefulWidget {
   late final VideoSliderController controller;
@@ -17,10 +18,10 @@ class VideoSlider extends StatefulWidget {
   final Color? bufferedColor;
   final Color? sliderColor;
   final Color? sliderOutterColor;
-  List<SliderPoint>? playPoints = [];
-  bool? canDrag = true;
+  final List<SliderPoint>? playPoints;
+  final bool? canDrag;
 
-  // calback
+  // callback
   final Function? onDragStart;
   final Function(double value)? onDragUpdate;
   final Function(double value)? onDragEnd;
@@ -42,8 +43,8 @@ class VideoSlider extends StatefulWidget {
       this.onDragStart,
       this.onDragUpdate,
       this.onDragEnd,
-      this.canDrag,
-      this.playPoints,
+      this.canDrag = true,
+      this.playPoints = const [],
       this.onPointClick,
       GlobalKey<VideoSliderState>? key})
       : super(key: key) {

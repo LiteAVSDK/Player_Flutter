@@ -52,8 +52,14 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private static final String TAG = "FlutterPipImplActivity";
 
     /**
+     * Here, `needToExitPip` is used as a flag. When the `onPictureInPictureModeChanged` callback picture-in-picture
+     * state is inconsistent with `isInPictureInPictureMode`, mark it as true. Then, when the width and height of the
+     * interface change are detected in `onConfigurationChanged`, the event notification of exiting
+     * picture-in-picture mode is performed.
+     * for MIUI 12.5.1.
+     *
      * 这里使用needToExitPip作为标志位，在出现onPictureInPictureModeChanged回调画中画状态和isInPictureInPictureMode不一致的时候。
-     * 标志位true，然后在onConfigurationChanged监听到界面宽高发生变化的时候，进行画中画模式退出的事件通知。
+     * 标记为true，然后在onConfigurationChanged监听到界面宽高发生变化的时候，进行画中画模式退出的事件通知。
      * for MIUI 12.5.1
      */
     private boolean needToExitPip = false;
@@ -66,7 +72,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private TXVodPlayer mVodPlayer;
     private TXLivePlayer mLivePlayer;
     private boolean mIsSurfaceCreated = false;
-    // 画中画，点击右上角X，会先触发onStop，点击放大按钮，不会触发onStop
+    // In picture-in-picture mode, clicking the X in the upper right corner will trigger `onStop` first.
+    // Clicking the zoom button will not trigger `onStop`.
     private boolean mIsNeedToStop = false;
     private VideoModel mVideoModel;
     private boolean mIsRegisterReceiver = false;
@@ -155,9 +162,12 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     /**
+     * To be compatible with MIUI 12.5, in PIP mode, if you open another app and then swipe up to exit,
+     * and then click the PIP window, `onPictureInPictureModeChanged` will be abnormally called back to close.
+     *
      * 为了兼容MIUI 12.5，PIP模式下，打开其他app然后上滑退出，再点击画中画窗口，onPictureInPictureModeChanged会异常回调关闭的情况
      *
-     * @param ignore 校对画中画状态
+     * @param ignore 校对画中画状态 Verify picture-in-picture status.
      */
     @Override
     public void onPictureInPictureModeChanged(boolean ignore) {
@@ -190,6 +200,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     /**
+     * Callback notification after `enterPictureInPictureMode` takes effect, only for Android > 31.
+     *
      * enterPictureInPictureMode生效后的回调通知，only for android > 31
      */
     @Override
@@ -302,13 +314,19 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     /**
+     * Close picture-in-picture mode by using `finish` to close the current interface.
+     *
      * 关闭画中画，使用finish当前界面的方式，关闭画中画
      *
      * @param closeImmediately 立刻关闭，不执行延迟，一般关闭画中画为true，还原画中画为false。
+     *                         Close immediately without delay. Generally, set it to `true` to close picture-in-picture
+     *                         mode and `false` to restore picture-in-picture mode.
      */
     private void exitPip(boolean closeImmediately) {
         if (!isDestroyed()) {
-            // 由于android 12 的前台服务启动限制，导致画中画返回后，过早关闭activity界面的话，无法正常拉起app。所以这里增加延时处理
+            // Due to the foreground service startup restriction in Android 12, if the activity interface is closed
+            // too early after returning from picture-in-picture mode, the app cannot be launched normally.
+            // Therefore, a delay processing is added here.
             if (VERSION.SDK_INT >= VERSION_CODES.S && !closeImmediately) {
                 mVodPlayer.stopPlay(true);
                 mLivePlayer.stopPlay(true);
@@ -361,7 +379,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             } else if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_LIVE) {
                 mVideoProgress.setProgress(mVideoProgress.getMax());
                 mLivePlayer.startLivePlay(mVideoModel.getVideoUrl(), mVideoModel.getLiveType());
-                // 直播暂时不支持一开始画中画直播暂停
+                //  Live broadcast does not currently support picture-in-picture mode and
+                //  pausing the live broadcast when entering picture-in-picture mode.
                 mCurrentParams.setIsPlaying(true);
                 if (VERSION.SDK_INT >= VERSION_CODES.O) {
                     setPictureInPictureParams(mCurrentParams.buildParams(this));
@@ -487,6 +506,11 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     /**
+     * Display component.
+     * To prevent the black screen at the moment when picture-in-picture is started,
+     * the component is initially in a hidden state, and the component will only be displayed
+     * after entering picture-in-picture mode.
+     *
      * 显示组件
      * 为了防止画中画启动一瞬间的黑屏，组件一开始为隐藏状态，只有进入画中画之后才会显示组件
      */
@@ -507,19 +531,19 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         if (VERSION.SDK_INT >= VERSION_CODES.N && isInPictureInPictureMode()) {
             if (null != mCurrentParams) {
                 if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
-                    // 播放完毕的时候，自动将播放按钮置为播放
+                    // When playback is complete, automatically set the playback button to play.
                     mCurrentParams.setIsPlaying(false);
                 } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
-                    // 播放开始的时候，自动将播放按钮置为暂停
+                    // When playback starts, automatically set the playback button to pause.
                     mCurrentParams.setIsPlaying(true);
                 }
                 updatePip(mCurrentParams);
             }
             if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
-                // 播放完毕的时候，自动将播放按钮置为播放
+                // When playback is complete, automatically set the playback button to play.
                 controlPipPlayStatus(false);
             } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
-                // 播放开始的时候，自动将播放按钮置为暂停
+                // When playback starts, automatically set the playback button to pause.
                 controlPipPlayStatus(true);
             } else if (event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
                 int progress = bundle.getInt(TXLiveConstants.EVT_PLAY_PROGRESS_MS);

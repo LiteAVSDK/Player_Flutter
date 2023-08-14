@@ -8,6 +8,8 @@ import com.tencent.vod.flutter.FTXBasePlayer;
 public interface IPlayersBridge {
 
     /**
+     * Get player list.
+     *
      * 获得播放器列表
      */
     SparseArray<FTXBasePlayer> getPlayers();

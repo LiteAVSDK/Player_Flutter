@@ -111,7 +111,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
         child: Align(
           child: Container(
               child: Image(
-                  image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: StringResource.PKG_NAME)),
+                  image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: PlayerConstants.PKG_NAME)),
               height: 50,
               width: 50),
           alignment: Alignment.center,
@@ -199,7 +199,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         if (!mounted) return;
         double currentProgress = event["EVT_PLAY_PROGRESS"].toDouble();
-        double videoDuration = event["EVT_PLAY_DURATION"].toDouble(); // 总播放时长，转换后的单位 秒
+        double videoDuration = event["EVT_PLAY_DURATION"].toDouble();
         _progressSliderKey.currentState?.updateProgress(currentProgress / videoDuration, videoDuration);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         LogUtils.i(TAG, " [received] TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME");

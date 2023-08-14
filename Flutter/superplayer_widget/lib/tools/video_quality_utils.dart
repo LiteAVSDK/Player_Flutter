@@ -4,20 +4,20 @@ part of demo_super_player_lib;
 /// video quality utils
 class VideoQualityUtils {
   static const TAG = "VideoQualityUtils";
-  static const Map<int, String> downloadQualityMap = {
-    DownloadQuality.QUALITY_FLU: StringResource.QUALITY_FLU,
-    DownloadQuality.QUALITY_SD: StringResource.QUALITY_SD,
-    DownloadQuality.QUALITY_HD: StringResource.QUALITY_HD,
-    DownloadQuality.QUALITY_FHD: StringResource.QUALITY_FHD,
-    DownloadQuality.QUALITY_OD: StringResource.QUALITY_OD,
-    DownloadQuality.QUALITY_240P: StringResource.QUALITY_240P,
-    DownloadQuality.QUALITY_360P: StringResource.QUALITY_360P,
-    DownloadQuality.QUALITY_480P: StringResource.QUALITY_480P,
-    DownloadQuality.QUALITY_540P: StringResource.QUALITY_540P,
-    DownloadQuality.QUALITY_720P: StringResource.QUALITY_720P,
-    DownloadQuality.QUALITY_1080P: StringResource.QUALITY_1080P,
-    DownloadQuality.QUALITY_2K: StringResource.QUALITY_2K,
-    DownloadQuality.QUALITY_4K: StringResource.QUALITY_4K,
+  static Map<int, String> downloadQualityMap = {
+    DownloadQuality.QUALITY_FLU: FSPLocal.current.txSpwFlu,
+    DownloadQuality.QUALITY_SD: FSPLocal.current.txSpwSd,
+    DownloadQuality.QUALITY_HD: FSPLocal.current.txSpwHd,
+    DownloadQuality.QUALITY_FHD: FSPLocal.current.txSpwFhd,
+    DownloadQuality.QUALITY_OD: FSPLocal.current.txSpwOd,
+    DownloadQuality.QUALITY_240P: FSPLocal.current.txSpw240p,
+    DownloadQuality.QUALITY_360P: FSPLocal.current.txSpw360p,
+    DownloadQuality.QUALITY_480P: FSPLocal.current.txSpw480p,
+    DownloadQuality.QUALITY_540P: FSPLocal.current.txSpw540p,
+    DownloadQuality.QUALITY_720P: FSPLocal.current.txSpw720p,
+    DownloadQuality.QUALITY_1080P: FSPLocal.current.txSpw1080p,
+    DownloadQuality.QUALITY_2K: FSPLocal.current.txSpw2k,
+    DownloadQuality.QUALITY_4K: FSPLocal.current.txSpw4k,
     DownloadQuality.QUALITY_UNK: "",
   };
 
@@ -59,21 +59,21 @@ class VideoQualityUtils {
     int minValue = min(width, height);
     String title = " (${minValue}dp)";
     if (minValue == 240 || minValue == 180) {
-      title = StringResource.QUALITY_240P;
+      title = FSPLocal.current.txSpw240p;
     } else if (minValue == 360) {
-      title = StringResource.QUALITY_360P;
+      title = FSPLocal.current.txSpw360p;
     } else if (minValue == 480) {
-      title = StringResource.QUALITY_480P;
+      title = FSPLocal.current.txSpw480p;
     } else if (minValue == 540) {
-      title = StringResource.QUALITY_540P;
+      title = FSPLocal.current.txSpw540p;
     } else if (minValue == 720) {
-      title = StringResource.QUALITY_720P;
+      title = FSPLocal.current.txSpw720p;
     } else if (minValue == 1080) {
-      title = StringResource.QUALITY_1080P;
+      title = FSPLocal.current.txSpw1080p;
     } else if (minValue == 1440) {
-      title = StringResource.QUALITY_2K;
+      title = FSPLocal.current.txSpw2k;
     } else if (minValue == 2160) {
-      title = StringResource.QUALITY_4K;
+      title = FSPLocal.current.txSpw4k;
     }
     return title;
   }
@@ -113,6 +113,7 @@ class VideoQualityUtils {
     return qualityName;
   }
 
+  /// Convert `videoQuality` to the video quality ID required for video download.
   /// 根据videoQuality，转化为视频下载需要用到的画质id
   /// @param width 宽度
   /// @param height 高度

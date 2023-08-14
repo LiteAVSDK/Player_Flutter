@@ -4,9 +4,9 @@ part of demo_super_player_lib;
 typedef OnJumpToPipPlayer = void Function(Map params);
 typedef OnPipClose = void Function();
 
+/// Picture-in-picture controller, singleton, only one picture-in-picture can exist.
 ///
 /// 画中画控制器，单例，只能存在一个画中画
-///
 class TXPipController {
   static const ARGUMENT_PIP_START_TIME = "argumentStartTime";
 
@@ -14,6 +14,7 @@ class TXPipController {
 
   static TXPipController get instance => _sharedInstance();
 
+  /// Picture-in-picture player instance, only one can exist at the same time.
   /// 画中画播放器实例，同时只能存在一个
   TXPipPlayerData? _playerData;
   final Map<String, dynamic> _extParams = {};
@@ -91,6 +92,7 @@ class TXPipController {
     _playerData = null;
   }
 
+  /// Whether the passed controller is in picture-in-picture mode.
   /// 传入的controller是否处于画中画模式
   bool isPlayerInPip(TXPlayerController playerController) {
     if (null != _playerData) {
@@ -110,6 +112,7 @@ class TXPipController {
 }
 
 abstract class TXPipPlayerRestorePage {
+  /// This method will be called when it is necessary to save the relevant elements of the picture-in-picture interface.
   /// 当需要保存画中画界面相关元素的时候，会回调该方法
   void onNeedSavePipPageState(Map<String, dynamic> params);
 }

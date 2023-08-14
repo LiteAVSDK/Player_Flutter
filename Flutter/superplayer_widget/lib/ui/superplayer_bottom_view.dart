@@ -83,7 +83,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
           Container(
             decoration: const BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage("images/superplayer_bottom_shadow.png", package: StringResource.PKG_NAME),
+                    image: AssetImage("images/superplayer_bottom_shadow.png", package: PlayerConstants.PKG_NAME),
                     fit: BoxFit.fill)),
             padding: const EdgeInsets.only(left: 6, right: 6),
             child: Row(
@@ -135,12 +135,12 @@ class _VideoBottomViewState extends State<VideoBottomView> {
           ? const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_ic_vod_pause_normal.png", package: StringResource.PKG_NAME),
+              image: AssetImage("images/superplayer_ic_vod_pause_normal.png", package: PlayerConstants.PKG_NAME),
             )
           : const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: StringResource.PKG_NAME),
+              image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: PlayerConstants.PKG_NAME),
             ),
     );
   }
@@ -153,7 +153,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
         child: const Image(
           width: 30,
           height: 30,
-          image: AssetImage("images/superplayer_ic_vod_fullscreen.png", package: StringResource.PKG_NAME),
+          image: AssetImage("images/superplayer_ic_vod_fullscreen.png", package: PlayerConstants.PKG_NAME),
         ),
       ),
     );
@@ -181,7 +181,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
             });
           }
         },
-        // 直播禁止时移
+        // Dragging the progress bar is prohibited during live streaming.
         canDrag: _playerType == SuperPlayerType.VOD,
         playPoints: !_showFullScreenBtn ? _playPoints : [],
         onDragUpdate: (value) {
@@ -258,9 +258,9 @@ class _VideoBottomViewState extends State<VideoBottomView> {
 
   String _buildTextString(double time) {
     Duration duration = Duration(seconds: time.toInt());
-    // 返回此持续时间跨越的整秒数。
+    // Return the whole number of seconds that this duration spans
     String inSeconds = (duration.inSeconds % 60).toString().padLeft(2, "0");
-    // 返回此持续时间跨越的整分钟数。
+    // Return the whole number of minutes that this duration spans.
     String inMinutes = duration.inMinutes.toString().padLeft(2, '0');
     return "$inMinutes:$inSeconds";
   }

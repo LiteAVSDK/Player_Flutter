@@ -1,5 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 import 'package:flutter/material.dart';
+import 'package:super_player_example/res/app_localizations.dart';
 
 typedef void DemoInputDialogFinishCallback(String url, int appId, String fileId, String pSign, bool enableDownload);
 
@@ -34,7 +35,6 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _urlController = TextEditingController(text: widget.url);
     _appIdController = TextEditingController(text: widget.appId > 0 ? widget.appId.toString() : null);
@@ -45,19 +45,18 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
   _buildActionWidget(BuildContext context) {
     List<Widget> actionWidgets = [
       TextButton(
-        child: Text("确定"),
+        child: Text(AppLocals.current.playerConfirm),
         onPressed: () {
           Navigator.of(context).pop();
           widget.callback(_urlController.text, _appIdController.text.isNotEmpty ? int.parse(_appIdController.text) : 0,
               _fileIdController.text, _pSignController.text, isEnableDownload);
-        }, // 关闭对话框
+        }, // close dialog
       ),
-      // Padding(padding: EdgeInsets.only(left: 15)),
       TextButton(
-        child: Text("取消"),
+        child: Text(AppLocals.current.playerCancel),
         onPressed: () {
           Navigator.of(context).pop();
-        }, // 关闭对话框
+        },
       ),
     ];
     return actionWidgets;
@@ -83,7 +82,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10.0)),
                         borderSide: BorderSide(color: Colors.green, width: 4.0)),
-                    labelText: "请输入url",
+                    labelText: AppLocals.current.playerInputUrl,
                     labelStyle: TextStyle(color: Colors.grey),
                     suffixIcon: IconButton(
                         icon: Icon(Icons.close),
@@ -112,7 +111,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(10.0)),
                               borderSide: BorderSide(color: Colors.green, width: 4.0)),
-                          labelText: "请输入appid",
+                          labelText: AppLocals.current.playerInputAppId,
                           labelStyle: TextStyle(color: Colors.grey),
                           suffixIcon: IconButton(
                               icon: Icon(Icons.close),
@@ -141,7 +140,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(10.0)),
                               borderSide: BorderSide(color: Colors.green, width: 4.0)),
-                          labelText: "请输入fileid",
+                          labelText: AppLocals.current.playerInputFileId,
                           labelStyle: TextStyle(color: Colors.grey),
                           suffixIcon: IconButton(
                               icon: Icon(Icons.close),
@@ -172,7 +171,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(10.0)),
                               borderSide: BorderSide(color: Colors.green, width: 4.0)),
-                          labelText: "请输入pSign(加密视频必填）",
+                          labelText: AppLocals.current.playerInputSign,
                           labelStyle: TextStyle(color: Colors.grey),
                           suffixIcon: IconButton(
                               icon: Icon(Icons.close),
@@ -195,7 +194,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
                           isEnableDownload = value ?? false;
                         });
                       }),
-                  Text("是否开启下载")
+                  Text(AppLocals.current.playerIsEnableDownload)
                 ],
               )
             : Container(),
@@ -207,7 +206,7 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Center(
-        child: Text("请设置播放地址"),
+        child: Text(AppLocals.current.playerInputPlaybackAdd),
       ),
       elevation: 12.0,
       contentPadding: EdgeInsets.fromLTRB(10, 20.0, 10, 0.0),

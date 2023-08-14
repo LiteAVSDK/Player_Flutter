@@ -45,15 +45,15 @@ class FTXBitrateItem {
 }
 
 class ResolutionName {
-  String name = ""; // 画质名称
-  String type = ""; // 类型 可能的取值有 video 和 audio
+  String name = ""; // Video resolution name.
+  String type = ""; // Type. Possible values are `video` and `audio`.
   int width = 0;
   int height = 0;
 }
 
 class PlayImageSpriteInfo {
-  List<String> imageUrls = []; // 图片链接URL
-  String webVttUrl = ""; // web vtt描述文件下载URL
+  List<String> imageUrls = []; // Image link URL.
+  String webVttUrl = ""; // WebVTT description file download URL.
 
   String toString() {
     return "TCPlayImageSpriteInfo{imageUrls=${imageUrls.toString()}, webVttUrl='$webVttUrl'\'}";
@@ -61,8 +61,8 @@ class PlayImageSpriteInfo {
 }
 
 class PlayKeyFrameDescInfo {
-  String content = ""; // 描述信息
-  double time = 0; // 关键帧时间(秒)
+  String content = ""; // Description information.
+  double time = 0; // Keyframe time (in seconds).
 
   String toString() {
     return "TCPlayKeyFrameDescInfo{content='$content\', time=$time}";
@@ -84,10 +84,10 @@ class SuperPlayerModel {
   String coverUrl = ""; // coverUrl from net
   String customeCoverUrl = ""; // custome video cover image
   int duration = 0; // video duration
-  // 是否启用下载能力，默认关闭
+  // Whether to enable download capability. It is disabled by default.
   bool isEnableDownload = false;
 
-  // feed流视频描述
+  // Feed stream video description
   String videoDescription = "";
   String videoMoreDescription = "";
 
@@ -140,10 +140,11 @@ class SuperPlayerUrl {
 }
 
 class SuperPlayerVideoId {
-  String fileId = ""; // 腾讯云视频fileId
-  String psign = ""; // v4 开启防盗链必填
+  String fileId = ""; // Tencent Cloud Video fileId
+  String psign = ""; // Enabling anti-leech is required for `v4`.
 }
 
+/// Progress bar tick information.
 /// 进度条打点信息
 class SliderPoint {
   Color pointColor = Colors.white;

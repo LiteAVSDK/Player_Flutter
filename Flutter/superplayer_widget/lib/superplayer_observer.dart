@@ -1,7 +1,7 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
-/// superplayer's bridge between widget and controller
+/// superPlayer's bridge between widget and controller
 class _SuperPlayerObserver {
   Function onPlayPrepare;
   Function(String name) onPlayBegin;

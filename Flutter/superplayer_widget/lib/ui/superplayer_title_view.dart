@@ -33,7 +33,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
       padding: const EdgeInsets.only(left: 10, right: 15),
       decoration: const BoxDecoration(
           image: DecorationImage(
-              image: AssetImage("images/superplayer_top_shadow.png", package: StringResource.PKG_NAME),
+              image: AssetImage("images/superplayer_top_shadow.png", package: PlayerConstants.PKG_NAME),
               fit: BoxFit.fill)),
       child: Row(
         children: [
@@ -43,7 +43,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
             child: const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_btn_back_play.png", package: StringResource.PKG_NAME),
+              image: AssetImage("images/superplayer_btn_back_play.png", package: PlayerConstants.PKG_NAME),
             ),
           ),
           // video name
@@ -65,7 +65,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
                 child: Stack(
                   children: [
                     const Image(
-                        image: AssetImage("images/superplayer_ic_vod_download.png", package: StringResource.PKG_NAME)),
+                        image: AssetImage("images/superplayer_ic_vod_download.png", package: PlayerConstants.PKG_NAME)),
                     Visibility(
                         visible: widget.isDownloaded,
                         child: const Positioned(
@@ -75,7 +75,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
                                 width: 12,
                                 height: 12,
                                 image: AssetImage("images/superplayer_ic_vod_check_done.png",
-                                    package: StringResource.PKG_NAME))))
+                                    package: PlayerConstants.PKG_NAME))))
                   ],
                 ),
               ),
@@ -89,7 +89,7 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
                 child: const Image(
                   width: 40,
                   height: 40,
-                  image: AssetImage("images/superplayer_ic_vod_more_normal.png", package: StringResource.PKG_NAME),
+                  image: AssetImage("images/superplayer_ic_vod_more_normal.png", package: PlayerConstants.PKG_NAME),
                 ),
               ))
         ],

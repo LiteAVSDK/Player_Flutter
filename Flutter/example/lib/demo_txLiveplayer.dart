@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
+import 'package:super_player_example/res/app_localizations.dart';
 
 import 'ui/demo_inputdialog.dart';
 import 'ui/demo_volume_slider.dart';
@@ -36,28 +37,28 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     _controller = TXLivePlayerController();
 
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) {
-      //订阅事件分发
+      // Subscribe to event distribution
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _progress = event["EVT_PLAY_PROGRESS"].toDouble();
         _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
         progressSliderKey.currentState?.updateProgress(1, _maxLiveProgressTime);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
-        //首帧出现
+        // First frame appearance
         _isStop = false;
         _isPlaying = true;
         EasyLoading.dismiss();
         _resizeVideo(event);
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
-        //切换流成功
+        // Stream switching successful.
         EasyLoading.dismiss();
         if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv") {
-          EasyLoading.showSuccess('切换到1080p!');
+          EasyLoading.showSuccess(AppLocals.current.playerSwitchTo1080);
         } else {
-          EasyLoading.showSuccess('切换到480p!');
+          EasyLoading.showSuccess(AppLocals.current.playerSwitchTo480);
         }
       } else if (event["event"] == TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL) {
         EasyLoading.dismiss();
-        EasyLoading.showError("切流失败");
+        EasyLoading.showError(AppLocals.current.playerLiveSwitchFailed);
         switchUrl();
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
         LogUtils.w("PLAY_EVT_CHANGE_RESOLUTION", event);
@@ -66,18 +67,17 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     });
 
     playNetEventSubscription = _controller.onPlayerNetStatusBroadcast.listen((event) {
-      // 订阅状态变化
+      // Subscribe to status changes
     });
 
     playerStateEventSubscription = _controller.onPlayerState.listen((event) {
-      // 订阅状态变化
-      debugPrint("播放状态 ${event!.name}");
+      // Subscribe to status changes
+      debugPrint("Playback status ${event!.name}");
     });
 
     await SuperPlayerPlugin.setConsoleEnabled(true);
     await _controller.initialize();
     await _controller.setConfig(FTXLivePlayConfig());
-    // 安卓需要设置hls格式才可正常播放
     await _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV);
   }
 
@@ -139,7 +139,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: const Text('直播播放'),
+          title: Text(AppLocals.current.playerLivePlay),
         ),
         body: SafeArea(
           child: Column(
@@ -162,119 +162,46 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                 crossAxisSpacing: 10.0,
                 mainAxisSpacing: 30.0,
                 padding: EdgeInsets.all(10.0),
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 childAspectRatio: 2,
                 children: [
-                  new GestureDetector(
-                    onTap: () async {
-                      if (_isStop) {
-                        EasyLoading.showError('已经停止播放, 请重新播放');
-                        return;
-                      }
-                      _controller.resume();
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        "继续播放",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  new GestureDetector(
-                    onTap: () async {
-                      if (_isStop) {
-                        EasyLoading.showError('已经停止播放, 请重新播放');
-                        return;
-                      }
-                      _isPlaying = false;
-                      _controller.pause();
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        "暂停播放",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  new GestureDetector(
-                    onTap: () async {
-                      _isStop = true;
-                      _controller.stop();
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        "停止播放",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  new GestureDetector(
-                    onTap: () async {
-                      _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV);
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        "重新播放",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  new GestureDetector(
-                    onTap: () async {
-                      if (_isStop) {
-                        EasyLoading.showError('已经停止播放，请重新播放');
-                        return;
-                      }
-                      switchUrl();
-                      _controller.switchStream(_url);
+                  _createItem(AppLocals.current.playerResumePlay, () async {
+                    if (_isStop) {
+                      EasyLoading.showError(AppLocals.current.playerLiveStopTip);
+                      return;
+                    }
+                    _controller.resume();
+                  }),
+                  _createItem(AppLocals.current.playerPausePlay, () {
+                    if (_isStop) {
+                      EasyLoading.showError(AppLocals.current.playerLiveStopTip);
+                      return;
+                    }
+                    _isPlaying = false;
+                    _controller.pause();
+                  }),
+                  _createItem(AppLocals.current.playerStopPlay, () {
+                    _isStop = true;
+                    _controller.stop();
+                  }),
+                  _createItem(AppLocals.current.playerReplay, () => _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV)),
+                  _createItem(AppLocals.current.playerQualitySwitch, () async {
+                    if (_isStop) {
+                      EasyLoading.showError(AppLocals.current.playerLiveStopTip);
+                      return;
+                    }
+                    switchUrl();
+                    _controller.switchStream(_url);
 
-                      EasyLoading.show(status: 'loading...');
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        "清晰度切换",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  new GestureDetector(
-                    onTap: () async {
-                      setState(() {
-                        _isMute = !_isMute;
-                        _controller.setMute(_isMute);
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        _isMute ? "取消静音" : "设置静音",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  new GestureDetector(
-                    onTap: () {
-                      onClickVolume();
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: Text(
-                        "调整音量",
-                        style: TextStyle(fontSize: 18, color: Colors.blue),
-                      ),
-                    ),
-                  ),
+                    EasyLoading.show(status: 'loading...');
+                  }),
+                  _createItem(_isMute ? AppLocals.current.playerCancelMute : AppLocals.current.playerSetMute, () async {
+                    setState(() {
+                      _isMute = !_isMute;
+                      _controller.setMute(_isMute);
+                    });
+                  }),
+                  _createItem(AppLocals.current.playerAdjustVolume, () => onClickVolume),
                 ],
               )),
               Expanded(
@@ -283,13 +210,24 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                 children: [
                   Container(
                     height: 100,
-                    child: IconButton(icon: new Image.asset('images/addp.png'), onPressed: () => {onPressed()}),
+                    child: IconButton(icon: Image.asset('images/addp.png'), onPressed: () => {onPressed()}),
                   )
                 ],
               )),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _createItem(String name, GestureTapCallback tapBlock) {
+    return InkWell(
+      onTap: tapBlock,
+      child: Container(
+        child: Text(name,
+          style: TextStyle(fontSize: 18, color: Colors.blue),
+          overflow: TextOverflow.visible,),
       ),
     );
   }

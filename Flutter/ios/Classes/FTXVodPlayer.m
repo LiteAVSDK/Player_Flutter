@@ -25,7 +25,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 @end
 /**
- 点播TXVodPlayer处理类
+ VOD player TXVodPlayer processing class.
  */
 @implementation FTXVodPlayer {
     TXVodPlayer *_txVodPlayer;
@@ -34,9 +34,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     FTXPlayerEventSinkQueue *_netStatusSink;
     FlutterEventChannel *_eventChannel;
     FlutterEventChannel *_netStatusChannel;
-    // 最新的一帧
+    // The latest frame.
     CVPixelBufferRef volatile _latestPixelBuffer;
-    // 旧的一帧
+    // The old frame.
     CVPixelBufferRef _lastBuffer;
     int64_t _textureId;
     
@@ -47,7 +47,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     BOOL volatile isVideoFirstFrameReceived;
     NSNumber *videoWidth;
     NSNumber *videoHeight;
-    // 主线程队列，用于保证视频播放部分事件按顺序进行
+    // Main thread queue, used to ensure that video playback events are executed in order.
     dispatch_queue_t playerMainqueue;
 }
 
@@ -275,7 +275,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     }
 }
 
-- (void)setStartTime:(float)startTime//这个接口有bug
+- (void)setStartTime:(float)startTime
 {
     if (_txVodPlayer != nil) {
         [_txVodPlayer setStartTime:startTime];
@@ -406,7 +406,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (void)onPlayEvent:(TXVodPlayer *)player event:(int)EvtID withParam:(NSDictionary*)param
 {
-    // 交给flutter共享纹理处理首帧事件返回时机
+    // Hand over the first frame event timing to Flutter for shared texture processing.
     if (EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
         currentPlayTime = 0;
         dispatch_async(playerMainqueue, ^{
@@ -433,10 +433,10 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 }
 
 /**
- * 网络状态通知
+ * Network status notification.
  *
- * @param player 点播对象
- * @param param 参见TXLiveSDKTypeDef.h
+ * @param player  VOD object.
+ * @param param  See TXLiveSDKTypeDef.h.
  * @see TXVodPlayer
  */
 - (void)onNetStatus:(TXVodPlayer *)player withParam:(NSDictionary*)param
@@ -447,10 +447,13 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 #pragma mark - TXVideoCustomProcessDelegate
 
 /**
- * 视频渲染对象回调
- * @param pixelBuffer   渲染图像
- * @return              返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
- *  说明：渲染图像的数据类型为config中设置的renderPixelFormatType
+ * Video rendering object callback.
+ * @param pixelBuffer   Render image.
+ *                    渲染图像
+ * @return Return YES to prevent the SDK from displaying; return NO to continue rendering in the SDK rendering module.
+ *         返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
+ * Note: The data type of the rendered image is renderPixelFormatType set in the config.
+ * 说明：渲染图像的数据类型为config中设置的renderPixelFormatType
  */
 - (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
@@ -486,7 +489,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 #pragma mark - Private Method
 
 /**
- 判断当前语言是否是简体中文
+ Check if the current language is Simplified Chinese.
  */
 - (BOOL)isCurrentLanguageHans
 {
@@ -633,14 +636,14 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (UIView *)txPipView {
     if (!_txPipView) {
-        // 给定1像素的大小，使得画中画正常显示
+        // Set the size to 1 pixel to ensure proper display in PIP.
         _txPipView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1, 1)];
         _txPipView.hidden = YES;
     }
     return _txPipView;
 }
 
-#pragma mark - 画中画代理
+#pragma mark - PIP delegate
 - (void)onPlayer:(TXVodPlayer *)player pictureInPictureStateDidChange:(TX_VOD_PLAYER_PIP_STATE)pipState withParam:(NSDictionary *)param {
     if (pipState == TX_VOD_PLAYER_PIP_STATE_DID_START) {
         self.hasEnteredPipMode = YES;
@@ -733,7 +736,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 
 
-#pragma mark - UIImage转CVPixelBufferRef
+#pragma mark - Convert UIImage to CVPixelBufferRef
 
 - (CVPixelBufferRef)CVPixelBufferRefFromUiImage:(UIImage *)img {
     CGSize size = img.size;
@@ -784,7 +787,7 @@ static uint32_t bitmapInfoWithPixelFormatType(OSType inputPixelFormat, bool hasA
     }
 }
 
-// alpha的判断
+// Check alpha value
 BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     if (!imageRef) {
         return NO;

@@ -18,6 +18,7 @@ class Utils {
     return true;
   }
 
+  /// Convert seconds to the format of hh:mm:ss.
   /// 将秒数转换为hh:mm:ss的格式
   static String formattedTime(double second) {
     int h = second ~/ 3600;

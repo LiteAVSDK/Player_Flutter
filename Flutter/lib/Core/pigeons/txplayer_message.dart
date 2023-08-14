@@ -1,6 +1,10 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 import 'package:pigeon/pigeon.dart';
 import 'package:super_player/super_player.dart';
+/// Pigeon original component, used to generate native communication code for `messages`.
+/// The generation command is as follows. When using the generation command,
+/// the two import statements above need to be implemented or commented out.
+///
 /// pigeon原始原件，由此文件生成messages原生通信代码
 /// 生成命令如下，使用生成命令的时候，需要实现注释掉以上两个import导入
 /*
@@ -366,7 +370,9 @@ abstract class TXFlutterNativeAPI {
 @HostApi()
 abstract class TXFlutterVodPlayerApi {
   /// 播放器初始化，创建共享纹理、初始化播放器
-  /// @param onlyAudio 是否是纯音频模式
+  ///
+  /// To initialize the player, you would need to create a shared texture and initialize the player.
+  /// @param onlyAudio 是否是纯音频模式 if pure audio mode
   IntMsg initialize(BoolPlayerMsg onlyAudio);
 
   /// 通过url开始播放视频
@@ -374,8 +380,16 @@ abstract class TXFlutterVodPlayerApi {
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
   /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
   /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
-  /// @param url : 视频播放地址
-  /// return 是否播放成功
+  ///
+  /// Starting from version 10.7, the method `startPlay` has been changed to `startVodPlay` for playing videos via a URL.
+  /// To play videos successfully, it is necessary to set the license by using the method `SuperPlayerPlugin#setGlobalLicense`.
+  /// Failure to set the license will result in video playback failure (a black screen).
+  /// Live streaming, short video, and video playback licenses can all be used. If you do not have any of the above licenses,
+  /// you can apply for a free trial license to play videos normally[Quickly apply for a free trial version Licence]
+  /// (https://cloud.tencent.com/act/event/License).Official licenses can be purchased
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
+  /// @param url : 视频播放地址 video playback address
+  /// return 是否播放成功 if play successfully
   BoolMsg startVodPlay(StringPlayerMsg url);
 
   /// 通过fileId播放视频
@@ -383,86 +397,148 @@ abstract class TXFlutterVodPlayerApi {
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
   /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
   /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
-  /// @params : 见[TXPlayInfoParams]
-  /// return 是否播放成功
+  ///
+  /// Starting from version 10.7, the method "startPlayWithParams" has been changed to "startVodPlayWithParams" for playing videos using fileId.
+  /// To play the video successfully, you need to set the Licence using "SuperPlayerPlugin#setGlobalLicense" method before playing the video.
+  /// If you do not set the Licence, the video will not play (black screen). The Licence for live streaming,
+  /// short video, and video playback can all be used. If you have not obtained the Licence, you can apply for a free trial version [here]
+  /// (https://cloud.tencent.com/act/event/License) for normal playback. To use the official version, you need to [purchase]
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
+  /// @params : see[TXPlayInfoParams]
+  /// return 是否播放成功  if play successful
   void startVodPlayWithParams(TXPlayInfoParamsPlayerMsg params);
 
   /// 设置是否自动播放
+  ///
+  /// set autoplay
   void setAutoPlay(BoolPlayerMsg isAutoPlay);
 
   /// 停止播放
-  /// return 是否停止成功
+  ///
+  /// Stop playback
+  /// return 是否停止成功 if stop successful
   BoolMsg stop(BoolPlayerMsg isNeedClear);
 
   /// 视频是否处于正在播放中
+  ///
+  /// Is the video currently playing
   BoolMsg isPlaying(PlayerMsg playerMsg);
 
   /// 视频暂停，必须在播放器开始播放的时候调用
+  ///
+  /// pause video, it must be called when the player starts playing
   void pause(PlayerMsg playerMsg);
 
   /// 继续播放，在暂停的时候调用
+  ///
+  /// resume playback, it should be called when the video is paused
   void resume(PlayerMsg playerMsg);
 
   /// 设置是否静音
+  ///
+  /// Set whether to mute or not
   void setMute(BoolPlayerMsg mute);
 
   /// 设置是否循环播放
+  ///
+  /// Set whether to loop playback or not
   void setLoop(BoolPlayerMsg loop);
 
   /// 将视频播放进度定位到指定的进度进行播放
-  /// progress 要定位的视频时间，单位 秒
+  ///
+  /// Set the video playback progress to a specific time and start playing.
+  /// progress 要定位的视频时间，单位 秒 The video playback time to be located, in seconds
   void seek(DoublePlayerMsg progress);
 
   /// 设置播放速率，默认速率 1
+  ///
+  /// Set the playback speed, with a default speed of 1.
   void setRate(DoublePlayerMsg rate);
 
   /// 获得播放视频解析出来的码率信息
+  ///
+  /// get the bitrate information extracted from playing a video
   /// return List<Map>
-  /// Bitrate键值：index 码率序号，width 码率对应视频宽度，
-  ///             height 码率对应视频高度, bitrate 码率值
+  /// Bitrate：index 码率序号，
+  ///         width 码率对应视频宽度，
+  ///         height 码率对应视频高度,
+  ///         bitrate 码率值
+  ///
+  /// Bitrate：index:bitrate index，
+  ///         width:the video with of this bitrate，
+  ///         height:the video height of this bitrate,
+  ///         bitrate:bitrate value
   ListMsg getSupportedBitrate(PlayerMsg playerMsg);
 
   /// 获得当前设置的码率序号
+  ///
+  /// Get the index of the current bitrate setting
   IntMsg getBitrateIndex(PlayerMsg playerMsg);
 
   /// 设置码率序号
+  ///
+  /// Set the index of the bitrate setting.
   void setBitrateIndex(IntPlayerMsg index);
 
   /// 设置视频播放开始时间，单位 秒
+  ///
+  /// Set the start time of the video playback, in seconds.
   void setStartTime(DoublePlayerMsg startTime);
 
   /// 设置视频声音 0~100
+  ///
+  /// Set the volume of the video, ranging from 0 to 100.
   void setAudioPlayOutVolume(IntPlayerMsg volume);
 
   /// 请求获得音频焦点
+  ///
+  /// Request audio focus.
   BoolMsg setRequestAudioFocus(BoolPlayerMsg focus);
 
   /// 设置播放器配置
-  /// config @see [FTXVodPlayConfigPlayerMsg]
+  ///
+  /// Set player configuration
+  /// config @see [FTXVodPlayConfig]
   void setConfig(FTXVodPlayConfigPlayerMsg config);
 
   /// 获得当前已经播放的时间，单位 秒
+  ///
+  /// Get the current playback time, in seconds.
   DoubleMsg getCurrentPlaybackTime(PlayerMsg playerMsg);
 
   /// 获得当前视频已缓存的时间
+  ///
+  /// Get the current amount of video that has been buffered.
   DoubleMsg getBufferDuration(PlayerMsg playerMsg);
 
   /// 获得当前视频的可播放时间
+  ///
+  /// Get the current playable duration of the video.
   DoubleMsg getPlayableDuration(PlayerMsg playerMsg);
 
   /// 获得当前播放视频的宽度
+  ///
+  /// Get the width of the currently playing video.
   IntMsg getWidth(PlayerMsg playerMsg);
 
   /// 获得当前播放视频的高度
+  ///
+  /// Get the height of the currently playing video.
   IntMsg getHeight(PlayerMsg playerMsg);
 
   /// 设置播放视频的token
+  ///
+  /// Set the token for playing the video.
   void setToken(StringPlayerMsg token);
 
   /// 当前播放的视频是否循环播放
+  ///
+  /// Is the currently playing video set to loop
   BoolMsg isLoop(PlayerMsg playerMsg);
 
   /// 开启/关闭硬件编码
+  ///
+  /// Enable/Disable hardware encoding.
   BoolMsg enableHardwareDecode(BoolPlayerMsg enable);
 
   /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
@@ -474,6 +550,8 @@ abstract class TXFlutterVodPlayerApi {
   IntMsg enterPictureInPictureMode(PipParamsPlayerMsg pipParamsMsg);
 
   /// 退出画中画，如果该播放器处于画中画模式
+  ///
+  /// Exit picture-in-picture mode if the video player is in picture-in-picture mode.
   void exitPictureInPictureMode(PlayerMsg playerMsg);
 
   void initImageSprite(StringListPlayerMsg spriteInfo);
@@ -481,6 +559,8 @@ abstract class TXFlutterVodPlayerApi {
   UInt8ListMsg getImageSprite(DoublePlayerMsg time);
 
   /// 获取总时长
+  ///
+  /// To get the total duration
   DoubleMsg getDuration(PlayerMsg playerMsg);
 }
 

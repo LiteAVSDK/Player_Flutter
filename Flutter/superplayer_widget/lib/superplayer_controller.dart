@@ -1,7 +1,7 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
-/// superplayer play controller
+/// superPlayer play controller
 class SuperPlayerController {
   static const TAG = "SuperPlayerController";
 
@@ -44,8 +44,8 @@ class SuperPlayerController {
   bool _needToResume = false;
   bool _needToPause = false;
   bool callResume = false;
-  bool _isMultiBitrateStream = false; // 是否是多码流url播放
-  bool _changeHWAcceleration = false; // 切换硬解后接收到第一个关键帧前的标记位
+  bool _isMultiBitrateStream = false; // the flag playing multi-bitrate URLs flag
+  bool _changeHWAcceleration = false; // the flag before receiving the first keyframe after switching to hardware decoding
   bool _isOpenHWAcceleration = true;
   int _playerUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
   final BuildContext _context;
@@ -54,10 +54,12 @@ class SuperPlayerController {
   double videoDuration = 0;
   int _maxLiveProgressTime = 0;
 
-  double _seekPos = 0; // 记录切换硬解时的播放时间
+  double _seekPos = 0; // the playback time when switching to hardware decoding.
+  /// This value will change the playback start time of the new video
   /// 该值会改变新播放视频的播放开始时间点
   double startPos = 0;
 
+  /// The video size parsed by the player kernel
   /// 播放器内核解析出来的视频宽高
   double videoWidth = 0;
   double videoHeight = 0;
@@ -109,14 +111,14 @@ class SuperPlayerController {
 
             VideoQuality? defaultQuality;
             List<VideoQuality> videoQualities = [];
-            bitrateList.sort((a, b) => b.bitrate.compareTo(a.bitrate)); // 码率从高到低
+            bitrateList.sort((a, b) => b.bitrate.compareTo(a.bitrate)); // Sort the bitrate from high to low
             for (int i = 0; i < bitrateList.length; i++) {
               FTXBitrateItem bitrateItem = bitrateList[i];
               VideoQuality quality = VideoQualityUtils.convertToVideoQualityByBitrate(_context, bitrateItem);
               videoQualities.add(quality);
             }
 
-            int? bitrateIndex = await _vodPlayerController.getBitrateIndex(); //获取默认码率的index
+            int? bitrateIndex = await _vodPlayerController.getBitrateIndex(); // Get the index of the default bitrate
             for (VideoQuality quality in videoQualities) {
               if (quality.index == bitrateIndex) {
                 defaultQuality = quality;
@@ -169,10 +171,10 @@ class SuperPlayerController {
           dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS];
           dynamic duration = event[TXVodPlayEvent.EVT_PLAY_DURATION];
           if (null != progress) {
-            currentDuration = progress.toDouble(); // 当前时间，转换后的单位 秒
+            currentDuration = progress.toDouble(); // Current time, converted unit: seconds
           }
           if (null != duration) {
-            videoDuration = duration.toDouble(); // 总播放时长，转换后的单位 秒
+            videoDuration = duration.toDouble(); // Total playback time, converted unit: seconds
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
@@ -200,16 +202,11 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT:
         case TXVodPlayEvent.PLAY_EVT_PLAY_END:
-          if (playerType == SuperPlayerType.LIVE_SHIFT) {
-            _observer?.onError(SuperPlayerCode.LIVE_SHIFT_FAIL, "时移失败,返回直播");
-            _updatePlayerState(SuperPlayerState.PLAYING);
+          _stop();
+          if (eventCode == TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT) {
+            _observer?.onError(SuperPlayerCode.NET_ERROR, FSPLocal.current.txSpwNetWeak);
           } else {
-            _stop();
-            if (eventCode == TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT) {
-              _observer?.onError(SuperPlayerCode.NET_ERROR, "网络不给力,点击重试");
-            } else {
-              _observer?.onError(SuperPlayerCode.LIVE_PLAY_END, event[TXVodPlayEvent.EVT_DESCRIPTION]);
-            }
+            _observer?.onError(SuperPlayerCode.LIVE_PLAY_END, event[TXVodPlayEvent.EVT_DESCRIPTION]);
           }
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
@@ -266,6 +263,16 @@ class SuperPlayerController {
     DownloadHelper.instance.startDownloadBySize(videoModel, videoWidth.toInt(), videoHeight.toInt());
   }
 
+  /// Play video.
+  /// Starting from version 10.7, `playWithModel` has been changed to `playWithModelNeedLicence`,
+  /// and you need to set the license through `SuperPlayerPlugin#setGlobalLicense` to play successfully.
+  /// Otherwise, the playback will fail (black screen). The live streaming license, short video license,
+  /// and video playback license can all be used. If you have not obtained the above licenses,
+  /// you can [apply for a free trial license](https://cloud.tencent.com/act/event/License) to play normally,
+  /// and you need to [purchase]
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)
+  /// the formal license.
+  ///
   /// 播放视频.
   /// 10.7版本开始，playWithModel变更为playWithModelNeedLicence，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
@@ -289,13 +296,13 @@ class SuperPlayerController {
     _currentProtocol = null;
     callResume = false;
 
-    // 优先使用url播放
+    // Priority use URL to play
     if (videoModel.videoURL.isNotEmpty) {
       _playWithUrl(videoModel);
       getInfo(videoModel);
     } else if (videoModel.videoId != null && (videoModel.videoId!.fileId.isNotEmpty)) {
       _currentProtocol = PlayInfoProtocol(videoModel);
-      // 没有url的时候，根据field去请求
+      // When there is no URL, make a request based on the field
       await _sendRequest();
     }
   }
@@ -319,7 +326,7 @@ class SuperPlayerController {
       _updateImageSpriteAndKeyFrame(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
     }, (errCode, message) {
       // onError
-      _observer?.onError(SuperPlayerCode.VOD_REQUEST_FILE_ID_FAIL, "播放视频文件失败 code = $errCode msg = $message");
+      _observer?.onError(SuperPlayerCode.VOD_REQUEST_FILE_ID_FAIL, FSPLocal.current.txSpwErrPlayTo.txFormat(["$errCode", message]));
       _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerError);
     });
   }
@@ -383,7 +390,7 @@ class SuperPlayerController {
       videoUrl = model.videoURL;
     }
     if (videoUrl == null || videoUrl.isEmpty) {
-      _observer?.onError(SuperPlayerCode.PLAY_URL_EMPTY, "播放视频失败，播放链接为空");
+      _observer?.onError(SuperPlayerCode.PLAY_URL_EMPTY, FSPLocal.current.txSpwErrEmptyUrl);
       return;
     }
     if (_isRTMPPlay(videoUrl)) {
@@ -448,9 +455,10 @@ class SuperPlayerController {
     }
   }
 
+  /// pause video
   /// 暂停视频
-  /// 涉及到_updatePlayerState相关的方法，不使用异步,避免异步调用导致的playerState更新不及时
   void pause() {
+    // Related methods involving `_updatePlayerState` do not use asynchronous calls to avoid delayed updates to the `playerState`.
     if (playerType == SuperPlayerType.VOD) {
       if (isPrepared) {
         _vodPlayerController.pause();
@@ -462,6 +470,7 @@ class SuperPlayerController {
     _needToPause = true;
   }
 
+  /// resume play
   /// 继续播放视频
   void resume() {
     if (playerType == SuperPlayerType.VOD) {
@@ -477,6 +486,7 @@ class SuperPlayerController {
     _updatePlayerState(SuperPlayerState.PLAYING);
   }
 
+  /// restart play
   /// 重新开始播放视频
   Future<void> reStart() async {
     if (playerType == SuperPlayerType.LIVE || playerType == SuperPlayerType.LIVE_SHIFT) {
@@ -501,6 +511,7 @@ class SuperPlayerController {
     _observer?.onPlayTimeShiftLive(_livePlayerController, url);
   }
 
+  /// Play live streaming
   /// 播放直播URL
   void _playLiveURL(String url, int playType) async {
     _currentPlayUrl = url;
@@ -513,7 +524,10 @@ class SuperPlayerController {
     }
   }
 
+  /// Play time-shifted live streaming URL.
+  /// This function is no longer valid.
   /// 播放时移直播url
+  @deprecated
   void _playTimeShiftLiveURL(int appId, String url) {
     String bizid = url.substring(url.indexOf("//") + 2, url.indexOf("."));
     String streamid = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
@@ -539,7 +553,7 @@ class SuperPlayerController {
     return playerStreamController.stream;
   }
 
-  /// 获得当前正在使用的controller
+  /// Get the current controller being used
   TXPlayerController getCurrentController() {
     TXPlayerController controller;
     if (playerType == SuperPlayerType.VOD) {
@@ -608,17 +622,20 @@ class SuperPlayerController {
     }
   }
 
+  /// whether it is the RTMP protocol
   /// 是否是RTMP协议
   bool _isRTMPPlay(String? videoURL) {
     return null != videoURL && videoURL.startsWith("rtmp");
   }
 
+  /// whether it is the HTTP-FLV protocol
   /// 是否是HTTP-FLV协议
   bool _isFLVPlay(String? videoURL) {
     return (null != videoURL && videoURL.startsWith("http://") || videoURL!.startsWith("https://")) &&
         videoURL.contains(".flv");
   }
 
+  /// reset player status
   /// 重置播放器状态
   Future<void> resetPlayer() async {
     isPrepared = false;
@@ -631,7 +648,7 @@ class SuperPlayerController {
     currentQuality = null;
     currentQualityList?.clear();
     _currentProtocol = null;
-    // 移除所有事件
+    // cancel all listener
     _vodPlayEventListener?.cancel();
     _vodNetEventListener?.cancel();
     _livePlayEventListener?.cancel();
@@ -647,12 +664,13 @@ class SuperPlayerController {
     _updatePlayerState(SuperPlayerState.END);
   }
 
+  /// Release the player. Once the player is released, it cannot be used again
   /// 释放播放器，播放器释放之后，将不能再使用
   Future<void> releasePlayer() async {
-    // 先移除widget的事件监听
+    // Remove the event listener for the widget first.
     _observer?.onDispose();
     playerStreamController.close();
-    // 如果处于画中画模式，播放器暂时不释放
+    // If in picture-in-picture mode, the player should not be released temporarily.
     if (!TXPipController.instance.isPlayerInPip(getCurrentController())) {
       resetPlayer();
       _vodPlayerController.dispose();
@@ -660,6 +678,7 @@ class SuperPlayerController {
     }
   }
 
+  /// return true: executed exit full screen and other operations, consumed the return event. return false: did not consume the event.
   /// return true : 执行了退出全屏等操作，消耗了返回事件  false：未消耗事件
   bool onBackPress() {
     if (_playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
@@ -673,6 +692,7 @@ class SuperPlayerController {
     _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerBackAction);
   }
 
+  /// switch stream
   /// 切换清晰度
   void switchStream(VideoQuality videoQuality) async {
     currentQuality = videoQuality;
@@ -699,6 +719,7 @@ class SuperPlayerController {
     }
   }
 
+  /// Seek to the desired time point for playback.
   /// seek 到需要的时间点进行播放
   Future<void> seek(double progress) async {
     if (playerType == SuperPlayerType.VOD) {
@@ -716,22 +737,32 @@ class SuperPlayerController {
     _observer?.onSeek(progress);
   }
 
+  /// Configure the VOD player.
   /// 配置点播播放器
   Future<void> setPlayConfig(FTXVodPlayConfig config) async {
     _vodConfig = config;
     await _vodPlayerController.setConfig(config);
   }
 
+  /// Configure the Live player.
   /// 配置直播播放器
   Future<void> setLiveConfig(FTXLivePlayConfig config) async {
     _liveConfig = config;
     await _livePlayerController.setConfig(config);
   }
 
+  /// Enter picture-in-picture mode. To enter picture-in-picture mode, you need to adapt the interface for picture-in-picture mode.
+  /// Android only supports models above 7.0.
+  ///
+  /// <h1>Due to Android system limitations, the size of the passed icon must not exceed 1MB, otherwise it will not be displayed.</h1>
+  ///
+  /// @param backIcon playIcon pauseIcon forwardIcon are icons for play rewind, play, pause, and fast forward.
+  /// If they are assigned, the passed icons will be used; otherwise, the system default icons will be used.
+  /// Only supports Flutter's local resource images. When passing, use the same method as using image resources in Flutter,
+  /// for example: images/back_icon.png.
+  ///
   /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
-  /// <h1>
-  /// 由于android系统限制，传递的图标大小不得超过1M，否则无法显示
-  /// </h1>
+  /// <h1> 由于android系统限制，传递的图标大小不得超过1M，否则无法显示 </h1>
   /// @param backIcon playIcon pauseIcon forwardIcon 为播放后退、播放、暂停、前进的图标，如果赋值的话，将会使用传递的图标，否则
   /// 使用系统默认图标，只支持flutter本地资源图片，传递的时候，与flutter使用图片资源一致，例如： images/back_icon.png
   Future<int> enterPictureInPictureMode(
@@ -754,6 +785,7 @@ class SuperPlayerController {
     return TXVodPlayEvent.ERROR_PIP_CAN_NOT_ENTER;
   }
 
+  /// Enable/disable hardware decoding playback.
   /// 开关硬解编码播放
   Future<void> enableHardwareDecode(bool enable) async {
     _isOpenHWAcceleration = enable;
@@ -764,7 +796,7 @@ class SuperPlayerController {
         _seekPos = await _vodPlayerController.getCurrentPlaybackTime();
         LogUtils.d(TAG, "seek pos $_seekPos");
         resetPlayer();
-        // 当protocol为空时，则说明当前播放视频为非v2和v4视频
+        // When the `protocol` is empty, it means that the current video playback is a URL
         if (_currentProtocol == null) {
           _playUrlVideo(videoModel);
         } else {
@@ -777,6 +809,7 @@ class SuperPlayerController {
     }
   }
 
+  /// Set whether to mute.
   /// 设置是否静音
   Future<void> setMute(bool mute) async {
     isMute = mute;
@@ -787,6 +820,7 @@ class SuperPlayerController {
     }
   }
 
+  /// Set whether to loop playback. This is not supported for live streaming.
   /// 设置是否循环播放，不支持直播时调用
   Future<void> setLoop(bool loop) async {
     if (playerType == SuperPlayerType.VOD) {
@@ -795,6 +829,7 @@ class SuperPlayerController {
     }
   }
 
+  /// Set the playback start time.
   /// 设置播放开始时间
   Future<void> setStartTime(double startTime) async {
     if (playerType == SuperPlayerType.VOD) {
@@ -808,6 +843,7 @@ class SuperPlayerController {
     _vodPlayerController.setRate(rate);
   }
 
+  /// Get the current player state.
   /// 获得当前播放器状态
   SuperPlayerState getPlayerState() {
     return playerState;
