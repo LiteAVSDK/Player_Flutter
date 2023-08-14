@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Download management, pre-download, and offline download.
+ *
  * 下载管理，预下载、离线下载
  */
 public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDownloadApi {
@@ -41,6 +43,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     private final Handler mMainHandler;
 
     /**
+     * Video download management.
+     *
      * 视频下载管理
      */
     public FTXDownloadManager(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
@@ -244,6 +248,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     }
 
     /**
+     * ijk legacy, temporarily abandoned.
+     *
      * ijk遗留，暂时弃用
      */
     @Override

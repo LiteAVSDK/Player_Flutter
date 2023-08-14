@@ -45,9 +45,9 @@ class PlayInfoParserV2 implements PlayInfoParser {
 
   Map<String, PlayInfoStream> _transcodePlayList = new Map();
   PlayInfoStream? sourceStream;
-  PlayInfoStream? masterPlayList; // 主播放视频流信息
+  PlayInfoStream? masterPlayList; // Main video stream information.
 
-  List<VideoClassification> videoClassificationList = []; // 视频清晰度信息列表
+  List<VideoClassification> videoClassificationList = []; // List of video quality information.
 
   PlayInfoParserV2(String json) {
     _parseData(json);
@@ -68,8 +68,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
 
       Map<String, dynamic> videInfoRoot = root['videoInfo'];
 
-      defaultVideoClassification =
-          root['playerInfo']['defaultVideoClassification'] ?? "";
+      defaultVideoClassification = root['playerInfo']['defaultVideoClassification'] ?? "";
       _parseVideoClassificationList(root['playerInfo']);
 
       imageSpriteInfo = _parseImageSpriteInfo(root['imageSpriteInfo']);
@@ -95,7 +94,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
           PlayKeyFrameDescInfo info = PlayKeyFrameDescInfo();
           info.content = Uri.decodeFull(keyFrameInfo['content']);
           int timeOffset = keyFrameInfo['timeOffset'];
-          info.time = (timeOffset / 1000.0);//转换为秒
+          info.time = (timeOffset / 1000.0); // Convert to seconds.
           infoList.add(info);
         }
         return infoList;
@@ -108,7 +107,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
     if(null != imageSpriteInfo && imageSpriteInfo.isNotEmpty) {
       List<dynamic> imageSpriteList = imageSpriteInfo['imageSpriteList'];
       if(imageSpriteList.isNotEmpty) {
-       Map<String,dynamic> imageSpriteTemp =  imageSpriteList[imageSpriteList.length - 1]; ////获取最后一个来解析
+       Map<String,dynamic> imageSpriteTemp =  imageSpriteList[imageSpriteList.length - 1]; // Get the last one to parse.
         PlayImageSpriteInfo info = PlayImageSpriteInfo();
        info.webVttUrl = imageSpriteTemp['webVttUrl'];
        // List<dynamic> can not transTo List<String>,so use loop assignment
@@ -217,7 +216,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
 
 
   void _parseVideoInfo() {
-    //有主播放视频信息时，从中解析出支持多码率播放的url
+    // If there is main playback video information, parse the URLs that support multi-bitrate playback from it.
     if (null != masterPlayList) {
       _url = masterPlayList!.url;
       if (_transcodePlayList.isNotEmpty) {
@@ -231,7 +230,7 @@ class PlayInfoParserV2 implements PlayInfoParser {
       return;
     }
 
-    //无主播放信息，从转码视频信息中解析出各码流信息
+    // If there is no main playback information, parse the bitstream information from the transcode video information.
     if (_transcodePlayList.isNotEmpty) {
       PlayInfoStream? stream = _transcodePlayList[defaultVideoClassification];
       String? tempUrl;
@@ -256,7 +255,8 @@ class PlayInfoParserV2 implements PlayInfoParser {
         return;
       }
     }
-    //无主播放信息、转码信息，从源视频信息中解析出播放信息
+    // If there is no main playback information or transcoding information,
+    // parse the playback information from the source video information
     if (sourceStream != null) {
       if (defaultVideoClassification != null) {
         defaultVideoQuality = VideoQualityUtils.convertToVideoQuality(sourceStream!);

@@ -18,8 +18,7 @@ class ShortVideoDataLoader {
 
   SuperVodDataLoader _loader = SuperVodDataLoader();
 
-  getPageListDataOneByOneFunction(
-      Function(List<SuperPlayerModel> model) callback) {
+  getPageListDataOneByOneFunction(Function(List<SuperPlayerModel> model) callback) {
     _currentModels.clear();
     for (int i = 0; i < _fileIdArray.length; i++) {
       SuperPlayerModel model = new SuperPlayerModel();
@@ -29,17 +28,16 @@ class ShortVideoDataLoader {
       _defaultData.add(model);
     }
 
+    List<Future<void>> requestList = [];
     for (var model in _defaultData) {
-      _getVodListData(model, callback);
+      requestList.add(_getVodListData(model, callback));
     }
+    Future.wait(requestList).then((value) => callback(_currentModels));
   }
 
-  _getVodListData(SuperPlayerModel model, Function(List<SuperPlayerModel> models) callback) async {
-    _loader.getVideoData(model, (resultModel) {
+  Future<void> _getVodListData(SuperPlayerModel model, Function(List<SuperPlayerModel> models) callback) async {
+    await _loader.getVideoData(model, (resultModel) {
       _currentModels.add(resultModel);
-      if (_currentModels.length == _defaultData.length) {
-        callback(_currentModels);
-      }
     });
   }
 }

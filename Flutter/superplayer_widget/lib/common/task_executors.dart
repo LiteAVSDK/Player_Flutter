@@ -4,8 +4,8 @@ part of demo_super_player_lib;
 typedef TaskCallback = void Function(bool success, dynamic result);
 typedef TaskDetailFunc = Future Function();
 
-/// 确保入栈的异步/非异步按顺序执行
-/// 单线程模型
+/// Ensure that the asynchronous/synchronous functions pushed onto the stack are executed in order
+/// Single-threaded model
 class TaskExecutors {
 
   bool _isTaskRunning = false;
@@ -20,7 +20,6 @@ class TaskExecutors {
         completer.completeError(result);
       }
       _isTaskRunning = false;
-      //递归任务
       _doTask();
     });
     _taskList.add(taskItem);

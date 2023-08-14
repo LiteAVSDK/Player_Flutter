@@ -4,6 +4,7 @@ part of demo_super_player_lib;
 typedef BoolFunction = bool Function();
 typedef DoubleFunction = double Function();
 
+/// Player component more menu.
 /// 播放器组件更多菜单
 class SuperPlayerMoreView extends StatefulWidget {
   final MoreViewController controller;
@@ -62,6 +63,12 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   void refreshBrightness() async {
     double? brightness = await SuperPlayerPlugin.getBrightness();
     if (_currentBrightness != brightness) {
+      if (_currentBrightness > 1) {
+        _currentBrightness = 1;
+      }
+      if (_currentBrightness < 0) {
+        _currentBrightness = 0;
+      }
       setState(() {
         _currentBrightness = brightness ?? _currentBrightness;
       });
@@ -74,6 +81,12 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
       _onChangeBrightness(1);
     } else {
       _currentBrightness = tempBrightness ?? _currentBrightness;
+      if (_currentBrightness > 1) {
+        _currentBrightness = 1;
+      }
+      if (_currentBrightness < 0) {
+        _currentBrightness = 0;
+      }
     }
     _currentVolume = await SuperPlayerPlugin.getSystemVolume() ?? _currentVolume;
     setState(() {});
@@ -112,7 +125,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
       child: Row(
         children: [
           Text(
-            StringResource.HARDWARE_ACCE_LABEL,
+            FSPLocal.current.txSpwMultiPlay,
             textAlign: TextAlign.center,
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
@@ -128,7 +141,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   Widget _getPlayRateWidget() {
     List<Widget> playRateChild = [
       Text(
-        StringResource.MULITIPE_SPEED_PLAY_LABEL,
+        FSPLocal.current.txSpwMultiPlay,
         textAlign: TextAlign.center,
         style: ThemeResource.getCommonLabelTextStyle(),
       )
@@ -164,14 +177,14 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
       margin: const EdgeInsets.only(top: 10, bottom: 10),
       child: Row(children: [
         Text(
-          StringResource.BRIGHTNESS_LABEL,
+          FSPLocal.current.txSpwBrightness,
           textAlign: TextAlign.center,
           style: ThemeResource.getCommonLabelTextStyle(),
         ),
         const Image(
             width: 30,
             height: 30,
-            image: AssetImage("images/superplayer_ic_light_min.png", package: StringResource.PKG_NAME)),
+            image: AssetImage("images/superplayer_ic_light_min.png", package: PlayerConstants.PKG_NAME)),
         Expanded(
           child: Theme(
               data: ThemeResource.getCommonSliderTheme(),
@@ -185,7 +198,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
         const Image(
             width: 30,
             height: 30,
-            image: AssetImage("images/superplayer_ic_light_max.png", package: StringResource.PKG_NAME)),
+            image: AssetImage("images/superplayer_ic_light_max.png", package: PlayerConstants.PKG_NAME)),
       ]),
     );
   }
@@ -196,14 +209,14 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
       child: Row(
         children: [
           Text(
-            StringResource.VOICE_LABEL,
+            FSPLocal.current.txSpwSound,
             textAlign: TextAlign.center,
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
           const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_ic_volume_min.png", package: StringResource.PKG_NAME)),
+              image: AssetImage("images/superplayer_ic_volume_min.png", package: PlayerConstants.PKG_NAME)),
           Expanded(
             child: Theme(
                 data: ThemeResource.getCommonSliderTheme(),
@@ -217,7 +230,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
           const Image(
               width: 30,
               height: 30,
-              image: AssetImage("images/superplayer_ic_volume_max.png", package: StringResource.PKG_NAME)),
+              image: AssetImage("images/superplayer_ic_volume_max.png", package: PlayerConstants.PKG_NAME)),
         ],
       ),
     );

@@ -10,16 +10,15 @@ abstract class DemoDefine{
 }
 
 class TreeData {
-  List<TreeDatachild> children;
+  List<TreeDataChild> children;
   String name;
-  //标识是否初始化
   bool isExpanded;
 
   TreeData(this.children, this.name, this.isExpanded);
 }
 
-class TreeDatachild {
+class TreeDataChild {
   String name;
 
-  TreeDatachild(this.name);
+  TreeDataChild(this.name);
 }

@@ -85,7 +85,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
                 playTime = duration;
             }
             seekPlayer(playTime);
-            // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
+            // When starting PIP, the current player has been paused. After PIP exits,
+            // if PIP is still in playing state, the current player will also be set to playing state.
             boolean isPipPlaying = result.isPlaying();
             if (isPipPlaying) {
                 playerResume();
@@ -94,6 +95,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     };
 
     /**
+     * VOD player.
+     *
      * 点播播放器
      */
     public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
@@ -189,7 +192,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
 
             int width = bundle.getInt(TXLiveConstants.EVT_PARAM1, 0);
             int height = bundle.getInt(TXLiveConstants.EVT_PARAM2, 0);
-            // 设置surface大小，防止部分情况收不到硬解失败的事件，导致只有1px内容
+            // Set the size of the surface to prevent some situations where the hardware decoding failure
+            // event is not received, resulting in only 1 pixel of content.
             if (width != 0 && height != 0) {
                 setDefaultBufferSizeForSoftDecode(width, height);
             }
@@ -202,10 +206,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         mEventSink.success(CommonUtil.getParams(event, bundle));
     }
 
-    // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
+    // The default size of the surface is 1x1. When hardware decoding fails or software decoding is used,
+    // software decoding will depend on the window rendering of the surface. Failure to update will result
+    // in only 1 pixel of content.
     private void setDefaultBufferSizeForSoftDecode(int width, int height) {
         if (mSurfaceTextureEntry != null) {
-            mSurfaceTextureEntry.surfaceTexture();
             SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
             surfaceTexture.setDefaultBufferSize(width, height);
             mSurface = new Surface(surfaceTexture);
@@ -590,7 +595,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @NonNull
     @Override
     public DoubleMsg getCurrentPlaybackTime(@NonNull PlayerMsg playerMsg) {
-        // 使用BigDecimal转换，防止float转换double的时候出现小数点后数字的精度问题
+        // Use BigDecimal for conversion to prevent precision issues with decimal
+        // digits when converting from float to double.
         BigDecimal bigDecimal = BigDecimal.valueOf(getPlayerCurrentPlaybackTime());
         return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
     }
@@ -598,7 +604,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @NonNull
     @Override
     public DoubleMsg getBufferDuration(@NonNull PlayerMsg playerMsg) {
-        // 使用BigDecimal转换，防止float转换double的时候出现小数点后数字的精度问题
+        // Use BigDecimal for conversion to prevent precision issues with decimal
+        // digits when converting from float to double.
         BigDecimal bigDecimal = BigDecimal.valueOf(getPlayerBufferDuration());
         return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
     }
@@ -606,7 +613,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @NonNull
     @Override
     public DoubleMsg getPlayableDuration(@NonNull PlayerMsg playerMsg) {
-        // 使用BigDecimal转换，防止float转换double的时候出现小数点后数字的精度问题
+        // Use BigDecimal for conversion to prevent precision issues with decimal
+        // digits when converting from float to double.
         BigDecimal bigDecimal = BigDecimal.valueOf(getPlayerPlayableDuration());
         return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
     }
@@ -659,7 +667,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             mPipParams.setRadio(mVodPlayer.getWidth(), mVodPlayer.getHeight());
         }
         int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
-        // 启动成功之后，暂停当前界面视频
+        // After successful startup, pause the current interface video.
         if (pipResult == FTXEvent.NO_ERROR) {
             playerPause();
         }
@@ -691,7 +699,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @Override
     public DoubleMsg getDuration(@NonNull PlayerMsg playerMsg) {
         if (null != mVodPlayer) {
-            // 使用BigDecimal转换，防止float转换double的时候出现小数点后数字的精度问题
+            // Use BigDecimal for conversion to prevent precision issues with decimal
+            // digits when converting from float to double.
             BigDecimal bigDecimal = BigDecimal.valueOf(mVodPlayer.getDuration());
             return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
         }

@@ -7,6 +7,7 @@ import 'package:super_player/super_player.dart';
 import 'package:super_player_example/demo_download_list.dart';
 import 'package:super_player_example/ui/demo_inputdialog.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
+import 'package:super_player_example/res/app_localizations.dart';
 import 'dart:ui';
 
 /// flutter superplayer demo
@@ -25,7 +26,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
   static const ARGUMENT_TYPE_POS = "arg_type_pos";
   static const ARGUMENT_VIDEO_DATA = "arg_video_data";
-  static const sPlayerViewDisplayRatio = 720.0 / 1280.0; //当前界面播放器view展示的宽高比，用主流的16：9
+  static const sPlayerViewDisplayRatio = 720.0 / 1280.0;
 
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
@@ -43,12 +44,12 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   @override
   void initState() {
     super.initState();
-    // 监听设备旋转
+    // Listen for device rotation.
     SuperPlayerPlugin.startVideoOrientationService();
     _controller = SuperPlayerController(context);
     TXPipController.instance.setPipPlayerPage(this);
     FTXVodPlayConfig config = FTXVodPlayConfig();
-    // 如果不配置preferredResolution，则在播放多码率视频的时候优先播放720 * 1280分辨率的码率
+    // If `preferredResolution` is not configured, the bitrate with a resolution of 720x1280 will be played first when playing multi-bitrate videos.
     config.preferredResolution = 720 * 1280;
     _controller.setPlayConfig(config);
     simpleEventSubscription = _controller.onSimplePlayerEventBroadcast.listen((event) {
@@ -74,7 +75,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     }
   }
 
-  /// 竖屏下，播放器始终保持 16 ：9的宽高比，优先保证宽度填充
+  /// In portrait mode, the player always maintains a 16:9 aspect ratio and prioritizes filling the width.
   void _adjustSuperPlayerViewHeight() {
     playerHeight = (window.physicalSize.width / window.devicePixelRatio) * sPlayerViewDisplayRatio;
   }
@@ -90,11 +91,10 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
           )),
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: _isFullScreen
-                ? null
+            appBar: _isFullScreen ? null
                 : AppBar(
                     backgroundColor: Colors.transparent,
-                    title: const Text('播放器组件'),
+                    title: Text("${AppLocals.of(context).playerPlayWidget}"),
                     actions: [
                       InkWell(
                           onTap: _jumpToDownloadList,
@@ -105,9 +105,8 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                             height: 40,
                             padding: EdgeInsets.all(8),
                             margin: EdgeInsets.only(left: 8, right: 8),
-                            child: Image(
-                                image: AssetImage("images/superplayer_ic_vod_download_list.png",
-                                    package: StringResource.PKG_NAME)),
+                            child: Image(image: AssetImage("images/superplayer_ic_vod_download_list.png",
+                                    package: PlayerConstants.PKG_NAME)),
                           ))
                     ],
                   ),
@@ -141,25 +140,25 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   Widget getTabRow() {
-    return new Container(
+    return Container(
       height: 40,
-      child: new Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          new GestureDetector(
-            child: new Container(
+          GestureDetector(
+            child: Container(
               child: Text(
-                "直播",
+                AppLocals.current.playerLive,
                 style: tabSelectPos == 0 ? _textStyleSelected : _textStyleUnSelected,
               ),
             ),
             onTap: _getLiveListData,
           ),
-          new GestureDetector(
+          GestureDetector(
               onTap: _getVodListData,
-              child: new Container(
+              child: Container(
                 child: Text(
-                  "点播",
+                  AppLocals.current.playerVod,
                   style: tabSelectPos == 1 ? _textStyleSelected : _textStyleUnSelected,
                 ),
               )),
@@ -258,7 +257,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                   playCurrentModel(resultModel, 0);
                 });
               } else {
-                EasyLoading.showError("请输入播放地址!");
+                EasyLoading.showError(AppLocals.current.playerInputAddTip);
               }
             },
             needPisgn: !isLive,
@@ -298,7 +297,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
     int playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
     SuperPlayerModel model = SuperPlayerModel();
-    model.title = "测试视频";
+    model.title = AppLocals.current.playerTestVideo;
     model.videoURL = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
     model.coverUrl =
         "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/66bc542f387702300661648850/0RyP1rZfkdQA.png";
@@ -328,7 +327,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "8602268011437356984";
-    model.title = "云点播（fileId播放）";
+    model.title = AppLocals.current.playerVodVideo;
     model.playAction = playAction;
     model.isEnableDownload = true;
     models.add(model);
@@ -337,13 +336,13 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "5285890781763144364";
-    model.title = "腾讯云";
+    model.title = AppLocals.current.playerTencentCloud;
     model.playAction = playAction;
     model.isEnableDownload = false;
     models.add(model);
 
     model = SuperPlayerModel();
-    model.title = "加密视频播放";
+    model.title = AppLocals.current.playerEncryptVideo;
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "243791578431393746";

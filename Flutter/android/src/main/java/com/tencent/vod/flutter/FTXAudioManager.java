@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 音频管理
+ * Audio management.
  */
 public class FTXAudioManager {
 
@@ -31,9 +31,10 @@ public class FTXAudioManager {
             new AudioManager.OnAudioFocusChangeListener() {
                 public void onAudioFocusChange(int focusChange) {
                     if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                        //长时间丢失焦点,当其他应用申请的焦点为AUDIOFOCUS_GAIN时，会触发此回调事件
-                        //例如播放QQ音乐，网易云音乐等
-                        //此时应当暂停音频并释放音频相关的资源。
+                        // When the focus is lost for a long time, this callback event will be triggered when
+                        // the focus requested by other applications is AUDIOFOCUS_GAIN.
+                        // For example, playing QQ music, Netease Cloud Music, etc.
+                        // At this time, audio should be paused and audio-related resources should be released.
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
@@ -41,9 +42,10 @@ public class FTXAudioManager {
                             }
                         });
                     } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                        //短暂性丢失焦点，当其他应用申请AUDIOFOCUS_GAIN_TRANSIENT或AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE时，会触发此回调事件
-                        //例如播放短视频，拨打电话等。
-                        //通常需要暂停音乐播放
+                        // When the focus is lost briefly, this callback event will be triggered when other
+                        // applications request AUDIOFOCUS_GAIN_TRANSIENT or AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE.
+                        // For example, playing short videos, making phone calls, etc.
+                        // Usually need to pause music playback.
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
@@ -51,8 +53,9 @@ public class FTXAudioManager {
                             }
                         });
                     } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                        //短暂性丢失焦点并作降音处理，当其他应用申请AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK时，会触发此回调事件
-                        //通常需要降低音量
+                        // When the focus is lost briefly and ducking is performed, this callback event will be
+                        // triggered when other applications request AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK.
+                        // Usually need to lower the volume.
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
@@ -60,8 +63,9 @@ public class FTXAudioManager {
                             }
                         });
                     } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                        //当其他应用申请焦点之后又释放焦点会触发此回调
-                        //可重新播放音乐
+                        // This callback will be triggered when other applications request focus
+                        // and then release focus.
+                        // Music can be played again.
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
@@ -118,6 +122,8 @@ public class FTXAudioManager {
     }
 
     /**
+     * Request audio focus.
+     *
      * 请求获取音频焦点
      */
     public void requestAudioFocus() {

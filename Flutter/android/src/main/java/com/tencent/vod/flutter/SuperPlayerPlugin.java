@@ -262,7 +262,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                     public void onOrientationChanged(int orientation) {
                         if (isDeviceAutoRotateOn()) {
                             int orientationEvent = mCurrentOrientation;
-                            // 每个方向判断当前方向正负30度，共计60度的区间
+                            // Each direction judges the current direction with an interval
+                            // of 60 degrees, with a total of 6 intervals.
                             if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
                                 orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
                             } else if (orientation > 240 && orientation < 300) {
@@ -291,6 +292,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     /**
+     * Set the current window brightness.
+     *
      * 设置当前window亮度
      */
     private void setWindowBrightness(Double brightness) {
@@ -314,6 +317,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     /**
+     * Get the current window brightness. If the current window brightness is not assigned,
+     * return the current system brightness.
+     *
      * 获得当前window亮度，如果当前window亮度未赋值，则返回当前系统亮度
      */
     private float getWindowBrightness() {
@@ -345,6 +351,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     /**
      * 获取最大亮度,兼容MIUI部分系统亮度最大值不是255的情况.
      * MIUI在android 13以后，系统最大亮度与配置不符，变为128
+     *
+     * Get the maximum brightness, compatible with some MIUI systems where the maximum brightness is not 255.
+     * After Android 13, MIUI's maximum brightness is inconsistent with the configuration and becomes 128.
      *
      * @return max
      */
@@ -412,6 +421,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         if (null != mTxPipManager) {
             mTxPipManager.releaseActivityListener();
         }
+        // Close the solution to the problem of the picture-in-picture click restore
+        // failure on some versions of Android 12.
         // 关闭用于解决Android12部分版本上画中画点击还原失灵的问题
         Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), Android12BridgeService.class);
         mActivityPluginBinding.getActivity().stopService(serviceIntent);
@@ -427,9 +438,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     /**
-     * 系统是否允许自动旋转屏幕
+     * Whether the system allows automatic screen rotation.
      *
-     * @return
+     * 系统是否允许自动旋转屏幕
      */
     protected boolean isDeviceAutoRotateOn() {
         //获取系统是否允许自动旋转屏幕
@@ -444,6 +455,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     /**
+     * Register volume broadcast receiver.
+     *
      * 注册音量广播接收器
      */
     public void registerReceiver() {
@@ -459,6 +472,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     /**
+     * Unregister volume broadcast listener. It needs to be used in pairs with registerReceiver.
+     *
      * 反注册音量广播监听器，需要与 registerReceiver 成对使用
      */
     public void unregisterReceiver() {
@@ -552,7 +567,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private class VolumeBroadcastReceiver extends BroadcastReceiver {
 
         public void onReceive(Context context, Intent intent) {
-            //媒体音量改变才通知
+            // Notify only when the media volume changes
             if (VOLUME_CHANGED_ACTION.equals(intent.getAction())
                     && (intent.getIntExtra(EXTRA_VOLUME_STREAM_TYPE, -1) == AudioManager.STREAM_MUSIC)) {
                 mEventSink.success(getParams(FTXEvent.EVENT_VOLUME_CHANGED, null));

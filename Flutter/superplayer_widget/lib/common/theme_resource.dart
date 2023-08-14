@@ -1,8 +1,10 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
+/// Style resources.
 /// 样式资源
 class ThemeResource {
+  /// Get the common progress bar style.
   /// 获得通用进度条样式
   static ThemeData getCommonSliderTheme() {
     return ThemeData(
@@ -17,6 +19,7 @@ class ThemeResource {
     ));
   }
 
+  /// Get the common progress bar style.
   /// 获得通用进度条样式
   static ThemeData getMiniSliderTheme() {
     return ThemeData(

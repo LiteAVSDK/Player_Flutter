@@ -64,7 +64,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPipResult(PipResult result) {
-            // 启动pip的时候，当前player已经暂停，pip退出之后，如果退出的时候pip还处于播放状态，那么当前player也置为播放状态
+            // When starting PIP, if the current player is paused and PIP is still playing when exiting,
+            // the current player will also be set to playing state upon exiting PIP.
             boolean isPipPlaying = result.isPlaying();
             if (isPipPlaying) {
                 resumePlayer();
@@ -73,6 +74,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     };
 
     /**
+     * Live streaming player.
+     *
      * 直播播放器
      */
     public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
@@ -163,7 +166,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         mNetStatusSink.success(CommonUtil.getParams(0, bundle));
     }
 
-    // surface 的大小默认是宽高为1，当硬解失败时或使用软解时，软解会依赖surface的窗口渲染，不更新会导致只有1px的内容
+    // The default size of the surface is 1x1. When hardware decoding fails or software decoding is used,
+    // software decoding relies on the window rendering of the surface.
+    // Failure to update will result in only 1 pixel of content.
     private void setDefaultBufferSizeForSoftDecode(int width, int height) {
         if (mSurfaceTextureEntry != null) {
             mSurfaceTextureEntry.surfaceTexture();
@@ -273,17 +278,17 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         if (mLivePlayer != null) {
             TXLivePlayConfig config = new TXLivePlayConfig();
             if (type == 0) {
-                //自动模式
+                // Auto mode
                 config.setAutoAdjustCacheTime(true);
                 config.setMinAutoAdjustCacheTime(1);
                 config.setMaxAutoAdjustCacheTime(3);
             } else if (type == 1) {
-                //极速模式
+                // Ultra-fast mode.
                 config.setAutoAdjustCacheTime(true);
                 config.setMinAutoAdjustCacheTime(1);
                 config.setMaxAutoAdjustCacheTime(1);
             } else {
-                //流畅模式
+                // Smooth mode.
                 config.setAutoAdjustCacheTime(false);
                 config.setCacheTime(5);
             }
@@ -427,7 +432,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
                 getPlayerId(), false, false, true);
         mPipParams.setIsPlaying(isPlayerPlaying());
         int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
-        // 启动成功之后，暂停当前界面视频
+        // After the startup is successful, pause the video on the current interface.
         if (pipResult == FTXEvent.NO_ERROR) {
             pausePlayer();
         }

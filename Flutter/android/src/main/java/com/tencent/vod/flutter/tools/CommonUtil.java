@@ -29,6 +29,8 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
+ * Common utility class.
+ *
  * 通用工具类
  */
 public class CommonUtil {

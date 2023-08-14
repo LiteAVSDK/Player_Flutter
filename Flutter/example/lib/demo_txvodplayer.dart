@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:super_player/super_player.dart';
+import 'package:super_player_example/res/app_localizations.dart';
 import 'ui/demo_inputdialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'ui/demo_volume_slider.dart';
@@ -15,8 +16,7 @@ class DemoTXVodPlayer extends StatefulWidget {
   _DemoTXVodPlayerState createState() => _DemoTXVodPlayerState();
 }
 
-class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
-    with WidgetsBindingObserver {
+class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingObserver {
   late TXVodPlayerController _controller;
   double _aspectRatio = 16 / 9;
   double _currentProgress = 0.0;
@@ -40,12 +40,12 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     if (!mounted) return;
     _controller = TXVodPlayerController();
     _controller.onPlayerState.listen((val) {
-      debugPrint("播放状态 ${val?.name}");
+      debugPrint("Playback status ${val?.name}");
     });
     LogUtils.logOpen = true;
 
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
-      //订阅状态变化
+      // Subscribe to event distribution
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
         _supportedBitrates = (await _controller.getSupportedBitrates())!;
@@ -53,21 +53,23 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
       } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _isPlaying = true;
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
-        double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // 总播放时长，转换后的单位 秒
+        double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // Total playback time, converted unit in seconds
         if (videoDuration == 0.0) {
           progressSliderKey.currentState?.updateProgress(0.0, 0.0);
         } else {
           progressSliderKey.currentState?.updateProgress(_currentProgress / videoDuration, videoDuration);
         }
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC) {
-        String? playUrl = event[TXVodPlayEvent.EVT_PLAY_URL]?.toString();
-      } else if(event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
         _resizeVideo(event);
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_LOADING) {
+        EasyLoading.show(status: "loading");
+      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_VOD_LOADING_END || event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN) {
+        EasyLoading.dismiss();
       }
     });
 
     playNetEventSubscription = _controller.onPlayerNetStatusBroadcast.listen((event) async {
-      //订阅状态变化
+      // Subscribe to status changes
       double w = (event[TXVodNetEvent.NET_STATUS_VIDEO_WIDTH]).toDouble();
       double h = (event[TXVodNetEvent.NET_STATUS_VIDEO_HEIGHT]).toDouble();
 
@@ -115,7 +117,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
         _controller.pause();
         break;
       case AppLifecycleState.resumed:
-        if(_isPlaying) {
+        if (_isPlaying) {
           _controller.resume();
         }
         break;
@@ -129,247 +131,134 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     return Container(
       decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/ic_new_vod_bg.png"),
-            fit: BoxFit.cover,
-          )),
+        image: AssetImage("images/ic_new_vod_bg.png"),
+        fit: BoxFit.cover,
+      )),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: const Text('点播播放'),
+          title: Text(AppLocals.current.playerVodPlayer),
         ),
         body: SafeArea(
             child: Container(
-              //color: Colors.blueGrey,
-              child: Column(
+          //color: Colors.blueGrey,
+          child: Column(
+            children: [
+              Container(
+                height: 220,
+                color: Colors.black,
+                child: Center(
+                  child: _aspectRatio > 0
+                      ? AspectRatio(
+                          aspectRatio: _aspectRatio,
+                          child: TXPlayerVideo(controller: _controller),
+                        )
+                      : Container(),
+                ),
+              ),
+              VideoSliderView(_controller, progressSliderKey),
+              Expanded(
+                child: GridView.count(
+                  crossAxisSpacing: 10.0,
+                  mainAxisSpacing: 20.0,
+                  padding: EdgeInsets.all(10.0),
+                  crossAxisCount: 4,
+                  childAspectRatio: 2,
+                  children: getFunctionWidgetList(),
+                ),
+              ),
+              Expanded(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Container(
-                    height: 220,
-                    color: Colors.black,
-                    child: Center(
-                      child: _aspectRatio > 0
-                          ? AspectRatio(
-                        aspectRatio: _aspectRatio,
-                        child: TXPlayerVideo(controller: _controller),
-                      )
-                          : Container(),
-                    ),
-                  ),
-                  VideoSliderView(_controller, progressSliderKey),
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisSpacing: 10.0,
-                      mainAxisSpacing: 20.0,
-                      padding: EdgeInsets.all(10.0),
-                      crossAxisCount: 4,
-                      childAspectRatio: 2,
-                      children: getFunctionWidgetList(),
-                    ),
-                  ),
-                  Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Container(
-                            height: 100,
-                            child: IconButton(
-                                icon: new Image.asset('images/addp.png'),
-                                onPressed: () => {onPressed()}),
-                          )
-                        ],
-                      )),
+                    height: 100,
+                    child: IconButton(icon: Image.asset('images/addp.png'), onPressed: () => {onPressed()}),
+                  )
                 ],
-              ),
-            )),
+              )),
+            ],
+          ),
+        )),
       ),
     );
   }
 
   List<Widget> getFunctionWidgetList() {
     List<Widget> children = [
-      new GestureDetector(
-        onTap: () => {_controller.resume()},
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "播放",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () {
-          _isPlaying = false;
-          _controller.pause();},
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "暂停",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () => {onClickSetRate()},
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "变速播放",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () {
-          _isMute = !_isMute;
-          _controller.setMute(_isMute);
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            _isMute ? "取消静音" : "设置静音",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () {
-          // _volume = _volume + 10;
-          // _volume = _volume<=100?_volume:100;
-          // _controller.setAudioPlayoutVolume(_volume);
-          onClickVolume();
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "调整音量",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () async {
-          if (_supportedBitrates.length > 1) {
-            // EasyLoading.show(status: 'loading...');
-            // _curBitrateIndex = _curBitrateIndex + 1;
-            // _curBitrateIndex = _curBitrateIndex % _supportedBitrates.length;
-            // _controller.setBitrateIndex(_curBitrateIndex);
-            onClickBitrate();
+      _createItem(AppLocals.current.playerPlayback, () => _controller.resume()),
+      _createItem(AppLocals.current.playerPause, () {
+        _isPlaying = false;
+        _controller.pause();
+      }),
+      _createItem(AppLocals.current.playerVariableSpeedPlay, () => onClickSetRate),
+      _createItem(_isMute ? AppLocals.current.playerCancelMute : AppLocals.current.playerSetMute, () {
+        _isMute = !_isMute;
+        _controller.setMute(_isMute);
+      }),
+      _createItem(AppLocals.current.playerAdjustVolume, () => onClickVolume),
+      _createItem(AppLocals.current.playerSwitchBitrate, () {
+        if (_supportedBitrates.length > 1) {
+          onClickBitrate();
+        } else {
+          EasyLoading.showError(AppLocals.current.playerNoOtherBitrate);
+        }
+      }),
+      _createItem(AppLocals.current.playerPlaybackDuration, () async {
+        double time = await _controller.getCurrentPlaybackTime();
+        EasyLoading.showToast('${time.toStringAsFixed(2)}${AppLocals.current.playerSecond}');
+      }),
+      _createItem(AppLocals.current.playerVideoSize, () async {
+        int width = await _controller.getWidth();
+        int height = await _controller.getHeight();
+        EasyLoading.showToast('width:$width,height:$height');
+      }),
+      _createItem(AppLocals.current.playerLoopStatus, () async {
+        bool isLoop = await _controller.isLoop();
+        EasyLoading.showToast('isLoop:$isLoop');
+      }),
+      _createItem(enableHardware ? AppLocals.current.playerSwitchSoft : AppLocals.current.playerSwitchHard, () async {
+        TXPlayerState? state = _controller.playState;
+        if (state != TXPlayerState.disposed && state != TXPlayerState.stopped) {
+          enableHardware = !enableHardware;
+          bool enableSuccess = await _controller.enableHardwareDecode(enableHardware);
+          double startTime = await _controller.getCurrentPlaybackTime();
+          await _controller.setStartTime(startTime);
+          await _controller.startVodPlay(_url);
+          String wareMode = enableHardware ? AppLocals.current.playerHardEncode : AppLocals.current.playerSoftEncode;
+          if (enableSuccess) {
+            EasyLoading.showToast(AppLocals.current.playerSwitchSucTo.txFormat([wareMode]));
           } else {
-            EasyLoading.showError('无其他码率!');
+            EasyLoading.showToast(AppLocals.current.playerSwitchFailedTo.txFormat([wareMode]));
           }
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "切换码率",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () async {
-          double time =
-          await _controller.getCurrentPlaybackTime();
-          EasyLoading.showToast('${time.toStringAsFixed(2)}秒');
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "播放时间",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () async {
-          int width = await _controller.getWidth();
-          int height = await _controller.getHeight();
-          EasyLoading.showToast('width:$width,height:$height');
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "视频尺寸",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () async {
-          bool isLoop = await _controller.isLoop();
-          EasyLoading.showToast('isLoop:$isLoop');
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "是否循环",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () async {
-          TXPlayerState? state = _controller.playState;
-          if (state != TXPlayerState.disposed &&
-              state != TXPlayerState.stopped) {
-            enableHardware = !enableHardware;
-            bool enableSuccess = await _controller
-                .enableHardwareDecode(enableHardware);
-            double stratTime =
-            await _controller.getCurrentPlaybackTime();
-            await _controller.setStartTime(stratTime);
-            await _controller.startVodPlay(_url);
-            String wareMode = enableHardware ? "硬解" : "软解";
-            if (enableSuccess) {
-              EasyLoading.showToast("切换$wareMode成功");
-            } else {
-              EasyLoading.showToast("切换$wareMode失败");
-            }
-          } else {
-            EasyLoading.showToast("视频已播放结束");
-          }
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            enableHardware ? "切换软解" : "切换硬解",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
-      new GestureDetector(
-        onTap: () async {
-          double time = await _controller.getPlayableDuration();
-          EasyLoading.showToast("可播放时长$time");
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "可播时长",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ),
+        } else {
+          EasyLoading.showToast(AppLocals.current.playerPlayEnd);
+        }
+      }),
+      _createItem(AppLocals.current.playerPlayableTime, () async {
+        double time = await _controller.getPlayableDuration();
+        EasyLoading.showToast(AppLocals.current.playerPlayableDurationTo.txFormat([time.toString()]));
+      }),
     ];
 
-    /// ios 没有该能力
+    /// iOS does not have this capability.
     if (defaultTargetPlatform != TargetPlatform.iOS) {
-      children.add(new GestureDetector(
-        onTap: () async {
-          double time = await _controller.getBufferDuration();
-          EasyLoading.showToast('${time.toStringAsFixed(2)}秒');
-        },
-        child: Container(
-          alignment: Alignment.center,
-          child: Text(
-            "缓存时长",
-            style: TextStyle(fontSize: 18, color: Colors.blue),
-          ),
-        ),
-      ));
+      children.add(_createItem(AppLocals.current.playerCacheTime, () async {
+        double time = await _controller.getBufferDuration();
+        EasyLoading.showToast('${time.toStringAsFixed(2)}${AppLocals.current.playerSecond}');
+      }));
     }
     return children;
+  }
+
+  Widget _createItem(String name, GestureTapCallback tapBlock) {
+    return InkWell(
+      onTap: tapBlock,
+      child: Container(
+        child: Text(name, style: TextStyle(fontSize: 18, color: Colors.blue)),
+      ),
+    );
   }
 
   @override
@@ -386,19 +275,17 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "",
-                  (String url, int appId, String fileId,String pSign, bool enableDownload) {
-                _url = url;
-                _appId = appId;
-                _fileId = fileId;
-                if (url.isNotEmpty) {
-                  _controller.startVodPlay(url);
-                } else if (appId != 0 && fileId.isNotEmpty) {
-                  TXPlayInfoParams params = TXPlayInfoParams(appId: _appId,
-                    fileId: _fileId, psign: pSign != null ? pSign : "");
-                  _controller.startVodPlayWithParams(params);
-                }
-              }, needPisgn: true);
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign, bool enableDownload) {
+            _url = url;
+            _appId = appId;
+            _fileId = fileId;
+            if (url.isNotEmpty) {
+              _controller.startVodPlay(url);
+            } else if (appId != 0 && fileId.isNotEmpty) {
+              TXPlayInfoParams params = TXPlayInfoParams(appId: _appId, fileId: _fileId, psign: pSign != null ? pSign : "");
+              _controller.startVodPlayWithParams(params);
+            }
+          }, needPisgn: true);
         });
   }
 
@@ -428,12 +315,11 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer>
     showDialog(
         context: context,
         builder: (context) {
-          return DemoBitrateCheckbox(_supportedBitrates, _curBitrateIndex,
-                  (int result) {
-                _curBitrateIndex = result;
-                _controller.setBitrateIndex(_curBitrateIndex);
-                EasyLoading.showSuccess('切换成功!');
-              });
+          return DemoBitrateCheckbox(_supportedBitrates, _curBitrateIndex, (int result) {
+            _curBitrateIndex = result;
+            _controller.setBitrateIndex(_curBitrateIndex);
+            EasyLoading.showSuccess(AppLocals.current.playerSwitchSuc);
+          });
         });
   }
 }

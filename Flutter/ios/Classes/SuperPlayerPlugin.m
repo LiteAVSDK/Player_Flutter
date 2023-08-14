@@ -122,7 +122,7 @@ SuperPlayerPlugin* instance;
 }
 
 /**
- 亮度变化
+ Brightness change.
  */
 - (void)brightnessDidChange:(NSNotification *)notification
 {
@@ -196,25 +196,26 @@ SuperPlayerPlugin* instance;
 #pragma mark - orientation
 
 - (void)onDeviceOrientationChange:(NSNotification *)notification {
-    // IOS 此处不需要判断是否打开自动屏幕旋转/竖排锁定开关，当IOS打开锁定之后，这里默认是收不到回调的
+    // For iOS, there is no need to check whether the auto screen rotation/vertical screen lock switch is turned on.
+    // When the lock is turned on in iOS, the callback cannot be received by default.
     UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
     UIInterfaceOrientation interfaceOrientation = (UIInterfaceOrientation)orientation;
     int tempOrientationCode = mCurrentOrientation;
     switch (interfaceOrientation) {
         case UIInterfaceOrientationPortrait:
-            // 电池栏在上
+            // Battery bar on top.
             tempOrientationCode = ORIENTATION_PORTRAIT_UP;
             break;
         case UIInterfaceOrientationLandscapeLeft:
-            // 电池栏在左
+            // Battery bar on the left.
             tempOrientationCode = ORIENTATION_LANDSCAPE_LEFT;
             break;
         case UIInterfaceOrientationPortraitUpsideDown:
-            // 电池栏在下
+            // Battery bar on the bottom.
             tempOrientationCode = ORIENTATION_PORTRAIT_DOWN;
             break;
         case UIInterfaceOrientationLandscapeRight:
-            // 电池栏在右
+            // Battery bar on the right.
             tempOrientationCode = ORIENTATION_LANDSCAPE_RIGHT;
             break;
         default:

@@ -7,7 +7,7 @@ class SuperVodDataLoader {
   static const M3U8_SUFFIX = ".m3u8";
   static const _BASE_URL = "https://playvideo.qcloud.com/getplayinfo/v4";
 
-  /// request datat by fileId.this method will callback model that with http result
+  /// request data by fileId.this method will callback model that with http result
   Future<void> getVideoData(SuperPlayerModel model,
       Function(SuperPlayerModel resultModel) callback) async {
     int appId = model.appId;
@@ -19,10 +19,10 @@ class SuperVodDataLoader {
         : "";
     var url = _BASE_URL + "/$appId/$field";
     var query = PlayInfoProtocol.makeQueryString(null, psign, null);
-    if (query != null) {
+    if (query.isNotEmpty) {
       url = url + "?" + query;
     }
-    var httpClient = new HttpClient();
+    var httpClient = HttpClient();
     var request = await httpClient.getUrl(Uri.parse(url));
     var response = await request.close();
     if (response.statusCode != HttpStatus.ok) {
@@ -55,7 +55,7 @@ class SuperVodDataLoader {
       } else {
         model.multiVideoURLs.clear();
         List<VideoQuality> tempList = parserV2.videoQualityList;
-        tempList.sort((a,b) => b.bitrate.compareTo(a.bitrate)); // 码率从高到低
+        tempList.sort((a,b) => b.bitrate.compareTo(a.bitrate)); // Sort the bitrates from high to low.
         for(VideoQuality videoQuality in tempList) {
           SuperPlayerUrl superPlayerUrl = SuperPlayerUrl();
           superPlayerUrl.qualityName = videoQuality.title;
@@ -64,7 +64,7 @@ class SuperVodDataLoader {
         }
       }
     } else if (version == 4) {
-      PlayInfoParserV4 parserV4 = new PlayInfoParserV4(json);
+      PlayInfoParserV4 parserV4 = PlayInfoParserV4(json);
 
       String title = parserV4.description;
       if(title == null || title.length == 0) {

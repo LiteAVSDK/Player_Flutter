@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_player/super_player.dart';
 
-/// 进度条widget
+/// progress slider widget
 class VideoSliderView extends StatefulWidget {
 
   final ChangeNotifier _controller;
