@@ -2,8 +2,9 @@
 
 package com.tencent.vod.flutter.tools;
 
+import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -18,24 +19,26 @@ import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
+ * Common utility class.
+ * <p>
  * 通用工具类
  */
 public class CommonUtil {
 
     private static final String TAG = "CommonUtil";
 
-    private static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
+    private static final String KEY_MAX_BRIGHTNESS = "max_brightness";
+    private static final String KEY_IS_MIUI = "is_miui";
+
+    private static final Map<String, Object> CACHE_MAP = new HashMap<>();
 
     static final Map<Integer, Integer> DOWNLOAD_STATE_MAP = new HashMap<Integer, Integer>() {{
         put(TXVodDownloadMediaInfo.STATE_INIT, FTXEvent.EVENT_DOWNLOAD_START);
@@ -45,34 +48,52 @@ public class CommonUtil {
         put(TXVodDownloadMediaInfo.STATE_ERROR, FTXEvent.EVENT_DOWNLOAD_ERROR);
     }};
 
-    public static boolean isMIUI() {
-        String pro = getProp(KEY_MIUI_VERSION_NAME);
-        return TextUtils.equals(pro,"MIUI");
+    /**
+     * 获取最大亮度,兼容MIUI部分系统亮度最大值不是255的情况.
+     * MIUI在android 13以后，系统最大亮度与配置不符，变为128
+     * <p>
+     * Get the maximum brightness, compatible with some MIUI systems where the maximum brightness is not 255.
+     * After Android 13, MIUI's maximum brightness is inconsistent with the configuration and becomes 128.
+     *
+     * @return max
+     */
+    public static float getBrightnessMax() {
+        if (CACHE_MAP.containsKey(KEY_MAX_BRIGHTNESS)) {
+            //noinspection ConstantConditions
+            return (float) CACHE_MAP.get(KEY_MAX_BRIGHTNESS);
+        } else if (CommonUtil.isMIUI()) {
+            float maxBrightness = 255f;
+            if (Build.VERSION.SDK_INT < 33) {
+                try {
+                    Resources system = Resources.getSystem();
+                    int resId = system.getIdentifier("config_screenBrightnessSettingMaximum",
+                            "integer", "android");
+                    if (resId != 0) {
+                        maxBrightness = system.getInteger(resId);
+                    }
+                } catch (Exception e) {
+                    Log.getStackTraceString(e);
+                }
+            } else {
+                maxBrightness = 128F;
+            }
+            CACHE_MAP.put(KEY_MAX_BRIGHTNESS, maxBrightness);
+            return maxBrightness;
+        }
+        CACHE_MAP.put(KEY_MAX_BRIGHTNESS, 255f);
+        return 255f;
     }
 
-    public static String getProp(String name) {
-        String line = null;
-        BufferedReader input = null;
-        try {
-            Process p = Runtime.getRuntime().exec("getprop " + name);
-            input = new BufferedReader(new InputStreamReader(p.getInputStream()), 1024);
-            line = input.readLine();
-            input.close();
-        } catch (IOException ex) {
-            Log.e(TAG, "Unable to read prop " + name, ex);
-            return null;
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+    public static boolean isMIUI() {
+        if (CACHE_MAP.containsKey(KEY_IS_MIUI)) {
+            //noinspection ConstantConditions
+            return (boolean) CACHE_MAP.get(KEY_IS_MIUI);
+        } else {
+            String pro = Build.MANUFACTURER;
+            boolean isMiui = TextUtils.equals(pro, "Xiaomi");
+            CACHE_MAP.put(KEY_IS_MIUI, isMiui);
+            return isMiui;
         }
-
-        return line;
-
     }
 
     public static Map<String, Object> getParams(int event, Bundle bundle) {
