@@ -17,7 +17,6 @@ class DemoSpeedSlider extends StatefulWidget {
 class _DemoSpeedSliderState extends State<DemoSpeedSlider> {
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return  GestureDetector(
         onTap: () async {
           this.widget.callback(this.widget.value.toDouble());

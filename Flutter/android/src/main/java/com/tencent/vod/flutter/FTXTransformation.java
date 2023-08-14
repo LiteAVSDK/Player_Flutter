@@ -13,11 +13,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Object conversion.
+ *
  * 对象转化
  */
 public class FTXTransformation {
 
     /**
+     * Convert msg to config.
+     *
      * 将msg转换为config
      */
     public static TXVodPlayConfig transformToVodConfig(FTXVodPlayConfigPlayerMsg configPlayerMsg) {
@@ -74,6 +78,8 @@ public class FTXTransformation {
     }
 
     /**
+     * Convert map to config.
+     *
      * 将map转换为config
      */
     @SuppressWarnings("unchecked")
@@ -164,6 +170,8 @@ public class FTXTransformation {
     }
 
     /**
+     * Convert msg to config.
+     *
      * msg转config
      */
     public static TXLivePlayConfig transformToLiveConfig(FTXLivePlayConfigPlayerMsg config) {
@@ -203,6 +211,8 @@ public class FTXTransformation {
     }
 
     /**
+     * Convert map to config.
+     * 
      * map转config
      */
     public static TXLivePlayConfig transformToLiveConfig(Map<Object, Object> config) {

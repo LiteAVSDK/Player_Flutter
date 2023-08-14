@@ -1,12 +1,14 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of demo_super_player_lib;
 
+/// Download helper class, used in conjunction with the player component to simplify the download process.
 /// 下载帮助类，配合播放器组件使用，简化下载使用流程
 class DownloadHelper {
   static DownloadHelper? _instance;
 
   static DownloadHelper get instance => _sharedInstance();
 
+  /// SuperPlayerPlugin instance
   /// SuperPlayerPlugin单例
   static DownloadHelper _sharedInstance() {
     _instance ??= DownloadHelper._internal();
@@ -15,6 +17,7 @@ class DownloadHelper {
 
   final List<FTXDownloadListener> _listeners = [];
 
+  /// init model
   /// 初始model
   DownloadHelper._internal() {
     TXVodDownloadController.instance.setDownloadObserver((event, info) {
@@ -42,6 +45,7 @@ class DownloadHelper {
     _listeners.clear();
   }
 
+  /// Generate a download `MediaInfo` based on the video model.
   /// 根据videoModel生成下载MediaInfo
   TXVodDownloadMediaInfo getMediaInfoByCurrent(SuperPlayerModel? model, int qualityId) {
     TXVodDownloadMediaInfo mediaInfo = TXVodDownloadMediaInfo();
@@ -57,7 +61,7 @@ class DownloadHelper {
       } else {
         mediaInfo.url = model.videoURL;
       }
-      // 下载会按照userName区分不同用户的下载，这里给了一个默认用户
+      // Downloads will be distinguished by `userName` for different users. A default user is provided here
       mediaInfo.userName = "default";
     }
     return mediaInfo;

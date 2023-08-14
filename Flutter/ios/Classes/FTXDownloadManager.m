@@ -28,7 +28,7 @@
         _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/txvodplayer/download/event" binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
         [[TXVodDownloadManager shareInstance] setDelegate:self];
-        // 设置下载存储路径
+        // Set the download storage path.
         NSString *cachesDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
         NSString *path = [NSString stringWithFormat:@"%@/videoCache",cachesDir];
         [[TXVodDownloadManager shareInstance] setDownloadPath:path];
@@ -184,27 +184,27 @@
     return msg;
 }
 
-/// 下载开始
+/// Download started.
 - (void)onDownloadStart:(TXVodDownloadMediaInfo *)mediaInfo {
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_START withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
-/// 下载进度
+/// Download progress.
 - (void)onDownloadProgress:(TXVodDownloadMediaInfo *)mediaInfo {
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_PROGRESS withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
-/// 下载停止
+/// Download stopped.
 - (void)onDownloadStop:(TXVodDownloadMediaInfo *)mediaInfo {
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_STOP withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
-/// 下载完成
+/// Download completed.
 - (void)onDownloadFinish:(TXVodDownloadMediaInfo *)mediaInfo {
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_FINISH withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
-/// 下载错误
+/// Download error.
 - (void)onDownloadError:(TXVodDownloadMediaInfo *)mediaInfo errorCode:(TXDownloadError)code errorMsg:(NSString *)msg {
     NSMutableDictionary *dict = [self buildMapFromDownloadMediaInfo:mediaInfo];
     [dict setValue:@(code) forKey:@"errorCode"];
@@ -213,11 +213,16 @@
 }
 
 /**
+ * Download HLS and encounter encrypted files. Provide the decryption key to the external for verification. Abandoned for now due to ijk legacy.
  * 下载HLS，遇到加密的文件，将解密key给外部校验，ijk遗留，暂时弃用
- * @param mediaInfo 下载对象
- * @param url Url地址
- * @param data 服务器返回
- * @return 0：校验正确，继续下载；否则校验失败，抛出下载错误（SDK 获取失败）
+ * @param mediaInfo  Download object.
+ *                  下载对象
+ * @param url URL address.
+ *            Url地址
+ * @param data Server response.
+ *             服务器返回
+ * @return 0：If the verification is correct, continue downloading; otherwise, if the verification fails, throw a download error (SDK failed to obtain).
+ *           校验正确，继续下载；否则校验失败，抛出下载错误（SDK 获取失败）
  */
 - (int)hlsKeyVerify:(TXVodDownloadMediaInfo *)mediaInfo url:(NSString *)url data:(NSData *)data {
     return 0;

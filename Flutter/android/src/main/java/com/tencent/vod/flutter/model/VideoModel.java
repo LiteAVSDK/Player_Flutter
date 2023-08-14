@@ -8,6 +8,8 @@ import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.vod.flutter.FTXEvent;
 
 /**
+ * Video model.
+ *
  * 视频model
  */
 public class VideoModel implements Parcelable {

@@ -73,7 +73,6 @@ class PlayInfoProtocol {
       result += "pcfg=$pcfg&";
     }
 
-    // todo unImplements psign play
     if(null != psign && psign.isNotEmpty) {
       result += "psign=$psign&";
     }
@@ -87,6 +86,7 @@ class PlayInfoProtocol {
     return result;
   }
 
+  /// Get a 32-bit random string
   /// 获取32位随机字符串
   String genRandomHexString() {
     List<String> hexArray = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
@@ -143,24 +143,31 @@ class PlayInfoProtocol {
     return GETPLAYINFOV4_ERROR_CODE_MAP[errorCode];
   }
 
-  // getplayinfo/v4错误码
-  // http状态码 200 403
-  // 403一般鉴权信息不通过或者请求不合法
-  // 状态码为200的时候才会有http body
-  // code错误码[1000-2000)请求有问题，
-  // code错误码[2000-3000)服务端错误，可发起重试
+  ///getplayinfo/v4 error codes
+  /// HTTP status codes: 200, 403
+  /// 403: Generally authentication information does not pass or request is invalid.
+  /// HTTP body is only available when the status code is 200.
+  /// Code error [1000-2000): Request issue.
+  /// Code error [2000-3000): Server error, retry can be initiated.
+  ///
+  /// getplayinfo/v4错误码
+  /// http状态码 200 403
+  /// 403一般鉴权信息不通过或者请求不合法
+  /// 状态码为200的时候才会有http body
+  /// code错误码[1000-2000)请求有问题，
+  /// code错误码[2000-3000)服务端错误，可发起重试
   static Map<int, String> GETPLAYINFOV4_ERROR_CODE_MAP = {
     0 : 'success',
-    1001 : '文件不存在',
-    1002 : '试看时长不合法',
-    1003 : 'pcfg不唯一',
-    1004 : 'license过期',
-    1005 : '没有自适应码流',
-    1006 : '请求格式不合法',
-    1007 : '用户存在',
-    1008 : '没带防盗链信息',
-    1009 : 'psign检查失败',
-    1010 : '其他错误',
-    2001 : '内部错误',
+    1001 : FSPLocal.current.txSpwErrFileNotExist,
+    1002 : FSPLocal.current.txSpwErrInvalidTrialDuration,
+    1003 : FSPLocal.current.txSpwErrPcfgNotUnique,
+    1004 : FSPLocal.current.txSpwErrLicenseExpired,
+    1005 : FSPLocal.current.txSpwErrNoAdaptiveStream,
+    1006 : FSPLocal.current.txSpwErrInvalidRequestFormat,
+    1007 : FSPLocal.current.txSpwErrNoUser,
+    1008 : FSPLocal.current.txSpwErrNoAntiLeechInfo,
+    1009 : FSPLocal.current.txSpwErrCheckSignFailed,
+    1010 : FSPLocal.current.txSpwErrOther,
+    2001 : FSPLocal.current.txSpwErrInternal,
   };
 }

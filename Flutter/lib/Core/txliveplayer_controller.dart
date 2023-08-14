@@ -49,6 +49,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _initPlayer.complete(_playerId);
   }
 
+  /// event type
   ///
   /// event 类型
   /// see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
@@ -89,7 +90,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
           }
         }
         break;
-      case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC: //直播，切流成功（切流可以播放不同画面大小的视频）
+      // Live broadcast, stream switching succeeded (stream switching can play videos of different sizes):
+      case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC:
         break;
       case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT: //disconnect
         _changeState(TXPlayerState.failed);
@@ -132,6 +134,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     LogUtils.d(kTag, "liteAV SDK version:${await SuperPlayerPlugin.platformVersion}");
   }
 
+  /// When setting a [LivePlayer] type player, the parameter [playType] is required.
+  /// Reference: [PlayType.LIVE_RTMP] ...
   ///
   /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
   /// 参考: [PlayType.LIVE_RTMP] ...
@@ -140,6 +144,17 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return await startLivePlay(url, playType: playType);
   }
 
+  /// When setting a [LivePlayer] type player, the parameter [playType] is required.
+  /// Reference: [PlayType.LIVE_RTMP] ...
+  /// Starting from version 10.7, the method `startPlay` has been changed to `startLivePlay` for playing videos via a URL.
+  /// To play videos successfully, it is necessary to set the license by using the method `SuperPlayerPlugin#setGlobalLicense`.
+  /// Failure to set the license will result in video playback failure (a black screen).
+  /// Live streaming, short video, and video playback licenses can all be used. If you do not have any of the above licenses,
+  /// you can apply for a free trial license to play videos normally[Quickly apply for a free trial version Licence]
+  /// (https://cloud.tencent.com/act/event/License).Official licenses can be purchased
+  /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license).
+  /// @param url : 视频播放地址 video playback address
+  /// return 是否播放成功 if play successfully
   ///
   /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
   /// 参考: [PlayType.LIVE_RTMP] ...
@@ -159,6 +174,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return boolMsg.value ?? false;
   }
 
+  /// Player initialization, creating shared textures and initializing the player.
+  /// @param onlyAudio Whether it is pure audio mode.
+  ///
   /// 播放器初始化，创建共享纹理、初始化播放器
   /// @param onlyAudio 是否是纯音频模式
   @override
@@ -172,6 +190,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _state = TXPlayerState.paused;
   }
 
+  /// Stop playing.
+  /// return Whether to stop successfully.
+  ///
   /// 停止播放
   /// return 是否停止成功
   @override
@@ -184,6 +205,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return boolMsg.value ?? false;
   }
 
+  /// Whether the video is currently playing.
+  ///
   /// 视频是否处于正在播放中
   @override
   Future<bool> isPlaying() async {
@@ -192,6 +215,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return boolMsg.value ?? false;
   }
 
+  /// The video is paused and must be called when the player starts playing.
+  ///
   /// 视频暂停，必须在播放器开始播放的时候调用
   @override
   Future<void> pause() async {
@@ -201,6 +226,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if (_state != TXPlayerState.paused) _changeState(TXPlayerState.paused);
   }
 
+  /// Resume playback, called when paused.
+  ///
   /// 继续播放，在暂停的时候调用
   @override
   Future<void> resume() async {
@@ -210,6 +237,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if (_state != TXPlayerState.playing) _changeState(TXPlayerState.playing);
   }
 
+  /// Set live mode, see `TXPlayerLiveMode`.
+  ///
   /// 设置直播模式，see TXPlayerLiveMode
   Future<void> setLiveMode(TXPlayerLiveMode mode) async {
     if (_isNeedDisposed) return;
@@ -219,6 +248,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       ..playerId = _playerId);
   }
 
+  /// Set video volume 0~100.
+  ///
   /// 设置视频声音 0~100
   Future<void> setVolume(int volume) async {
     if (_isNeedDisposed) return;
@@ -228,6 +259,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       ..playerId = _playerId);
   }
 
+  /// Set whether to mute.
+  ///
   /// 设置是否静音
   @override
   Future<void> setMute(bool mute) async {
@@ -238,6 +271,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       ..playerId = _playerId);
   }
 
+  /// Switch playback stream.
+  ///
   /// 切换播放流
   Future<int> switchStream(String url) async {
     if (_isNeedDisposed) return -1;
@@ -248,6 +283,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return intMsg.value ?? -1;
   }
 
+  /// Set appId
   /// 设置appId
   Future<void> setAppID(int appId) async {
     if (_isNeedDisposed) return;
@@ -257,6 +293,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       ..playerId = _playerId);
   }
 
+  /// Set player configuration.
+  ///
   /// 设置播放器配置
   /// config @see [FTXLivePlayConfig]
   Future<void> setConfig(FTXLivePlayConfig config) async {
@@ -265,6 +303,8 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _livePlayerApi.setConfig(config.toMsg()..playerId = _playerId);
   }
 
+  /// Enable/disable hardware encoding.
+  ///
   /// 开启/关闭硬件编码
   @override
   Future<bool> enableHardwareDecode(bool enable) async {
@@ -276,6 +316,16 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     return boolMsg.value ?? false;
   }
 
+  /// Enter picture-in-picture mode. To enter picture-in-picture mode, you need to adapt the interface for picture-in-picture mode.
+  /// Android only supports models above 7.0.
+  /// <h1>
+  /// Due to Android system restrictions, the size of the passed icon cannot exceed 1M, otherwise it will not be displayed.
+  /// </h1>
+  /// @param backIcon playIcon pauseIcon forwardIcon are icons for playback rewind, playback, pause, and fast-forward,
+  /// only applicable to Android. If assigned, the passed icons will be used; otherwise,the system default icons will be used.
+  /// Only supports Flutter local resource images. When passing, use the same image resource as Flutter,
+  /// for example: images/back_icon.png.
+  ///
   /// 进入画中画模式，进入画中画模式，需要适配画中画模式的界面，安卓只支持7.0以上机型
   /// <h1>
   /// 由于android系统限制，传递的图标大小不得超过1M，否则无法显示
@@ -289,16 +339,11 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       String? pauseIconForAndroid,
       String? forwardIconForAndroid}) async {
     /// live not support
-    // IntMsg intMsg = await _livePlayerApi.enterPictureInPictureMode(PipParamsPlayerMsg()
-    //   ..backIconForAndroid = backIconForAndroid
-    //   ..playIconForAndroid = playIconForAndroid
-    //   ..pauseIconForAndroid = pauseIconForAndroid
-    //   ..forwardIconForAndroid = forwardIconForAndroid
-    //   ..playerId = _playerId);
-    // return intMsg.value ?? -1;
     return -1;
   }
 
+  /// Exit picture-in-picture mode if the player is in picture-in-picture mode.
+  ///
   /// 退出画中画，如果该播放器处于画中画模式
   @override
   Future<void> exitPictureInPictureMode() async {
@@ -306,12 +351,16 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     // await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
   }
 
+  /// Release player resource occupation.
+  ///
   /// 释放播放器资源占用
   Future<void> _release() async {
     await _initPlayer.future;
     await SuperPlayerPlugin.releasePlayer(_playerId);
   }
 
+  /// Release `controller`.
+  ///
   /// 释放controller
   @override
   void dispose() async {
@@ -333,8 +382,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   @override
-  // TODO: implement value
-
   get value => _value;
 
   set value(TXPlayerValue? val) {
@@ -344,7 +391,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   @override
-  // TODO: implement textureId
   Future<int> get textureId async {
     return _createTexture.future;
   }

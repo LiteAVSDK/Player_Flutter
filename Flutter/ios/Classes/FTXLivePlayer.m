@@ -22,9 +22,9 @@ static const int uninitialized = -1;
     FTXPlayerEventSinkQueue *_netStatusSink;
     FlutterEventChannel *_eventChannel;
     FlutterEventChannel *_netStatusChannel;
-    // 最新的一帧
+    // The latest frame.
     CVPixelBufferRef volatile _latestPixelBuffer;
-    // 旧的一帧
+    // The old frame.
     CVPixelBufferRef _lastBuffer;
     int64_t _textureId;
     
@@ -199,17 +199,17 @@ static const int uninitialized = -1;
     TXLivePlayConfig *config = _txLivePlayer.config;
     
     if (type == 0) {
-        //自动模式
+        // Auto mode.
         config.bAutoAdjustCacheTime   = YES;
         config.minAutoAdjustCacheTime = 1;
         config.maxAutoAdjustCacheTime = 5;
     }else if(type == 1){
-        //极速模式
+        // Ultra-fast mode.
         config.bAutoAdjustCacheTime   = YES;
         config.minAutoAdjustCacheTime = 1;
         config.maxAutoAdjustCacheTime = 1;
     }else{
-        //流畅模式
+        // Smooth mode.
         config.bAutoAdjustCacheTime   = NO;
         config.minAutoAdjustCacheTime = 5;
         config.maxAutoAdjustCacheTime = 5;
@@ -293,34 +293,19 @@ static const int uninitialized = -1;
 #pragma mark - TXLivePlayListener
 
 /**
+ * Live event notification.
  * 直播事件通知
  * @param EvtID 参见 TXLiveSDKEventDef.h 
  * @param param 参见 TXLiveSDKTypeDef.h
  */
 - (void)onPlayEvent:(int)EvtID withParam:(NSDictionary *)param
 {
-//    switch (EvtID) {
-//        case PLAY_EVT_CONNECT_SUCC: //已经连接服务器
-//        case PLAY_EVT_PLAY_PROGRESS:
-//        case PLAY_EVT_RTMP_STREAM_BEGIN: //已经连接服务器，开始拉流（仅播放 RTMP 地址时会抛送）
-//        case PLAY_EVT_RCV_FIRST_I_FRAME: //收到首帧数据，越快收到此消息说明链路质量越好
-//        case PLAY_EVT_PLAY_BEGIN: //视频播放开始，如果您自己做 loading，会需要它
-//        case PLAY_EVT_PLAY_END: //播放结束，HTTP-FLV 的直播流不抛这个事件
-//        case PLAY_ERR_NET_DISCONNECT: //网络断连，且经多次重连亦不能恢复，更多重试请自行重启播放
-//        case PLAY_EVT_CHANGE_RESOLUTION: //视频分辨率发生变化（分辨率在 EVT_PARAM 参数中）
-//        case PLAY_WARNING_RECONNECT:
-//        case PLAY_WARNING_DNS_FAIL:
-//        case PLAY_WARNING_SEVER_CONN_FAIL:
-//        case PLAY_WARNING_SHAKE_FAIL:
-            [_eventSink success:[FTXLivePlayer getParamsWithEvent:EvtID withParams:param]];
-//            break;
-//        default:
-//            break;
-//    }
+    [_eventSink success:[FTXLivePlayer getParamsWithEvent:EvtID withParams:param]];
     NSLog(@"onLivePlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
 }
 
 /**
+ * Network status notification.
  * 网络状态通知
  * @param param 参见 TXLiveSDKTypeDef.h
  */
@@ -332,9 +317,12 @@ static const int uninitialized = -1;
 #pragma mark - TXVideoCustomProcessDelegate
 
 /**
+ * Video rendering object callback.
  * 视频渲染对象回调
- * @param pixelBuffer   渲染图像
- * @return              返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
+ * @param pixelBuffer   Render images.
+ * @return 返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
+ *         if YES is returned, the SDK will no longer display. If NO is returned, the SDK rendering module will continue to render.
+ *  Note: The data type of the rendered image is the `renderPixelFormatType` set in the configuration.
  *  说明：渲染图像的数据类型为config中设置的renderPixelFormatType
  */
 - (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer

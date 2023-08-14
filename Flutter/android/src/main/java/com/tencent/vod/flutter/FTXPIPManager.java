@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Picture-in-picture management.
+ *
  * 画中画管理
  */
 public class FTXPIPManager {
@@ -79,10 +81,14 @@ public class FTXPIPManager {
     };
 
     /**
+     * Picture-in-picture management.
+     *
      * 画中画管理
-     * @param mTxAudioManager 音频管理，用于画中画模式下请求音频焦点
+     * @param mTxAudioManager Audio management, used to request audio focus in picture-in-picture mode.
+     *                        音频管理，用于画中画模式下请求音频焦点
      * @param activityBinding activityBinding
-     * @param flutterAssets flutter资源管理
+     * @param flutterAssets Flutter resource management.
+     *                      flutter资源管理
      */
     public FTXPIPManager(FTXAudioManager mTxAudioManager, FlutterPluginBinding flutterPluginBinding,
             ActivityPluginBinding activityBinding, FlutterPlugin.FlutterAssets flutterAssets) {
@@ -113,6 +119,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Register `activityResult` callback, <h1>must be called</h1>.
+     *
      * 注册activityResult回调，<h1>必须调用</h1>
      */
     public void registerActivityListener() {
@@ -132,6 +140,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Enter picture-in-picture mode.
+     *
      * 进入画中画模式
      *
      * @return {@link FTXEvent} ERROR_PIP
@@ -151,6 +161,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Notify to exit the current picture-in-picture mode.
+     *
      * 通知退出当前pip
      */
     public void exitPip() {
@@ -163,6 +175,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Whether the device supports picture-in-picture mode.
+     *
      * 设备是否支持画中画
      */
     public int isSupportDevice() {
@@ -208,6 +222,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Set the PIP control callback. If set repeatedly for the same player, it will be overwritten successively.
+     *
      * 设置pip控制回调，同一个播放器重复设置，会先后覆盖
      */
     public void addCallback(Integer playerId, PipCallback callback) {
@@ -217,6 +233,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Unregister the broadcast receiver. It must be called when exiting the page to prevent memory leaks.
+     *
      * 解注册广播，当退出页面的时候，必须调用，防止内存泄漏
      */
     public void releaseCallback(int playerId) {
@@ -234,6 +252,8 @@ public class FTXPIPManager {
     }
 
     /**
+     * Update the PIP floating window button.
+     *
      * 更新PIP悬浮框按钮
      */
     public void updatePipActions(PipParams params) {
@@ -267,12 +287,22 @@ public class FTXPIPManager {
         private int mViewHeight = 9;
 
         /**
+         * PIP parameters.
          * 画中画参数
-         * @param mPlayBackAssetPath 回退按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
-         * @param mPlayResumeAssetPath 播放按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
-         * @param mPlayPauseAssetPath 暂停按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
-         * @param mPlayForwardAssetPath 前进按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
-         * @param mCurrentPlayerId 播放器id
+         * @param mPlayBackAssetPath Back button image resource path. If empty, the default system icon will be used.
+         *                           The address must be converted with toAndroidPath.
+         *                           回退按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
+         * @param mPlayResumeAssetPath Play button image resource path. If empty, the default system icon will be used.
+         *                            The address must be converted with toAndroidPath.
+         *                             播放按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
+         * @param mPlayPauseAssetPath Pause button image resource path. If empty, the default system icon will be used.
+         *                           The address must be converted with toAndroidPath.
+         *                            暂停按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
+         * @param mPlayForwardAssetPath Forward button image resource path. If empty, the default system icon will
+         *                              be used. The address must be converted with toAndroidPath.
+         *                              前进按钮图片资源路径，传空则使用系统默认图标, 地址必须经过toAndroidPath转换
+         * @param mCurrentPlayerId Player ID.
+         *                         播放器id
          */
         public PipParams(String mPlayBackAssetPath, String mPlayResumeAssetPath, String mPlayPauseAssetPath,
                 String mPlayForwardAssetPath, int mCurrentPlayerId) {
@@ -352,6 +382,7 @@ public class FTXPIPManager {
         }
 
         /**
+         * Construct PIP parameters.
          * 构造画中画参数
          */
         @RequiresApi(api = VERSION_CODES.O)
@@ -461,11 +492,13 @@ public class FTXPIPManager {
     }
 
     /**
+     * PIP control callback.
      * 画中画控制回调
      */
     interface PipCallback {
 
         /**
+         * Close PIP.
          * pip关闭
          */
         void onPipResult(PipResult result);

@@ -5,7 +5,7 @@ const topBottomOffset = 0.0;
 int manualOrientationDirection = TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT;
 FullScreenController _fullScreenController = FullScreenController();
 
-/// superplayer view widget
+/// superPlayer view widget
 class SuperPlayerView extends StatefulWidget {
   final SuperPlayerController _controller;
 
@@ -60,7 +60,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   bool _isShowSprite = false;
   int _pipPreUiStatus = SuperPlayerUIStatus.WINDOW_MODE;
 
-  /// 任务队列
+  // Task queue
   final TaskExecutors _taskExecutors = TaskExecutors();
 
   @override
@@ -77,7 +77,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         () {
       if (_playController.videoModel != null) {
         _playController.startDownload();
-        EasyLoading.showToast("开始下载");
+        EasyLoading.showToast(FSPLocal.current.txSpwStartDownload);
       }
     });
     _bottomViewController =
@@ -119,9 +119,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isFloatingMode = true;
         _playController._updatePlayerUIStatus(SuperPlayerUIStatus.PIP_MODE);
       } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) {
-        EasyLoading.showToast(StringResource.CLOSE_PIP);
+        EasyLoading.showToast(FSPLocal.current.txSpwClosingPip);
       } else if (eventCode < 0) {
-        EasyLoading.showToast(StringResource.ERROR_PIP);
+        EasyLoading.showToast(FSPLocal.current.txSpwOpenPipFailed);
         _isFloatingMode = false;
         _playController._updatePlayerUIStatus(_pipPreUiStatus);
       }
@@ -137,7 +137,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         }
       }
 
-      // 画中画模式下，不进行旋转屏幕操作
+      // Do not rotate the screen in picture-in-picture mode.
       if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && !_isFloatingMode) {
         int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
         _fullScreenController.switchToOrientation(orientation);
@@ -178,12 +178,12 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onRcvFirstIframe
       _coverViewKey.currentState?.hideCover();
       _refreshDownloadStatus();
-      // 收到首帧事件后，先用播放器内核解析出来的分辨率对播放器大小进行调整
+      // After receiving the first frame event, adjust the player size according to the resolution parsed by the player kernel
       _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
       // onPlayLoading
       setState(() {
-        //预加载模式进行特殊处理
+        // Special handling in preloading mode.
         if (_playController.videoModel!.playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
           if (_playController.callResume) {
             _isLoading = true;
@@ -204,7 +204,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, (code, msg) {
       // onError
       _togglePlayUIState(false);
-      EasyLoading.showToast("play video error,code:$code,error:$msg");
+      EasyLoading.showToast(FSPLocal.current.txSpwErrPlayTo.txFormat(["$code", msg]));
     }, (playerType) {
       // onPlayerTypeChange
       _videoBottomKey.currentState?.updatePlayerType(playerType);
@@ -284,25 +284,25 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
     DownloadHelper.instance.addDownloadListener(downloadListener = FTXDownloadListener((event, info) {
       if (event == TXVodPlayEvent.EVENT_DOWNLOAD_FINISH) {
-        EasyLoading.showToast("视频下载完成");
+        EasyLoading.showToast(FSPLocal.current.txSpwDownloadComplete);
       }
       _refreshDownloadStatus();
     }, (errorCode, errorMsg, info) {
-      EasyLoading.showToast("视频下载出错,code:$errorCode,msg:$errorMsg");
+      EasyLoading.showToast(FSPLocal.current.txSpwDownloadErrorTo.txFormat(["$errorCode", errorMsg]));
     }));
     if (null != _playController.videoModel) {
-      // 仅支持点播视频下载
-      _isShowDownload =
-          _playController.videoModel!.isEnableDownload && _playController.playerType == SuperPlayerType.VOD;
+      // Only VOD video download is supported.
+      _isShowDownload = _playController.videoModel!.isEnableDownload && _playController.playerType == SuperPlayerType.VOD;
     }
     _refreshDownloadStatus();
   }
 
   void _updateState() {
-    // 刷新observer的绑定
+    // Refresh the binding of the observer.
     _registerObserver();
-    // 由于pop之后，无法触发任何回调，并且fulscreen的controller调用setState无效，
-    // 所以这里向UI线程添加一个任务，这个任务会在回到这个界面之后触发，来保证播放状态正确。
+    // Because no callbacks can be triggered after `pop`, and calling `setState` on the fullscreen controller is invalid,
+    // a task is added to the UI thread here. This task will be triggered after returning to this interface to
+    // ensure that the playback status is correct.
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) => setState(() {
           _initPlayerState();
           _resizeVideo();
@@ -317,11 +317,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_isPlaying && !_isFloatingMode) {
       if (state == AppLifecycleState.resumed) {
-        // 页面从后台回来
-        // 不更新状态，直接resume
+        // The page does not update the status when it returns from the background, and directly resumes.
         _playController.getCurrentController().resume();
         checkBrightness();
-        // 从后台回来之后，如果手机横竖屏状态发生更改，被改为竖屏，那么这里根据判断切换横屏
+        // If the screen orientation is changed from landscape to portrait after returning from the background,
+        // switch to landscape mode based on the judgment made here.
         if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE &&
             defaultTargetPlatform == TargetPlatform.iOS) {
           Orientation currentOrientation = MediaQuery.of(context).orientation;
@@ -331,8 +331,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           }
         }
       } else if (state == AppLifecycleState.inactive) {
-        // 页面退到后台
-        // 不更新状态，直接pause
+        // The page does not update its status when it is pushed to the background, it goes directly to pause
         _playController.getCurrentController().pause();
       }
     }
@@ -360,8 +359,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     Orientation currentOrientation = MediaQuery.of(context).orientation;
     bool isLandscape = currentOrientation == Orientation.landscape;
     Size size = MediaQuery.of(context).size;
-    // 当有视频宽高数据的时候，按照 全屏：高度为基准，计算宽度。 非全屏：宽度为基准，计算高度的方式进行宽高计算
-    // 当没有视频宽高数据的时候，按照 全屏：等于屏幕宽高。 非全屏：16:9 的方式进行宽高计算
+    // When video width and height data are available, the width and height should be calculated based on the height for full-screen mode
+    // and based on the width for non-full-screen mode.
+    // When video width and height data are not available, the width and height should be set equal to the screen width
+    // and height for full-screen mode, and a 16:9 aspect ratio should be used for calculating width and height in non-full-screen mode.
     if (_videoWidth <= 0 || _videoHeight <= 0) {
       if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
         _radioWidth = isLandscape ? size.width : size.height;
@@ -438,7 +439,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
                 child: const Image(
                   width: 30,
                   height: 30,
-                  image: AssetImage("images/ic_pip_play_icon.png", package: StringResource.PKG_NAME),
+                  image: AssetImage("images/ic_pip_play_icon.png", package: PlayerConstants.PKG_NAME),
                 ),
               )),
         ),
@@ -489,7 +490,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           child: const Image(
             width: 40,
             height: 40,
-            image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: StringResource.PKG_NAME),
+            image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: PlayerConstants.PKG_NAME),
           ),
         ),
       ),
@@ -536,10 +537,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _onEnterPipMode() async {
     if (!_isFloatingMode) {
       int result = await _playController.enterPictureInPictureMode(
-          backIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_replay.png",
-          playIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_normal.png",
-          pauseIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_pause.png",
-          forwardIcon: "packages/${StringResource.PKG_NAME}/images/ic_pip_play_forward.png");
+          backIcon: "packages/${PlayerConstants.PKG_NAME}/images/ic_pip_play_replay.png",
+          playIcon: "packages/${PlayerConstants.PKG_NAME}/images/ic_pip_play_normal.png",
+          pauseIcon: "packages/${PlayerConstants.PKG_NAME}/images/ic_pip_play_pause.png",
+          forwardIcon: "packages/${PlayerConstants.PKG_NAME}/images/ic_pip_play_forward.png");
       String failedStr = "";
       if (result != TXVodPlayEvent.NO_ERROR) {
         if (result == TXVodPlayEvent.ERROR_PIP_LOWER_VERSION) {
@@ -609,10 +610,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         }
       }
     } else if (playerState == SuperPlayerState.END) {
-      //重播
+      // restart
       _playController.reStart();
     } else if (playerState == SuperPlayerState.PAUSE) {
-      //继续播放
+      // resume play
       _playController.resume();
       _isShowCover = false;
       _coverViewKey.currentState?.hideCover();
@@ -654,6 +655,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
   }
 
+  /// Display control components consist of a bottom progress bar control area and a top title area.
+  /// After being displayed, the control view will automatically hide after controlViewShowTime milliseconds.
   /// 显示控制组件，包括底部进度条控制区域、顶部标题区域
   /// 显示后，controlViewShowTime 毫秒后会自动隐藏
   void showControlView(bool isNeedAutoDisappear) {
@@ -681,13 +684,14 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     });
   }
 
+  /// Hide all control components.
   /// 隐藏所有控制组件
   void hideControlView() {
     if (!_isShowControlView || !mounted) {
       return;
     }
 
-    /// 隐藏moreView
+    // Hide moreView
     _moreViewKey.currentState?.hideShowMoreView();
     setState(() {
       _isShowQualityListView = false;
@@ -695,6 +699,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     });
   }
 
+  /// Control the display of the sprite image.
   /// 控制雪碧图显示
   Future _controlTest(bool isShow, double value) async {
     if (isShow) {
