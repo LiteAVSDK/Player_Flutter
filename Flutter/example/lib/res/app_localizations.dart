@@ -75,6 +75,10 @@ class AppLocals {
   String get playerVod => _localStrings["player_vod"]!;
   String get playerLive => _localStrings["player_live"]!;
   String get playerInputAddTip => _localStrings["player_input_add_tip"]!;
+  String get playerVideoTitleAchievement => _localStrings["player_video_title_achievement"]!;
+  String get playerVideoTitleNumber => _localStrings["player_video_title_number"]!;
+  String get playerVideoTitleEasy => _localStrings["player_video_title_easy"]!;
+  String get playerVideoTitleIntroduction => _localStrings["player_video_title_introduction"]!;
   // player live demo
   String get playerSwitchTo1080 => _localStrings["player_switch_to_1080"]!;
   String get playerSwitchTo480 => _localStrings["player_switch_to_480"]!;

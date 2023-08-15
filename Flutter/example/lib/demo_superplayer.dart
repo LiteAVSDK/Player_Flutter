@@ -357,35 +357,39 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     models.add(model);
 
     model = SuperPlayerModel();
-    model.appId = 1252463788;
+    model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = "4564972819219071568";
+    model.videoId!.fileId = "387702299774545556";
     model.playAction = playAction;
+    model.isEnableDownload = false;
+    model.title = AppLocals.current.playerVideoTitleIntroduction;
+    models.add(model);
+
+    model = SuperPlayerModel();
+    model.appId = 1500005830;
+    model.videoId = new SuperPlayerVideoId();
+    model.videoId!.fileId = "387702299774253670";
+    model.playAction = playAction;
+    model.isEnableDownload = false;
+    model.title = AppLocals.current.playerVideoTitleEasy;
+    models.add(model);
+
+    model = SuperPlayerModel();
+    model.appId = 1500005830;
+    model.videoId = new SuperPlayerVideoId();
+    model.videoId!.fileId = "387702299774574470";
+    model.playAction = playAction;
+    model.title = AppLocals.current.playerVideoTitleNumber;
     model.isEnableDownload = false;
     models.add(model);
 
     model = SuperPlayerModel();
-    model.appId = 1252463788;
+    model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = "4564972819219071668";
+    model.videoId!.fileId = "387702299774251236";
     model.playAction = playAction;
     model.isEnableDownload = false;
-    models.add(model);
-
-    model = SuperPlayerModel();
-    model.appId = 1252463788;
-    model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = "4564972819219071679";
-    model.playAction = playAction;
-    model.isEnableDownload = false;
-    models.add(model);
-
-    model = SuperPlayerModel();
-    model.appId = 1252463788;
-    model.videoId = new SuperPlayerVideoId();
-    model.videoId!.fileId = "4564972819219081699";
-    model.playAction = playAction;
-    model.isEnableDownload = false;
+    model.title = AppLocals.current.playerVideoTitleAchievement;
     models.add(model);
 
     List<Future<void>> requestList = [];
