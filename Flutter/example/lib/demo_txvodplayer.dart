@@ -161,7 +161,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
               Expanded(
                 child: GridView.count(
                   crossAxisSpacing: 10.0,
-                  mainAxisSpacing: 20.0,
+                  mainAxisSpacing: 30.0,
                   padding: EdgeInsets.all(10.0),
                   crossAxisCount: 4,
                   childAspectRatio: 2,
@@ -256,7 +256,11 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     return InkWell(
       onTap: tapBlock,
       child: Container(
-        child: Text(name, style: TextStyle(fontSize: 18, color: Colors.blue)),
+        child: Text(
+          name,
+          style: TextStyle(fontSize: 18, color: Colors.blue),
+          overflow: TextOverflow.visible,
+        ),
       ),
     );
   }
