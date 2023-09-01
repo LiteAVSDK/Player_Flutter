@@ -92,6 +92,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (void)notifyAppTerminate:(UIApplication *)application {
     _isTerminate = YES;
     _textureRegistry = nil;
+    [self stopPlay];
 }
 
 - (void)destory
