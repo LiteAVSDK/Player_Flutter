@@ -12,10 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
   pigeon: ^9.0.1
-  # 国际化
+  # internationalization
   flutter_localizations:
     sdk: flutter
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
