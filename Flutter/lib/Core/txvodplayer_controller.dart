@@ -71,11 +71,11 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
         break;
       case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
         if (_isNeedDisposed) return;
-        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
+        _changeState(TXPlayerState.playing);
         break;
       case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
         if (_isNeedDisposed) return;
-        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
+        _changeState(TXPlayerState.playing);
         break;
       case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS: // Playback progress.
         break;
