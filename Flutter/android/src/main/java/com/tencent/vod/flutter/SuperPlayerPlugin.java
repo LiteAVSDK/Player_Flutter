@@ -102,10 +102,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         @Override
         public void onChange(boolean selfChange, @NonNull Collection<Uri> uris, int flags) {
             super.onChange(selfChange, uris, flags);
-            if (mEngineHolder.isInForeground()) {
-                double systemBrightness = getSystemScreenBrightness();
-                setWindowBrightness(systemBrightness);
-            }
+            double systemBrightness = getSystemScreenBrightness();
+            setWindowBrightness(systemBrightness);
         }
     };
 
@@ -303,18 +301,22 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
             // 保留两位小数
             BigDecimal bigDecimal = new BigDecimal(brightness);
             brightness = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            Window window = mActivityPluginBinding.getActivity().getWindow();
-            WindowManager.LayoutParams params = window.getAttributes();
-            params.screenBrightness = Float.parseFloat(String.valueOf(brightness));
-            if (params.screenBrightness > 1.0f) {
-                params.screenBrightness = 1.0f;
+            if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
+                Window window = mActivityPluginBinding.getActivity().getWindow();
+                if (null != window) {
+                    WindowManager.LayoutParams params = window.getAttributes();
+                    params.screenBrightness = Float.parseFloat(String.valueOf(brightness));
+                    if (params.screenBrightness > 1.0f) {
+                        params.screenBrightness = 1.0f;
+                    }
+                    if (params.screenBrightness != -1 && params.screenBrightness < 0) {
+                        params.screenBrightness = 0.01f;
+                    }
+                    window.setAttributes(params);
+                    // 发送亮度变化通知
+                    mEventSink.success(getParams(FTXEvent.EVENT_BRIGHTNESS_CHANGED, null));
+                }
             }
-            if (params.screenBrightness != -1 && params.screenBrightness < 0) {
-                params.screenBrightness = 0.01f;
-            }
-            window.setAttributes(params);
-            // 发送亮度变化通知
-            mEventSink.success(getParams(FTXEvent.EVENT_BRIGHTNESS_CHANGED, null));
         }
     }
 
@@ -340,10 +342,12 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private float getSystemScreenBrightness() {
         float screenBrightness = -1;
         try {
-            ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
-            final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
-            final float maxBrightness = CommonUtil.getBrightnessMax();
-            screenBrightness = brightnessInt / maxBrightness;
+            if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
+                ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
+                final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
+                final float maxBrightness = CommonUtil.getBrightnessMax();
+                screenBrightness = brightnessInt / maxBrightness;
+            }
         } catch (SettingNotFoundException e) {
             e.printStackTrace();
         }
