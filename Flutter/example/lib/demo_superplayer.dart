@@ -417,8 +417,6 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     // must invoke when page exit.
     _controller.releasePlayer();
     simpleEventSubscription?.cancel();
-    // restore page brightness
-    SuperPlayerPlugin.restorePageBrightness();
     super.dispose();
   }
 
