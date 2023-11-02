@@ -300,7 +300,6 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
   void dispose() {
     super.dispose();
     eventSubscription?.cancel();
-    SuperPlayerPlugin.restorePageBrightness();
   }
 }
 

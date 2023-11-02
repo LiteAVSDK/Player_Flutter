@@ -443,6 +443,30 @@ static Future<bool> startVideoOrientationService() async
 | result | bool | true  开启成功,false  开启失败，如开启过早，还未等到上下文初始化、获取sensor失败等原因 |
 
 
+### registerSysBrightness
+
+**说明**
+
+开启或关闭对于系统亮度的监听，如果开启，当系统亮度发生变化，会改变当前window亮度，并回调亮度到flutter层。该接口需配合
+setBrightness和onExtraEventBroadcast使用。
+
+**接口**
+
+```dart
+static Future<void>registerSysBrightness(bool isRegister) async
+```
+
+**参数说明**
+
+| 参数名 | 类型   | 描述                      |
+| ------ | ------ |-------------------------|
+| isRegister | bool | true  开启建提高,false  关闭监听 |
+
+**返回值说明**
+
+无
+
+
 ## TXVodPlayerController类
 
 
@@ -1739,20 +1763,20 @@ Future<void> startDownload(TXVodDownloadMediaInfo mediaInfo) async
 
 **TXVodDownloadMediaInfo**
 
-| 参数名 | 类型   | 描述               |
-| ------ | ------ | ------------------ |
-| playPath | String? | 缓存地址，获得到的视频缓存会有该值，启动下载可以不赋值|
-| progress | double? | 缓存进度，获得到的视频缓存会有该值，启动下载可以不赋值|
-| downloadState | int? | 缓存状态，获得到的视频缓存会有该值，启动下载可以不赋值|
-| userName | String? | 下载账户名称，用于区分不同账户的下载，传空则为 default|
-| duration | int? | 缓存视频总时长，安卓端单位为毫秒，IOS为秒，获得到的视频缓存会有该值，启动下载可以不赋值|
-| playableDuration | int? | 视频已缓存时长，安卓端单位为毫秒，IOS为秒，获得到的视频缓存会有该值，启动下载可以不赋值|
-| size | int? | 文件总大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值|
-| downloadSize | int? | 文件已下载的大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值|
-| url | String? | 需要下载的视频url，url下载必填,不支持嵌套m3u8和mp4下载|
-| dataSource | TXVodDownloadDataSource? | 需要下载的视频fileId信息，url与该参数可只使用一个|
-| speed | int? | 下载速度，单位：KByte/秒 |
-| isResourceBroken | bool? | 资源是否已损坏, 如：资源被删除了 |
+| 参数名 | 类型   | 描述                                            |
+| ------ | ------ |-----------------------------------------------|
+| playPath | String? | 缓存地址，获得到的视频缓存会有该值，启动下载可以不赋值                   |
+| progress | double? | 缓存进度，获得到的视频缓存会有该值，启动下载可以不赋值                   |
+| downloadState | int? | 缓存状态，获得到的视频缓存会有该值，启动下载可以不赋值                   |
+| userName | String? | 下载账户名称，用于区分不同账户的下载，传空则为 default,不建议设置比较长的字符串              |
+| duration | int? | 缓存视频总时长，安卓端单位为毫秒，IOS为秒，获得到的视频缓存会有该值，启动下载可以不赋值 |
+| playableDuration | int? | 视频已缓存时长，安卓端单位为毫秒，IOS为秒，获得到的视频缓存会有该值，启动下载可以不赋值 |
+| size | int? | 文件总大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值          |
+| downloadSize | int? | 文件已下载的大小，单位：byte，获得到的视频缓存会有该值，启动下载可以不赋值       |
+| url | String? | 需要下载的视频url，url下载必填,不支持嵌套m3u8和mp4下载            |
+| dataSource | TXVodDownloadDataSource? | 需要下载的视频fileId信息，url与该参数可只使用一个                 |
+| speed | int? | 下载速度，单位：KByte/秒                               |
+| isResourceBroken | bool? | 资源是否已损坏, 如：资源被删除了                             |
 
 **TXVodDownloadDataSource**
 
