@@ -547,7 +547,9 @@ class TXVodDownloadDataSource {
   String? token;
 
   /// Account name, used to set the account name for URL download.
-  /// 账户名称,用于url下载设置账户名称
+  /// It is not recommended to set a string that is too long,
+  /// Otherwise, it may lead to unforeseen problems.
+  /// 账户名称,用于url下载设置账户名称。不建议设置比较长的字符串，否则可能会导致不可预料的问题。
   String? userName;
 
   Map<String, dynamic> toJson() {
@@ -578,7 +580,9 @@ class TXVodDownloadMediaInfo {
   int? downloadState;
 
   /// Account name, used to set the account name for URL download.
-  /// 账户名称,用于url下载设置账户名称
+  /// It is not recommended to set a string that is too long,
+  /// Otherwise, it may lead to unforeseen problems.
+  /// 账户名称,用于url下载设置账户名称。不建议设置比较长的字符串，否则可能会导致不可预料的问题。
   String? userName;
 
   /// Total duration.

@@ -365,6 +365,11 @@ abstract class TXFlutterNativeAPI {
   ///  -102  画中画权限关闭/设备不支持画中画
   ///  -103  当前界面已销毁
   IntMsg isDeviceSupportPip();
+
+  ///
+  /// register or unregister system brightness
+  ///
+  void registerSysBrightness(BoolMsg isRegister);
 }
 
 @HostApi()

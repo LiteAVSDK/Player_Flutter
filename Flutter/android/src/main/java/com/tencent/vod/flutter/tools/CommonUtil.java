@@ -61,27 +61,23 @@ public class CommonUtil {
         if (CACHE_MAP.containsKey(KEY_MAX_BRIGHTNESS)) {
             //noinspection ConstantConditions
             return (float) CACHE_MAP.get(KEY_MAX_BRIGHTNESS);
-        } else if (CommonUtil.isMIUI()) {
-            float maxBrightness = 255f;
-            if (Build.VERSION.SDK_INT < 33) {
-                try {
-                    Resources system = Resources.getSystem();
-                    int resId = system.getIdentifier("config_screenBrightnessSettingMaximum",
-                            "integer", "android");
-                    if (resId != 0) {
-                        maxBrightness = system.getInteger(resId);
-                    }
-                } catch (Exception e) {
-                    Log.getStackTraceString(e);
-                }
-            } else {
-                maxBrightness = 128F;
-            }
-            CACHE_MAP.put(KEY_MAX_BRIGHTNESS, maxBrightness);
-            return maxBrightness;
         }
-        CACHE_MAP.put(KEY_MAX_BRIGHTNESS, 255f);
-        return 255f;
+        float maxBrightness = 255f;
+        try {
+            Resources system = Resources.getSystem();
+            int resId = system.getIdentifier("config_screenBrightnessSettingMaximum",
+                    "integer", "android");
+            if (resId != 0) {
+                maxBrightness = system.getInteger(resId);
+            }
+        } catch (Exception e) {
+            Log.getStackTraceString(e);
+        }
+        if (CommonUtil.isMIUI() && Build.VERSION.SDK_INT >= 33) {
+            maxBrightness = 128F;
+        }
+        CACHE_MAP.put(KEY_MAX_BRIGHTNESS, maxBrightness);
+        return maxBrightness;
     }
 
     public static boolean isMIUI() {
