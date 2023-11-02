@@ -85,6 +85,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
     private final TXFlutterEngineHolder mEngineHolder = new TXFlutterEngineHolder();
 
+    private boolean mIsBrightnessObserverRegistered = false;
+
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
                 @Override
@@ -102,8 +104,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         @Override
         public void onChange(boolean selfChange, @NonNull Collection<Uri> uris, int flags) {
             super.onChange(selfChange, uris, flags);
-            double systemBrightness = getSystemScreenBrightness();
-            setWindowBrightness(systemBrightness);
+            setWindowBrightness(-1D);
         }
     };
 
@@ -449,10 +450,23 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
         mActivityPluginBinding.getActivity().registerReceiver(mVolumeBroadcastReceiver, filter);
-        // brightness observer
-        ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
-        resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
-                true, brightnessObserver);
+    }
+
+    public void enableBrightnessObserver(boolean enable) {
+        if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
+            if (enable) {
+                if (!mIsBrightnessObserverRegistered) {
+                    // brightness observer
+                    ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
+                    resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
+                            true, brightnessObserver);
+                    mIsBrightnessObserverRegistered = true;
+                }
+            } else {
+                mActivityPluginBinding.getActivity().getContentResolver().unregisterContentObserver(brightnessObserver);
+                mIsBrightnessObserverRegistered = false;
+            }
+        }
     }
 
     /**
@@ -464,7 +478,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         try {
             mTxAudioManager.removeAudioFocusChangedListener(audioFocusChangeListener);
             mActivityPluginBinding.getActivity().unregisterReceiver(mVolumeBroadcastReceiver);
-            mActivityPluginBinding.getActivity().getContentResolver().unregisterContentObserver(brightnessObserver);
+            enableBrightnessObserver(false);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -546,6 +560,13 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         IntMsg intMsg = new IntMsg();
         intMsg.setValue((long) mTxPipManager.isSupportDevice());
         return intMsg;
+    }
+
+    @Override
+    public void registerSysBrightness(@NonNull BoolMsg isRegister) {
+        if (null != isRegister.getValue()) {
+            enableBrightnessObserver(isRegister.getValue());
+        }
     }
 
     private class VolumeBroadcastReceiver extends BroadcastReceiver {
