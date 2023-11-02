@@ -46,6 +46,8 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     super.initState();
     // Listen for device rotation.
     SuperPlayerPlugin.startVideoOrientationService();
+    // open brightness observer
+    SuperPlayerPlugin.registerSysBrightness(true);
     _controller = SuperPlayerController(context);
     TXPipController.instance.setPipPlayerPage(this);
     FTXVodPlayConfig config = FTXVodPlayConfig();
@@ -417,6 +419,10 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     // must invoke when page exit.
     _controller.releasePlayer();
     simpleEventSubscription?.cancel();
+    // restore current brightness to sys brightness
+    SuperPlayerPlugin.restorePageBrightness();
+    // unregister brightness observer
+    SuperPlayerPlugin.registerSysBrightness(false);
     super.dispose();
   }
 

@@ -359,6 +359,10 @@ SuperPlayerPlugin* instance;
     [audioManager setVolume:volumeNum.floatValue];
 }
 
+- (void)registerSysBrightnessIsRegister:(BoolMsg *)isRegister error:(FlutterError * _Nullable __autoreleasing *)error {
+    // only for android
+}
+
 #pragma mark DataBridge
 
 - (NSMutableDictionary *)getPlayers {

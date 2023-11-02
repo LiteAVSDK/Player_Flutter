@@ -260,4 +260,15 @@ class SuperPlayerPlugin {
     BoolMsg boolMsg = await _playerPluginApi.startVideoOrientationService();
     return boolMsg.value;
   }
+
+  ///
+  /// register or unregister system brightness.if register the system brightness observer,
+  /// current window brightness wil changed by system brightness's change.
+  /// <h2>only for android</h2>
+  /// @param isRegister:true register system brightness
+  ///                  :false unregister system brightness
+  ///
+  static Future<void>registerSysBrightness(bool isRegister) async {
+    await _nativeAPI.registerSysBrightness(BoolMsg()..value = isRegister);
+  }
 }
