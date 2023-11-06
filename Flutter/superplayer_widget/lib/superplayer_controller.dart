@@ -393,7 +393,7 @@ class SuperPlayerController {
       _observer?.onError(SuperPlayerCode.PLAY_URL_EMPTY, FSPLocal.current.txSpwErrEmptyUrl);
       return;
     }
-    if (_isRTMPPlay(videoUrl)) {
+    if (_isRTMPPlay(videoUrl) || _isWebRtcPlay(videoUrl)) {
       _playLiveURL(videoUrl, TXPlayType.LIVE_RTMP);
     } else if (_isFLVPlay(videoUrl)) {
       _playTimeShiftLiveURL(model.appId, videoUrl);
@@ -403,7 +403,7 @@ class SuperPlayerController {
     } else {
       _playVodUrl(videoUrl);
     }
-    bool isLivePlay = (_isRTMPPlay(videoUrl) || _isFLVPlay(videoUrl));
+    bool isLivePlay = (_isRTMPPlay(videoUrl) || _isFLVPlay(videoUrl) || _isWebRtcPlay(videoUrl));
     _observer?.onPlayProgress(0, model.duration.toDouble(), 0);
     _updatePlayerType(isLivePlay ? SuperPlayerType.LIVE : SuperPlayerType.VOD);
     _updateVideoQualityList(videoQualities, defaultVideoQuality);
@@ -490,7 +490,7 @@ class SuperPlayerController {
   /// 重新开始播放视频
   Future<void> reStart() async {
     if (playerType == SuperPlayerType.LIVE || playerType == SuperPlayerType.LIVE_SHIFT) {
-      if (_isRTMPPlay(_currentPlayUrl)) {
+      if (_isRTMPPlay(_currentPlayUrl) || _isWebRtcPlay(_currentPlayUrl)) {
         _playLiveURL(_currentPlayUrl, TXPlayType.LIVE_RTMP);
       } else if (_isFLVPlay(_currentPlayUrl) && null != videoModel) {
         _playTimeShiftLiveURL(videoModel!.appId, _currentPlayUrl);
@@ -620,6 +620,12 @@ class SuperPlayerController {
       }
       _playerUIStatus = status;
     }
+  }
+
+  /// whether it is the webrtc protocol
+  /// 是否是webrtc协议
+  bool _isWebRtcPlay(String? videoURL) {
+    return null != videoURL && videoURL.startsWith("webrtc");
   }
 
   /// whether it is the RTMP protocol

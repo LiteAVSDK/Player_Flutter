@@ -15,7 +15,7 @@ class CommonUtils {
       cacheQualityIndex = DownloadQuality.QUALITY_480P;
     } else if (minValue > 480 && minValue <= 540) {
       cacheQualityIndex = DownloadQuality.QUALITY_540P;
-    } else if (minValue > 540 && minValue >= 720) {
+    } else if (minValue > 540 && minValue <= 720) {
       cacheQualityIndex = DownloadQuality.QUALITY_720P;
     } else if (minValue > 720 && minValue <= 1080) {
       cacheQualityIndex = DownloadQuality.QUALITY_1080P;
