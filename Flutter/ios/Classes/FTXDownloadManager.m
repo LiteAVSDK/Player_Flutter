@@ -11,7 +11,10 @@
 #import "FtxMessages.h"
 
 @interface FTXDownloadManager ()<FlutterStreamHandler, TXVodPreloadManagerDelegate, TXVodDownloadDelegate, TXFlutterDownloadApi>
-    
+
+@property (nonatomic, strong) dispatch_queue_t mPreloadQueue;
+@property (atomic, strong) NSMutableDictionary *mPreloadFileDic;
+
 @end
 
 @implementation FTXDownloadManager {
@@ -32,6 +35,8 @@
         NSString *cachesDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
         NSString *path = [NSString stringWithFormat:@"%@/videoCache",cachesDir];
         [[TXVodDownloadManager shareInstance] setDownloadPath:path];
+        self.mPreloadQueue = dispatch_queue_create(@"cloud.tencent.com.preload", NULL);
+        self.mPreloadFileDic = @{}.mutableCopy;
     }
     return self;
 }
@@ -43,6 +48,28 @@
     
     [_eventSink setDelegate:nil];
     _eventSink = nil;
+}
+
+- (void)onStartEvent:(long)tmpTaskId taskID:(int)taskID fileId:(NSString *)fileId url:(NSString *)url param:(NSDictionary *)param {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
+    [dict setObject:@(taskID) forKey:@"taskId"];
+    [dict setObject:fileId forKey:@"fileId"];
+    [dict setObject:url forKey:@"url"];
+    [dict setObject:param forKey:@"param"];
+    [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_START withParams:dict]];
+}
+
+- (void)addPreloadFileStartTask:(NSString*)fileId tmpTaskId:(long)tmpTaskId {
+    @synchronized (self.mPreloadFileDic) {
+        self.mPreloadFileDic[fileId] = @(tmpTaskId);
+    }
+}
+
+- (void)removePreloadFileStartTask:(NSString*)fileId {
+    @synchronized (self.mPreloadFileDic) {
+        [self.mPreloadFileDic removeObjectForKey:fileId];
+    }
 }
 
 #pragma mark - FlutterStreamHandler
@@ -79,6 +106,16 @@
 }
 
 #pragma mark - TXVodPreloadManager delegate
+
+- (void)onStart:(int)taskID fileId:(NSString *)fileId url:(NSString *)url param:(NSDictionary *)param {
+    if (self.mPreloadFileDic[fileId] && [self.mPreloadFileDic[fileId] isKindOfClass:[NSNumber class]]) {
+        long tmpTaskId = [self.mPreloadFileDic[fileId] longValue];
+        if (tmpTaskId >= 0) {
+            [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
+            [self removePreloadFileStartTask:fileId];
+        }
+    }
+}
 
 - (void)onComplete:(int)taskID url:(NSString *)url
 {
@@ -304,5 +341,32 @@
 - (void)stopPreLoadMsg:(nonnull IntMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [[TXVodPreloadManager sharedManager] stopPreload:msg.value.intValue];
 }
+
+- (void)startPreLoadByParamsMsg:(PreLoadInfoMsg *)msg error:(FlutterError * _Nullable __autoreleasing *)error {
+    dispatch_async(self.mPreloadQueue, ^{
+        BOOL isUrlPreload = msg.playUrl != nil && [msg.playUrl isKindOfClass:[NSString class]] && msg.playUrl.length > 0;
+        int preloadSizeMB = [msg.preloadSizeMB intValue];
+        int preferredResolution = [msg.preferredResolution intValue];
+        long tmpTaskId = [msg.tmpPreloadTaskId longValue];
+        NSString *fileId = (msg.fileId != nil && [msg.fileId isKindOfClass:[NSString class]]) ? msg.fileId : @"";
+        TXPlayerAuthParams *params = [[TXPlayerAuthParams alloc] init];
+        params.url = msg.playUrl;
+        params.appId = (msg.appId != nil && [msg.appId isKindOfClass:[NSNumber class]]) ? [msg.appId intValue] : 0;
+        params.fileId = fileId;
+        params.sign = (msg.pSign != nil && [msg.pSign isKindOfClass:[NSString class]]) ? msg.pSign : @"";
+        [self addPreloadFileStartTask:fileId tmpTaskId:tmpTaskId];
+        int taskID = [[TXVodPreloadManager sharedManager] startPreloadWithModel:params
+                                                                    preloadSize:preloadSizeMB
+                                                            preferredResolution:preferredResolution
+                                                                       delegate:self];
+        if (isUrlPreload) {
+            if (tmpTaskId >= 0) {
+                [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:msg.playUrl param:@{}];
+                [self removePreloadFileStartTask:fileId];
+            }
+        }
+    });
+}
+
 
 @end

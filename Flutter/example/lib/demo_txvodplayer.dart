@@ -44,6 +44,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     });
     LogUtils.logOpen = true;
 
+
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
       // Subscribe to event distribution
       if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
