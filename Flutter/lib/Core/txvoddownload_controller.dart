@@ -17,11 +17,11 @@ class TXVodDownloadController {
 
   Stream<Map<dynamic, dynamic>> get onDownloadEventBroadcast => _downloadEventStreamController.stream;
 
-  FTXPredownlodOnCompleteListener? _onPreDownloadOnCompleteListener;
-  FTXPredownlodOnErrorListener? _onPreDownloadOnErrorListener;
-
+  Map<int, _PreloadListener> _preloadListeners = {};
+  Map<int, _PreloadListener> _fileIdBeforeStartListeners = {};
   FTXDownlodOnStateChangeListener? _downlodOnStateChangeListener;
   FTXDownlodOnErrorListener? _downlodOnErrorListener;
+  AtomicInt _atomicPreloadId = AtomicInt(0);
 
   static TXVodDownloadController _sharedInstance() {
     if (_instance == null) {
@@ -60,13 +60,38 @@ class TXVodDownloadController {
     FTXPredownlodOnCompleteListener? onCompleteListener,
     FTXPredownlodOnErrorListener? onErrorListener,
   }) async {
-    _onPreDownloadOnCompleteListener = onCompleteListener;
-    _onPreDownloadOnErrorListener = onErrorListener;
     IntMsg msg = await _api.startPreLoad(PreLoadMsg()
       ..playUrl = playUrl
       ..preloadSizeMB = preloadSizeMB
       ..preferredResolution = preferredResolution);
-    return msg.value ?? -1;
+    int taskId = msg.value ?? -1;
+    if (taskId >= 0) {
+      _preloadListeners[taskId] = _PreloadListener()
+          ..onCompleteListener = onCompleteListener
+          ..onErrorListener = onErrorListener;
+    }
+    return taskId;
+  }
+
+  Future<void> startPreload(TXPlayInfoParams txPlayInfoParams,
+      final int preloadSizeMB,
+      final int preferredResolution, {
+        FTXPredownlodOnCompleteListener? onCompleteListener,
+        FTXPredownlodOnErrorListener? onErrorListener,
+        FTXPredownlodOnStartListener? onStartListener,
+      }) async {
+    int tmpPreloadTaskId = await _atomicPreloadId.incrementAndGet();
+    await _api.startPreLoadByParams(PreLoadInfoMsg()
+    ..tmpPreloadTaskId = tmpPreloadTaskId
+    ..playUrl = txPlayInfoParams.url
+    ..fileId = txPlayInfoParams.fileId
+    ..appId = txPlayInfoParams.appId
+    ..preloadSizeMB = preloadSizeMB
+    ..preferredResolution = preferredResolution);
+    _fileIdBeforeStartListeners[tmpPreloadTaskId] = _PreloadListener()
+      ..onCompleteListener = onCompleteListener
+      ..onErrorListener = onErrorListener
+      ..onStartListener = onStartListener;
   }
 
   /// Stop pre-downloading.
@@ -223,9 +248,8 @@ class TXVodDownloadController {
         int taskId = map['taskId'];
         String url = map['url'];
         LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_COMPLETE, taskID=$taskId ,url=$url');
-        if (_onPreDownloadOnCompleteListener != null) {
-          _onPreDownloadOnCompleteListener!(taskId, url);
-        }
+        _preloadListeners[taskId]?.onCompleteListener?.call(taskId, url);
+        _preloadListeners.remove(taskId);
         break;
       case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_ERROR:
         int taskId = map['taskId'];
@@ -233,8 +257,21 @@ class TXVodDownloadController {
         int code = map['code'] ?? 0;
         String msg = map['msg'] ?? '';
         LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_ERROR, taskID=$taskId ,url=$url, code=$code , msg=$msg');
-        if (_onPreDownloadOnErrorListener != null) {
-          _onPreDownloadOnErrorListener!(taskId, url, code, msg);
+        _preloadListeners[taskId]?.onErrorListener?.call(taskId, url, code, msg);
+        _preloadListeners.remove(taskId);
+        break;
+      case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_START:
+        int tmpTaskId = map['tmpTaskId'];
+        int taskId = map['taskId'];
+        String fileId = map['fileId'] ?? '';
+        String url = map['url'] ?? '';
+        Map<dynamic, dynamic> bundle = map['params'] ?? {};
+        LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_START, tmpTaskId=$tmpTaskId, '
+            'taskID=$taskId ,fileId=$fileId, url=$url , bundle=$bundle');
+        if (_fileIdBeforeStartListeners[tmpTaskId] != null) {
+          _preloadListeners[taskId] = _fileIdBeforeStartListeners[tmpTaskId]!;
+          _preloadListeners[taskId]!.onStartListener?.call(taskId, fileId, url, bundle);
+          _fileIdBeforeStartListeners.remove(tmpTaskId);
         }
         break;
       case TXVodPlayEvent.EVENT_DOWNLOAD_START:
@@ -256,4 +293,32 @@ class TXVodDownloadController {
   }
 
   _errorHandler(error) {}
+
+}
+
+class _PreloadListener {
+  FTXPredownlodOnCompleteListener? onCompleteListener;
+  FTXPredownlodOnErrorListener? onErrorListener;
+  FTXPredownlodOnStartListener? onStartListener;
+  _PreloadListener({this.onCompleteListener, this.onErrorListener, this.onStartListener});
+}
+
+class AtomicInt {
+  int _value = 0;
+  final _lock = Lock();
+
+  AtomicInt(this._value);
+
+  Future<int> get() async {
+    return await _lock.synchronized(() async {
+      return _value;
+    });
+  }
+
+  Future<int> incrementAndGet() async {
+    return await _lock.synchronized(() async {
+      _value++;
+      return _value;
+    });
+  }
 }

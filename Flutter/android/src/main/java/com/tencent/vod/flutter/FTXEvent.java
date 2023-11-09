@@ -36,6 +36,9 @@ public class FTXEvent {
     // 视频预下载出错
     public static final int EVENT_PREDOWNLOAD_ON_ERROR = 201;
 
+    // fileId preload is start, callback url、taskId and other video info
+    public static final int EVENT_PREDOWNLOAD_ON_START = 202;
+
     // Video download started.
     // 视频下载开始
     public static final int EVENT_DOWNLOAD_START = 301;

@@ -1703,6 +1703,16 @@ FTXPredownlodOnCompleteListener? onCompleteListener,
 }) async
 ```
 
+```dart
+  Future<void> startPreload(TXPlayInfoParams txPlayInfoParams,
+      final int preloadSizeMB,
+      final int preferredResolution, {
+        FTXPredownlodOnCompleteListener? onCompleteListener,
+        FTXPredownlodOnErrorListener? onErrorListener,
+        FTXPredownlodOnStartListener? onStartListener,
+      }) async 
+```
+
 **参数说明**
 
 | 参数名 | 类型   | 描述               |
@@ -1712,6 +1722,15 @@ FTXPredownlodOnCompleteListener? onCompleteListener,
 | preferredResolution | int | 期望分辨率，值为高x宽。可参考如720*1080。不支持多分辨率或不需指定时，传-1|
 | onCompleteListener | FTXPredownlodOnCompleteListener? | 预下载成功回调，全局|
 | onErrorListener | FTXPredownlodOnErrorListener | 预下载失败回调，全局|
+
+TXPlayInfoParams:
+
+| 参数名 | 类型   | 描述                                                                    |
+| ------ | ------ |-----------------------------------------------------------------------|
+| appId | int | 应用appId。必填                                                            |
+| fileId | String | 文件id。必填                                                               |
+| url | String | 视频url，与fileId只用填写一个，如果都填写，url优先                                       |
+| sign | String | 防盗链签名，参考防盗链产品文档: https://cloud.tencent.com/document/product/266/11243 |
 
 **返回值说明**
 
