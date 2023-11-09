@@ -148,6 +148,12 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface PreLoadInfoMsg ()
++ (PreLoadInfoMsg *)fromList:(NSArray *)list;
++ (nullable PreLoadInfoMsg *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @interface MapMsg ()
 + (MapMsg *)fromList:(NSArray *)list;
 + (nullable MapMsg *)nullableFromList:(NSArray *)list;
@@ -204,12 +210,14 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 + (instancetype)makeWithPlayerId:(nullable NSNumber *)playerId
     appId:(nullable NSNumber *)appId
     fileId:(nullable NSString *)fileId
-    psign:(nullable NSString *)psign {
+    psign:(nullable NSString *)psign
+    url:(nullable NSString *)url {
   TXPlayInfoParamsPlayerMsg* pigeonResult = [[TXPlayInfoParamsPlayerMsg alloc] init];
   pigeonResult.playerId = playerId;
   pigeonResult.appId = appId;
   pigeonResult.fileId = fileId;
   pigeonResult.psign = psign;
+  pigeonResult.url = url;
   return pigeonResult;
 }
 + (TXPlayInfoParamsPlayerMsg *)fromList:(NSArray *)list {
@@ -218,6 +226,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.appId = GetNullableObjectAtIndex(list, 1);
   pigeonResult.fileId = GetNullableObjectAtIndex(list, 2);
   pigeonResult.psign = GetNullableObjectAtIndex(list, 3);
+  pigeonResult.url = GetNullableObjectAtIndex(list, 4);
   return pigeonResult;
 }
 + (nullable TXPlayInfoParamsPlayerMsg *)nullableFromList:(NSArray *)list {
@@ -229,6 +238,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.appId ?: [NSNull null]),
     (self.fileId ?: [NSNull null]),
     (self.psign ?: [NSNull null]),
+    (self.url ?: [NSNull null]),
   ];
 }
 @end
@@ -843,6 +853,51 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.playUrl ?: [NSNull null]),
     (self.preloadSizeMB ?: [NSNull null]),
     (self.preferredResolution ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation PreLoadInfoMsg
++ (instancetype)makeWithAppId:(nullable NSNumber *)appId
+    fileId:(nullable NSString *)fileId
+    pSign:(nullable NSString *)pSign
+    playUrl:(nullable NSString *)playUrl
+    preloadSizeMB:(nullable NSNumber *)preloadSizeMB
+    preferredResolution:(nullable NSNumber *)preferredResolution
+    tmpPreloadTaskId:(nullable NSNumber *)tmpPreloadTaskId {
+  PreLoadInfoMsg* pigeonResult = [[PreLoadInfoMsg alloc] init];
+  pigeonResult.appId = appId;
+  pigeonResult.fileId = fileId;
+  pigeonResult.pSign = pSign;
+  pigeonResult.playUrl = playUrl;
+  pigeonResult.preloadSizeMB = preloadSizeMB;
+  pigeonResult.preferredResolution = preferredResolution;
+  pigeonResult.tmpPreloadTaskId = tmpPreloadTaskId;
+  return pigeonResult;
+}
++ (PreLoadInfoMsg *)fromList:(NSArray *)list {
+  PreLoadInfoMsg *pigeonResult = [[PreLoadInfoMsg alloc] init];
+  pigeonResult.appId = GetNullableObjectAtIndex(list, 0);
+  pigeonResult.fileId = GetNullableObjectAtIndex(list, 1);
+  pigeonResult.pSign = GetNullableObjectAtIndex(list, 2);
+  pigeonResult.playUrl = GetNullableObjectAtIndex(list, 3);
+  pigeonResult.preloadSizeMB = GetNullableObjectAtIndex(list, 4);
+  pigeonResult.preferredResolution = GetNullableObjectAtIndex(list, 5);
+  pigeonResult.tmpPreloadTaskId = GetNullableObjectAtIndex(list, 6);
+  return pigeonResult;
+}
++ (nullable PreLoadInfoMsg *)nullableFromList:(NSArray *)list {
+  return (list) ? [PreLoadInfoMsg fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.appId ?: [NSNull null]),
+    (self.fileId ?: [NSNull null]),
+    (self.pSign ?: [NSNull null]),
+    (self.playUrl ?: [NSNull null]),
+    (self.preloadSizeMB ?: [NSNull null]),
+    (self.preferredResolution ?: [NSNull null]),
+    (self.tmpPreloadTaskId ?: [NSNull null]),
   ];
 }
 @end
@@ -2709,10 +2764,12 @@ void TXFlutterLivePlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSO
     case 130: 
       return [MapMsg fromList:[self readValue]];
     case 131: 
-      return [PreLoadMsg fromList:[self readValue]];
+      return [PreLoadInfoMsg fromList:[self readValue]];
     case 132: 
-      return [TXDownloadListMsg fromList:[self readValue]];
+      return [PreLoadMsg fromList:[self readValue]];
     case 133: 
+      return [TXDownloadListMsg fromList:[self readValue]];
+    case 134: 
       return [TXVodDownloadMediaMsg fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
@@ -2733,14 +2790,17 @@ void TXFlutterLivePlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSO
   } else if ([value isKindOfClass:[MapMsg class]]) {
     [self writeByte:130];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PreLoadMsg class]]) {
+  } else if ([value isKindOfClass:[PreLoadInfoMsg class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[TXDownloadListMsg class]]) {
+  } else if ([value isKindOfClass:[PreLoadMsg class]]) {
     [self writeByte:132];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[TXVodDownloadMediaMsg class]]) {
+  } else if ([value isKindOfClass:[TXDownloadListMsg class]]) {
     [self writeByte:133];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXVodDownloadMediaMsg class]]) {
+    [self writeByte:134];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -2789,6 +2849,25 @@ void TXFlutterDownloadApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObj
         FlutterError *error;
         IntMsg *output = [api startPreLoadMsg:arg_msg error:&error];
         callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterDownloadApi.startPreLoadByParams"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterDownloadApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(startPreLoadByParamsMsg:error:)], @"TXFlutterDownloadApi api (%@) doesn't respond to @selector(startPreLoadByParamsMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PreLoadInfoMsg *arg_msg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api startPreLoadByParamsMsg:arg_msg error:&error];
+        callback(wrapResult(nil, error));
       }];
     } else {
       [channel setMessageHandler:nil];

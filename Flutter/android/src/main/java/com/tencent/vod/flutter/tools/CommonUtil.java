@@ -109,6 +109,19 @@ public class CommonUtil {
         return param;
     }
 
+    public static Map<String, Object> transToMap(Bundle bundle) {
+        Map<String, Object> param = new HashMap<>();
+        if (bundle != null && !bundle.isEmpty()) {
+            Set<String> keySet = bundle.keySet();
+            for (String key : keySet) {
+                Object val = bundle.get(key);
+                param.put(key, val);
+            }
+        }
+
+        return param;
+    }
+
     public static int getDownloadEventByState(int mediaInfoDownloadState) {
         Integer event = DOWNLOAD_STATE_MAP.get(mediaInfoDownloadState);
         return null != event ? event : FTXEvent.EVENT_DOWNLOAD_ERROR;

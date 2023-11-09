@@ -32,6 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class StringMsg;
 @class DoubleMsg;
 @class PreLoadMsg;
+@class PreLoadInfoMsg;
 @class MapMsg;
 
 /// Pigeon original component, used to generate native communication code for `messages`.
@@ -56,11 +57,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)makeWithPlayerId:(nullable NSNumber *)playerId
     appId:(nullable NSNumber *)appId
     fileId:(nullable NSString *)fileId
-    psign:(nullable NSString *)psign;
+    psign:(nullable NSString *)psign
+    url:(nullable NSString *)url;
 @property(nonatomic, strong, nullable) NSNumber * playerId;
 @property(nonatomic, strong, nullable) NSNumber * appId;
 @property(nonatomic, copy, nullable) NSString * fileId;
 @property(nonatomic, copy, nullable) NSString * psign;
+@property(nonatomic, copy, nullable) NSString * url;
 @end
 
 @interface PipParamsPlayerMsg : NSObject
@@ -288,6 +291,23 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, nullable) NSString * playUrl;
 @property(nonatomic, strong, nullable) NSNumber * preloadSizeMB;
 @property(nonatomic, strong, nullable) NSNumber * preferredResolution;
+@end
+
+@interface PreLoadInfoMsg : NSObject
++ (instancetype)makeWithAppId:(nullable NSNumber *)appId
+    fileId:(nullable NSString *)fileId
+    pSign:(nullable NSString *)pSign
+    playUrl:(nullable NSString *)playUrl
+    preloadSizeMB:(nullable NSNumber *)preloadSizeMB
+    preferredResolution:(nullable NSNumber *)preferredResolution
+    tmpPreloadTaskId:(nullable NSNumber *)tmpPreloadTaskId;
+@property(nonatomic, strong, nullable) NSNumber * appId;
+@property(nonatomic, copy, nullable) NSString * fileId;
+@property(nonatomic, copy, nullable) NSString * pSign;
+@property(nonatomic, copy, nullable) NSString * playUrl;
+@property(nonatomic, strong, nullable) NSNumber * preloadSizeMB;
+@property(nonatomic, strong, nullable) NSNumber * preferredResolution;
+@property(nonatomic, strong, nullable) NSNumber * tmpPreloadTaskId;
 @end
 
 @interface MapMsg : NSObject
@@ -687,6 +707,7 @@ NSObject<FlutterMessageCodec> *TXFlutterDownloadApiGetCodec(void);
 ///
 /// @return `nil` only when `error != nil`.
 - (nullable IntMsg *)startPreLoadMsg:(PreLoadMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)startPreLoadByParamsMsg:(PreLoadInfoMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
 /// 停止预下载。
 /// taskId： 任务id
 - (void)stopPreLoadMsg:(IntMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
