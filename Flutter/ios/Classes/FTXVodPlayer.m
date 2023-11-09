@@ -429,7 +429,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
             self->isVideoFirstFrameReceived = false;
         });
     }
-    NSLog(@"onPlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
+    if (EvtID != PLAY_EVT_PLAY_PROGRESS) {
+        NSLog(@"onPlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
+    }
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
 }
 

@@ -8,12 +8,15 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.rtmp.TXPlayInfoParams;
 import com.tencent.rtmp.downloader.ITXVodDownloadListener;
+import com.tencent.rtmp.downloader.ITXVodFilePreloadListener;
 import com.tencent.rtmp.downloader.ITXVodPreloadListener;
 import com.tencent.rtmp.downloader.TXVodDownloadDataSource;
 import com.tencent.rtmp.downloader.TXVodDownloadManager;
 import com.tencent.rtmp.downloader.TXVodDownloadMediaInfo;
 import com.tencent.rtmp.downloader.TXVodPreloadManager;
+import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.MapMsg;
@@ -29,6 +32,9 @@ import io.flutter.plugin.common.EventChannel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Download management, pre-download, and offline download.
@@ -41,6 +47,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     private final EventChannel mEventChannel;
     private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     private final Handler mMainHandler;
+
+    private ExecutorService mPreloadPool = Executors.newCachedThreadPool();
 
     /**
      * Video download management.
@@ -67,6 +75,17 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
             }
         });
         TXVodDownloadManager.getInstance().setListener(this);
+    }
+
+    private void onStartEvent(long tmpTaskId, int taskId, String fileId, String url, Bundle params) {
+        Bundle bundle = new Bundle();
+        bundle.putLong("tmpTaskId", tmpTaskId);
+        bundle.putInt("taskId", taskId);
+        bundle.putString("fileId", fileId);
+        bundle.putString("url", url);
+        Map<String, Object> result = CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_START, bundle);
+        result.put("params", CommonUtil.transToMap(params));
+        sendSuccessEvent(result);
     }
 
     private void onCompleteEvent(int taskId, String url) {
@@ -280,6 +299,52 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         IntMsg res = new IntMsg();
         res.setValue((long) retTaskID);
         return res;
+    }
+
+    @NonNull
+    @Override
+    public void startPreLoadByParams(@NonNull FtxMessages.PreLoadInfoMsg msg) {
+        mPreloadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                final boolean isUrlPreload = !TextUtils.isEmpty(msg.getPlayUrl());
+                TXPlayInfoParams txPlayInfoParams;
+                if (isUrlPreload) {
+                    txPlayInfoParams = new TXPlayInfoParams(msg.getPlayUrl());
+                } else {
+                    int appId = msg.getAppId() != null ? msg.getAppId().intValue() : 0;
+                    txPlayInfoParams = new TXPlayInfoParams(appId, msg.getFileId(), msg.getPSign());
+                }
+                final TXVodPreloadManager downloadManager =
+                        TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
+                int preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().intValue() : 0;
+                final long tmpTaskId = msg.getTmpPreloadTaskId() != null ? msg.getTmpPreloadTaskId() : -1;
+                long preferredResolution = msg.getPreferredResolution() != null ? msg.getPreferredResolution() : 0;
+                int retTaskID = downloadManager.startPreload(txPlayInfoParams, preloadSizeMB, preferredResolution,
+                        new ITXVodFilePreloadListener() {
+
+                    @Override
+                    public void onStart(int taskID, String fileId, String url, Bundle bundle) {
+                        if (tmpTaskId >= 0) {
+                            onStartEvent(tmpTaskId, taskID, fileId, url, bundle);
+                        }
+                    }
+
+                    @Override
+                    public void onComplete(int taskID, String url) {
+                        onCompleteEvent(taskID, url);
+                    }
+
+                    @Override
+                    public void onError(int taskID, String url, int code, String msg) {
+                        onErrorEvent(taskID, url, code, msg);
+                    }
+                });
+                if (isUrlPreload && tmpTaskId >= 0) {
+                    onStartEvent(tmpTaskId, retTaskID, msg.getFileId(), msg.getPlayUrl(), new Bundle());
+                }
+            }
+        });
     }
 
     @Override

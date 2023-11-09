@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
-import 'package:pigeon/pigeon.dart';
-import 'package:super_player/super_player.dart';
+// import 'package:pigeon/pigeon.dart';
+// import 'package:super_player/super_player.dart';
 /// Pigeon original component, used to generate native communication code for `messages`.
 /// The generation command is as follows. When using the generation command,
 /// the two import statements above need to be implemented or commented out.
@@ -31,6 +31,7 @@ class TXPlayInfoParamsPlayerMsg {
   int? appId;
   String? fileId;
   String? psign;
+  String? url;
 }
 
 class PipParamsPlayerMsg {
@@ -264,6 +265,16 @@ class PreLoadMsg {
   String? playUrl;
   int? preloadSizeMB;
   int? preferredResolution;
+}
+
+class PreLoadInfoMsg {
+  int? appId;
+  String? fileId;
+  String? pSign;
+  String? playUrl;
+  int? preloadSizeMB;
+  int? preferredResolution;
+  int? tmpPreloadTaskId;
 }
 
 class MapMsg {
@@ -639,6 +650,8 @@ abstract class TXFlutterDownloadApi {
   /// preferredResolution 期望分辨率，long类型，值为高x宽。可参考如720*1080。不支持多分辨率或不需指定时，传-1。
   /// 返回值：任务ID，可用这个任务ID停止预下载 [stopPreload]
   IntMsg startPreLoad(PreLoadMsg msg);
+
+  void startPreLoadByParams(PreLoadInfoMsg msg);
 
   /// 停止预下载。
   /// taskId： 任务id

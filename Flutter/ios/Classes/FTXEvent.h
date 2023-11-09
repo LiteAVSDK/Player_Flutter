@@ -54,6 +54,8 @@
 // Video pre-download error.
 // 视频预下载出错
 #define EVENT_PREDOWNLOAD_ON_ERROR 201
+// fileId preload is start, callback url、taskId and other video info
+#define EVENT_PREDOWNLOAD_ON_START 202
 
 // Video download started.
 // 视频下载开始

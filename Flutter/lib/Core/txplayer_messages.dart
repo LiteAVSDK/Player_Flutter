@@ -63,6 +63,7 @@ class TXPlayInfoParamsPlayerMsg {
     this.appId,
     this.fileId,
     this.psign,
+    this.url,
   });
 
   int? playerId;
@@ -73,12 +74,15 @@ class TXPlayInfoParamsPlayerMsg {
 
   String? psign;
 
+  String? url;
+
   Object encode() {
     return <Object?>[
       playerId,
       appId,
       fileId,
       psign,
+      url,
     ];
   }
 
@@ -89,6 +93,7 @@ class TXPlayInfoParamsPlayerMsg {
       appId: result[1] as int?,
       fileId: result[2] as String?,
       psign: result[3] as String?,
+      url: result[4] as String?,
     );
   }
 }
@@ -781,6 +786,57 @@ class PreLoadMsg {
       playUrl: result[0] as String?,
       preloadSizeMB: result[1] as int?,
       preferredResolution: result[2] as int?,
+    );
+  }
+}
+
+class PreLoadInfoMsg {
+  PreLoadInfoMsg({
+    this.appId,
+    this.fileId,
+    this.pSign,
+    this.playUrl,
+    this.preloadSizeMB,
+    this.preferredResolution,
+    this.tmpPreloadTaskId,
+  });
+
+  int? appId;
+
+  String? fileId;
+
+  String? pSign;
+
+  String? playUrl;
+
+  int? preloadSizeMB;
+
+  int? preferredResolution;
+
+  int? tmpPreloadTaskId;
+
+  Object encode() {
+    return <Object?>[
+      appId,
+      fileId,
+      pSign,
+      playUrl,
+      preloadSizeMB,
+      preferredResolution,
+      tmpPreloadTaskId,
+    ];
+  }
+
+  static PreLoadInfoMsg decode(Object result) {
+    result as List<Object?>;
+    return PreLoadInfoMsg(
+      appId: result[0] as int?,
+      fileId: result[1] as String?,
+      pSign: result[2] as String?,
+      playUrl: result[3] as String?,
+      preloadSizeMB: result[4] as int?,
+      preferredResolution: result[5] as int?,
+      tmpPreloadTaskId: result[6] as int?,
     );
   }
 }
@@ -2994,14 +3050,17 @@ class _TXFlutterDownloadApiCodec extends StandardMessageCodec {
     } else if (value is MapMsg) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is PreLoadMsg) {
+    } else if (value is PreLoadInfoMsg) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is TXDownloadListMsg) {
+    } else if (value is PreLoadMsg) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is TXVodDownloadMediaMsg) {
+    } else if (value is TXDownloadListMsg) {
       buffer.putUint8(133);
+      writeValue(buffer, value.encode());
+    } else if (value is TXVodDownloadMediaMsg) {
+      buffer.putUint8(134);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -3018,10 +3077,12 @@ class _TXFlutterDownloadApiCodec extends StandardMessageCodec {
       case 130: 
         return MapMsg.decode(readValue(buffer)!);
       case 131: 
-        return PreLoadMsg.decode(readValue(buffer)!);
+        return PreLoadInfoMsg.decode(readValue(buffer)!);
       case 132: 
-        return TXDownloadListMsg.decode(readValue(buffer)!);
+        return PreLoadMsg.decode(readValue(buffer)!);
       case 133: 
+        return TXDownloadListMsg.decode(readValue(buffer)!);
+      case 134: 
         return TXVodDownloadMediaMsg.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -3068,6 +3129,28 @@ class TXFlutterDownloadApi {
       );
     } else {
       return (replyList[0] as IntMsg?)!;
+    }
+  }
+
+  Future<void> startPreLoadByParams(PreLoadInfoMsg arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterDownloadApi.startPreLoadByParams', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
     }
   }
 

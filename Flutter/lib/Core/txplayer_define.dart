@@ -315,6 +315,8 @@ abstract class TXVodPlayEvent {
   // Error occurred during video pre-download.
   // 视频预下载出错
   static const EVENT_PREDOWNLOAD_ON_ERROR = 201;
+  // fileId preload is start, callback url、taskId and other video info
+  static const EVENT_PREDOWNLOAD_ON_START = 202;
 
   // Video download started.
   // 视频下载开始
@@ -510,15 +512,19 @@ class DownloadQuality {
 class TXPlayInfoParams {
   final int appId; // Tencent Cloud video appId, required
   final String fileId; // Tencent Cloud video fileId, required
-  final String? psign; // encent cloud video encryption signature, required for encrypted video
+  final String? psign; // Tencent cloud video encryption signature, required for encrypted video
+  // video url, only applicable for preloading. When using it, you only need to fill in either the url or fileId.
+  // The priority of the url is higher than that of the fileId.
+  final String? url;
 
-  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign});
+  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign = "", this.url = ""});
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
     json["appId"] = appId;
     json["fileId"] = fileId;
     json["psign"] = psign;
+    json["url"] = url;
     return json;
   }
 }
@@ -671,6 +677,8 @@ abstract class TXPlayerType {
 
 // Video pre-download event callback listener.
 // 视频预下载事件回调Listener
+// onStartListener, just for fileId preload
+typedef FTXPredownlodOnStartListener = void Function(int taskId, String fileId, String url, Map<dynamic, dynamic> params);
 typedef FTXPredownlodOnCompleteListener = void Function(int taskId, String url);
 typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int code, String msg);
 // Video download time callback listener.

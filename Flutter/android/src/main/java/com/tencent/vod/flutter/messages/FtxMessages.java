@@ -216,6 +216,16 @@ public class FtxMessages {
       this.psign = setterArg;
     }
 
+    private @Nullable String url;
+
+    public @Nullable String getUrl() {
+      return url;
+    }
+
+    public void setUrl(@Nullable String setterArg) {
+      this.url = setterArg;
+    }
+
     public static final class Builder {
 
       private @Nullable Long playerId;
@@ -246,23 +256,32 @@ public class FtxMessages {
         return this;
       }
 
+      private @Nullable String url;
+
+      public @NonNull Builder setUrl(@Nullable String setterArg) {
+        this.url = setterArg;
+        return this;
+      }
+
       public @NonNull TXPlayInfoParamsPlayerMsg build() {
         TXPlayInfoParamsPlayerMsg pigeonReturn = new TXPlayInfoParamsPlayerMsg();
         pigeonReturn.setPlayerId(playerId);
         pigeonReturn.setAppId(appId);
         pigeonReturn.setFileId(fileId);
         pigeonReturn.setPsign(psign);
+        pigeonReturn.setUrl(url);
         return pigeonReturn;
       }
     }
 
     @NonNull
     ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<Object>(4);
+      ArrayList<Object> toListResult = new ArrayList<Object>(5);
       toListResult.add(playerId);
       toListResult.add(appId);
       toListResult.add(fileId);
       toListResult.add(psign);
+      toListResult.add(url);
       return toListResult;
     }
 
@@ -276,6 +295,8 @@ public class FtxMessages {
       pigeonResult.setFileId((String) fileId);
       Object psign = list.get(3);
       pigeonResult.setPsign((String) psign);
+      Object url = list.get(4);
+      pigeonResult.setUrl((String) url);
       return pigeonResult;
     }
   }
@@ -2310,6 +2331,175 @@ public class FtxMessages {
       pigeonResult.setPreloadSizeMB((preloadSizeMB == null) ? null : ((preloadSizeMB instanceof Integer) ? (Integer) preloadSizeMB : (Long) preloadSizeMB));
       Object preferredResolution = list.get(2);
       pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
+      return pigeonResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class PreLoadInfoMsg {
+    private @Nullable Long appId;
+
+    public @Nullable Long getAppId() {
+      return appId;
+    }
+
+    public void setAppId(@Nullable Long setterArg) {
+      this.appId = setterArg;
+    }
+
+    private @Nullable String fileId;
+
+    public @Nullable String getFileId() {
+      return fileId;
+    }
+
+    public void setFileId(@Nullable String setterArg) {
+      this.fileId = setterArg;
+    }
+
+    private @Nullable String pSign;
+
+    public @Nullable String getPSign() {
+      return pSign;
+    }
+
+    public void setPSign(@Nullable String setterArg) {
+      this.pSign = setterArg;
+    }
+
+    private @Nullable String playUrl;
+
+    public @Nullable String getPlayUrl() {
+      return playUrl;
+    }
+
+    public void setPlayUrl(@Nullable String setterArg) {
+      this.playUrl = setterArg;
+    }
+
+    private @Nullable Long preloadSizeMB;
+
+    public @Nullable Long getPreloadSizeMB() {
+      return preloadSizeMB;
+    }
+
+    public void setPreloadSizeMB(@Nullable Long setterArg) {
+      this.preloadSizeMB = setterArg;
+    }
+
+    private @Nullable Long preferredResolution;
+
+    public @Nullable Long getPreferredResolution() {
+      return preferredResolution;
+    }
+
+    public void setPreferredResolution(@Nullable Long setterArg) {
+      this.preferredResolution = setterArg;
+    }
+
+    private @Nullable Long tmpPreloadTaskId;
+
+    public @Nullable Long getTmpPreloadTaskId() {
+      return tmpPreloadTaskId;
+    }
+
+    public void setTmpPreloadTaskId(@Nullable Long setterArg) {
+      this.tmpPreloadTaskId = setterArg;
+    }
+
+    public static final class Builder {
+
+      private @Nullable Long appId;
+
+      public @NonNull Builder setAppId(@Nullable Long setterArg) {
+        this.appId = setterArg;
+        return this;
+      }
+
+      private @Nullable String fileId;
+
+      public @NonNull Builder setFileId(@Nullable String setterArg) {
+        this.fileId = setterArg;
+        return this;
+      }
+
+      private @Nullable String pSign;
+
+      public @NonNull Builder setPSign(@Nullable String setterArg) {
+        this.pSign = setterArg;
+        return this;
+      }
+
+      private @Nullable String playUrl;
+
+      public @NonNull Builder setPlayUrl(@Nullable String setterArg) {
+        this.playUrl = setterArg;
+        return this;
+      }
+
+      private @Nullable Long preloadSizeMB;
+
+      public @NonNull Builder setPreloadSizeMB(@Nullable Long setterArg) {
+        this.preloadSizeMB = setterArg;
+        return this;
+      }
+
+      private @Nullable Long preferredResolution;
+
+      public @NonNull Builder setPreferredResolution(@Nullable Long setterArg) {
+        this.preferredResolution = setterArg;
+        return this;
+      }
+
+      private @Nullable Long tmpPreloadTaskId;
+
+      public @NonNull Builder setTmpPreloadTaskId(@Nullable Long setterArg) {
+        this.tmpPreloadTaskId = setterArg;
+        return this;
+      }
+
+      public @NonNull PreLoadInfoMsg build() {
+        PreLoadInfoMsg pigeonReturn = new PreLoadInfoMsg();
+        pigeonReturn.setAppId(appId);
+        pigeonReturn.setFileId(fileId);
+        pigeonReturn.setPSign(pSign);
+        pigeonReturn.setPlayUrl(playUrl);
+        pigeonReturn.setPreloadSizeMB(preloadSizeMB);
+        pigeonReturn.setPreferredResolution(preferredResolution);
+        pigeonReturn.setTmpPreloadTaskId(tmpPreloadTaskId);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(7);
+      toListResult.add(appId);
+      toListResult.add(fileId);
+      toListResult.add(pSign);
+      toListResult.add(playUrl);
+      toListResult.add(preloadSizeMB);
+      toListResult.add(preferredResolution);
+      toListResult.add(tmpPreloadTaskId);
+      return toListResult;
+    }
+
+    static @NonNull PreLoadInfoMsg fromList(@NonNull ArrayList<Object> list) {
+      PreLoadInfoMsg pigeonResult = new PreLoadInfoMsg();
+      Object appId = list.get(0);
+      pigeonResult.setAppId((appId == null) ? null : ((appId instanceof Integer) ? (Integer) appId : (Long) appId));
+      Object fileId = list.get(1);
+      pigeonResult.setFileId((String) fileId);
+      Object pSign = list.get(2);
+      pigeonResult.setPSign((String) pSign);
+      Object playUrl = list.get(3);
+      pigeonResult.setPlayUrl((String) playUrl);
+      Object preloadSizeMB = list.get(4);
+      pigeonResult.setPreloadSizeMB((preloadSizeMB == null) ? null : ((preloadSizeMB instanceof Integer) ? (Integer) preloadSizeMB : (Long) preloadSizeMB));
+      Object preferredResolution = list.get(5);
+      pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
+      Object tmpPreloadTaskId = list.get(6);
+      pigeonResult.setTmpPreloadTaskId((tmpPreloadTaskId == null) ? null : ((tmpPreloadTaskId instanceof Integer) ? (Integer) tmpPreloadTaskId : (Long) tmpPreloadTaskId));
       return pigeonResult;
     }
   }
@@ -4691,10 +4881,12 @@ public class FtxMessages {
         case (byte) 130:
           return MapMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 131:
-          return PreLoadMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return PreLoadInfoMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 132:
-          return TXDownloadListMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return PreLoadMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 133:
+          return TXDownloadListMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 134:
           return TXVodDownloadMediaMsg.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
@@ -4712,14 +4904,17 @@ public class FtxMessages {
       } else if (value instanceof MapMsg) {
         stream.write(130);
         writeValue(stream, ((MapMsg) value).toList());
-      } else if (value instanceof PreLoadMsg) {
+      } else if (value instanceof PreLoadInfoMsg) {
         stream.write(131);
+        writeValue(stream, ((PreLoadInfoMsg) value).toList());
+      } else if (value instanceof PreLoadMsg) {
+        stream.write(132);
         writeValue(stream, ((PreLoadMsg) value).toList());
       } else if (value instanceof TXDownloadListMsg) {
-        stream.write(132);
+        stream.write(133);
         writeValue(stream, ((TXDownloadListMsg) value).toList());
       } else if (value instanceof TXVodDownloadMediaMsg) {
-        stream.write(133);
+        stream.write(134);
         writeValue(stream, ((TXVodDownloadMediaMsg) value).toList());
       } else {
         super.writeValue(stream, value);
@@ -4738,6 +4933,8 @@ public class FtxMessages {
      */
     @NonNull 
     IntMsg startPreLoad(@NonNull PreLoadMsg msg);
+
+    void startPreLoadByParams(@NonNull PreLoadInfoMsg msg);
     /**
      * 停止预下载。
      * taskId： 任务id
@@ -4790,6 +4987,30 @@ public class FtxMessages {
                 try {
                   IntMsg output = api.startPreLoad(msgArg);
                   wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterDownloadApi.startPreLoadByParams", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PreLoadInfoMsg msgArg = (PreLoadInfoMsg) args.get(0);
+                try {
+                  api.startPreLoadByParams(msgArg);
+                  wrapped.add(0, null);
                 }
  catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);
