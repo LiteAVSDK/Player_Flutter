@@ -95,8 +95,11 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
     }
 
-    private void onErrorEvent(int taskId, String url, int code, String msg) {
+    private void onErrorEvent(long tmpTaskId, int taskId, String url, int code, String msg) {
         Bundle bundle = new Bundle();
+        if (tmpTaskId >= 0) {
+            bundle.putLong("tmpTaskId", tmpTaskId);
+        }
         bundle.putInt("taskId", taskId);
         bundle.putInt("code", code);
         bundle.putString("url", url);
@@ -293,7 +296,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
 
                     @Override
                     public void onError(int taskID, String url, int code, String msg) {
-                        onErrorEvent(taskID, url, code, msg);
+                        onErrorEvent(-1, taskID, url, code, msg);
                     }
                 });
         IntMsg res = new IntMsg();
@@ -337,7 +340,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
 
                     @Override
                     public void onError(int taskID, String url, int code, String msg) {
-                        onErrorEvent(taskID, url, code, msg);
+                        onErrorEvent(tmpTaskId, taskID, url, code, msg);
                     }
                 });
                 if (isUrlPreload && tmpTaskId >= 0) {

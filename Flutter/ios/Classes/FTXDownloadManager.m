@@ -9,11 +9,12 @@
 #import "FTXEvent.h"
 #import "CommonUtil.h"
 #import "FtxMessages.h"
+#import "PredownloadFileHelperDelegate.h"
 
 @interface FTXDownloadManager ()<FlutterStreamHandler, TXVodPreloadManagerDelegate, TXVodDownloadDelegate, TXFlutterDownloadApi>
 
 @property (nonatomic, strong) dispatch_queue_t mPreloadQueue;
-@property (atomic, strong) NSMutableDictionary *mPreloadFileDic;
+@property (atomic, strong) NSMutableArray *delegateArray;
 
 @end
 
@@ -36,7 +37,7 @@
         NSString *path = [NSString stringWithFormat:@"%@/videoCache",cachesDir];
         [[TXVodDownloadManager shareInstance] setDownloadPath:path];
         self.mPreloadQueue = dispatch_queue_create(@"cloud.tencent.com.preload", NULL);
-        self.mPreloadFileDic = @{}.mutableCopy;
+        self.delegateArray = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -60,15 +61,31 @@
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_START withParams:dict]];
 }
 
-- (void)addPreloadFileStartTask:(NSString*)fileId tmpTaskId:(long)tmpTaskId {
-    @synchronized (self.mPreloadFileDic) {
-        self.mPreloadFileDic[fileId] = @(tmpTaskId);
+- (void)onErrorEvent:(long)tmpTaskId taskId:(int)taskID url:(NSString *)url error:(NSError *)error {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    if (tmpTaskId >= 0) {
+        [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
+    }
+    [dict setObject:@(taskID) forKey:@"taskId"];
+    [dict setObject:url forKey:@"url"];
+    [dict setObject:@(error.code) forKey:@"code"];
+    if (nil != error.userInfo.description) {
+        [dict setObject:error.userInfo.description forKey:@"msg"];
+    }
+    [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_ERROR withParams:dict]];
+}
+
+- (void)removePreDelegate:(PredownloadFileHelperDelegate*)delegate {
+    @synchronized (self.delegateArray) {
+        [self.delegateArray removeObject:delegate];
     }
 }
 
-- (void)removePreloadFileStartTask:(NSString*)fileId {
-    @synchronized (self.mPreloadFileDic) {
-        [self.mPreloadFileDic removeObjectForKey:fileId];
+- (void)addPreDelegate:(PredownloadFileHelperDelegate*)delegate {
+    @synchronized (self.delegateArray) {
+        if (![self.delegateArray containsObject:delegate]) {
+            [self.delegateArray addObject:delegate];
+        }
     }
 }
 
@@ -107,16 +124,6 @@
 
 #pragma mark - TXVodPreloadManager delegate
 
-- (void)onStart:(int)taskID fileId:(NSString *)fileId url:(NSString *)url param:(NSDictionary *)param {
-    if (self.mPreloadFileDic[fileId] && [self.mPreloadFileDic[fileId] isKindOfClass:[NSNumber class]]) {
-        long tmpTaskId = [self.mPreloadFileDic[fileId] longValue];
-        if (tmpTaskId >= 0) {
-            [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
-            [self removePreloadFileStartTask:fileId];
-        }
-    }
-}
-
 - (void)onComplete:(int)taskID url:(NSString *)url
 {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -127,14 +134,7 @@
 
 - (void)onError:(int)taskID url:(NSString *)url error:(NSError *)error
 {
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    [dict setObject:@(taskID) forKey:@"taskId"];
-    [dict setObject:url forKey:@"url"];
-    [dict setObject:@(error.code) forKey:@"code"];
-    if (nil != error.userInfo.description) {
-        [dict setObject:error.userInfo.description forKey:@"msg"];
-    }
-    [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_ERROR withParams:dict]];
+    [self onErrorEvent:-1 taskId:taskID url:url error:error];
 }
 
 #pragma mark - TXDownloadManager
@@ -354,16 +354,23 @@
         params.appId = (msg.appId != nil && [msg.appId isKindOfClass:[NSNumber class]]) ? [msg.appId intValue] : 0;
         params.fileId = fileId;
         params.sign = (msg.pSign != nil && [msg.pSign isKindOfClass:[NSString class]]) ? msg.pSign : @"";
-        [self addPreloadFileStartTask:fileId tmpTaskId:tmpTaskId];
+        __block PredownloadFileHelperDelegate *delegate = [[PredownloadFileHelperDelegate alloc] initWithBlock:tmpTaskId start:^(long tmpTaskId, int taskID, NSString * _Nonnull fileId, NSString * _Nonnull url, NSDictionary * _Nonnull param) {
+            [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
+        } complete:^(int taskID, NSString * _Nonnull url) {
+            [self onComplete:taskID url:url];
+            [self removePreDelegate:delegate];
+        } error:^(long tmpTaskId, int taskID, NSString * _Nonnull url, NSError * _Nonnull error) {
+            [self onErrorEvent:-1 taskId:taskID url:url error:error];
+            [self removePreDelegate:delegate];
+        }];
+        // retain delegate
+        [self addPreDelegate:delegate];
         int taskID = [[TXVodPreloadManager sharedManager] startPreloadWithModel:params
                                                                     preloadSize:preloadSizeMB
                                                             preferredResolution:preferredResolution
-                                                                       delegate:self];
-        if (isUrlPreload) {
-            if (tmpTaskId >= 0) {
-                [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:msg.playUrl param:@{}];
-                [self removePreloadFileStartTask:fileId];
-            }
+                                                                       delegate:delegate];
+        if (isUrlPreload && tmpTaskId >= 0) {
+            [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:msg.playUrl param:@{}];
         }
     });
 }
