@@ -73,21 +73,23 @@ class TXVodDownloadController {
     return taskId;
   }
 
-  Future<void> startPreload(TXPlayInfoParams txPlayInfoParams,
-      final int preloadSizeMB,
-      final int preferredResolution, {
-        FTXPredownlodOnCompleteListener? onCompleteListener,
-        FTXPredownlodOnErrorListener? onErrorListener,
-        FTXPredownlodOnStartListener? onStartListener,
-      }) async {
+  Future<void> startPreload(
+    TXPlayInfoParams txPlayInfoParams,
+    final int preloadSizeMB,
+    final int preferredResolution, {
+    FTXPredownlodOnCompleteListener? onCompleteListener,
+    FTXPredownlodOnErrorListener? onErrorListener,
+    FTXPredownlodOnStartListener? onStartListener,
+  }) async {
     int tmpPreloadTaskId = await _atomicPreloadId.incrementAndGet();
     await _api.startPreLoadByParams(PreLoadInfoMsg()
-    ..tmpPreloadTaskId = tmpPreloadTaskId
-    ..playUrl = txPlayInfoParams.url
-    ..fileId = txPlayInfoParams.fileId
-    ..appId = txPlayInfoParams.appId
-    ..preloadSizeMB = preloadSizeMB
-    ..preferredResolution = preferredResolution);
+      ..tmpPreloadTaskId = tmpPreloadTaskId
+      ..playUrl = txPlayInfoParams.url
+      ..fileId = txPlayInfoParams.fileId
+      ..appId = txPlayInfoParams.appId
+      ..pSign = txPlayInfoParams.psign
+      ..preloadSizeMB = preloadSizeMB
+      ..preferredResolution = preferredResolution);
     _fileIdBeforeStartListeners[tmpPreloadTaskId] = _PreloadListener()
       ..onCompleteListener = onCompleteListener
       ..onErrorListener = onErrorListener
@@ -252,13 +254,19 @@ class TXVodDownloadController {
         _preloadListeners.remove(taskId);
         break;
       case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_ERROR:
+        int tmpTaskId = map['tmpTaskId'] ?? -1;
         int taskId = map['taskId'];
         String url = map['url'];
         int code = map['code'] ?? 0;
         String msg = map['msg'] ?? '';
         LogUtils.d(TAG, 'receive EVENT_PREDOWNLOAD_ON_ERROR, taskID=$taskId ,url=$url, code=$code , msg=$msg');
-        _preloadListeners[taskId]?.onErrorListener?.call(taskId, url, code, msg);
-        _preloadListeners.remove(taskId);
+        if (tmpTaskId >= 0) {
+          _fileIdBeforeStartListeners[tmpTaskId]!.onErrorListener?.call(taskId, url, code, msg);
+          _fileIdBeforeStartListeners.remove(tmpTaskId);
+        } else {
+          _preloadListeners[taskId]?.onErrorListener?.call(taskId, url, code, msg);
+          _preloadListeners.remove(taskId);
+        }
         break;
       case TXVodPlayEvent.EVENT_PREDOWNLOAD_ON_START:
         int tmpTaskId = map['tmpTaskId'];
