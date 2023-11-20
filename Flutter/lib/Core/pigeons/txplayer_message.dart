@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
-// import 'package:pigeon/pigeon.dart';
-// import 'package:super_player/super_player.dart';
+import 'package:pigeon/pigeon.dart';
+import 'package:super_player/super_player.dart';
 /// Pigeon original component, used to generate native communication code for `messages`.
 /// The generation command is as follows. When using the generation command,
 /// the two import statements above need to be implemented or commented out.
