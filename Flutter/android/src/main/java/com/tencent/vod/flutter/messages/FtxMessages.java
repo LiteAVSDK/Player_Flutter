@@ -3590,6 +3590,13 @@ public class FtxMessages {
     @NonNull 
     DoubleMsg getDuration(@NonNull PlayerMsg playerMsg);
 
+    @NonNull 
+    ListMsg getAudioTrackInfo(@NonNull PlayerMsg playerMsg);
+
+    void selectTrack(@NonNull IntPlayerMsg index);
+
+    void deselectTrack(@NonNull IntPlayerMsg index);
+
     /** The codec used by TXFlutterVodPlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
       return TXFlutterVodPlayerApiCodec.INSTANCE;
@@ -4353,6 +4360,78 @@ public class FtxMessages {
                 try {
                   DoubleMsg output = api.getDuration(playerMsgArg);
                   wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.getAudioTrackInfo", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                try {
+                  ListMsg output = api.getAudioTrackInfo(playerMsgArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.selectTrack", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                IntPlayerMsg indexArg = (IntPlayerMsg) args.get(0);
+                try {
+                  api.selectTrack(indexArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.deselectTrack", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                IntPlayerMsg indexArg = (IntPlayerMsg) args.get(0);
+                try {
+                  api.deselectTrack(indexArg);
+                  wrapped.add(0, null);
                 }
  catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);

@@ -2348,6 +2348,63 @@ void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSOb
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.getAudioTrackInfo"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getAudioTrackInfoPlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(getAudioTrackInfoPlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        ListMsg *output = [api getAudioTrackInfoPlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.selectTrack"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(selectTrackIndex:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(selectTrackIndex:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        IntPlayerMsg *arg_index = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api selectTrackIndex:arg_index error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.deselectTrack"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(deselectTrackIndex:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(deselectTrackIndex:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        IntPlayerMsg *arg_index = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api deselectTrackIndex:arg_index error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 @interface TXFlutterLivePlayerApiCodecReader : FlutterStandardReader
 @end

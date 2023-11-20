@@ -333,4 +333,30 @@ public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi
         }
         return null;
     }
+
+    @NonNull
+    @Override
+    public ListMsg getAudioTrackInfo(@NonNull PlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.getAudioTrackInfo(playerMsg);
+        }
+        return null;
+    }
+
+    @Override
+    public void selectTrack(@NonNull IntPlayerMsg index) {
+        TXFlutterVodPlayerApi api = getPlayer(index.getPlayerId());
+        if (null != api) {
+            api.selectTrack(index);
+        }
+    }
+
+    @Override
+    public void deselectTrack(@NonNull IntPlayerMsg index) {
+        TXFlutterVodPlayerApi api = getPlayer(index.getPlayerId());
+        if (null != api) {
+            api.deselectTrack(index);
+        }
+    }
 }

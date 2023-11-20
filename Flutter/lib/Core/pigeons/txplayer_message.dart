@@ -578,6 +578,12 @@ abstract class TXFlutterVodPlayerApi {
   ///
   /// To get the total duration
   DoubleMsg getDuration(PlayerMsg playerMsg);
+
+  ListMsg getAudioTrackInfo(PlayerMsg playerMsg);
+
+  void selectTrack(IntPlayerMsg index);
+
+  void deselectTrack(IntPlayerMsg index);
 }
 
 @HostApi()

@@ -576,6 +576,29 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _vodPlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
   }
 
+  Future<List?> getAudioTrackInfo() async {
+    if (_isNeedDisposed) return [];
+    await _initPlayer.future;
+    ListMsg listMsg = await _vodPlayerApi.getAudioTrackInfo(PlayerMsg()..playerId = _playerId);
+    return listMsg.value;
+  }
+
+  Future<void> selectTrack(int index) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.selectTrack(IntPlayerMsg()
+      ..value = index
+      ..playerId = _playerId);
+  }
+
+  Future<void> deselectTrack(int index) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.deselectTrack(IntPlayerMsg()
+      ..value = index
+      ..playerId = _playerId);
+  }
+
   /// release controller
   ///
   /// 释放controller

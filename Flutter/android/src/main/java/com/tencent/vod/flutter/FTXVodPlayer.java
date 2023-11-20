@@ -14,6 +14,7 @@ import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXImageSprite;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXPlayInfoParams;
+import com.tencent.rtmp.TXTrackInfo;
 import com.tencent.rtmp.TXVodConstants;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
@@ -464,6 +465,38 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         return -1;
     }
 
+    List<?> getPlayerAudioTrackInfo(){
+        if (mVodPlayer != null) {
+            List<TXTrackInfo> trackInfoList = mVodPlayer.getAudioTrackInfo();
+            ArrayList<Map<Object, Object>> jsons = new ArrayList<>();
+            for (TXTrackInfo item :
+                    trackInfoList) {
+                Map<Object, Object> map = new HashMap<>();
+                map.put("name", item.name);
+                map.put("trackIndex", item.trackIndex);
+                map.put("trackType", item.trackType);
+                map.put("isSelected", item.isSelected);
+                map.put("isExclusive", item.isExclusive);
+                map.put("isInternal", item.isInternal);
+                jsons.add(map);
+            }
+            return jsons;
+        }
+        return null;
+    }
+
+    void setPlayerSelectTrack(int i) {
+        if (mVodPlayer != null) {
+            mVodPlayer.selectTrack(i);
+        }
+    }
+
+    void setPlayerDeselectTrack(int i) {
+        if (mVodPlayer != null) {
+            mVodPlayer.deselectTrack(i);
+        }
+    }
+
     @NonNull
     @Override
     public IntMsg initialize(@NonNull BoolPlayerMsg onlyAudio) {
@@ -705,5 +738,26 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
         }
         return CommonUtil.doubleMsgWith(0D);
+    }
+
+    @NonNull
+    @Override
+    public ListMsg getAudioTrackInfo(@NonNull PlayerMsg playerMsg) {
+        //noinspection unchecked
+        return CommonUtil.listMsgWith((List<Object>) getPlayerAudioTrackInfo());
+    }
+
+    @Override
+    public void selectTrack(@NonNull IntPlayerMsg index) {
+        if (null != index.getValue()) {
+            setPlayerSelectTrack(index.getValue().intValue());
+        }
+    }
+
+    @Override
+    public void deselectTrack(@NonNull IntPlayerMsg index) {
+        if (null != index.getValue()) {
+            setPlayerDeselectTrack(index.getValue().intValue());
+        }
     }
 }

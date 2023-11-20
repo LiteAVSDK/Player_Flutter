@@ -625,6 +625,10 @@ NSObject<FlutterMessageCodec> *TXFlutterVodPlayerApiGetCodec(void);
 ///
 /// @return `nil` only when `error != nil`.
 - (nullable DoubleMsg *)getDurationPlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable ListMsg *)getAudioTrackInfoPlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)selectTrackIndex:(IntPlayerMsg *)index error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)deselectTrackIndex:(IntPlayerMsg *)index error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterVodPlayerApi> *_Nullable api);
