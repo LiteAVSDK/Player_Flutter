@@ -343,6 +343,32 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     return nil;
 }
 
+- (NSArray *)getAudioTrackInfo
+{
+    if (_txVodPlayer != nil) {
+        NSArray *itemList = [_txVodPlayer getAudioTrackInfo];
+        NSMutableArray *trackInfoList = @[].mutableCopy;
+        for (TXTrackInfo *item in itemList) {
+            [trackInfoList addObject:@{@"trackIndex": @(item.trackIndex), @"name": item.name, @"trackType": @(item.trackType), @"isSelected": @(item.isSelected), @"isExclusive": @(item.isExclusive), @"isInternal": @(item.isInternal)}];
+        }
+        return trackInfoList;
+    }
+    return @[];
+}
+
+- (void)selectTrackIndex:(int)index
+{
+    if (_txVodPlayer != nil) {
+        [_txVodPlayer selectTrack:index];
+    }
+}
+
+- (void)deselectTrackIndex:(int)index
+{
+    if (_txVodPlayer != nil) {
+        [_txVodPlayer deselectTrack:index];
+    }
+}
 
 + (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
 {
@@ -949,6 +975,21 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     BOOL r = [self stopPlay];
     return [CommonUtil boolMsgWith:r];
+}
+
+- (nullable ListMsg *)getAudioTrackInfoPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    NSArray *trackInfoList = [self getAudioTrackInfo];
+    ListMsg *msg = [[ListMsg alloc] init];
+    msg.value = trackInfoList;
+    return msg;
+}
+
+- (void)selectTrackIndex:(nonnull IntPlayerMsg *)index error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self selectTrackIndex:index.value.intValue];
+}
+
+- (void)deselectTrackIndex:(nonnull IntPlayerMsg *)index error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    [self deselectTrackIndex:index.value.intValue];
 }
 
 @end

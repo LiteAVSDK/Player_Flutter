@@ -254,6 +254,28 @@
     return nil;
 }
 
+- (nullable ListMsg *)getAudioTrackInfoPlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing *)error{
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        return [api getAudioTrackInfoPlayerMsg:playerMsg error:error];
+    }
+    return nil;
+}
+
+- (void)selectTrackIndex:(nonnull IntPlayerMsg *)index error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[index.playerId];
+    if(api) {
+        [api selectTrackIndex:index error:error];
+    }
+}
+
+- (void)deselectTrackIndex:(nonnull IntPlayerMsg *)index error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[index.playerId];
+    if(api) {
+        [api deselectTrackIndex:index error:error];
+    }
+}
+
 @end
 
 
