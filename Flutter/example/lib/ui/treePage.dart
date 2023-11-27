@@ -2,10 +2,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:super_player_example/common/demo_config.dart';
 import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/demo_txLiveplayer.dart';
 import 'package:super_player_example/demo_txvodplayer.dart';
 import 'package:super_player_example/res/app_localizations.dart';
+import 'package:super_player/super_player.dart';
 
 import '../demo_short_video_player.dart';
 import 'demo_define.dart';
@@ -28,11 +30,16 @@ class _TreePageState extends State<TreePage> {
     Icons.ac_unit,
     Icons.lightbulb_outline,
   ];
+  /// set player license
+  Future<void> initPlayerLicense() async {
+    await SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
+  }
 
   @override
   void initState() {
     super.initState();
-
+    // license add to here, prevent first launch due to license loading failure caused by no network
+    initPlayerLicense();
     _scrollController.addListener(() {
       // Current position = maximum sliding range means that it has already been scrolled to the bottom.
       if (_scrollController.position.pixels ==
