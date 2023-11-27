@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:super_player/super_player.dart';
+import 'package:super_player_example/common/demo_config.dart';
 import 'package:super_player_example/demo_superplayer.dart';
 import 'package:super_player_example/res/app_localization_delegate.dart';
 import 'package:super_player_example/res/app_localizations.dart';
@@ -40,9 +41,7 @@ class _MyAppState extends State<MyApp> {
 
   /// set player license
   Future<void> initPlayerLicense() async {
-    String licenceURL = ""; // The obtained license URL
-    String licenceKey = ""; // The obtained license key
-    await SuperPlayerPlugin.setGlobalLicense(licenceURL, licenceKey);
+    await SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
