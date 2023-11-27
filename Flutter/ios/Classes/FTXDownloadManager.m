@@ -32,10 +32,6 @@
         _eventChannel = [FlutterEventChannel eventChannelWithName:@"cloud.tencent.com/txvodplayer/download/event" binaryMessenger:[registrar messenger]];
         [_eventChannel setStreamHandler:self];
         [[TXVodDownloadManager shareInstance] setDelegate:self];
-        // Set the download storage path.
-        NSString *cachesDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-        NSString *path = [NSString stringWithFormat:@"%@/videoCache",cachesDir];
-        [[TXVodDownloadManager shareInstance] setDownloadPath:path];
         self.mPreloadQueue = dispatch_queue_create(@"cloud.tencent.com.preload", NULL);
         self.delegateArray = [[NSMutableArray alloc] init];
     }
