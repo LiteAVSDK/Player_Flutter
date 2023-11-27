@@ -273,11 +273,9 @@ SuperPlayerPlugin* instance;
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentDirectory = [[paths objectAtIndex:0] stringByAppendingString:@"/"];
         NSString *preloadDataPath = [documentDirectory stringByAppendingPathComponent:postfixPathStr];
-        if (![[NSFileManager defaultManager] fileExistsAtPath:preloadDataPath]) {
-            NSError *error = nil;
-            [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
-            [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
-        }
+        NSError *error = nil;
+        [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
+        [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
         return [CommonUtil boolMsgWith:YES];
     } else {
         return [CommonUtil boolMsgWith:NO];
