@@ -210,7 +210,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     // software decoding will depend on the window rendering of the surface. Failure to update will result
     // in only 1 pixel of content.
     private void setDefaultBufferSizeForSoftDecode(int width, int height) {
-        if (mSurfaceTextureEntry != null) {
+        if (null != mVodPlayer && mSurfaceTextureEntry != null) {
             SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
             surfaceTexture.setDefaultBufferSize(width, height);
             mSurface = new Surface(surfaceTexture);
