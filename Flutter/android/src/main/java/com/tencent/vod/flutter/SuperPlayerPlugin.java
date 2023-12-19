@@ -372,7 +372,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        Log.i(TAG, "onAttachedToEngine");
+        Log.i(TAG, "onDetachedFromEngine");
         mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
         if (null != mOrientationManager) {

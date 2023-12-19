@@ -39,7 +39,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   Future<void> init() async {
     if (!mounted) return;
     await SuperPlayerPlugin.setConsoleEnabled(true);
-    _controller = TXVodPlayerController();
+    await _controller.initialize();
     _controller.onPlayerState.listen((val) {
       debugPrint("Playback status ${val?.name}");
     });
@@ -81,24 +81,12 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
         });
       }
     });
-
-    await _controller.initialize();
     await _controller.setLoop(true);
     await _controller.enableHardwareDecode(enableHardware);
     await _controller.setAudioPlayoutVolume(volume);
 
     _controller.setConfig(FTXVodPlayConfig());
     await _controller.startVodPlay(_url);
-  }
-
-  void startPlay() async {
-
-    await _controller.startVodPlayWithParams(TXPlayInfoParams(appId: 1500005830, fileId: "243791578431393746",
-        psign: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTUwMDAwNTgzMCwiZmlsZUlkIjoiMjQzNzkxNTc4NDMxMzkzNzQ2IiwiY"
-        "3VycmVudFRpbWVTdGFtcCI6MTY3MzQyNjIyNywiY29udGVudEluZm8iOnsiYXVkaW9WaWRlb1R5cGUiOiJQcm90ZWN0ZWRBZGFwdGl"
-        "2ZSIsImRybUFkYXB0aXZlSW5mbyI6eyJwcml2YXRlRW5jcnlwdGlvbkRlZmluaXRpb24iOjEyfX0sInVybEFjY2Vzc0luZm8iOnsiZ"
-        "G9tYWluIjoiMTUwMDAwNTgzMC52b2QyLm15cWNsb3VkLmNvbSIsInNjaGVtZSI6IkhUVFBTIn19.q34pq7Bl0ryKDwUHGyzfXKP-C"
-        "DI8vrm0k_y-IaxgF_U"));
   }
 
   void _resizeVideo(Map<dynamic, dynamic> event) {
@@ -114,6 +102,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   @override
   void initState() {
     super.initState();
+    _controller = TXVodPlayerController();
     init();
     WidgetsBinding.instance.addObserver(this);
     EasyLoading.show(status: 'loading...');
