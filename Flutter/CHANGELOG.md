@@ -139,3 +139,13 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 
 - set Android TXLiteAVSDK_Professional to 11.4.0.13189，tag：release_pro_v11.4.0
 - set iOS TXLiteAVSDK_Professional to 11.4.14445， tag：release_pro_v11.4.0
+
+
+#### Version: 11.4.1 2023.12.20
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Professional to 11.4.0.13270，tag：release_pro_v11.4.1
+- set iOS TXLiteAVSDK_Professional to 11.4.14552， tag：release_pro_v11.4.1
+- add fileId pre-download capability
+- fix known issues
