@@ -168,13 +168,13 @@ class SuperPlayerController {
           _updatePlayerState(SuperPlayerState.END);
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS:
-          dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS_MS];
-          dynamic duration = event[TXVodPlayEvent.EVT_PLAY_DURATION_MS];
+          dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS];
+          dynamic duration = event[TXVodPlayEvent.EVT_PLAY_DURATION];
           if (null != progress) {
-            currentDuration = progress.toDouble()/1000; // Current time, converted unit: seconds
+            currentDuration = progress.toDouble(); // Current time, converted unit: seconds
           }
           if (null != duration) {
-            videoDuration = duration.toDouble()/1000; // Total playback time, converted unit: seconds
+            videoDuration = duration.toDouble(); // Total playback time, converted unit: seconds
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
