@@ -395,20 +395,22 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: Stack(
-      children: [
-        _getPlayer(),
-        _getTitleArea(),
-        _getPipEnterView(),
-        _getImageSpriteView(),
-        _getCover(),
-        _getBottomView(),
-        _getStartOrResumeBtn(),
-        _getQualityListView(),
-        _getMoreMenuView(),
-        _getLoading(),
-      ],
-    ));
+        child: IntrinsicHeight(
+          child: Stack(
+            children: [
+              _getPlayer(),
+              _getTitleArea(),
+              _getPipEnterView(),
+              _getImageSpriteView(),
+              _getCover(),
+              _getBottomView(),
+              _getStartOrResumeBtn(),
+              _getQualityListView(),
+              _getMoreMenuView(),
+              _getLoading(),
+            ],
+          ),
+        ));
   }
 
   Widget _getImageSpriteView() {
