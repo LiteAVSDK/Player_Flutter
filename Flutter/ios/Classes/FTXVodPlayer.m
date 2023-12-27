@@ -324,10 +324,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
             }
         }
     }
-    if(urlStr && [NSNull null] != (NSNull *)urlStr) {
+    if(urlStr && urlStr.length > 0) {
         vvtUrl =  [NSURL URLWithString:urlStr];
     }
-    [_txImageSprite setVTTUrl:vvtUrl imageUrls:imageUrls];
+    if (vvtUrl && imageUrls.count > 0) {
+        [_txImageSprite setVTTUrl:vvtUrl imageUrls:imageUrls];
+    }
 }
 
 - (NSData*)getPlayerImageSprite:(NSNumber*)time {
