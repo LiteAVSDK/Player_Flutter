@@ -3,6 +3,7 @@ part of demo_super_player_lib;
 
 enum SuperPlayerState {
   INIT,       // Initial state
+  PREPARED,   // prepared
   PLAYING,    // Playing
   PAUSE,      // Paused
   LOADING,    // Buffering
