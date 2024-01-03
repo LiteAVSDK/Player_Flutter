@@ -133,6 +133,8 @@ class SuperPlayerController {
             _vodPlayerController.resume();
           }
           videoDuration = await _vodPlayerController.getDuration();
+          currentDuration = await _vodPlayerController.getCurrentPlaybackTime();
+          _updatePlayerState(SuperPlayerState.PREPARED);
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
           if (playerState == SuperPlayerState.PAUSE) {
@@ -569,6 +571,8 @@ class SuperPlayerController {
     playerState = state;
     switch (state) {
       case SuperPlayerState.INIT:
+        break;
+      case SuperPlayerState.PREPARED:
         _observer?.onPlayPrepare();
         break;
       case SuperPlayerState.PLAYING:
