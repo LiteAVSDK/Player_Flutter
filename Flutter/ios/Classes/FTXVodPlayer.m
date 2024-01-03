@@ -396,12 +396,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
                                              (void **)&_latestPixelBuffer)) {
         pixelBuffer = _latestPixelBuffer;
     }
-    dispatch_async(playerMainqueue, ^{
-        if(!self->isVideoFirstFrameReceived && nil != pixelBuffer) {
-            [self->_eventSink success:[FTXVodPlayer getParamsWithEvent:CODE_ON_RECEIVE_FIRST_FRAME withParams:@{@"EVT_WIDTH":@(self->videoWidth.intValue), @"EVT_HEIGHT":@(self->videoHeight.intValue),@"EVT_PARAM1":@(self->videoWidth.intValue), @"EVT_PARAM2":@(self->videoHeight.intValue)}]];
-            self->isVideoFirstFrameReceived = true;
-        }
-    });
     return pixelBuffer;
 }
 
@@ -412,11 +406,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     // Hand over the first frame event timing to Flutter for shared texture processing.
     if (EvtID == CODE_ON_RECEIVE_FIRST_FRAME) {
         currentPlayTime = 0;
-        dispatch_async(playerMainqueue, ^{
-            self->videoWidth = param[@"EVT_WIDTH"];
-            self->videoHeight = param[@"EVT_HEIGHT"];
-        });
-        return;
+        NSMutableDictionary *mutableDic = param.mutableCopy;
+        self->videoWidth = param[@"EVT_WIDTH"];
+        self->videoHeight = param[@"EVT_HEIGHT"];
+        mutableDic[@"EVT_PARAM1"] = self->videoWidth;
+        mutableDic[@"EVT_PARAM2"] = self->videoHeight;
+        param = mutableDic;
     } else if(EvtID == PLAY_EVT_CHANGE_RESOLUTION) {
         dispatch_async(playerMainqueue, ^{
             self->videoWidth = param[@"EVT_WIDTH"];
