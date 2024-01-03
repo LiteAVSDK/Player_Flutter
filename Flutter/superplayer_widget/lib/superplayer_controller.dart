@@ -132,6 +132,7 @@ class SuperPlayerController {
           } else if (_needToResume) {
             _vodPlayerController.resume();
           }
+          videoDuration = await _vodPlayerController.getDuration();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
           if (playerState == SuperPlayerState.PAUSE) {
