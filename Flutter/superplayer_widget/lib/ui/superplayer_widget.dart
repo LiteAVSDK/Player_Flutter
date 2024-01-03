@@ -158,7 +158,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, () {
       // onPlayPrepare
       _isShowCover = true;
-      _isLoading = true;
+      _isLoading = false;
       _togglePlayUIState(false);
     }, (name) {
       _togglePlayUIState(true);
@@ -268,6 +268,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isShowCover = false;
         _isLoading = true;
         _coverViewKey.currentState?.hideCover();
+        break;
+      case SuperPlayerState.PREPARED:
+        _isPlaying = false;
+        _isLoading = false;
         break;
       case SuperPlayerState.INIT:
         _isPlaying = false;
@@ -600,7 +604,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     int playAction = _playController.videoModel!.playAction;
     if (playerState == SuperPlayerState.LOADING && playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       _playController.resume();
-    } else if (playerState == SuperPlayerState.INIT) {
+    } else if (playerState == SuperPlayerState.INIT || playerState == SuperPlayerState.PREPARED) {
       if (playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
         _playController.resume();
       } else if (playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
@@ -805,16 +809,16 @@ class FullScreenController {
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
-      enterFullScreen();
       SystemChrome.setPreferredOrientations(
           Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      enterFullScreen();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
-      enterFullScreen();
       SystemChrome.setPreferredOrientations(
           Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      enterFullScreen();
     }
   }
 
