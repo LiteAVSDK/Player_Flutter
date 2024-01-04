@@ -85,7 +85,9 @@ class _VideoBottomViewState extends State<VideoBottomView> {
                 image: DecorationImage(
                     image: AssetImage("images/superplayer_bottom_shadow.png", package: PlayerConstants.PKG_NAME),
                     fit: BoxFit.fill)),
-            padding: const EdgeInsets.only(left: 6, right: 6),
+            padding: _showFullScreenBtn
+                ? const EdgeInsets.only(left: 6, right: 6, bottom: 3)
+                : const EdgeInsets.only(left: 20, right: 20, bottom: 13),
             child: Row(
               children: [
                 _getPlayImage(),
