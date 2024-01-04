@@ -695,6 +695,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       return;
     }
 
+    if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    }
     // Hide moreView
     _moreViewKey.currentState?.hideShowMoreView();
     setState(() {

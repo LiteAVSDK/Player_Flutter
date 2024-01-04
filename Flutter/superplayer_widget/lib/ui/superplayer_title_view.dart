@@ -40,10 +40,13 @@ class _VideoTitleViewState extends State<_VideoTitleView> {
           // back
           InkWell(
             onTap: _onTapBackBtn,
-            child: const Image(
-              width: 30,
-              height: 30,
-              image: AssetImage("images/superplayer_btn_back_play.png", package: PlayerConstants.PKG_NAME),
+            child: Container(
+              padding: const EdgeInsets.only(top:5, bottom: 5),
+              child:  Image(
+                width: _isFullScreen ? 50 : 30,
+                height: _isFullScreen ? 50 : 30,
+                image: AssetImage("images/superplayer_btn_back_play.png", package: PlayerConstants.PKG_NAME),
+              ),
             ),
           ),
           // video name
