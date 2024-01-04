@@ -22,7 +22,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late SuperPlayerController _playController;
   bool _isFloatingMode = false;
   bool _isPlaying = false;
-  bool _isLoading = false;
+  bool _isLoading = true;
   bool _isShowCover = true;
 
   double _radioWidth = 0;
@@ -269,13 +269,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isLoading = true;
         _coverViewKey.currentState?.hideCover();
         break;
-      case SuperPlayerState.PREPARED:
-        _isPlaying = false;
-        _isLoading = false;
-        break;
       case SuperPlayerState.INIT:
         _isPlaying = false;
-        _isLoading = true;
+        _isLoading = false;
         break;
     }
   }
@@ -604,7 +600,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     int playAction = _playController.videoModel!.playAction;
     if (playerState == SuperPlayerState.LOADING && playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       _playController.resume();
-    } else if (playerState == SuperPlayerState.INIT || playerState == SuperPlayerState.PREPARED) {
+    } else if (playerState == SuperPlayerState.INIT) {
       if (playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
         _playController.resume();
       } else if (playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
