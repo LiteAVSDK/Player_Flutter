@@ -155,7 +155,7 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 
 ##### 版本特性：
 
-- set Android TXLiteAVSDK_Player to 11.6.0.13613，tag：release_pro_v11.6.0
-- set iOS TXLiteAVSDK_Player to 11.6.15007， tag：release_pro_v11.6.0
+- set Android TXLiteAVSDK_Professional to 11.6.0.13613，tag：release_pro_v11.6.0
+- set iOS TXLiteAVSDK_Professional to 11.6.15007， tag：release_pro_v11.6.0
 - Adapt the Flutter player to the new version of the Flutter SDK
 - fix player and player's widget known issues
