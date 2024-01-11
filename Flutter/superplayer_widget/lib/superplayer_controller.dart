@@ -184,6 +184,7 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION:
           _configVideoSize(event);
+          _observer?.onResolutionChanged();
           break;
       }
     });
@@ -232,6 +233,7 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION:
           _configVideoSize(event);
+          _observer?.onResolutionChanged();
           break;
       }
     });
