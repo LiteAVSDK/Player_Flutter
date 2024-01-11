@@ -73,7 +73,7 @@ class _TreePageState extends State<TreePage> {
             expansionCallback: (panelIndex, isExpanded) {
               setState(() {
                 _panelIndex = panelIndex;
-                _data[panelIndex].isExpanded = !isExpanded;
+                _data[panelIndex].isExpanded = !_data[panelIndex].isExpanded;
               });
             },
             // Content area
