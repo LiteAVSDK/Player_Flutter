@@ -18,6 +18,7 @@ class _SuperPlayerObserver {
   Function(List<VideoQuality>? qualityList, VideoQuality? defaultQuality) onVideoQualityListChange;
   Function(PlayImageSpriteInfo? info, List<PlayKeyFrameDescInfo>? list) onVideoImageSpriteAndKeyFrameChanged;
   Function onRcvFirstIframe;
+  Function onResolutionChanged;
   Function onSysBackPress;
   Function onPreparePlayVideo;
   Function onDispose;
@@ -41,6 +42,7 @@ class _SuperPlayerObserver {
       this.onPlayTimeShiftLive,
       this.onVideoQualityListChange,
       this.onVideoImageSpriteAndKeyFrameChanged,
+      this.onResolutionChanged,
       this.onSysBackPress,
       this.onDispose,);
 }

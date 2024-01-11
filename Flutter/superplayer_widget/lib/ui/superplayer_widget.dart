@@ -99,13 +99,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         () => _playController.playerType == SuperPlayerType.VOD);
 
     _playController.onPlayerNetStatusBroadcast.listen((event) {
-      dynamic wd = (event["VIDEO_WIDTH"]);
-      dynamic hd = (event["VIDEO_HEIGHT"]);
-      if (null != wd && null != hd) {
-        double w = wd.toDouble();
-        double h = hd.toDouble();
-        _calculateSize(w, h);
-      }
+      // do nothing
     });
     // only register listen once
     _pipSubscription =
@@ -178,8 +172,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onRcvFirstIframe
       _coverViewKey.currentState?.hideCover();
       _refreshDownloadStatus();
-      // After receiving the first frame event, adjust the player size according to the resolution parsed by the player kernel
-      _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
       // onPlayLoading
       setState(() {
@@ -218,6 +210,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, (info, list) {
       // onVideoImageSpriteAndKeyFrameChanged
       _videoBottomKey.currentState?.setKeyFrame(list);
+    },(){
+      // onResolutionChanged
+      _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
       // onSysBackPress
       _onControlFullScreen();
@@ -347,7 +342,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _calculateSize(double videoWidth, double videoHeight) {
     if (mounted && (0 != videoWidth && 0 != videoHeight) &&
-        (_videoWidth != videoWidth && _videoHeight != videoHeight)) {
+        (_videoWidth != videoWidth || _videoHeight != videoHeight)) {
       _videoWidth = videoWidth;
       _videoHeight = videoHeight;
       _resizeVideo();
