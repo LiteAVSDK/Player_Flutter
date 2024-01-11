@@ -1,10 +1,10 @@
-#### Version: 1.0.3  
+#### Version: 1.0.3
 
 ##### 分支描述：
 
-main 分支：Android & iOS 端集成TXLiteAVSDK_Player lastest版本 
+main 分支：Android & iOS 端集成TXLiteAVSDK_Player lastest版本
 
-Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版本 
+Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版本
 
 版本特性：
 
@@ -146,3 +146,13 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - set iOS TXLiteAVSDK_Player to 11.4.14552， tag：release_player_v11.4.1
 - add fileId pre-download capability
 - fix known issues
+
+
+#### Version: 11.6.0 2024.01.11
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 11.6.0.13613，tag：release_player_v11.6.0
+- set iOS TXLiteAVSDK_Player to 11.6.15007， tag：release_player_v11.6.0
+- Adapt the Flutter player to the new version of the Flutter SDK
+- fix player and player's widget known issues
