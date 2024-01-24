@@ -51,4 +51,10 @@ class SuperPlayerUIStatus {
   static const PIP_MODE = 2;
 }
 
+/// super player render mode
+enum SuperPlayerRenderMode {
+  FILL_VIEW,
+  ADJUST_RESOLUTION
+}
+
 

@@ -83,9 +83,13 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (void)onApplicationTerminateClick {
     _isTerminate = YES;
-    [_txVodPlayer removeVideoWidget];
-    _txVodPlayer = nil;
-    _txVodPlayer.videoProcessDelegate = nil;
+    _textureRegistry = nil;
+    [self stopPlay];
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer removeVideoWidget];
+        _txVodPlayer = nil;
+        _txVodPlayer.videoProcessDelegate = nil;
+    }
     _textureId = -1;
 }
 
@@ -93,6 +97,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     _isTerminate = YES;
     _textureRegistry = nil;
     [self stopPlay];
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer removeVideoWidget];
+        _txVodPlayer = nil;
+        _txVodPlayer.videoProcessDelegate = nil;
+    }
+    _textureId = -1;
 }
 
 - (void)destory
@@ -472,13 +482,16 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         CVPixelBufferRef old = _latestPixelBuffer;
         while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
                                                  (void **)&_latestPixelBuffer)) {
+            if (_isTerminate) {
+                break;
+            }
             old = _latestPixelBuffer;
         }
 
         if (old && old != pixelBuffer) {
             CFRelease(old);
         }
-        if (!_isStoped && _textureRegistry && _textureId >= 0) {
+        if (!_isTerminate && !_isStoped && _textureRegistry && _textureId >= 0) {
             [_textureRegistry textureFrameAvailable:_textureId];
         }
     }
