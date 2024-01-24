@@ -8,8 +8,9 @@ FullScreenController _fullScreenController = FullScreenController();
 /// superPlayer view widget
 class SuperPlayerView extends StatefulWidget {
   final SuperPlayerController _controller;
+  final SuperPlayerRenderMode renderMode;
 
-  const SuperPlayerView(this._controller, {Key? viewKey}) : super(key: viewKey);
+  SuperPlayerView(this._controller, {Key? viewKey, this.renderMode = SuperPlayerRenderMode.ADJUST_RESOLUTION}) : super(key: viewKey);
 
   @override
   State<StatefulWidget> createState() => SuperPlayerViewState();
@@ -80,8 +81,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         EasyLoading.showToast(FSPLocal.current.txSpwStartDownload);
       }
     });
-    _bottomViewController =
-        BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView, (value) {
+    _bottomViewController = BottomViewController(_onTapPlayControl, _onControlFullScreen, _onControlQualityListView, (value) {
       _taskExecutors.addTask(() => _controlTest(true, value));
     }, () {
       _taskExecutors.addTask(() => _controlTest(false, 0));
@@ -210,7 +210,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, (info, list) {
       // onVideoImageSpriteAndKeyFrameChanged
       _videoBottomKey.currentState?.setKeyFrame(list);
-    },(){
+    }, () {
       // onResolutionChanged
       _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
@@ -317,8 +317,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         checkBrightness();
         // If the screen orientation is changed from landscape to portrait after returning from the background,
         // switch to landscape mode based on the judgment made here.
-        if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE &&
-            defaultTargetPlatform == TargetPlatform.iOS) {
+        if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE && defaultTargetPlatform == TargetPlatform.iOS) {
           Orientation currentOrientation = MediaQuery.of(context).orientation;
           bool isLandscape = currentOrientation == Orientation.landscape;
           if (!isLandscape) {
@@ -335,14 +334,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void checkBrightness() async {
     double? sysBrightness = await SuperPlayerPlugin.getSysBrightness();
     double? windowBrightness = await SuperPlayerPlugin.getBrightness();
-    if(sysBrightness != windowBrightness && null != sysBrightness) {
+    if (sysBrightness != windowBrightness && null != sysBrightness) {
       SuperPlayerPlugin.setBrightness(sysBrightness);
     }
   }
 
   void _calculateSize(double videoWidth, double videoHeight) {
-    if (mounted && (0 != videoWidth && 0 != videoHeight) &&
-        (_videoWidth != videoWidth || _videoHeight != videoHeight)) {
+    if (mounted && (0 != videoWidth && 0 != videoHeight) && (_videoWidth != videoWidth || _videoHeight != videoHeight)) {
       _videoWidth = videoWidth;
       _videoHeight = videoHeight;
       _resizeVideo();
@@ -392,22 +390,29 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: IntrinsicHeight(
-          child: Stack(
-            children: [
-              _getPlayer(),
-              _getTitleArea(),
-              _getPipEnterView(),
-              _getImageSpriteView(),
-              _getCover(),
-              _getBottomView(),
-              _getStartOrResumeBtn(),
-              _getQualityListView(),
-              _getMoreMenuView(),
-              _getLoading(),
-            ],
-          ),
-        ));
+        child: widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
+        IntrinsicHeight(
+                child: _getWidgetBody(),
+              )
+            : _getWidgetBody()
+    );
+  }
+
+  Widget _getWidgetBody() {
+    return Stack(
+      children: [
+        _getPlayer(),
+        _getTitleArea(),
+        _getPipEnterView(),
+        _getImageSpriteView(),
+        _getCover(),
+        _getBottomView(),
+        _getStartOrResumeBtn(),
+        _getQualityListView(),
+        _getMoreMenuView(),
+        _getLoading(),
+      ],
+    );
   }
 
   Widget _getImageSpriteView() {
@@ -451,8 +456,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   Widget _getQualityListView() {
     return Visibility(
       visible: _isShowQualityListView,
-      child: QualityListView(_qualitListViewController, _playController.currentQualityList,
-          _playController.currentQuality, _qualityListKey),
+      child:
+          QualityListView(_qualitListViewController, _playController.currentQualityList, _playController.currentQuality, _qualityListKey),
     );
   }
 
@@ -505,10 +510,14 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       highlightColor: Colors.transparent,
       splashColor: Colors.transparent,
       child: Center(
-        child: AspectRatio(
+        child:  widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
+        AspectRatio(
             aspectRatio: _aspectRatio,
-            child: TXPlayerVideo(
-                controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream())),
+            child: TXPlayerVideo(controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream()))
+        : SizedBox(
+          child: TXPlayerVideo(
+              controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream()),
+        )
       ),
     );
   }
@@ -520,13 +529,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         top: topBottomOffset,
         left: 0,
         right: 0,
-        child: _VideoTitleView(
-            _titleViewController,
-            _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
-            _playController._getPlayName(),
-            _isShowDownload,
-            _isDownloaded,
-            _videoTitleKey),
+        child: _VideoTitleView(_titleViewController, _playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE,
+            _playController._getPlayName(), _isShowDownload, _isDownloaded, _videoTitleKey),
       ),
     );
   }
@@ -805,14 +809,12 @@ class FullScreenController {
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
-      SystemChrome.setPreferredOrientations(
-          Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
+      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       enterFullScreen();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
-      SystemChrome.setPreferredOrientations(
-          Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
+      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       enterFullScreen();
     }
