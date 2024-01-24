@@ -78,15 +78,17 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
         break;
       case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION: //下行视频分辨率改变
         if (defaultTargetPlatform == TargetPlatform.android) {
-          double? videoWidth = (event["videoWidth"]);
-          double? videoHeight = (event["videoHeight"]);
+          int? videoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
+          int? videoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+          videoWidth ??= event[TXVodPlayEvent.EVT_PARAM1];
+          videoHeight ??= event[TXVodPlayEvent.EVT_PARAM2];
           if ((videoWidth != null && videoWidth > 0) && (videoHeight != null && videoHeight > 0)) {
-            resizeVideoWidth = videoWidth;
-            resizeVideoHeight = videoHeight;
-            videoLeft = event["videoLeft"];
-            videoTop = event["videoTop"];
-            videoRight = event["videoRight"];
-            videoBottom = event["videoBottom"];
+            resizeVideoWidth = videoWidth.toDouble();
+            resizeVideoHeight = videoHeight.toDouble();
+            videoLeft = event["videoLeft"] ?? 0;
+            videoTop = event["videoTop"] ?? 0;
+            videoRight = event["videoRight"] ?? 0;
+            videoBottom = event["videoBottom"] ?? 0;
           }
         }
         break;
