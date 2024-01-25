@@ -166,8 +166,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _togglePlayUIState(false);
     }, () {
       // onPlayStop
-      showControlView(false);
-      _togglePlayUIState(false);
+      if (mounted) {
+        showControlView(false);
+        _togglePlayUIState(false);
+      }
     }, () {
       // onRcvFirstIframe
       _coverViewKey.currentState?.hideCover();

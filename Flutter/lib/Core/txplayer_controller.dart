@@ -21,5 +21,5 @@ abstract class TXPlayerController {
   Future<int> enterPictureInPictureMode(
       {String? backIconForAndroid, String? playIconForAndroid, String? pauseIconForAndroid, String? forwardIconForAndroid});
   Future<void> exitPictureInPictureMode();
-  void dispose();
+  Future<void> dispose();
 }

@@ -205,7 +205,7 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT:
         case TXVodPlayEvent.PLAY_EVT_PLAY_END:
-          _stop();
+          stopPlay();
           if (eventCode == TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT) {
             _observer?.onError(SuperPlayerCode.NET_ERROR, FSPLocal.current.txSpwNetWeak);
           } else {
@@ -286,7 +286,7 @@ class SuperPlayerController {
   Future<void> playWithModelNeedLicence(SuperPlayerModel videoModel) async {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
-    await resetPlayer();
+    await stopPlay();
     if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       await _playWithModelInner(videoModel);
     }
@@ -669,23 +669,23 @@ class SuperPlayerController {
     _updatePlayerState(SuperPlayerState.INIT);
   }
 
-  void _stop() async {
-    resetPlayer();
+  Future<void> stopPlay() async {
     _updatePlayerState(SuperPlayerState.END);
+    await resetPlayer();
   }
 
   /// Release the player. Once the player is released, it cannot be used again
   /// 释放播放器，播放器释放之后，将不能再使用
   Future<void> releasePlayer() async {
-    // Remove the event listener for the widget first.
-    _observer?.onDispose();
-    playerStreamController.close();
     // If in picture-in-picture mode, the player should not be released temporarily.
     if (!TXPipController.instance.isPlayerInPip(getCurrentController())) {
-      resetPlayer();
-      _vodPlayerController.dispose();
-      _livePlayerController.dispose();
+      await stopPlay();
+      await _vodPlayerController.dispose();
+      await _livePlayerController.dispose();
     }
+    // Remove the event listener for the widget.
+    _observer?.onDispose();
+    playerStreamController.close();
   }
 
   /// return true: executed exit full screen and other operations, consumed the return event. return false: did not consume the event.
