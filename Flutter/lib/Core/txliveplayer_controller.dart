@@ -365,7 +365,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   /// 释放controller
   @override
-  void dispose() async {
+  Future<void> dispose() async {
     _isNeedDisposed = true;
     if (!_isDisposed) {
       await _eventSubscription!.cancel();
