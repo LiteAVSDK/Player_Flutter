@@ -416,14 +416,18 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
   @override
   void dispose() {
+    _releasePlayerSource();
+    super.dispose();
+  }
+
+  Future<void> _releasePlayerSource() async {
     // must invoke when page exit.
-    _controller.releasePlayer();
-    simpleEventSubscription?.cancel();
+    await _controller.releasePlayer();
     // restore current brightness to sys brightness
     SuperPlayerPlugin.restorePageBrightness();
     // unregister brightness observer
     SuperPlayerPlugin.registerSysBrightness(false);
-    super.dispose();
+    simpleEventSubscription?.cancel();
   }
 
   @override
