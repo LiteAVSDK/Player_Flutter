@@ -156,3 +156,15 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - set iOS TXLiteAVSDK_Player to 11.6.15007， tag：release_player_v11.6.0
 - Adapt the Flutter player to the new version of the Flutter SDK
 - fix player and player's widget known issues
+
+
+#### Version: 11.6.1 2024.01.29
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 11.6.0.13641，tag：release_player_v11.6.1
+- set iOS TXLiteAVSDK_Player to 11.6.15041， tag：release_player_v11.6.1
+- superPlayerWidget add renderMode config
+- superPlayerWidget add stopPlay method
+- vod/live dispose method can await now
+- fix known issues
