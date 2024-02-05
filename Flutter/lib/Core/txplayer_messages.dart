@@ -351,9 +351,9 @@ class FTXVodPlayConfigPlayerMsg {
 
   int? progressInterval;
 
-  int? maxBufferSize;
+  double? maxBufferSize;
 
-  int? maxPreloadSize;
+  double? maxPreloadSize;
 
   int? firstStartPlayBufferTime;
 
@@ -408,8 +408,8 @@ class FTXVodPlayConfigPlayerMsg {
       smoothSwitchBitrate: result[8] as bool?,
       cacheMp4ExtName: result[9] as String?,
       progressInterval: result[10] as int?,
-      maxBufferSize: result[11] as int?,
-      maxPreloadSize: result[12] as int?,
+      maxBufferSize: result[11] as double?,
+      maxPreloadSize: result[12] as double?,
       firstStartPlayBufferTime: result[13] as int?,
       nextStartPlayBufferTime: result[14] as int?,
       overlayKey: result[15] as String?,
@@ -768,7 +768,7 @@ class PreLoadMsg {
 
   String? playUrl;
 
-  int? preloadSizeMB;
+  double? preloadSizeMB;
 
   int? preferredResolution;
 
@@ -784,7 +784,7 @@ class PreLoadMsg {
     result as List<Object?>;
     return PreLoadMsg(
       playUrl: result[0] as String?,
-      preloadSizeMB: result[1] as int?,
+      preloadSizeMB: result[1] as double?,
       preferredResolution: result[2] as int?,
     );
   }
@@ -809,7 +809,7 @@ class PreLoadInfoMsg {
 
   String? playUrl;
 
-  int? preloadSizeMB;
+  double? preloadSizeMB;
 
   int? preferredResolution;
 
@@ -834,7 +834,7 @@ class PreLoadInfoMsg {
       fileId: result[1] as String?,
       pSign: result[2] as String?,
       playUrl: result[3] as String?,
-      preloadSizeMB: result[4] as int?,
+      preloadSizeMB: result[4] as double?,
       preferredResolution: result[5] as int?,
       tmpPreloadTaskId: result[6] as int?,
     );

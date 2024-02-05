@@ -966,23 +966,23 @@ public class FtxMessages {
       this.progressInterval = setterArg;
     }
 
-    private @Nullable Long maxBufferSize;
+    private @Nullable Double maxBufferSize;
 
-    public @Nullable Long getMaxBufferSize() {
+    public @Nullable Double getMaxBufferSize() {
       return maxBufferSize;
     }
 
-    public void setMaxBufferSize(@Nullable Long setterArg) {
+    public void setMaxBufferSize(@Nullable Double setterArg) {
       this.maxBufferSize = setterArg;
     }
 
-    private @Nullable Long maxPreloadSize;
+    private @Nullable Double maxPreloadSize;
 
-    public @Nullable Long getMaxPreloadSize() {
+    public @Nullable Double getMaxPreloadSize() {
       return maxPreloadSize;
     }
 
-    public void setMaxPreloadSize(@Nullable Long setterArg) {
+    public void setMaxPreloadSize(@Nullable Double setterArg) {
       this.maxPreloadSize = setterArg;
     }
 
@@ -1135,16 +1135,16 @@ public class FtxMessages {
         return this;
       }
 
-      private @Nullable Long maxBufferSize;
+      private @Nullable Double maxBufferSize;
 
-      public @NonNull Builder setMaxBufferSize(@Nullable Long setterArg) {
+      public @NonNull Builder setMaxBufferSize(@Nullable Double setterArg) {
         this.maxBufferSize = setterArg;
         return this;
       }
 
-      private @Nullable Long maxPreloadSize;
+      private @Nullable Double maxPreloadSize;
 
-      public @NonNull Builder setMaxPreloadSize(@Nullable Long setterArg) {
+      public @NonNull Builder setMaxPreloadSize(@Nullable Double setterArg) {
         this.maxPreloadSize = setterArg;
         return this;
       }
@@ -1275,9 +1275,9 @@ public class FtxMessages {
       Object progressInterval = list.get(10);
       pigeonResult.setProgressInterval((progressInterval == null) ? null : ((progressInterval instanceof Integer) ? (Integer) progressInterval : (Long) progressInterval));
       Object maxBufferSize = list.get(11);
-      pigeonResult.setMaxBufferSize((maxBufferSize == null) ? null : ((maxBufferSize instanceof Integer) ? (Integer) maxBufferSize : (Long) maxBufferSize));
+      pigeonResult.setMaxBufferSize((Double) maxBufferSize);
       Object maxPreloadSize = list.get(12);
-      pigeonResult.setMaxPreloadSize((maxPreloadSize == null) ? null : ((maxPreloadSize instanceof Integer) ? (Integer) maxPreloadSize : (Long) maxPreloadSize));
+      pigeonResult.setMaxPreloadSize((Double) maxPreloadSize);
       Object firstStartPlayBufferTime = list.get(13);
       pigeonResult.setFirstStartPlayBufferTime((firstStartPlayBufferTime == null) ? null : ((firstStartPlayBufferTime instanceof Integer) ? (Integer) firstStartPlayBufferTime : (Long) firstStartPlayBufferTime));
       Object nextStartPlayBufferTime = list.get(14);
@@ -2262,13 +2262,13 @@ public class FtxMessages {
       this.playUrl = setterArg;
     }
 
-    private @Nullable Long preloadSizeMB;
+    private @Nullable Double preloadSizeMB;
 
-    public @Nullable Long getPreloadSizeMB() {
+    public @Nullable Double getPreloadSizeMB() {
       return preloadSizeMB;
     }
 
-    public void setPreloadSizeMB(@Nullable Long setterArg) {
+    public void setPreloadSizeMB(@Nullable Double setterArg) {
       this.preloadSizeMB = setterArg;
     }
 
@@ -2291,9 +2291,9 @@ public class FtxMessages {
         return this;
       }
 
-      private @Nullable Long preloadSizeMB;
+      private @Nullable Double preloadSizeMB;
 
-      public @NonNull Builder setPreloadSizeMB(@Nullable Long setterArg) {
+      public @NonNull Builder setPreloadSizeMB(@Nullable Double setterArg) {
         this.preloadSizeMB = setterArg;
         return this;
       }
@@ -2328,7 +2328,7 @@ public class FtxMessages {
       Object playUrl = list.get(0);
       pigeonResult.setPlayUrl((String) playUrl);
       Object preloadSizeMB = list.get(1);
-      pigeonResult.setPreloadSizeMB((preloadSizeMB == null) ? null : ((preloadSizeMB instanceof Integer) ? (Integer) preloadSizeMB : (Long) preloadSizeMB));
+      pigeonResult.setPreloadSizeMB((Double) preloadSizeMB);
       Object preferredResolution = list.get(2);
       pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
       return pigeonResult;
@@ -2377,13 +2377,13 @@ public class FtxMessages {
       this.playUrl = setterArg;
     }
 
-    private @Nullable Long preloadSizeMB;
+    private @Nullable Double preloadSizeMB;
 
-    public @Nullable Long getPreloadSizeMB() {
+    public @Nullable Double getPreloadSizeMB() {
       return preloadSizeMB;
     }
 
-    public void setPreloadSizeMB(@Nullable Long setterArg) {
+    public void setPreloadSizeMB(@Nullable Double setterArg) {
       this.preloadSizeMB = setterArg;
     }
 
@@ -2437,9 +2437,9 @@ public class FtxMessages {
         return this;
       }
 
-      private @Nullable Long preloadSizeMB;
+      private @Nullable Double preloadSizeMB;
 
-      public @NonNull Builder setPreloadSizeMB(@Nullable Long setterArg) {
+      public @NonNull Builder setPreloadSizeMB(@Nullable Double setterArg) {
         this.preloadSizeMB = setterArg;
         return this;
       }
@@ -2495,7 +2495,7 @@ public class FtxMessages {
       Object playUrl = list.get(3);
       pigeonResult.setPlayUrl((String) playUrl);
       Object preloadSizeMB = list.get(4);
-      pigeonResult.setPreloadSizeMB((preloadSizeMB == null) ? null : ((preloadSizeMB instanceof Integer) ? (Integer) preloadSizeMB : (Long) preloadSizeMB));
+      pigeonResult.setPreloadSizeMB((Double) preloadSizeMB);
       Object preferredResolution = list.get(5);
       pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
       Object tmpPreloadTaskId = list.get(6);

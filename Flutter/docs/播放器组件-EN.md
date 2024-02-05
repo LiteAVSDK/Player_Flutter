@@ -381,27 +381,27 @@ _controller.setPlayConfig(config);
 
 **Parameter description**
 
-| Parameter | Type | Description |
-| ------ | ------ | ------------------ |
-| connectRetryCount | int | Number of player reconnections. If the SDK is disconnected from the server due to an exception, the SDK will attempt to reconnect to the server |
-| connectRetryInterval | int | Interval between two player reconnections. If the SDK is disconnected from the server due to an exception, the SDK will attempt to reconnect to the server |
-| timeout | int | Player connection timeout period |
-| playerType | int | Player type. Valid values: 0: VOD; 1: live streaming; 2: live stream replay |
-| headers | Map | Custom HTTP headers |
-| enableAccurateSeek | bool | Whether to enable accurate seek. Default value: true |
-| autoRotate | bool | If it is set to `true`, the MP4 file will be automatically rotated according to the rotation angle set in the file, which can be obtained from the `PLAY_EVT_CHANGE_ROTATION` event. Default value: true |
-| smoothSwitchBitrate | bool | Whether to enable smooth multi-bitrate HLS stream switch. If it is set to `false` (default), multi-bitrate URLs are opened faster. If it is set to `true`, the bitrate can be switched smoothly when IDR frames are aligned |
+| Parameter | Type   | Description |
+| ------ |--------| ------------------ |
+| connectRetryCount | int    | Number of player reconnections. If the SDK is disconnected from the server due to an exception, the SDK will attempt to reconnect to the server |
+| connectRetryInterval | int    | Interval between two player reconnections. If the SDK is disconnected from the server due to an exception, the SDK will attempt to reconnect to the server |
+| timeout | int    | Player connection timeout period |
+| playerType | int    | Player type. Valid values: 0: VOD; 1: live streaming; 2: live stream replay |
+| headers | Map    | Custom HTTP headers |
+| enableAccurateSeek | bool   | Whether to enable accurate seek. Default value: true |
+| autoRotate | bool   | If it is set to `true`, the MP4 file will be automatically rotated according to the rotation angle set in the file, which can be obtained from the `PLAY_EVT_CHANGE_ROTATION` event. Default value: true |
+| smoothSwitchBitrate | bool   | Whether to enable smooth multi-bitrate HLS stream switch. If it is set to `false` (default), multi-bitrate URLs are opened faster. If it is set to `true`, the bitrate can be switched smoothly when IDR frames are aligned |
 | cacheMp4ExtName | String | Cached MP4 filename extension. Default value: mp4 |
-| progressInterval | int | Progress callback interval in ms. If it is not set, the SDK will call back the progress once every 0.5 seconds |
-| maxBufferSize | int | Maximum size of playback buffer in MB. The setting will affect `playableDuration`. The greater the value, the more the data that is buffered in advance |
-| maxPreloadSize | int | Maximum preload buffer size in MB |
-| firstStartPlayBufferTime | int | Duration of the video data that needs to be loaded during the first buffering in ms. Default value: 100 ms |
-| nextStartPlayBufferTime | int | Minimum buffered data size to stop buffering (secondary buffering for insufficient buffered data or progress bar drag buffering caused by `seek`) in ms. Default value: 250 ms |
+| progressInterval | int    | Progress callback interval in ms. If it is not set, the SDK will call back the progress once every 0.5 seconds |
+| maxBufferSize | double | Maximum size of playback buffer in MB. The setting will affect `playableDuration`. The greater the value, the more the data that is buffered in advance |
+| maxPreloadSize | double | Maximum preload buffer size in MB |
+| firstStartPlayBufferTime | int    | Duration of the video data that needs to be loaded during the first buffering in ms. Default value: 100 ms |
+| nextStartPlayBufferTime | int    | Minimum buffered data size to stop buffering (secondary buffering for insufficient buffered data or progress bar drag buffering caused by `seek`) in ms. Default value: 250 ms |
 | overlayKey | String | HLS security hardening encryption and decryption key |
 | overlayIv | String | HLS security hardening encryption and decryption IV |
-| extInfoMap | Map | Some special configuration items |
-| enableRenderProcess | bool | Whether to allow the postrendering and postproduction feature, which is enabled by default. If the super-resolution plugin exists after it is enabled, the plugin will be loaded by default |
-| preferredResolution | int | Resolution of the video used for playback preferably. `preferredResolution` = `width` * `height` |
+| extInfoMap | Map    | Some special configuration items |
+| enableRenderProcess | bool   | Whether to allow the postrendering and postproduction feature, which is enabled by default. If the super-resolution plugin exists after it is enabled, the plugin will be loaded by default |
+| preferredResolution | int    | Resolution of the video used for playback preferably. `preferredResolution` = `width` * `height` |
 
 #### Enabling/Disabling hardware decoding
 
