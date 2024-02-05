@@ -14,8 +14,8 @@
     config.enableAccurateSeek = msg.enableAccurateSeek.boolValue;
     config.autoRotate = msg.autoRotate.boolValue;
     config.smoothSwitchBitrate = msg.smoothSwitchBitrate.boolValue;
-    config.maxBufferSize = msg.maxBufferSize.intValue;
-    config.maxPreloadSize = msg.maxPreloadSize.intValue;
+    config.maxBufferSize = msg.maxBufferSize.floatValue;
+    config.maxPreloadSize = msg.maxPreloadSize.floatValue;
     config.firstStartPlayBufferTime = msg.firstStartPlayBufferTime.intValue;
     config.nextStartPlayBufferTime = msg.nextStartPlayBufferTime.intValue;
     config.enableRenderProcess = msg.enableRenderProcess.boolValue;

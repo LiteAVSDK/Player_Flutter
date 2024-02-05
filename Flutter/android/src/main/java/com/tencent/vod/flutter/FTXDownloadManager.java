@@ -283,7 +283,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     @Override
     public IntMsg startPreLoad(@NonNull PreLoadMsg msg) {
         String playUrl = msg.getPlayUrl();
-        int preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().intValue() : 0;
+        float preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().floatValue() : 0;
         long preferredResolution = msg.getPreferredResolution() != null ? msg.getPreferredResolution() : 0;
         final TXVodPreloadManager downloadManager =
                 TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
@@ -320,7 +320,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                 }
                 final TXVodPreloadManager downloadManager =
                         TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
-                int preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().intValue() : 0;
+                float preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().floatValue() : 0;
                 final long tmpTaskId = msg.getTmpPreloadTaskId() != null ? msg.getTmpPreloadTaskId() : -1;
                 long preferredResolution = msg.getPreferredResolution() != null ? msg.getPreferredResolution() : 0;
                 int retTaskID = downloadManager.startPreload(txPlayInfoParams, preloadSizeMB, preferredResolution,

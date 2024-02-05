@@ -51,11 +51,11 @@ class FTXVodPlayConfig {
   // Maximum playback buffer size, in MB. This setting will affect playableDuration.
   // The larger the setting, the more data will be cached in advance.
   // 最大播放缓冲大小，单位 MB。此设置会影响playableDuration，设置越大，提前缓存的越多
-  int maxBufferSize = 0;
+  double maxBufferSize = 10;
 
   // Maximum preloading buffer size, in MB.
   // 预加载最大缓冲大小，单位：MB
-  int maxPreloadSize = 0;
+  double maxPreloadSize = 1;
 
   // Duration of data to be loaded for the first buffering, in milliseconds. The default value is 100ms.
   // 首缓需要加载的数据时长，单位ms，默认值为100ms
