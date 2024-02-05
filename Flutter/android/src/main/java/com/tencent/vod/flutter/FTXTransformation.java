@@ -53,10 +53,10 @@ public class FTXTransformation {
             playConfig.setProgressInterval(configPlayerMsg.getProgressInterval().intValue());
         }
         if (null != configPlayerMsg.getMaxBufferSize()) {
-            playConfig.setMaxBufferSize(configPlayerMsg.getMaxBufferSize().intValue());
+            playConfig.setMaxBufferSize(configPlayerMsg.getMaxBufferSize().floatValue());
         }
         if (null != configPlayerMsg.getMaxPreloadSize()) {
-            playConfig.setMaxPreloadSize(configPlayerMsg.getMaxPreloadSize().intValue());
+            playConfig.setMaxPreloadSize(configPlayerMsg.getMaxPreloadSize().floatValue());
         }
         if (null != configPlayerMsg.getFirstStartPlayBufferTime()) {
             playConfig.setFirstStartPlayBufferTime(configPlayerMsg.getFirstStartPlayBufferTime().intValue());
@@ -126,12 +126,12 @@ public class FTXTransformation {
         if (intIsNotEmpty(progressInterval)) {
             playConfig.setProgressInterval(progressInterval);
         }
-        Integer maxBufferSize = (Integer) config.get("maxBufferSize");
-        if (intIsNotEmpty(maxBufferSize)) {
+        Float maxBufferSize = (Float) config.get("maxBufferSize");
+        if (floatIsNotEmpty(maxBufferSize)) {
             playConfig.setMaxBufferSize(maxBufferSize);
         }
-        Integer maxPreloadSize = (Integer) config.get("maxPreloadSize");
-        if (intIsNotEmpty(maxPreloadSize)) {
+        Float maxPreloadSize = (Float) config.get("maxPreloadSize");
+        if (floatIsNotEmpty(maxPreloadSize)) {
             playConfig.setMaxPreloadSize(maxPreloadSize);
         }
         Integer firstStartPlayBufferTime = (Integer) config.get("firstStartPlayBufferTime");
@@ -265,6 +265,10 @@ public class FTXTransformation {
     }
 
     private static boolean intIsNotEmpty(Integer value) {
+        return null != value && value > 0;
+    }
+
+    private static boolean floatIsNotEmpty(Float value) {
         return null != value && value > 0;
     }
 
