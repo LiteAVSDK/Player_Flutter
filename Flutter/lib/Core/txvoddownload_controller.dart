@@ -55,7 +55,7 @@ class TXVodDownloadController {
   /// 返回值：任务ID，可用这个任务ID停止预下载 [stopPreload]
   Future<int> startPreLoad(
     final String playUrl,
-    final int preloadSizeMB,
+    final double preloadSizeMB,
     final int preferredResolution, {
     FTXPredownlodOnCompleteListener? onCompleteListener,
     FTXPredownlodOnErrorListener? onErrorListener,
@@ -75,7 +75,7 @@ class TXVodDownloadController {
 
   Future<void> startPreload(
     TXPlayInfoParams txPlayInfoParams,
-    final int preloadSizeMB,
+    final double preloadSizeMB,
     final int preferredResolution, {
     FTXPredownlodOnCompleteListener? onCompleteListener,
     FTXPredownlodOnErrorListener? onErrorListener,

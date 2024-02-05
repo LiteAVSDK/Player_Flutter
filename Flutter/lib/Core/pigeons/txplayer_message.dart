@@ -110,10 +110,10 @@ class FTXVodPlayConfigPlayerMsg {
   int? progressInterval;
 
   // 最大播放缓冲大小，单位 MB。此设置会影响playableDuration，设置越大，提前缓存的越多
-  int? maxBufferSize;
+  double? maxBufferSize;
 
   // 预加载最大缓冲大小，单位：MB
-  int? maxPreloadSize;
+  double? maxPreloadSize;
 
   // 首缓需要加载的数据时长，单位ms，默认值为100ms
   int? firstStartPlayBufferTime;
@@ -263,7 +263,7 @@ class DoubleMsg {
 
 class PreLoadMsg {
   String? playUrl;
-  int? preloadSizeMB;
+  double? preloadSizeMB;
   int? preferredResolution;
 }
 
@@ -272,7 +272,7 @@ class PreLoadInfoMsg {
   String? fileId;
   String? pSign;
   String? playUrl;
-  int? preloadSizeMB;
+  double? preloadSizeMB;
   int? preferredResolution;
   int? tmpPreloadTaskId;
 }

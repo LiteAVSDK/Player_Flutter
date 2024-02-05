@@ -138,6 +138,9 @@ SuperPlayerPlugin* instance;
             [player notifyAppTerminate:application];
         }
     }
+    if (nil != _fTXDownloadManager) {
+        [_fTXDownloadManager destroy];
+    }
 }
 
 #pragma mark - FlutterStreamHandler

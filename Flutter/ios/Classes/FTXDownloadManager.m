@@ -320,7 +320,7 @@
 }
 
 - (nullable IntMsg *)startPreLoadMsg:(nonnull PreLoadMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    int preloadSizeMB = [msg.preloadSizeMB intValue];
+    float preloadSizeMB = [msg.preloadSizeMB floatValue];
     int preferredResolution = [msg.preferredResolution intValue];
     int taskID = [[TXVodPreloadManager sharedManager] startPreload:msg.playUrl
                                                        preloadSize:preloadSizeMB
@@ -341,7 +341,7 @@
 - (void)startPreLoadByParamsMsg:(PreLoadInfoMsg *)msg error:(FlutterError * _Nullable __autoreleasing *)error {
     dispatch_async(self.mPreloadQueue, ^{
         BOOL isUrlPreload = msg.playUrl != nil && [msg.playUrl isKindOfClass:[NSString class]] && msg.playUrl.length > 0;
-        int preloadSizeMB = [msg.preloadSizeMB intValue];
+        float preloadSizeMB = [msg.preloadSizeMB floatValue];
         int preferredResolution = [msg.preferredResolution intValue];
         long tmpTaskId = [msg.tmpPreloadTaskId longValue];
         NSString *fileId = (msg.fileId != nil && [msg.fileId isKindOfClass:[NSString class]]) ? msg.fileId : @"";
