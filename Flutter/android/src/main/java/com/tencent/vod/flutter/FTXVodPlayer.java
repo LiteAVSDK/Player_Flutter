@@ -248,6 +248,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         if (mVodPlayer == null) {
             mVodPlayer = new TXVodPlayer(mFlutterPluginBinding.getApplicationContext());
             mVodPlayer.setVodListener(this);
+            // prevent config null exception
+            mVodPlayer.setConfig(new TXVodPlayConfig());
             setPlayer(onlyAudio);
         }
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
