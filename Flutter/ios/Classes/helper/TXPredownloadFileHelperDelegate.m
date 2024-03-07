@@ -1,7 +1,7 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
-#import "PredownloadFileHelperDelegate.h"
+#import "TXPredownloadFileHelperDelegate.h"
 
-@interface PredownloadFileHelperDelegate()
+@interface TXPredownloadFileHelperDelegate()
 
 @property (nonatomic, assign)long tmpTaskId;
 @property (nonatomic, strong)FTXPreDownloadOnStart onStartBlock;
@@ -10,7 +10,7 @@
 
 @end
 
-@implementation PredownloadFileHelperDelegate
+@implementation TXPredownloadFileHelperDelegate
 
 - (instancetype)initWithBlock:(long)tmpTaskId start:(FTXPreDownloadOnStart)onStart complete:(FTXPreDownloadOnCompelete)onComplete error:(FTXPreDownloadOnError)onError {
         self = [super init];

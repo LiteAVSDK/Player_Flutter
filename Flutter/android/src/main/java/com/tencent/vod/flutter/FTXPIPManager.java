@@ -26,9 +26,9 @@ import android.util.Log;
 import android.util.Rational;
 
 import androidx.annotation.RequiresApi;
-import com.tencent.vod.flutter.model.PipResult;
-import com.tencent.vod.flutter.model.VideoModel;
-import com.tencent.vod.flutter.tools.CommonUtil;
+import com.tencent.vod.flutter.model.TXPipResult;
+import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.ui.FlutterPipImplActivity;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding;
@@ -69,13 +69,13 @@ public class FTXPIPManager {
                 Bundle data = intent.getExtras();
                 if ((pipEventId == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT
                         || pipEventId == FTXEvent.EVENT_PIP_MODE_RESTORE_UI) && null != data) {
-                    PipResult pipResult = data.getParcelable(FTXEvent.EXTRA_NAME_RESULT);
+                    TXPipResult pipResult = data.getParcelable(FTXEvent.EXTRA_NAME_RESULT);
                     if (null != pipResult) {
                         callbackData.putDouble(FTXEvent.EVENT_PIP_PLAY_TIME, pipResult.getPlayTime());
                         handlePipResult(pipResult);
                     }
                 }
-                mPipEventSink.success(CommonUtil.getParams(pipEventId, callbackData));
+                mPipEventSink.success(TXCommonUtil.getParams(pipEventId, callbackData));
             }
         }
     };
@@ -132,7 +132,7 @@ public class FTXPIPManager {
         }
     }
 
-    private void handlePipResult(PipResult result) {
+    private void handlePipResult(TXPipResult result) {
         PipCallback pipCallback = pipCallbacks.get(result.getPlayerId());
         if (null != pipCallback) {
             pipCallback.onPipResult(result);
@@ -146,10 +146,10 @@ public class FTXPIPManager {
      *
      * @return {@link FTXEvent} ERROR_PIP
      */
-    public int enterPip(PipParams params, VideoModel videoModel) {
+    public int enterPip(PipParams params, TXVideoModel videoModel) {
         int pipResult = isSupportDevice();
         if (pipResult == FTXEvent.NO_ERROR) {
-            mPipEventSink.success(CommonUtil.getParams(FTXEvent.EVENT_PIP_MODE_REQUEST_START, null));
+            mPipEventSink.success(TXCommonUtil.getParams(FTXEvent.EVENT_PIP_MODE_REQUEST_START, null));
             Intent intent = new Intent(mActivityBinding.getActivity(), FlutterPipImplActivity.class);
             intent.setAction(FTXEvent.PIP_ACTION_START);
             intent.putExtra(FTXEvent.EXTRA_NAME_PARAMS, params);
@@ -501,6 +501,6 @@ public class FTXPIPManager {
          * Close PIP.
          * pip关闭
          */
-        void onPipResult(PipResult result);
+        void onPipResult(TXPipResult result);
     }
 }

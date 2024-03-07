@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
-#ifndef SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_PREDOWNLOADFILEHELPERDELEGATE_H_
-#define SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_PREDOWNLOADFILEHELPERDELEGATE_H_
+#ifndef SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_TXPREDOWNLOADFILEHELPERDELEGATE_H_
+#define SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_TXPREDOWNLOADFILEHELPERDELEGATE_H_
 
 #import <Foundation/Foundation.h>
 #import <TXLiteAVSDK_Professional/TXVodPreloadManager.h>
@@ -11,7 +11,7 @@ typedef void (^FTXPreDownloadOnStart)(long tmpTaskId, int taskID, NSString* file
 typedef void (^FTXPreDownloadOnCompelete)(int taskID, NSString* url);
 typedef void (^FTXPreDownloadOnError)(long tmpTaskId, int taskID, NSString* url, NSError* error);
 
-@interface PredownloadFileHelperDelegate : NSObject<TXVodPreloadManagerDelegate>
+@interface TXPredownloadFileHelperDelegate : NSObject<TXVodPreloadManagerDelegate>
 
 - (instancetype)initWithBlock:(long)tmpTaskId start:(FTXPreDownloadOnStart)onStart
                      complete:(FTXPreDownloadOnCompelete)onComplete
@@ -20,4 +20,4 @@ typedef void (^FTXPreDownloadOnError)(long tmpTaskId, int taskID, NSString* url,
 @end
 
 NS_ASSUME_NONNULL_END
-#endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_PREDOWNLOADFILEHELPERDELEGATE_H_
+#endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_TXPREDOWNLOADFILEHELPERDELEGATE_H_

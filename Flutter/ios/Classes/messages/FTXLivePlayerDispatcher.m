@@ -4,7 +4,7 @@
 
 @implementation FTXLivePlayerDispatcher
 
-- (instancetype)initWithBridge:(id<IPlayersBridge>)dataBridge {
+- (instancetype)initWithBridge:(id<ITXPlayersBridge>)dataBridge {
     if(self = [self init]) {
         self.bridge = dataBridge;
     }

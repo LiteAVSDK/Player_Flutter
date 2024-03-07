@@ -12,7 +12,7 @@ import com.tencent.vod.flutter.FTXEvent;
  *
  * 视频model
  */
-public class VideoModel implements Parcelable {
+public class TXVideoModel implements Parcelable {
 
     private String videoUrl;
     private int appId;
@@ -22,9 +22,9 @@ public class VideoModel implements Parcelable {
     private int mLiveType = TXLivePlayer.PLAY_TYPE_LIVE_FLV;
     private String mToken;
 
-    public VideoModel() {}
+    public TXVideoModel() {}
 
-    protected VideoModel(Parcel in) {
+    protected TXVideoModel(Parcel in) {
         videoUrl = in.readString();
         appId = in.readInt();
         fileId = in.readString();
@@ -34,15 +34,15 @@ public class VideoModel implements Parcelable {
         mToken = in.readString();
     }
 
-    public static final Creator<VideoModel> CREATOR = new Creator<VideoModel>() {
+    public static final Creator<TXVideoModel> CREATOR = new Creator<TXVideoModel>() {
         @Override
-        public VideoModel createFromParcel(Parcel in) {
-            return new VideoModel(in);
+        public TXVideoModel createFromParcel(Parcel in) {
+            return new TXVideoModel(in);
         }
 
         @Override
-        public VideoModel[] newArray(int size) {
-            return new VideoModel[size];
+        public TXVideoModel[] newArray(int size) {
+            return new TXVideoModel[size];
         }
     };
 

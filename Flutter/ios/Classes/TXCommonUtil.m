@@ -1,9 +1,9 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
-#import "CommonUtil.h"
+#import "TXCommonUtil.h"
 #import <Flutter/Flutter.h>
 
-@implementation CommonUtil
+@implementation TXCommonUtil
 
 + (NSNumber*)getDownloadEventByState:(int)downloadState{
     int result;
