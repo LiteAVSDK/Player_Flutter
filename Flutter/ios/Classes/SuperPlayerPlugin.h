@@ -3,7 +3,7 @@
 #define SUPERPLAYER_FLUTTER_IOS_CLASSES_SUPERPLAYERPLUGIN_H_
 
 #import <Flutter/Flutter.h>
-#import "CommonUtil.h"
+#import "TXCommonUtil.h"
 
 @interface SuperPlayerPlugin : NSObject<FlutterPlugin>
 

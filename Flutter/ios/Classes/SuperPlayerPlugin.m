@@ -13,7 +13,7 @@
 #import "FTXVodPlayerDispatcher.h"
 #import "FTXLivePlayerDispatcher.h"
 
-@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, IPlayersBridge, FlutterPlugin>
+@interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, ITXPlayersBridge, FlutterPlugin, TXLiveBaseDelegate>
 
 @property (nonatomic, strong) NSObject<FlutterPluginRegistrar>* registrar;
 @property (nonatomic, strong) NSMutableDictionary *players;
@@ -40,7 +40,7 @@ SuperPlayerPlugin* instance;
     TXFlutterVodPlayerApiSetup([registrar messenger], [[FTXVodPlayerDispatcher alloc] initWithBridge:instance]);
     TXFlutterLivePlayerApiSetup([registrar messenger], [[FTXLivePlayerDispatcher alloc] initWithBridge:instance]);
     [registrar addApplicationDelegate:instance];
-    
+    [TXLiveBase sharedInstance].delegate = instance;
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -238,7 +238,7 @@ SuperPlayerPlugin* instance;
     FTXLivePlayer* player = [[FTXLivePlayer alloc] initWithRegistrar:self.registrar];
     NSNumber *playerId = player.playerId;
     _players[playerId] = player;
-    return [CommonUtil playerMsgWith:playerId];
+    return [TXCommonUtil playerMsgWith:playerId];
 }
 
 - (nullable PlayerMsg *)createVodPlayerWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -246,15 +246,15 @@ SuperPlayerPlugin* instance;
     player.delegate = self;
     NSNumber *playerId = player.playerId;
     _players[playerId] = player;
-    return [CommonUtil playerMsgWith:playerId];
+    return [TXCommonUtil playerMsgWith:playerId];
 }
 
 - (nullable StringMsg *)getLiteAVSDKVersionWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [CommonUtil stringMsgWith:[TXLiveBase getSDKVersionStr]];
+    return [TXCommonUtil stringMsgWith:[TXLiveBase getSDKVersionStr]];
 }
 
 - (nullable StringMsg *)getPlatformVersionWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [CommonUtil stringMsgWith:[@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]];
+    return [TXCommonUtil stringMsgWith:[@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]];
 }
 
 - (void)releasePlayerPlayerId:(nonnull PlayerMsg *)playerId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -279,16 +279,16 @@ SuperPlayerPlugin* instance;
         NSError *error = nil;
         [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
         [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
-        return [CommonUtil boolMsgWith:YES];
+        return [TXCommonUtil boolMsgWith:YES];
     } else {
-        return [CommonUtil boolMsgWith:NO];
+        return [TXCommonUtil boolMsgWith:NO];
     }
     
 }
 
 - (nullable IntMsg *)setGlobalEnvEnvConfig:(nonnull StringMsg *)envConfig error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int setResult = [TXLiveBase setGlobalEnv:[envConfig.value UTF8String]];
-    return [CommonUtil intMsgWith:@(setResult)];
+    return [TXCommonUtil intMsgWith:@(setResult)];
 }
 
 - (void)setGlobalLicenseLicenseMsg:(nonnull LicenseMsg *)licenseMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -307,7 +307,7 @@ SuperPlayerPlugin* instance;
 
 - (nullable BoolMsg *)startVideoOrientationServiceWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     // only for android
-    return [CommonUtil boolMsgWith:YES];
+    return [TXCommonUtil boolMsgWith:YES];
 }
 
 #pragma mark nativeAPI
@@ -318,23 +318,23 @@ SuperPlayerPlugin* instance;
 
 - (nullable DoubleMsg *)getBrightnessWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber *brightness = [NSNumber numberWithFloat:[UIScreen mainScreen].brightness];
-    return [CommonUtil doubleMsgWith:brightness.doubleValue];
+    return [TXCommonUtil doubleMsgWith:brightness.doubleValue];
 }
 
 - (DoubleMsg *)getSysBrightnessWithError:(FlutterError * _Nullable __autoreleasing *)error {
     NSNumber *brightness = [NSNumber numberWithFloat:[UIScreen mainScreen].brightness];
-    return [CommonUtil doubleMsgWith:brightness.doubleValue];
+    return [TXCommonUtil doubleMsgWith:brightness.doubleValue];
 }
 
 - (nullable DoubleMsg *)getSystemVolumeWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber *volume = [NSNumber numberWithFloat:[audioManager getVolume]];
-    return [CommonUtil doubleMsgWith:volume.doubleValue];
+    return [TXCommonUtil doubleMsgWith:volume.doubleValue];
 }
 
 - (nullable IntMsg *)isDeviceSupportPipWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     BOOL isSupport = [TXVodPlayer isSupportPictureInPicture];
     int pipSupportResult = isSupport ? 0 : ERROR_IOS_PIP_DEVICE_NOT_SUPPORT;
-    return [CommonUtil intMsgWith:@(pipSupportResult)];
+    return [TXCommonUtil intMsgWith:@(pipSupportResult)];
 }
 
 - (void)requestAudioFocusWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -368,6 +368,41 @@ SuperPlayerPlugin* instance;
 
 - (NSMutableDictionary *)getPlayers {
     return self.players;
+}
+
+#pragma mark TXLiveBaseDelegate
+
+- (void)onLog:(NSString *)log LogLevel:(int)level WhichModule:(NSString *)module {
+//    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LOG withParams:@{
+//        @(EVENT_LOG_LEVEL) : @(level),
+//        @(EVENT_LOG_MODULE) : module,
+//        @(EVENT_LOG_MSG) : log
+//    }]];
+    // this may be too busy, so currently do not throw on the Flutter side
+}
+
+- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg {
+//    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_UPDATE_NETWORK_TIME withParams:@{
+//        @(EVENT_ERR_CODE) : @(errCode),
+//        @(EVENT_ERR_MSG) : errMsg,
+//    }]];
+    // This will be opened in a subsequent version
+}
+
+- (void)onLicenceLoaded:(int)result Reason:(NSString *)reason {
+    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:@{
+        @(EVENT_RESULT) : @(result),
+        @(EVENT_REASON) : reason,
+    }]];
+    
+}
+
+- (void)onCustomHttpDNS:(NSString *)hostName ipList:(NSMutableArray<NSString *> *)list {
+//    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:@{
+//        @(EVENT_HOST_NAME) : hostName,
+//        @(EVENT_IPS) : list,
+//    }]];
+    // This will be opened in a subsequent version
 }
 
 @end

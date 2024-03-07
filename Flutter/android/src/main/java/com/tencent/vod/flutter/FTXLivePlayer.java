@@ -15,7 +15,6 @@ import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXVodConstants;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
-import com.tencent.vod.flutter.messages.FtxMessages.DoublePlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntPlayerMsg;
@@ -24,9 +23,9 @@ import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringIntPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
-import com.tencent.vod.flutter.model.PipResult;
-import com.tencent.vod.flutter.model.VideoModel;
-import com.tencent.vod.flutter.tools.CommonUtil;
+import com.tencent.vod.flutter.model.TXPipResult;
+import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.tools.TXCommonUtil;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -60,10 +59,10 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
 
     private final FTXPIPManager mPipManager;
     private FTXPIPManager.PipParams mPipParams;
-    private VideoModel mVideoModel;
+    private TXVideoModel mVideoModel;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
-        public void onPipResult(PipResult result) {
+        public void onPipResult(TXPipResult result) {
             // When starting PIP, if the current player is paused and PIP is still playing when exiting,
             // the current player will also be set to playing state upon exiting PIP.
             boolean isPipPlaying = result.isPlaying();
@@ -82,7 +81,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         super();
         mFlutterPluginBinding = flutterPluginBinding;
         mPipManager = pipManager;
-        mVideoModel = new VideoModel();
+        mVideoModel = new TXVideoModel();
         mVideoModel.setPlayerType(FTXEvent.PLAYER_LIVE);
 
         mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
@@ -158,12 +157,12 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
             Log.e(TAG, "onLivePlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
         }
-        mEventSink.success(CommonUtil.getParams(event, bundle));
+        mEventSink.success(TXCommonUtil.getParams(event, bundle));
     }
 
     @Override
     public void onNetStatus(Bundle bundle) {
-        mNetStatusSink.success(CommonUtil.getParams(0, bundle));
+        mNetStatusSink.success(TXCommonUtil.getParams(0, bundle));
     }
 
     // The default size of the surface is 1x1. When hardware decoding fails or software decoding is used,
@@ -338,7 +337,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     @Override
     public IntMsg initialize(@NonNull BoolPlayerMsg onlyAudio) {
         long textureId = init(onlyAudio.getValue() != null ? onlyAudio.getValue() : false);
-        return CommonUtil.intMsgWith(textureId);
+        return TXCommonUtil.intMsgWith(textureId);
     }
 
     @NonNull
@@ -346,20 +345,20 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     public BoolMsg startLivePlay(@NonNull StringIntPlayerMsg playerMsg) {
         int r = startPlayerLivePlay(playerMsg.getStrValue(),
                 null != playerMsg.getIntValue() ? playerMsg.getIntValue().intValue() : null);
-        return CommonUtil.boolMsgWith(r == 1);
+        return TXCommonUtil.boolMsgWith(r == 1);
     }
 
     @NonNull
     @Override
     public BoolMsg stop(@NonNull BoolPlayerMsg isNeedClear) {
         boolean flag = null != isNeedClear.getValue() ? isNeedClear.getValue() : false;
-        return CommonUtil.boolMsgWith(stopPlay(flag) == 1);
+        return TXCommonUtil.boolMsgWith(stopPlay(flag) == 1);
     }
 
     @NonNull
     @Override
     public BoolMsg isPlaying(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.boolMsgWith(isPlayerPlaying());
+        return TXCommonUtil.boolMsgWith(isPlayerPlaying());
     }
 
     @Override
@@ -396,7 +395,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     @NonNull
     @Override
     public IntMsg switchStream(@NonNull StringPlayerMsg url) {
-        return CommonUtil.intMsgWith((long) switchPlayerStream(url.getValue()));
+        return TXCommonUtil.intMsgWith((long) switchPlayerStream(url.getValue()));
     }
 
     @Override
@@ -415,9 +414,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     @Override
     public BoolMsg enableHardwareDecode(@NonNull BoolPlayerMsg enable) {
         if (null != enable.getValue()) {
-            return CommonUtil.boolMsgWith(enablePlayerHardwareDecode(enable.getValue()));
+            return TXCommonUtil.boolMsgWith(enablePlayerHardwareDecode(enable.getValue()));
         }
-        return CommonUtil.boolMsgWith(false);
+        return TXCommonUtil.boolMsgWith(false);
     }
 
     @NonNull
@@ -436,7 +435,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         if (pipResult == FTXEvent.NO_ERROR) {
             pausePlayer();
         }
-        return CommonUtil.intMsgWith((long) pipResult);
+        return TXCommonUtil.intMsgWith((long) pipResult);
     }
 
     @Override

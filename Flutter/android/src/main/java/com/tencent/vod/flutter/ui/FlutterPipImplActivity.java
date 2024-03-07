@@ -36,12 +36,13 @@ import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXPlayInfoParams;
+import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
-import com.tencent.vod.flutter.model.PipResult;
-import com.tencent.vod.flutter.model.VideoModel;
+import com.tencent.vod.flutter.model.TXPipResult;
+import com.tencent.vod.flutter.model.TXVideoModel;
 
 import java.util.List;
 import java.util.Set;
@@ -75,7 +76,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     // In picture-in-picture mode, clicking the X in the upper right corner will trigger `onStop` first.
     // Clicking the zoom button will not trigger `onStop`.
     private boolean mIsNeedToStop = false;
-    private VideoModel mVideoModel;
+    private TXVideoModel mVideoModel;
     private boolean mIsRegisterReceiver = false;
     private PipParams mCurrentParams;
     private Handler mMainHandler;
@@ -138,6 +139,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void setVodPlayerListener() {
+        // set default config
+        mVodPlayer.setConfig(new TXVodPlayConfig());
         mVodPlayer.setVodListener(this);
     }
 
@@ -245,7 +248,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
 
     private void handlePipExitEvent() {
         Bundle data = new Bundle();
-        PipResult pipResult = new PipResult();
+        TXPipResult pipResult = new TXPipResult();
         if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_VOD) {
             Float currentPlayTime = mVodPlayer.getCurrentPlaybackTime();
             pipResult.setPlayTime(currentPlayTime);
@@ -354,7 +357,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void startPipVideoFromIntent(Intent intent) {
-        mVideoModel = (VideoModel) intent.getParcelableExtra(FTXEvent.EXTRA_NAME_VIDEO);
+        mVideoModel = (TXVideoModel) intent.getParcelableExtra(FTXEvent.EXTRA_NAME_VIDEO);
         if (mIsSurfaceCreated) {
             attachSurface(mVideoSurface.getHolder().getSurface());
             startPlay();
@@ -434,7 +437,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
 
     private void bindAndroid12BugServiceIfNeed() {
         if (Build.VERSION.SDK_INT >= VERSION_CODES.S) {
-            Intent serviceIntent = new Intent(this, Android12BridgeService.class);
+            Intent serviceIntent = new Intent(this, TXAndroid12BridgeService.class);
             startService(serviceIntent);
             bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
         }

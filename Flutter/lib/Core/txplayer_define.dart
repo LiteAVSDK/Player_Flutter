@@ -333,6 +333,13 @@ abstract class TXVodPlayEvent {
   // Error occurred during video download.
   // 视频下载错误
   static const EVENT_DOWNLOAD_ERROR = 305;
+
+  // SDK event
+  // onLicenceLoaded
+  static const EVENT_ON_LICENCE_LOADED = 503;
+
+  static const EVENT_RESULT = "result";
+  static const EVENT_REASON = "reason";
 }
 
 abstract class TXVodNetEvent {
@@ -685,3 +692,5 @@ typedef FTXPredownlodOnErrorListener = void Function(int taskId, String url, int
 // 视频下载时间回调Listener
 typedef FTXDownlodOnStateChangeListener = void Function(int event, TXVodDownloadMediaInfo info);
 typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg, TXVodDownloadMediaInfo info);
+
+typedef FTXLicenceLoadedListener = void Function(int result, String reason);
