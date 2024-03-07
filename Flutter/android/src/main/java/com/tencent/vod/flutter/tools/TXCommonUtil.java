@@ -18,9 +18,6 @@ import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +28,9 @@ import java.util.Set;
  *
  * 通用工具类
  */
-public class CommonUtil {
+public class TXCommonUtil {
 
-    private static final String TAG = "CommonUtil";
+    private static final String TAG = "TXCommonUtil";
 
     private static final String KEY_MAX_BRIGHTNESS = "max_brightness";
     private static final String KEY_IS_MIUI = "is_miui";
@@ -73,7 +70,7 @@ public class CommonUtil {
         } catch (Exception e) {
             Log.getStackTraceString(e);
         }
-        if (CommonUtil.isMIUI() && Build.VERSION.SDK_INT >= 33) {
+        if (TXCommonUtil.isMIUI() && Build.VERSION.SDK_INT >= 33) {
             maxBrightness = 128F;
         }
         CACHE_MAP.put(KEY_MAX_BRIGHTNESS, maxBrightness);

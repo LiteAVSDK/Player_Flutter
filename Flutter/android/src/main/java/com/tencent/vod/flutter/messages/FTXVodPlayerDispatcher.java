@@ -28,9 +28,9 @@ import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 @SuppressWarnings("ConstantConditions")
 public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi {
 
-    final IPlayersBridge bridge;
+    final ITXPlayersBridge bridge;
 
-    public FTXVodPlayerDispatcher(@NonNull IPlayersBridge dataBridge) {
+    public FTXVodPlayerDispatcher(@NonNull ITXPlayersBridge dataBridge) {
         this.bridge = dataBridge;
     }
 

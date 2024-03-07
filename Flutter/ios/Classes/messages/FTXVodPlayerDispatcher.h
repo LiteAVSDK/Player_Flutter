@@ -4,13 +4,13 @@
 
 #import <Foundation/Foundation.h>
 #import "FtxMessages.h"
-#import "IPlayersBridge.h"
+#import "ITXPlayersBridge.h"
 
 @interface FTXVodPlayerDispatcher : NSObject<TXFlutterVodPlayerApi>
 
-@property(atomic, strong) id<IPlayersBridge> bridge;
+@property(atomic, strong) id<ITXPlayersBridge> bridge;
 
-- (instancetype)initWithBridge:(id<IPlayersBridge>)dataBridge;
+- (instancetype)initWithBridge:(id<ITXPlayersBridge>)dataBridge;
 
 @end
 

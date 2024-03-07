@@ -5,7 +5,7 @@ package com.tencent.vod.flutter.messages;
 import android.util.SparseArray;
 import com.tencent.vod.flutter.FTXBasePlayer;
 
-public interface IPlayersBridge {
+public interface ITXPlayersBridge {
 
     /**
      * Get player list.

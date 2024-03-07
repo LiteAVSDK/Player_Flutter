@@ -25,6 +25,7 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 
 import com.tencent.rtmp.TXLiveBase;
+import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
 import com.tencent.vod.flutter.messages.FTXLivePlayerDispatcher;
 import com.tencent.vod.flutter.messages.FTXVodPlayerDispatcher;
@@ -38,14 +39,16 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterNativeAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterVodPlayerApi;
-import com.tencent.vod.flutter.tools.CommonUtil;
+import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
-import com.tencent.vod.flutter.ui.Android12BridgeService;
+import com.tencent.vod.flutter.ui.TXAndroid12BridgeService;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,8 +87,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private OrientationEventListener mOrientationManager;
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
     private final TXFlutterEngineHolder mEngineHolder = new TXFlutterEngineHolder();
-
     private boolean mIsBrightnessObserverRegistered = false;
+    private Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
@@ -105,6 +108,70 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         public void onChange(boolean selfChange, @NonNull Collection<Uri> uris, int flags) {
             super.onChange(selfChange, uris, flags);
             setWindowBrightness(-1D);
+        }
+    };
+
+    private final TXLiveBaseListener mSDKEvent = new TXLiveBaseListener() {
+        @Override
+        public void onLog(int level, String module, String log) {
+            super.onLog(level, module, log);
+//            mMainHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Bundle params = new Bundle();
+//                    params.putInt(FTXEvent.EVENT_LOG_LEVEL, level);
+//                    params.putString(FTXEvent.EVENT_LOG_MODULE, module);
+//                    params.putString(FTXEvent.EVENT_LOG_MSG, log);
+//                    mEventSink.success(getParams(FTXEvent.EVENT_ON_LOG, params));
+//                }
+//            });
+
+            // this may be too busy, so currently do not throw on the Flutter side
+        }
+
+        @Override
+        public void onUpdateNetworkTime(int errCode, String errMsg) {
+            super.onUpdateNetworkTime(errCode, errMsg);
+//            mMainHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Bundle params = new Bundle();
+//                    params.putInt(FTXEvent.EVENT_ERR_CODE, errCode);
+//                    params.putString(FTXEvent.EVENT_ERR_MSG, errMsg);
+//                    mEventSink.success(getParams(FTXEvent.EVENT_ON_UPDATE_NETWORK_TIME, params));
+//                }
+//            });
+            // This will be opened in a subsequent version
+        }
+
+        @Override
+        public void onLicenceLoaded(int result, String reason) {
+            super.onLicenceLoaded(result, reason);
+            mMainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Bundle params = new Bundle();
+                    params.putInt(FTXEvent.EVENT_RESULT, result);
+                    params.putString(FTXEvent.EVENT_REASON, reason);
+                    mEventSink.success(getParams(FTXEvent.EVENT_ON_LICENCE_LOADED, params));
+                }
+            });
+        }
+
+        @Override
+        public void onCustomHttpDNS(String hostName, List<String> ipList) {
+            super.onCustomHttpDNS(hostName, ipList);
+//            mMainHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Bundle params = new Bundle();
+//                    params.putString(FTXEvent.EVENT_HOST_NAME, hostName);
+//                    ArrayList<String> ipArrayList = new ArrayList<>(ipList);
+//                    params.putStringArrayList(FTXEvent.EVENT_IPS, ipArrayList);
+//                    mEventSink.success(getParams(FTXEvent.EVENT_ON_CUSTOM_HTTP_DNS, params));
+//                }
+//            });
+            // This will be opened in a subsequent version
         }
     };
 
@@ -346,7 +413,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
             if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
                 ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
                 final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
-                final float maxBrightness = CommonUtil.getBrightnessMax();
+                final float maxBrightness = TXCommonUtil.getBrightnessMax();
                 screenBrightness = brightnessInt / maxBrightness;
             }
         } catch (SettingNotFoundException e) {
@@ -390,6 +457,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         initPipManagerIfNeed();
         registerReceiver();
         mEngineHolder.attachBindLife(binding);
+        TXLiveBase.enableCustomHttpDNS(true);
+        TXLiveBase.setListener(mSDKEvent);
     }
 
     @Override
@@ -408,10 +477,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         // Close the solution to the problem of the picture-in-picture click restore
         // failure on some versions of Android 12.
         // 关闭用于解决Android12部分版本上画中画点击还原失灵的问题
-        Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), Android12BridgeService.class);
+        Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), TXAndroid12BridgeService.class);
         mActivityPluginBinding.getActivity().stopService(serviceIntent);
         unregisterReceiver();
         mEngineHolder.destroy(mActivityPluginBinding);
+        TXLiveBase.setListener(null);
     }
 
     void onHandleAudioFocusPause() {

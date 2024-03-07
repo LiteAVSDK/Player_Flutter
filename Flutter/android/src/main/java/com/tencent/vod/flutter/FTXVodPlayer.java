@@ -32,9 +32,9 @@ import com.tencent.vod.flutter.messages.FtxMessages.StringListPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXPlayInfoParamsPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
-import com.tencent.vod.flutter.model.PipResult;
-import com.tencent.vod.flutter.model.VideoModel;
-import com.tencent.vod.flutter.tools.CommonUtil;
+import com.tencent.vod.flutter.model.TXPipResult;
+import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.tools.TXCommonUtil;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -67,7 +67,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
 
     private TXVodPlayer mVodPlayer;
     private TXImageSprite mTxImageSprite;
-    private VideoModel mVideoModel;
+    private TXVideoModel mVideoModel;
 
     private static final int Uninitialized = -101;
     private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
@@ -78,7 +78,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     private FTXPIPManager.PipParams mPipParams;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
-        public void onPipResult(PipResult result) {
+        public void onPipResult(TXPipResult result) {
             float playTime = result.getPlayTime();
             float duration = mVodPlayer.getDuration();
             if (playTime > duration) {
@@ -103,7 +103,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         super();
         mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;
-        mVideoModel = new VideoModel();
+        mVideoModel = new TXVideoModel();
         mVideoModel.setPlayerType(FTXEvent.PLAYER_VOD);
 
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent"
@@ -185,7 +185,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
                     bundle.putInt("videoTop", videoTop);
                     bundle.putInt("videoRight", videoRight);
                     bundle.putInt("videoBottom", videoBottom);
-                    mEventSink.success(CommonUtil.getParams(event, bundle));
+                    mEventSink.success(TXCommonUtil.getParams(event, bundle));
                     return;
                 }
             }
@@ -203,7 +203,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
             Log.e(TAG, "onPlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
         }
-        mEventSink.success(CommonUtil.getParams(event, bundle));
+        mEventSink.success(TXCommonUtil.getParams(event, bundle));
     }
 
     // The default size of the surface is 1x1. When hardware decoding fails or software decoding is used,
@@ -220,7 +220,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
 
     @Override
     public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
-        mNetStatusSink.success(CommonUtil.getParams(0, bundle));
+        mNetStatusSink.success(TXCommonUtil.getParams(0, bundle));
     }
 
     private byte[] getPlayerImageSprite(final Double time) {
@@ -470,14 +470,14 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @Override
     public IntMsg initialize(@NonNull BoolPlayerMsg onlyAudio) {
         long textureId = init(onlyAudio.getValue() != null ? onlyAudio.getValue() : false);
-        return CommonUtil.intMsgWith(textureId);
+        return TXCommonUtil.intMsgWith(textureId);
     }
 
     @NonNull
     @Override
     public BoolMsg startVodPlay(@NonNull StringPlayerMsg url) {
         String urlStr = url.getValue();
-        return CommonUtil.boolMsgWith(startPlayerVodPlay(urlStr) == 1);
+        return TXCommonUtil.boolMsgWith(startPlayerVodPlay(urlStr) == 1);
     }
 
     @Override
@@ -499,13 +499,13 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @Override
     public BoolMsg stop(@NonNull BoolPlayerMsg isNeedClear) {
         boolean flag = null != isNeedClear.getValue() ? isNeedClear.getValue() : false;
-        return CommonUtil.boolMsgWith(stopPlay(flag) == 1);
+        return TXCommonUtil.boolMsgWith(stopPlay(flag) == 1);
     }
 
     @NonNull
     @Override
     public BoolMsg isPlaying(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.boolMsgWith(isPlayerPlaying());
+        return TXCommonUtil.boolMsgWith(isPlayerPlaying());
     }
 
     @Override
@@ -550,13 +550,13 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @Override
     public ListMsg getSupportedBitrate(@NonNull PlayerMsg playerMsg) {
         //noinspection unchecked
-        return CommonUtil.listMsgWith((List<Object>) getPlayerSupportedBitrates());
+        return TXCommonUtil.listMsgWith((List<Object>) getPlayerSupportedBitrates());
     }
 
     @NonNull
     @Override
     public IntMsg getBitrateIndex(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.intMsgWith((long) getPlayerBitrateIndex());
+        return TXCommonUtil.intMsgWith((long) getPlayerBitrateIndex());
     }
 
     @Override
@@ -584,9 +584,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @Override
     public BoolMsg setRequestAudioFocus(@NonNull BoolPlayerMsg focus) {
         if (null != focus.getValue()) {
-            return CommonUtil.boolMsgWith(requestPlayerAudioFocus(focus.getValue()));
+            return TXCommonUtil.boolMsgWith(requestPlayerAudioFocus(focus.getValue()));
         }
-        return CommonUtil.boolMsgWith(false);
+        return TXCommonUtil.boolMsgWith(false);
     }
 
     @Override
@@ -600,7 +600,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         // Use BigDecimal for conversion to prevent precision issues with decimal
         // digits when converting from float to double.
         BigDecimal bigDecimal = BigDecimal.valueOf(getPlayerCurrentPlaybackTime());
-        return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
+        return TXCommonUtil.doubleMsgWith(bigDecimal.doubleValue());
     }
 
     @NonNull
@@ -609,7 +609,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         // Use BigDecimal for conversion to prevent precision issues with decimal
         // digits when converting from float to double.
         BigDecimal bigDecimal = BigDecimal.valueOf(getPlayerBufferDuration());
-        return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
+        return TXCommonUtil.doubleMsgWith(bigDecimal.doubleValue());
     }
 
     @NonNull
@@ -618,19 +618,19 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         // Use BigDecimal for conversion to prevent precision issues with decimal
         // digits when converting from float to double.
         BigDecimal bigDecimal = BigDecimal.valueOf(getPlayerPlayableDuration());
-        return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
+        return TXCommonUtil.doubleMsgWith(bigDecimal.doubleValue());
     }
 
     @NonNull
     @Override
     public IntMsg getWidth(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.intMsgWith((long) getPlayerWidth());
+        return TXCommonUtil.intMsgWith((long) getPlayerWidth());
     }
 
     @NonNull
     @Override
     public IntMsg getHeight(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.intMsgWith((long) getPlayerHeight());
+        return TXCommonUtil.intMsgWith((long) getPlayerHeight());
     }
 
     @Override
@@ -641,16 +641,16 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @NonNull
     @Override
     public BoolMsg isLoop(@NonNull PlayerMsg playerMsg) {
-        return CommonUtil.boolMsgWith(isVodPlayerLoop());
+        return TXCommonUtil.boolMsgWith(isVodPlayerLoop());
     }
 
     @NonNull
     @Override
     public BoolMsg enableHardwareDecode(@NonNull BoolPlayerMsg enable) {
         if (null != enable.getValue()) {
-            return CommonUtil.boolMsgWith(enablePlayerHardwareDecode(enable.getValue()));
+            return TXCommonUtil.boolMsgWith(enablePlayerHardwareDecode(enable.getValue()));
         }
-        return CommonUtil.boolMsgWith(false);
+        return TXCommonUtil.boolMsgWith(false);
     }
 
     @NonNull
@@ -673,7 +673,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         if (pipResult == FTXEvent.NO_ERROR) {
             playerPause();
         }
-        return CommonUtil.intMsgWith((long) pipResult);
+        return TXCommonUtil.intMsgWith((long) pipResult);
     }
 
     @Override
@@ -692,9 +692,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     @Override
     public UInt8ListMsg getImageSprite(@NonNull DoublePlayerMsg time) {
         if (null != time.getValue()) {
-            return CommonUtil.uInt8ListMsg(getPlayerImageSprite(time.getValue()));
+            return TXCommonUtil.uInt8ListMsg(getPlayerImageSprite(time.getValue()));
         }
-        return CommonUtil.uInt8ListMsg(new byte[0]);
+        return TXCommonUtil.uInt8ListMsg(new byte[0]);
     }
 
     @NonNull
@@ -704,8 +704,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             // Use BigDecimal for conversion to prevent precision issues with decimal
             // digits when converting from float to double.
             BigDecimal bigDecimal = BigDecimal.valueOf(mVodPlayer.getDuration());
-            return CommonUtil.doubleMsgWith(bigDecimal.doubleValue());
+            return TXCommonUtil.doubleMsgWith(bigDecimal.doubleValue());
         }
-        return CommonUtil.doubleMsgWith(0D);
+        return TXCommonUtil.doubleMsgWith(0D);
     }
 }

@@ -3,14 +3,14 @@ package com.tencent.vod.flutter.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class PipResult implements Parcelable {
+public class TXPipResult implements Parcelable {
     private Float mPlayTime;
     private boolean mIsPlaying;
     private int mPlayerId;
 
-    public PipResult(){}
+    public TXPipResult(){}
 
-    protected PipResult(Parcel in) {
+    protected TXPipResult(Parcel in) {
         if (in.readByte() == 0) {
             mPlayTime = null;
         } else {
@@ -20,15 +20,15 @@ public class PipResult implements Parcelable {
         mPlayerId = in.readInt();
     }
 
-    public static final Creator<PipResult> CREATOR = new Creator<PipResult>() {
+    public static final Creator<TXPipResult> CREATOR = new Creator<TXPipResult>() {
         @Override
-        public PipResult createFromParcel(Parcel in) {
-            return new PipResult(in);
+        public TXPipResult createFromParcel(Parcel in) {
+            return new TXPipResult(in);
         }
 
         @Override
-        public PipResult[] newArray(int size) {
-            return new PipResult[size];
+        public TXPipResult[] newArray(int size) {
+            return new TXPipResult[size];
         }
     };
 

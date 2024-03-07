@@ -7,9 +7,9 @@
 #import <TXLiteAVSDK_Professional/TXVodPreloadManager.h>
 #import <TXLiteAVSDK_Professional/TXVodDownloadManager.h>
 #import "FTXEvent.h"
-#import "CommonUtil.h"
+#import "TXCommonUtil.h"
 #import "FtxMessages.h"
-#import "PredownloadFileHelperDelegate.h"
+#import "TXPredownloadFileHelperDelegate.h"
 
 @interface FTXDownloadManager ()<FlutterStreamHandler, TXVodPreloadManagerDelegate, TXVodDownloadDelegate, TXFlutterDownloadApi>
 
@@ -71,13 +71,13 @@
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_ERROR withParams:dict]];
 }
 
-- (void)removePreDelegate:(PredownloadFileHelperDelegate*)delegate {
+- (void)removePreDelegate:(TXPredownloadFileHelperDelegate*)delegate {
     @synchronized (self.delegateArray) {
         [self.delegateArray removeObject:delegate];
     }
 }
 
-- (void)addPreDelegate:(PredownloadFileHelperDelegate*)delegate {
+- (void)addPreDelegate:(TXPredownloadFileHelperDelegate*)delegate {
     @synchronized (self.delegateArray) {
         if (![self.delegateArray containsObject:delegate]) {
             [self.delegateArray addObject:delegate];
@@ -168,7 +168,7 @@
     if(nil != info) {
         [dict setValue:info.playPath forKey:@"playPath"];
         [dict setValue:@(info.progress) forKey:@"progress"];
-        [dict setValue:[CommonUtil getDownloadEventByState:(int)info.downloadState] forKey:@"downloadState"];
+        [dict setValue:[TXCommonUtil getDownloadEventByState:(int)info.downloadState] forKey:@"downloadState"];
         [dict setValue:info.userName forKey:@"userName"];
         [dict setValue:@(info.duration) forKey:@"duration"];
         [dict setValue:@(info.playableDuration) forKey:@"playableDuration"];
@@ -196,7 +196,7 @@
     if(nil != info) {
         msg.playPath = info.playPath;
         msg.progress = @(info.progress);
-        msg.downloadState = [CommonUtil getDownloadEventByState:(int)info.downloadState];
+        msg.downloadState = [TXCommonUtil getDownloadEventByState:(int)info.downloadState];
         msg.userName = info.userName;
         msg.duration = @(info.duration);
         msg.playableDuration = @(info.playableDuration);
@@ -266,7 +266,7 @@
 - (nullable BoolMsg *)deleteDownloadMediaInfoMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:msg.quality url:msg.url appId:msg.appId fileId:msg.fileId name:msg.userName];
     BOOL deleteResult = [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
-    return [CommonUtil boolMsgWith:deleteResult];
+    return [TXCommonUtil boolMsgWith:deleteResult];
 }
 
 - (nullable TXVodDownloadMediaMsg *)getDownloadInfoMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -326,7 +326,7 @@
                                                        preloadSize:preloadSizeMB
                                                preferredResolution:preferredResolution
                                                           delegate:self];
-    return [CommonUtil intMsgWith:@(taskID)];
+    return [TXCommonUtil intMsgWith:@(taskID)];
 }
 
 - (void)stopDownloadMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -350,7 +350,7 @@
         params.appId = (msg.appId != nil && [msg.appId isKindOfClass:[NSNumber class]]) ? [msg.appId intValue] : 0;
         params.fileId = fileId;
         params.sign = (msg.pSign != nil && [msg.pSign isKindOfClass:[NSString class]]) ? msg.pSign : @"";
-        __block PredownloadFileHelperDelegate *delegate = [[PredownloadFileHelperDelegate alloc] initWithBlock:tmpTaskId start:^(long tmpTaskId, int taskID, NSString * _Nonnull fileId, NSString * _Nonnull url, NSDictionary * _Nonnull param) {
+        __block TXPredownloadFileHelperDelegate *delegate = [[TXPredownloadFileHelperDelegate alloc] initWithBlock:tmpTaskId start:^(long tmpTaskId, int taskID, NSString * _Nonnull fileId, NSString * _Nonnull url, NSDictionary * _Nonnull param) {
             [self onStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
         } complete:^(int taskID, NSString * _Nonnull url) {
             [self onComplete:taskID url:url];
