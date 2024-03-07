@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
         
-        <service android:name="com.tencent.vod.flutter.ui.Android12BridgeService"/>
+        <service android:name="com.tencent.vod.flutter.ui.TXAndroid12BridgeService"/>
     </application>
 
 </manifest>

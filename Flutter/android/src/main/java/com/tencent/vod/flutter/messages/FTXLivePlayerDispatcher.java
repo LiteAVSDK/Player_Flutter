@@ -19,9 +19,9 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 @SuppressWarnings("ConstantConditions")
 public class FTXLivePlayerDispatcher implements FtxMessages.TXFlutterLivePlayerApi {
 
-    final IPlayersBridge bridge;
+    final ITXPlayersBridge bridge;
 
-    public FTXLivePlayerDispatcher(@NonNull IPlayersBridge dataBridge) {
+    public FTXLivePlayerDispatcher(@NonNull ITXPlayersBridge dataBridge) {
         this.bridge = dataBridge;
     }
 

@@ -5,7 +5,7 @@
 #import "FTXEvent.h"
 #import "FtxMessages.h"
 
-@interface CommonUtil : NSObject
+@interface TXCommonUtil : NSObject
 
 +(NSNumber*)getDownloadEventByState:(int)downloadState;
 
