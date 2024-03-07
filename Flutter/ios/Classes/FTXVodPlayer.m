@@ -10,7 +10,7 @@
 #import <AVKit/AVKit.h>
 #import "FTXEvent.h"
 #import "FtxMessages.h"
-#import "CommonUtil.h"
+#import "TXCommonUtil.h"
 
 static const int uninitialized = -1;
 static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
@@ -816,12 +816,12 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable BoolMsg *)enableHardwareDecodeEnable:(nonnull BoolPlayerMsg *)enable error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     bool res = [self enableHardwareDecode:enable.value];
-    return [CommonUtil boolMsgWith:res];
+    return [TXCommonUtil boolMsgWith:res];
 }
 
 - (nullable IntMsg *)enterPictureInPictureModePipParamsMsg:(nonnull PipParamsPlayerMsg *)pipParamsMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int res = [self enterPictureInPictureMode];
-    return [CommonUtil intMsgWith:@(res)];
+    return [TXCommonUtil intMsgWith:@(res)];
 }
 
 - (void)exitPictureInPictureModePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -832,7 +832,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable IntMsg *)getBitrateIndexPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     long index = [self getBitrateIndex];
-    return [CommonUtil intMsgWith:@(index)];
+    return [TXCommonUtil intMsgWith:@(index)];
 }
 
 - (nullable DoubleMsg *)getBufferDurationPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -842,27 +842,27 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable DoubleMsg *)getCurrentPlaybackTimePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     float time = [self getCurrentPlaybackTime];
-    return [CommonUtil doubleMsgWith:time];
+    return [TXCommonUtil doubleMsgWith:time];
 }
 
 - (nullable DoubleMsg *)getDurationPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     float time = [self getDuration];
-    return [CommonUtil doubleMsgWith:time];
+    return [TXCommonUtil doubleMsgWith:time];
 }
 
 - (nullable IntMsg *)getHeightPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int height = [self getHeight];
-    return [CommonUtil intMsgWith:@(height)];
+    return [TXCommonUtil intMsgWith:@(height)];
 }
 
 - (nullable UInt8ListMsg *)getImageSpriteTime:(nonnull DoublePlayerMsg *)time error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSData *data = [self getPlayerImageSprite:time.value];
-    return [CommonUtil uInt8MsgWith:data];
+    return [TXCommonUtil uInt8MsgWith:data];
 }
 
 - (nullable DoubleMsg *)getPlayableDurationPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     float time = [self getPlayableDuration];
-    return [CommonUtil doubleMsgWith:time];
+    return [TXCommonUtil doubleMsgWith:time];
 }
 
 - (nullable ListMsg *)getSupportedBitratePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -874,7 +874,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable IntMsg *)getWidthPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int width = [self getWidth];
-    return [CommonUtil intMsgWith:@(width)];
+    return [TXCommonUtil intMsgWith:@(width)];
 }
 
 - (void)initImageSpriteSpriteInfo:(nonnull StringListPlayerMsg *)spriteInfo error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -883,15 +883,15 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable IntMsg *)initializeOnlyAudio:(nonnull BoolPlayerMsg *)onlyAudio error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber* textureId = [self createPlayer:onlyAudio.value.boolValue];
-    return [CommonUtil intMsgWith:textureId];
+    return [TXCommonUtil intMsgWith:textureId];
 }
 
 - (nullable BoolMsg *)isLoopPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [CommonUtil boolMsgWith:[self isLoop]];
+    return [TXCommonUtil boolMsgWith:[self isLoop]];
 }
 
 - (nullable BoolMsg *)isPlayingPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [CommonUtil boolMsgWith:[self isPlaying]];
+    return [TXCommonUtil boolMsgWith:[self isPlaying]];
 }
 
 - (void)pausePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -936,7 +936,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable BoolMsg *)setRequestAudioFocusFocus:(nonnull BoolPlayerMsg *)focus error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     // FlutterMethodNotImplemented
-    return [CommonUtil boolMsgWith:YES];
+    return [TXCommonUtil boolMsgWith:YES];
 }
 
 - (void)setStartTimeStartTime:(nonnull DoublePlayerMsg *)startTime error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -949,7 +949,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable BoolMsg *)startVodPlayUrl:(nonnull StringPlayerMsg *)url error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int r = [self startVodPlay:url.value];
-    return [CommonUtil boolMsgWith:r];
+    return [TXCommonUtil boolMsgWith:r];
 }
 
 - (void)startVodPlayWithParamsParams:(nonnull TXPlayInfoParamsPlayerMsg *)params error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -958,7 +958,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     BOOL r = [self stopPlay];
-    return [CommonUtil boolMsgWith:r];
+    return [TXCommonUtil boolMsgWith:r];
 }
 
 @end

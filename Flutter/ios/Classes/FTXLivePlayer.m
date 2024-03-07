@@ -8,7 +8,7 @@
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
 #import "FtxMessages.h"
-#import "CommonUtil.h"
+#import "TXCommonUtil.h"
 
 static const int uninitialized = -1;
 
@@ -359,7 +359,7 @@ static const int uninitialized = -1;
 
 - (nullable BoolMsg *)enableHardwareDecodeEnable:(nonnull BoolPlayerMsg *)enable error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int r = [self enableHardwareDecode:enable.value];
-    return [CommonUtil boolMsgWith:r];
+    return [TXCommonUtil boolMsgWith:r];
 }
 
 - (nullable IntMsg *)enterPictureInPictureModePipParamsMsg:(nonnull PipParamsPlayerMsg *)pipParamsMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -373,11 +373,11 @@ static const int uninitialized = -1;
 
 - (nullable IntMsg *)initializeOnlyAudio:(nonnull BoolPlayerMsg *)onlyAudio error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber* textureId = [self createPlayer:onlyAudio.value.boolValue];
-    return [CommonUtil intMsgWith:textureId];
+    return [TXCommonUtil intMsgWith:textureId];
 }
 
 - (nullable BoolMsg *)isPlayingPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [CommonUtil boolMsgWith:[self isPlaying]];
+    return [TXCommonUtil boolMsgWith:[self isPlaying]];
 }
 
 - (void)pausePlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -418,16 +418,16 @@ static const int uninitialized = -1;
 
 - (nullable BoolMsg *)startLivePlayPlayerMsg:(nonnull StringIntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int r = [self startLivePlay:playerMsg.strValue type:playerMsg.intValue.intValue];
-    return [CommonUtil boolMsgWith:r];
+    return [TXCommonUtil boolMsgWith:r];
 }
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [CommonUtil boolMsgWith:[self stopPlay]];
+    return [TXCommonUtil boolMsgWith:[self stopPlay]];
 }
 
 - (nullable IntMsg *)switchStreamUrl:(nonnull StringPlayerMsg *)url error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int r = [self switchStream:url.value];
-    return [CommonUtil intMsgWith:@(r)];
+    return [TXCommonUtil intMsgWith:@(r)];
 }
 
 @end

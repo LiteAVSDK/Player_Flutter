@@ -92,4 +92,25 @@
 // 横屏，底部在左
 #define ORIENTATION_LANDSCAPE_LEFT 414
 
+// SDK event
+// onLog
+#define EVENT_ON_LOG 501
+// onUpdateNetworkTime
+#define EVENT_ON_UPDATE_NETWORK_TIME 502
+// onLicenceLoaded
+#define EVENT_ON_LICENCE_LOADED 503
+// onCustomHttpDNS
+#define EVENT_ON_CUSTOM_HTTP_DNS 504
+
+// this events may be common,so remove the specific field identifier
+#define EVENT_LOG_LEVEL "logLevel"
+#define EVENT_LOG_MODULE "logModule"
+#define EVENT_LOG_MSG "logMsg"
+#define EVENT_ERR_CODE "errCode"
+#define EVENT_ERR_MSG "errMsg"
+#define EVENT_RESULT "result"
+#define EVENT_REASON "reason"
+#define EVENT_HOST_NAME "hostName"
+#define EVENT_IPS "ips"
+
 #endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_FTXEVENT_H_

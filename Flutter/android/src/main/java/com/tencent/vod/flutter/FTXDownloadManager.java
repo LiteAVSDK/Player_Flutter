@@ -24,7 +24,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.PreLoadMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXDownloadListMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterDownloadApi;
 import com.tencent.vod.flutter.messages.FtxMessages.TXVodDownloadMediaMsg;
-import com.tencent.vod.flutter.tools.CommonUtil;
+import com.tencent.vod.flutter.tools.TXCommonUtil;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -83,8 +83,8 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         bundle.putInt("taskId", taskId);
         bundle.putString("fileId", fileId);
         bundle.putString("url", url);
-        Map<String, Object> result = CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_START, bundle);
-        result.put("params", CommonUtil.transToMap(params));
+        Map<String, Object> result = TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_START, bundle);
+        result.put("params", TXCommonUtil.transToMap(params));
         sendSuccessEvent(result);
     }
 
@@ -92,7 +92,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         Bundle bundle = new Bundle();
         bundle.putInt("taskId", taskId);
         bundle.putString("url", url);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
     }
 
     private void onErrorEvent(long tmpTaskId, int taskId, String url, int code, String msg) {
@@ -104,7 +104,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         bundle.putInt("code", code);
         bundle.putString("url", url);
         bundle.putString("msg", msg);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_ERROR, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_ERROR, bundle));
     }
 
     private void sendSuccessEvent(final Object event) {
@@ -126,7 +126,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         TXVodDownloadMediaMsg msg = new TXVodDownloadMediaMsg();
         if (null != mediaInfo) {
             msg.setPlayPath(mediaInfo.getPlayPath());
-            msg.setDownloadState((long) CommonUtil.getDownloadEventByState(mediaInfo.getDownloadState()));
+            msg.setDownloadState((long) TXCommonUtil.getDownloadEventByState(mediaInfo.getDownloadState()));
             msg.setUserName(mediaInfo.getUserName());
             msg.setDuration((long) mediaInfo.getDuration());
             msg.setPlayableDuration((long) mediaInfo.getPlayableDuration());
@@ -166,7 +166,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         Bundle bundle = new Bundle();
         bundle.putString("playPath", mediaInfo.getPlayPath());
         bundle.putFloat("progress", mediaInfo.getProgress());
-        bundle.putInt("downloadState", CommonUtil.getDownloadEventByState(mediaInfo.getDownloadState()));
+        bundle.putInt("downloadState", TXCommonUtil.getDownloadEventByState(mediaInfo.getDownloadState()));
         bundle.putString("userName", mediaInfo.getUserName());
         bundle.putInt("duration", mediaInfo.getDuration());
         bundle.putInt("playableDuration", mediaInfo.getPlayableDuration());
@@ -239,26 +239,26 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     @Override
     public void onDownloadStart(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_START, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_START, bundle));
     }
 
 
     @Override
     public void onDownloadProgress(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_PROGRESS, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_PROGRESS, bundle));
     }
 
     @Override
     public void onDownloadStop(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_STOP, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_STOP, bundle));
     }
 
     @Override
     public void onDownloadFinish(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_FINISH, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_FINISH, bundle));
     }
 
     @Override
@@ -266,7 +266,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
         bundle.putInt("errorCode", i);
         bundle.putString("errorMsg", s);
-        sendSuccessEvent(CommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_ERROR, bundle));
+        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_ERROR, bundle));
     }
 
     /**

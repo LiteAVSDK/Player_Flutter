@@ -159,4 +159,26 @@ public class FTXEvent {
     // 横屏，底部在左
     public static final int ORIENTATION_LANDSCAPE_LEFT = 414;
 
+
+    // SDK event
+    // onLog
+    public static final int EVENT_ON_LOG = 501;
+    // onUpdateNetworkTime
+    public static final int EVENT_ON_UPDATE_NETWORK_TIME = 502;
+    // onLicenceLoaded
+    public static final int EVENT_ON_LICENCE_LOADED = 503;
+    // onCustomHttpDNS
+    public static final int EVENT_ON_CUSTOM_HTTP_DNS = 504;
+
+    // this events may be common,so remove the specific field identifier
+    public static final String EVENT_LOG_LEVEL = "logLevel";
+    public static final String EVENT_LOG_MODULE = "logModule";
+    public static final String EVENT_LOG_MSG = "logMsg";
+    public static final String EVENT_ERR_CODE = "errCode";
+    public static final String EVENT_ERR_MSG = "errMsg";
+    public static final String EVENT_RESULT = "result";
+    public static final String EVENT_REASON = "reason";
+    public static final String EVENT_HOST_NAME = "hostName";
+    public static final String EVENT_IPS = "ips";
+
 }

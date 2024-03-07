@@ -24,7 +24,7 @@ class SuperPlayerPlugin {
   final StreamController<Map<dynamic, dynamic>> _eventPipStreamController = StreamController.broadcast();
 
   /// Native interaction, common event listener, events from the plugin, such as sound change events.
-  /// 原生交互，通用事件监听，来自插件的事件，例如 声音变化等事件
+  /// 原生交互，通用事件监听，来自插件的事件，例如 声音变化、播放器SDK加载鉴权等事件
   Stream<Map<dynamic, dynamic>> get onEventBroadcast => _eventStreamController.stream;
 
   /// Native interaction, common event listener, events from the native container,
@@ -32,12 +32,20 @@ class SuperPlayerPlugin {
   /// 原生交互，通用事件监听，来自原生容器的事件，例如 PIP事件、activity/controller 生命周期变化
   Stream<Map<dynamic, dynamic>> get onExtraEventBroadcast => _eventPipStreamController.stream;
 
+  FTXLicenceLoadedListener? _licenseLoadedListener;
+
   SuperPlayerPlugin._internal() {
     EventChannel eventChannel = EventChannel("cloud.tencent.com/playerPlugin/event");
     eventChannel.receiveBroadcastStream("event").listen(_eventHandler, onError: _errorHandler);
 
     EventChannel pipEventChanne = EventChannel("cloud.tencent.com/playerPlugin/componentEvent");
     pipEventChanne.receiveBroadcastStream("pipEvent").listen(_pipEventHandler, onError: _errorHandler);
+    onEventBroadcast.listen((event) {
+      int evtCode = event["event"];
+      if (evtCode == TXVodPlayEvent.EVENT_ON_LICENCE_LOADED) {
+        _licenseLoadedListener?.call(event[TXVodPlayEvent.EVENT_RESULT], event[TXVodPlayEvent.EVENT_REASON]);
+      }
+    });
   }
 
   _pipEventHandler(event) {
@@ -179,7 +187,7 @@ class SuperPlayerPlugin {
   /// Get the current system volume, range: 0.0 ~ 1.0
   /// 获得当前系统音量，范围：0.0 ~ 1.0
   static Future<double?> getSystemVolume() async {
-    DoubleMsg doubleMsg =  await _nativeAPI.getSystemVolume();
+    DoubleMsg doubleMsg = await _nativeAPI.getSystemVolume();
     return doubleMsg.value;
   }
 
@@ -268,7 +276,17 @@ class SuperPlayerPlugin {
   /// @param isRegister:true register system brightness
   ///                  :false unregister system brightness
   ///
-  static Future<void>registerSysBrightness(bool isRegister) async {
+  static Future<void> registerSysBrightness(bool isRegister) async {
     await _nativeAPI.registerSysBrightness(BoolMsg()..value = isRegister);
+  }
+
+  ///
+  /// 设置SDK的监听，目前有licence加载监听，后续还会陆续开放其他类型的监听
+  ///
+  /// Set up SDK listeners, currently there is a license loading listener, and other types of listeners
+  /// will be gradually opened in the future.
+  ///
+  void setSDKListener({FTXLicenceLoadedListener? licenceLoadedListener}) {
+    _licenseLoadedListener = licenceLoadedListener;
   }
 }
