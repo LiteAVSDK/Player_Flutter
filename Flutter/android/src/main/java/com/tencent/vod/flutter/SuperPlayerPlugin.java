@@ -73,6 +73,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private static final String EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
 
     private EventChannel mEventChannel;
+    private EventChannel mPipEventChannel;
     private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     private VolumeBroadcastReceiver mVolumeBroadcastReceiver;
 
@@ -187,6 +188,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mFlutterPluginBinding = flutterPluginBinding;
         mPlayers = new SparseArray<>();
         initAudioManagerIfNeed();
+        mPipEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
+                FTXEvent.PIP_CHANNEL_NAME);
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
                 "cloud.tencent.com/playerPlugin/event");
         mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
@@ -432,7 +435,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     private void initPipManagerIfNeed() {
         if (null == mTxPipManager) {
-            mTxPipManager = new FTXPIPManager(mTxAudioManager, mFlutterPluginBinding, mActivityPluginBinding,
+            mTxPipManager = new FTXPIPManager(mTxAudioManager, mPipEventChannel, mActivityPluginBinding,
                     mFlutterPluginBinding.getFlutterAssets());
         }
     }
