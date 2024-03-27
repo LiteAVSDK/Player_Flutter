@@ -25,20 +25,23 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Rational;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXVideoModel;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.ui.FlutterPipImplActivity;
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding;
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
-import io.flutter.plugin.common.EventChannel;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.plugin.common.EventChannel;
 
 /**
  * Picture-in-picture management.
@@ -54,9 +57,8 @@ public class FTXPIPManager {
 
     FTXAudioManager mTxAudioManager;
     private ActivityPluginBinding mActivityBinding;
-    private FlutterPluginBinding mFlutterPluginBinding;
     private final FlutterPlugin.FlutterAssets mFlutterAssets;
-    private EventChannel mPipEventChannel;
+    private final EventChannel mPipEventChannel;
     private final FTXPlayerEventSink mPipEventSink = new FTXPlayerEventSink();
     private boolean mIsInPipMode = false;
     private final BroadcastReceiver mPipBroadcastReceiver = new BroadcastReceiver() {
@@ -90,10 +92,10 @@ public class FTXPIPManager {
      * @param flutterAssets Flutter resource management.
      *                      flutter资源管理
      */
-    public FTXPIPManager(FTXAudioManager mTxAudioManager, FlutterPluginBinding flutterPluginBinding,
+    public FTXPIPManager(FTXAudioManager mTxAudioManager, @NonNull EventChannel pipEventChannel,
             ActivityPluginBinding activityBinding, FlutterPlugin.FlutterAssets flutterAssets) {
         this.mTxAudioManager = mTxAudioManager;
-        this.mFlutterPluginBinding = flutterPluginBinding;
+        this.mPipEventChannel = pipEventChannel;
         this.mActivityBinding = activityBinding;
         this.mFlutterAssets = flutterAssets;
         registerActivityListener();
@@ -101,9 +103,7 @@ public class FTXPIPManager {
     }
 
     private void initPipEventChannel() {
-        if (null == mPipEventChannel) {
-            mPipEventChannel = new EventChannel(mFlutterPluginBinding.getBinaryMessenger(),
-                    FTXEvent.PIP_CHANNEL_NAME);
+        if (null != mPipEventChannel) {
             mPipEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
                 @Override
                 public void onListen(Object arguments, EventChannel.EventSink events) {
