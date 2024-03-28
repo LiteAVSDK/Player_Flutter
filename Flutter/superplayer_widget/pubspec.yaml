@@ -54,6 +54,9 @@ flutter:
     - images/superplayer_ic_vod_download.png
     - images/superplayer_ic_vod_check_done.png
     - images/superplayer_ic_vod_download_list.png
+    - images/superplayer_multi_subtitle.png
+    - images/superplayer_multi_audio.png
+    - images/superplayer_setting.png
     - assets/json/
   # To add assets to your package, add an assets section, like this:
   # assets:

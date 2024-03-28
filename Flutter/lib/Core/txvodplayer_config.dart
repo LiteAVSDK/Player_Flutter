@@ -88,6 +88,10 @@ class FTXVodPlayConfig {
   // 优先播放的分辨率，preferredResolution = width * height
   int preferredResolution = 720 * 1280;
 
+  /// Media asset type, default auto type, refer to value see[TXVodPlayEvent]
+  /// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
+  int mediaType = TXVodPlayEvent.MEDIA_TYPE_AUTO;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
     json["connectRetryCount"] = connectRetryCount;
@@ -109,6 +113,7 @@ class FTXVodPlayConfig {
     json["extInfoMap"] = extInfoMap;
     json["enableRenderProcess"] = enableRenderProcess;
     json["preferredResolution"] = preferredResolution.toString();
+    json["mediaType"] = mediaType.toString();
     return json;
   }
 
@@ -133,6 +138,7 @@ class FTXVodPlayConfig {
       extInfoMap: extInfoMap,
       enableRenderProcess: enableRenderProcess,
       preferredResolution: preferredResolution,
+      mediaType: mediaType,
     );
   }
 }

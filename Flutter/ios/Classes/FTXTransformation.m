@@ -20,6 +20,7 @@
     config.nextStartPlayBufferTime = msg.nextStartPlayBufferTime.intValue;
     config.enableRenderProcess = msg.enableRenderProcess.boolValue;
     config.preferredResolution = msg.preferredResolution.longValue;
+    config.mediaType = msg.mediaType.intValue;
     NSTimeInterval progressInerval = msg.progressInterval.intValue / 1000.0;
     if(progressInerval > 0) {
         config.progressInterval = progressInerval;
@@ -45,6 +46,48 @@
     config.enableMetaData = msg.enableMetaData.boolValue;
     config.flvSessionKey = msg.flvSessionKey;
     return config;
+}
+
++ (TXPlayerSubtitleRenderModel *)transformToTitleRenderModel:(SubTitleRenderModelPlayerMsg *)msg {
+    TXPlayerSubtitleRenderModel *model = [[TXPlayerSubtitleRenderModel alloc] init];
+    if (msg.canvasWidth) {
+        model.canvasWidth = msg.canvasWidth.intValue;
+    }
+    if (msg.canvasHeight) {
+        model.canvasHeight = msg.canvasHeight.intValue;
+    }
+    model.familyName = msg.familyName;
+    if (msg.fontSize) {
+        model.fontSize = msg.fontSize.floatValue;
+    }
+    if (msg.fontScale) {
+        model.fontScale = msg.fontScale.floatValue;
+    }
+    if (msg.fontColor) {
+        model.fontColor = msg.fontColor.intValue;
+    }
+    if (msg.isBondFontStyle) {
+        model.isBondFontStyle = msg.isBondFontStyle.boolValue;
+    }
+    if (msg.outlineWidth) {
+        model.outlineWidth = msg.outlineWidth.floatValue;
+    }
+    if (msg.outlineColor) {
+        model.outlineColor = msg.outlineColor.intValue;
+    }
+    if (msg.lineSpace) {
+        model.lineSpace = msg.lineSpace.floatValue;
+    }
+    if (msg.startMargin) {
+        model.startMargin = msg.startMargin.floatValue;
+    }
+    if (msg.endMargin) {
+        model.endMargin = msg.endMargin.floatValue;
+    }
+    if (msg.verticalMargin) {
+        model.verticalMargin = msg.verticalMargin.floatValue;
+    }
+    return model;
 }
 
 @end

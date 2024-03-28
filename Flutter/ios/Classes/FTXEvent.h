@@ -112,5 +112,14 @@
 #define EVENT_REASON "reason"
 #define EVENT_HOST_NAME "hostName"
 #define EVENT_IPS "ips"
+// subtitle data event
+// 回调 SubtitleData 事件id
+#define EVENT_SUBTITLE_DATA 601
+// subtitle data extra key
+// 回调 SubtitleData 事件对应的key
+#define EXTRA_SUBTITLE_DATA @"subtitleData"
+#define EXTRA_SUBTITLE_START_POSITION_MS @"startPositionMs"
+#define EXTRA_SUBTITLE_DURATION_MS @"durationMs"
+#define EXTRA_SUBTITLE_TRACK_INDEX @"trackIndex"
 
 #endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_FTXEVENT_H_

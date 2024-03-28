@@ -3,10 +3,11 @@
 #define SUPERPLAYER_FLUTTER_IOS_CLASSES_FTXTRANSFORMATION_H_
 
 #import <Foundation/Foundation.h>
-#import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
+#import "FTXLiteAVSDKHeader.h"
 
 @class FTXVodPlayConfigPlayerMsg;
 @class FTXLivePlayConfigPlayerMsg;
+@class SubTitleRenderModelPlayerMsg;
 
 static NSString* cacheFolder = nil;
 static int maxCacheItems = -1;
@@ -15,6 +16,8 @@ static int maxCacheItems = -1;
 + (TXVodPlayConfig *)transformMsgToVodConfig:(FTXVodPlayConfigPlayerMsg*)msg;
 
 + (TXLivePlayConfig *)transformMsgToLiveConfig:(FTXLivePlayConfigPlayerMsg *)msg;
+
++ (TXPlayerSubtitleRenderModel *)transformToTitleRenderModel:(SubTitleRenderModelPlayerMsg *)msg;
 
 @end
 

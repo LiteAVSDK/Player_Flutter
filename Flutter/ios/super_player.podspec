@@ -16,11 +16,20 @@ player plugin.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'TXLiteAVSDK_Player'
   s.ios.framework = ['MobileCoreServices']
   s.platform = :ios, '9.0'
   s.static_framework = true
   s.resources = ['Classes/TXResource/**/*']
+
+  # Set the dependent LiteAV SDK type:
+  # Player SDK: s.dependency 'TXLiteAVSDK_Player'
+  # Player_Premium SDK: s.dependency 'TXLiteAVSDK_Player_Premium'
+  # Professional SDK:  s.dependency 'TXLiteAVSDK_Professional'
+  # If you want to specify the SDK version（eg 11.6.15041), use:  s.dependency 'TXLiteAVSDK_Player','11.6.15041'
+
+  s.dependency 'TXLiteAVSDK_Player'
+  # s.dependency 'TXLiteAVSDK_Player_Premium'
+  # s.dependency 'TXLiteAVSDK_Professional'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

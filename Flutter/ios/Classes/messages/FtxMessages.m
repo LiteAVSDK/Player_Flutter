@@ -40,6 +40,12 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface TXPlayerDrmMsg ()
++ (TXPlayerDrmMsg *)fromList:(NSArray *)list;
++ (nullable TXPlayerDrmMsg *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @interface PipParamsPlayerMsg ()
 + (PipParamsPlayerMsg *)fromList:(NSArray *)list;
 + (nullable PipParamsPlayerMsg *)nullableFromList:(NSArray *)list;
@@ -160,6 +166,18 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface SubTitlePlayerMsg ()
++ (SubTitlePlayerMsg *)fromList:(NSArray *)list;
++ (nullable SubTitlePlayerMsg *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
+@interface SubTitleRenderModelPlayerMsg ()
++ (SubTitleRenderModelPlayerMsg *)fromList:(NSArray *)list;
++ (nullable SubTitleRenderModelPlayerMsg *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @implementation PlayerMsg
 + (instancetype)makeWithPlayerId:(nullable NSNumber *)playerId {
   PlayerMsg* pigeonResult = [[PlayerMsg alloc] init];
@@ -239,6 +257,41 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.fileId ?: [NSNull null]),
     (self.psign ?: [NSNull null]),
     (self.url ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation TXPlayerDrmMsg
++ (instancetype)makeWithLicenseUrl:(NSString *)licenseUrl
+    playUrl:(NSString *)playUrl
+    playerId:(nullable NSNumber *)playerId
+    deviceCertificateUrl:(nullable NSString *)deviceCertificateUrl {
+  TXPlayerDrmMsg* pigeonResult = [[TXPlayerDrmMsg alloc] init];
+  pigeonResult.licenseUrl = licenseUrl;
+  pigeonResult.playUrl = playUrl;
+  pigeonResult.playerId = playerId;
+  pigeonResult.deviceCertificateUrl = deviceCertificateUrl;
+  return pigeonResult;
+}
++ (TXPlayerDrmMsg *)fromList:(NSArray *)list {
+  TXPlayerDrmMsg *pigeonResult = [[TXPlayerDrmMsg alloc] init];
+  pigeonResult.licenseUrl = GetNullableObjectAtIndex(list, 0);
+  NSAssert(pigeonResult.licenseUrl != nil, @"");
+  pigeonResult.playUrl = GetNullableObjectAtIndex(list, 1);
+  NSAssert(pigeonResult.playUrl != nil, @"");
+  pigeonResult.playerId = GetNullableObjectAtIndex(list, 2);
+  pigeonResult.deviceCertificateUrl = GetNullableObjectAtIndex(list, 3);
+  return pigeonResult;
+}
++ (nullable TXPlayerDrmMsg *)nullableFromList:(NSArray *)list {
+  return (list) ? [TXPlayerDrmMsg fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.licenseUrl ?: [NSNull null]),
+    (self.playUrl ?: [NSNull null]),
+    (self.playerId ?: [NSNull null]),
+    (self.deviceCertificateUrl ?: [NSNull null]),
   ];
 }
 @end
@@ -458,7 +511,8 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     overlayIv:(nullable NSString *)overlayIv
     extInfoMap:(nullable NSDictionary<NSString *, id> *)extInfoMap
     enableRenderProcess:(nullable NSNumber *)enableRenderProcess
-    preferredResolution:(nullable NSNumber *)preferredResolution {
+    preferredResolution:(nullable NSNumber *)preferredResolution
+    mediaType:(nullable NSNumber *)mediaType {
   FTXVodPlayConfigPlayerMsg* pigeonResult = [[FTXVodPlayConfigPlayerMsg alloc] init];
   pigeonResult.playerId = playerId;
   pigeonResult.connectRetryCount = connectRetryCount;
@@ -480,6 +534,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.extInfoMap = extInfoMap;
   pigeonResult.enableRenderProcess = enableRenderProcess;
   pigeonResult.preferredResolution = preferredResolution;
+  pigeonResult.mediaType = mediaType;
   return pigeonResult;
 }
 + (FTXVodPlayConfigPlayerMsg *)fromList:(NSArray *)list {
@@ -504,6 +559,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.extInfoMap = GetNullableObjectAtIndex(list, 17);
   pigeonResult.enableRenderProcess = GetNullableObjectAtIndex(list, 18);
   pigeonResult.preferredResolution = GetNullableObjectAtIndex(list, 19);
+  pigeonResult.mediaType = GetNullableObjectAtIndex(list, 20);
   return pigeonResult;
 }
 + (nullable FTXVodPlayConfigPlayerMsg *)nullableFromList:(NSArray *)list {
@@ -531,6 +587,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.extInfoMap ?: [NSNull null]),
     (self.enableRenderProcess ?: [NSNull null]),
     (self.preferredResolution ?: [NSNull null]),
+    (self.mediaType ?: [NSNull null]),
   ];
 }
 @end
@@ -919,6 +976,114 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList {
   return @[
     (self.map ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation SubTitlePlayerMsg
++ (instancetype)makeWithUrl:(NSString *)url
+    name:(NSString *)name
+    mimeType:(nullable NSString *)mimeType
+    playerId:(nullable NSNumber *)playerId {
+  SubTitlePlayerMsg* pigeonResult = [[SubTitlePlayerMsg alloc] init];
+  pigeonResult.url = url;
+  pigeonResult.name = name;
+  pigeonResult.mimeType = mimeType;
+  pigeonResult.playerId = playerId;
+  return pigeonResult;
+}
++ (SubTitlePlayerMsg *)fromList:(NSArray *)list {
+  SubTitlePlayerMsg *pigeonResult = [[SubTitlePlayerMsg alloc] init];
+  pigeonResult.url = GetNullableObjectAtIndex(list, 0);
+  NSAssert(pigeonResult.url != nil, @"");
+  pigeonResult.name = GetNullableObjectAtIndex(list, 1);
+  NSAssert(pigeonResult.name != nil, @"");
+  pigeonResult.mimeType = GetNullableObjectAtIndex(list, 2);
+  pigeonResult.playerId = GetNullableObjectAtIndex(list, 3);
+  return pigeonResult;
+}
++ (nullable SubTitlePlayerMsg *)nullableFromList:(NSArray *)list {
+  return (list) ? [SubTitlePlayerMsg fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.url ?: [NSNull null]),
+    (self.name ?: [NSNull null]),
+    (self.mimeType ?: [NSNull null]),
+    (self.playerId ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation SubTitleRenderModelPlayerMsg
++ (instancetype)makeWithCanvasWidth:(nullable NSNumber *)canvasWidth
+    canvasHeight:(nullable NSNumber *)canvasHeight
+    familyName:(nullable NSString *)familyName
+    fontSize:(nullable NSNumber *)fontSize
+    fontScale:(nullable NSNumber *)fontScale
+    fontColor:(nullable NSNumber *)fontColor
+    isBondFontStyle:(nullable NSNumber *)isBondFontStyle
+    outlineWidth:(nullable NSNumber *)outlineWidth
+    outlineColor:(nullable NSNumber *)outlineColor
+    lineSpace:(nullable NSNumber *)lineSpace
+    startMargin:(nullable NSNumber *)startMargin
+    endMargin:(nullable NSNumber *)endMargin
+    verticalMargin:(nullable NSNumber *)verticalMargin
+    playerId:(nullable NSNumber *)playerId {
+  SubTitleRenderModelPlayerMsg* pigeonResult = [[SubTitleRenderModelPlayerMsg alloc] init];
+  pigeonResult.canvasWidth = canvasWidth;
+  pigeonResult.canvasHeight = canvasHeight;
+  pigeonResult.familyName = familyName;
+  pigeonResult.fontSize = fontSize;
+  pigeonResult.fontScale = fontScale;
+  pigeonResult.fontColor = fontColor;
+  pigeonResult.isBondFontStyle = isBondFontStyle;
+  pigeonResult.outlineWidth = outlineWidth;
+  pigeonResult.outlineColor = outlineColor;
+  pigeonResult.lineSpace = lineSpace;
+  pigeonResult.startMargin = startMargin;
+  pigeonResult.endMargin = endMargin;
+  pigeonResult.verticalMargin = verticalMargin;
+  pigeonResult.playerId = playerId;
+  return pigeonResult;
+}
++ (SubTitleRenderModelPlayerMsg *)fromList:(NSArray *)list {
+  SubTitleRenderModelPlayerMsg *pigeonResult = [[SubTitleRenderModelPlayerMsg alloc] init];
+  pigeonResult.canvasWidth = GetNullableObjectAtIndex(list, 0);
+  pigeonResult.canvasHeight = GetNullableObjectAtIndex(list, 1);
+  pigeonResult.familyName = GetNullableObjectAtIndex(list, 2);
+  pigeonResult.fontSize = GetNullableObjectAtIndex(list, 3);
+  pigeonResult.fontScale = GetNullableObjectAtIndex(list, 4);
+  pigeonResult.fontColor = GetNullableObjectAtIndex(list, 5);
+  pigeonResult.isBondFontStyle = GetNullableObjectAtIndex(list, 6);
+  pigeonResult.outlineWidth = GetNullableObjectAtIndex(list, 7);
+  pigeonResult.outlineColor = GetNullableObjectAtIndex(list, 8);
+  pigeonResult.lineSpace = GetNullableObjectAtIndex(list, 9);
+  pigeonResult.startMargin = GetNullableObjectAtIndex(list, 10);
+  pigeonResult.endMargin = GetNullableObjectAtIndex(list, 11);
+  pigeonResult.verticalMargin = GetNullableObjectAtIndex(list, 12);
+  pigeonResult.playerId = GetNullableObjectAtIndex(list, 13);
+  return pigeonResult;
+}
++ (nullable SubTitleRenderModelPlayerMsg *)nullableFromList:(NSArray *)list {
+  return (list) ? [SubTitleRenderModelPlayerMsg fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.canvasWidth ?: [NSNull null]),
+    (self.canvasHeight ?: [NSNull null]),
+    (self.familyName ?: [NSNull null]),
+    (self.fontSize ?: [NSNull null]),
+    (self.fontScale ?: [NSNull null]),
+    (self.fontColor ?: [NSNull null]),
+    (self.isBondFontStyle ?: [NSNull null]),
+    (self.outlineWidth ?: [NSNull null]),
+    (self.outlineColor ?: [NSNull null]),
+    (self.lineSpace ?: [NSNull null]),
+    (self.startMargin ?: [NSNull null]),
+    (self.endMargin ?: [NSNull null]),
+    (self.verticalMargin ?: [NSNull null]),
+    (self.playerId ?: [NSNull null]),
   ];
 }
 @end
@@ -1527,8 +1692,14 @@ void TXFlutterNativeAPISetup(id<FlutterBinaryMessenger> binaryMessenger, NSObjec
     case 139: 
       return [StringPlayerMsg fromList:[self readValue]];
     case 140: 
-      return [TXPlayInfoParamsPlayerMsg fromList:[self readValue]];
+      return [SubTitlePlayerMsg fromList:[self readValue]];
     case 141: 
+      return [SubTitleRenderModelPlayerMsg fromList:[self readValue]];
+    case 142: 
+      return [TXPlayInfoParamsPlayerMsg fromList:[self readValue]];
+    case 143: 
+      return [TXPlayerDrmMsg fromList:[self readValue]];
+    case 144: 
       return [UInt8ListMsg fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
@@ -1576,11 +1747,20 @@ void TXFlutterNativeAPISetup(id<FlutterBinaryMessenger> binaryMessenger, NSObjec
   } else if ([value isKindOfClass:[StringPlayerMsg class]]) {
     [self writeByte:139];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[TXPlayInfoParamsPlayerMsg class]]) {
+  } else if ([value isKindOfClass:[SubTitlePlayerMsg class]]) {
     [self writeByte:140];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[UInt8ListMsg class]]) {
+  } else if ([value isKindOfClass:[SubTitleRenderModelPlayerMsg class]]) {
     [self writeByte:141];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXPlayInfoParamsPlayerMsg class]]) {
+    [self writeByte:142];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXPlayerDrmMsg class]]) {
+    [self writeByte:143];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[UInt8ListMsg class]]) {
+    [self writeByte:144];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -1695,6 +1875,28 @@ void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSOb
         FlutterError *error;
         [api startVodPlayWithParamsParams:arg_params error:&error];
         callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// 播放 DRM 加密视频
+  ///
+  /// Playing DRM-encrypted video.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.startPlayDrm"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(startPlayDrmParams:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(startPlayDrmParams:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        TXPlayerDrmMsg *arg_params = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        IntMsg *output = [api startPlayDrmParams:arg_params error:&error];
+        callback(wrapResult(output, error));
       }];
     } else {
       [channel setMessageHandler:nil];
@@ -1872,6 +2074,32 @@ void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSOb
         DoublePlayerMsg *arg_progress = GetNullableObjectAtIndex(args, 0);
         FlutterError *error;
         [api seekProgress:arg_progress error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
+  /// 单位毫秒(ms)
+  /// 播放器高级版 11.6 版本开始支持
+  ///
+  /// Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
+  /// Unit millisecond (ms)
+  /// Player Premium version 11.6 starts to support
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.seekToPdtTime"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(seekToPdtTimePdtTimeMs:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(seekToPdtTimePdtTimeMs:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        IntPlayerMsg *arg_pdtTimeMs = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api seekToPdtTimePdtTimeMs:arg_pdtTimeMs error:&error];
         callback(wrapResult(nil, error));
       }];
     } else {
@@ -2343,6 +2571,120 @@ void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSOb
         FlutterError *error;
         DoubleMsg *output = [api getDurationPlayerMsg:arg_playerMsg error:&error];
         callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.addSubtitleSource"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(addSubtitleSourcePlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(addSubtitleSourcePlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        SubTitlePlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api addSubtitleSourcePlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.getSubtitleTrackInfo"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getSubtitleTrackInfoPlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(getSubtitleTrackInfoPlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        ListMsg *output = [api getSubtitleTrackInfoPlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.getAudioTrackInfo"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getAudioTrackInfoPlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(getAudioTrackInfoPlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        ListMsg *output = [api getAudioTrackInfoPlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.selectTrack"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(selectTrackPlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(selectTrackPlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        IntPlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api selectTrackPlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.deselectTrack"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(deselectTrackPlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(deselectTrackPlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        IntPlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api deselectTrackPlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterVodPlayerApi.setSubtitleStyle"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterVodPlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setSubtitleStylePlayerMsg:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(setSubtitleStylePlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        SubTitleRenderModelPlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setSubtitleStylePlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(nil, error));
       }];
     } else {
       [channel setMessageHandler:nil];

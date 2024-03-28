@@ -38,5 +38,10 @@
   "tx_spw_1080p" : "HD+ 1080p",
   "tx_spw_2k" : "2K",
   "tx_spw_4k" : "4k",
-  "tx_spw_od" : "OD"
+  "tx_spw_od" : "OD",
+  "tx_subtitle_title" : "Subtitle",
+  "tx_subtitle_close" : "Close",
+  "tx_audio_track_title" : "AudioTrack",
+  "tx_audio_track_item" : "Track",
+  "tx_audio_track_close" : "Close"
 }

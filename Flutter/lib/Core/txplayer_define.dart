@@ -22,6 +22,19 @@ class TXPlayerValue {
   }
 }
 
+class TXPlayerDrmBuilder {
+  String licenseUrl;
+  String playUrl;
+  String? deviceCertificateUrl;
+  TXPlayerDrmBuilder(this.licenseUrl, this.playUrl, {this.deviceCertificateUrl});
+
+  TXPlayerDrmMsg toMsg() {
+    TXPlayerDrmMsg msg = TXPlayerDrmMsg(licenseUrl: this.licenseUrl, playUrl: this.playUrl);
+    msg.deviceCertificateUrl = this.deviceCertificateUrl;
+    return msg;
+  }
+}
+
 ///
 /// Live stream type.
 ///
@@ -66,8 +79,8 @@ abstract class TXVodPlayEvent {
   // Video resolution changes (resolution is in the EVT_PARAM parameter).
   // 视频分辨率发生变化（分辨率在 EVT_PARAM 参数中）
   static const PLAY_EVT_CHANGE_RESOLUTION = 2009;
-  // If you receive this message during live streaming, it means that you have used TXVodPlayer incorrectly.
-  // 如果您在直播中收到此消息，说明错用成了 TXVodPlayer
+  // Successfully obtained on-demand file information.
+  // 获取点播文件信息成功
   static const PLAY_EVT_GET_PLAYINFO_SUCC = 2010;
   // Get custom SEI message embedded in video stream, message sending needs to use TXLivePusher.
   // 如果您在直播中收到此消息，说明错用成了 TXVodPlayer
@@ -149,6 +162,9 @@ abstract class TXVodPlayEvent {
   // Seek completed.
   // Seek 完成
   static const VOD_PLAY_EVT_SEEK_COMPLETE = 2019;
+  // Video SEI frame information, Player Premium version 11.6 starts to support
+  // 视频 SEI 帧信息, 播放器高级版 11.6 版本开始支持
+  static const VOD_PLAY_EVT_VIDEO_SEI = 2030;
 
   // UTC time
   // UTC时间
@@ -216,6 +232,35 @@ abstract class TXVodPlayEvent {
   // Encryption type.
   // 加密类型
   static const EVT_DRM_TYPE = "EVT_DRM_TYPE";
+  // Ghost watermark text (supported since version 11.5)
+  //  幽灵水印文本（11.5版本开始支持）
+  static const EVT_KEY_WATER_MARK_TEXT = "EVT_KEY_WATER_MARK_TEXT";
+  // SEI data type
+  static const EVT_KEY_SEI_TYPE = "EVT_KEY_SEI_TYPE";
+  // SEI data size
+  static const EVT_KEY_SEI_SIZE = "EVT_KEY_SEI_SIZE";
+  // SEI data
+  static const EVT_KEY_SEI_DATA = "EVT_KEY_SEI_DATA";
+  // Play PDT time, Player Premium version 11.6 starts to support
+  // 播放PDT时间, 播放器高级版 11.6 版本开始支持
+  static const EVT_PLAY_PDT_TIME_MS = "EVT_PLAY_PDT_TIME_MS";
+
+  // AUTO type (default value, adaptive bit rate playback is not supported yet)
+  // AUTO类型（默认值，自适应码率播放暂不支持）
+  static const MEDIA_TYPE_AUTO = 0;
+  // HLS on-demand media assets
+  // HLS点播媒资
+  static const MEDIA_TYPE_HLS_VOD = 1;
+  // HLS Live Media Assets
+  // HLS直播媒资
+  static const MEDIA_TYPE_HLS_LIVE = 2;
+  // MP4 and other general file on-demand media assets
+  // MP4等通用文件点播媒资
+  static const MEDIA_TYPE_FILE_VOD = 3;
+  // DASH on-demand media assets
+  // DASH点播媒资
+  static const MEDIA_TYPE_DASH_VOD = 4;
+
 
   /// superplayer plugin event
   // Volume change
@@ -340,6 +385,15 @@ abstract class TXVodPlayEvent {
 
   static const EVENT_RESULT = "result";
   static const EVENT_REASON = "reason";
+  // subtitle data event
+  // 回调 SubtitleData 事件id
+  static const EVENT_SUBTITLE_DATA = 601;
+  // subtitle data extra key
+  // 回调 SubtitleData 事件对应的key
+  static const EXTRA_SUBTITLE_DATA = "subtitleData";
+  static const EXTRA_SUBTITLE_START_POSITION_MS = "startPositionMs";
+  static const EXTRA_SUBTITLE_DURATION_MS = "durationMs";
+  static const EXTRA_SUBTITLE_TRACK_INDEX = "trackIndex";
 }
 
 abstract class TXVodNetEvent {
@@ -672,6 +726,87 @@ class TXVodDownloadMediaInfo {
     msg.isResourceBroken = isResourceBroken;
     return msg;
   }
+}
+
+class FTXTrackInfo {
+  static const TX_VOD_MEDIA_TRACK_TYPE_UNKNOW = 0;
+  static const TX_VOD_MEDIA_TRACK_TYPE_VIDEO = 1;
+  static const TX_VOD_MEDIA_TRACK_TYPE_AUDIO = 2;
+  static const TX_VOD_MEDIA_TRACK_TYPE_SUBTITLE = 3;
+
+  int trackType;
+  int trackIndex;
+  String name;
+  bool isSelected = false;
+  bool isExclusive = true;
+  bool isInternal = true;
+  FTXTrackInfo(this.name, this.trackIndex, this.trackType);
+}
+
+class FSubtitleData{
+  /// 字幕内容
+  /// subtitle content
+  String? subtitleData;
+  /// 字幕持续时间, 单位毫秒
+  /// Subtitle duration, in milliseconds
+  int? startPositionMs;
+  /// 字幕开始时间，也就是视频的position位置，单位毫秒
+  /// Subtitle start time, which is the position of the video, in milliseconds
+  int? durationMs;
+  /// 当前字幕轨道的trackIndex
+  /// Track Index of the current subtitle track
+  int? trackIndex;
+  
+  FSubtitleData(this.subtitleData,this.startPositionMs,this.durationMs,this.trackIndex);
+}
+
+class FSubTitleRenderModel {
+  int? canvasWidth;
+  int? canvasHeight;
+  String? familyName;
+  double? fontSize;
+  double? fontScale;
+  int? fontColor;
+  bool? isBondFontStyle;
+  double? outlineWidth;
+  int? outlineColor;
+  double? lineSpace;
+  double? startMargin;
+  double? endMargin;
+  double? verticalMargin;
+
+  SubTitleRenderModelPlayerMsg toMsg() {
+    SubTitleRenderModelPlayerMsg msg = SubTitleRenderModelPlayerMsg();
+    msg.canvasWidth = canvasWidth;
+    msg.canvasHeight = canvasHeight;
+    msg.familyName = familyName;
+    msg.fontSize = fontSize;
+    msg.fontScale = fontScale;
+    msg.fontColor = fontColor;
+    msg.isBondFontStyle = isBondFontStyle;
+    msg.outlineWidth = outlineWidth;
+    msg.outlineColor = outlineColor;
+    msg.lineSpace = lineSpace;
+    msg.startMargin = startMargin;
+    msg.endMargin = endMargin;
+    msg.verticalMargin = verticalMargin;
+    return msg;
+  }
+}
+
+class FSubtitleSourceModel {
+  static const VOD_PLAY_MIMETYPE_TEXT_SRT = "text/x-subrip";  // External subtitle file in SRT format.
+  static const VOD_PLAY_MIMETYPE_TEXT_VTT = "text/vtt";   // External subtitle file in VTT format.
+
+  String name = "";
+  String url = "";
+  String mimeType = VOD_PLAY_MIMETYPE_TEXT_SRT;
+  ///
+  /// @params
+  /// name:The name of the external subtitle file
+  /// url:The url of the external subtitle file
+  /// mimeType:The mimeType of the external subtitle file,must is one of [VOD_PLAY_MIMETYPE_TEXT_SRT] or [VOD_PLAY_MIMETYPE_TEXT_VTT]
+  FSubtitleSourceModel();
 }
 
 /// Player type.

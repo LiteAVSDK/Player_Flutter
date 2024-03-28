@@ -127,6 +127,12 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
         break;
       case TXVodPlayEvent.PLAY_WARNING_SHAKE_FAIL:
         break;
+      case TXVodPlayEvent.EVENT_SUBTITLE_DATA:
+        String subtitleDataStr = map[TXVodPlayEvent.EXTRA_SUBTITLE_DATA] ?? "";
+        if (subtitleDataStr != "") {
+          map[TXVodPlayEvent.EXTRA_SUBTITLE_DATA] = subtitleDataStr.trim().replaceAll('\\N', '\n');
+        }
+        break;
       default:
         break;
     }
@@ -322,6 +328,21 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _initPlayer.future;
     await _vodPlayerApi.seek(DoublePlayerMsg()
       ..value = progress
+      ..playerId = _playerId);
+  }
+
+  /// 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
+  /// 播放器高级版 11.6 版本开始支持
+  /// @param pdtTimeMs  视频流PDT时间点,单位毫秒(ms)
+  ///
+  /// Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
+  /// Player Premium version 11.6 starts to support
+  /// @param pdtTimeMs video stream PDT time point, unit millisecond (ms)
+  Future<void> seekToPdtTime(int pdtTimeMs) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.seekToPdtTime(IntPlayerMsg()
+      ..value = pdtTimeMs
       ..playerId = _playerId);
   }
 
@@ -576,6 +597,79 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _vodPlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
+  }
+
+  Future<int> startPlayDrm(TXPlayerDrmBuilder playerDrmBuilder) async {
+    if (_isNeedDisposed) return 0;
+    await _initPlayer.future;
+    IntMsg intMsg = await _vodPlayerApi.startPlayDrm(playerDrmBuilder.toMsg()..playerId = _playerId);
+    return intMsg.value ?? 0;
+  }
+
+  Future<void> addSubtitleSource(String url, String name, {String? mimeType}) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.addSubtitleSource(SubTitlePlayerMsg(url: url, name: name, mimeType: mimeType)..playerId = _playerId);
+  }
+
+  Future<List<FTXTrackInfo>> getSubtitleTrackInfo() async {
+    if (_isNeedDisposed) return [];
+    await _initPlayer.future;
+    ListMsg listMsg = await _vodPlayerApi.getSubtitleTrackInfo(PlayerMsg(playerId: _playerId));
+    if (null != listMsg.value) {
+      List<dynamic>? transInfoData = listMsg.value!;
+      List<FTXTrackInfo> trackInfoList = [];
+      for (Map<dynamic, dynamic> map in transInfoData) {
+        FTXTrackInfo trackInfo = FTXTrackInfo(map["name"], map["trackIndex"], map["trackType"]);
+        trackInfo.isSelected = map["isSelected"] ?? false;
+        trackInfo.isExclusive = map["isExclusive"] ?? true;
+        trackInfo.isInternal = map["isInternal"] ?? true;
+        trackInfoList.add(trackInfo);
+      }
+      return trackInfoList;
+    }
+    return [];
+  }
+
+  Future<List<FTXTrackInfo>> getAudioTrackInfo() async {
+    if (_isNeedDisposed) return [];
+    await _initPlayer.future;
+    ListMsg listMsg = await _vodPlayerApi.getAudioTrackInfo(PlayerMsg(playerId: _playerId));
+    if (null != listMsg.value) {
+      List<dynamic>? transInfoData = listMsg.value!;
+      List<FTXTrackInfo> trackInfoList = [];
+      for (Map<dynamic, dynamic> map in transInfoData) {
+        FTXTrackInfo trackInfo = FTXTrackInfo(map["name"], map["trackIndex"], map["trackType"]);
+        trackInfo.isSelected = map["isSelected"] ?? false;
+        trackInfo.isExclusive = map["isExclusive"] ?? true;
+        trackInfo.isInternal = map["isInternal"] ?? true;
+        trackInfoList.add(trackInfo);
+      }
+      return trackInfoList;
+    }
+    return [];
+  }
+
+  Future<void> selectTrack(int trackIndex) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.selectTrack(IntPlayerMsg()
+      ..playerId = _playerId
+      ..value = trackIndex);
+  }
+
+  Future<void> deselectTrack(int trackIndex) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.deselectTrack(IntPlayerMsg()
+      ..playerId = _playerId
+      ..value = trackIndex);
+  }
+
+  Future<void> setSubtitleStyle(FSubTitleRenderModel renderModel) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.setSubtitleStyle(renderModel.toMsg()..playerId = _playerId);
   }
 
   /// release controller

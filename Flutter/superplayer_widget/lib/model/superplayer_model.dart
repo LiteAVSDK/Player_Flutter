@@ -78,6 +78,7 @@ class SuperPlayerModel {
   int appId = 0;
   String videoURL = "";
   List<SuperPlayerUrl> multiVideoURLs = [];
+  List<FSubtitleSourceModel> subtitleSources = [];
   int defaultPlayIndex = 0;
   SuperPlayerVideoId? videoId;
   String title = "";

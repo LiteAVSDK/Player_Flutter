@@ -394,6 +394,35 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.title = AppLocals.current.playerVideoTitleAchievement;
     models.add(model);
 
+    model = SuperPlayerModel();
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/dc455d1d387702306937256938/coverBySnapshot_10_0.jpg";
+    model.videoURL = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/dc455d1d387702306937256938/adp.10.m3u8";
+    model.playAction = playAction;
+    model.isEnableDownload = false;
+    model.title = "Multi-subtitle video";
+    // add external subtitle
+    model.subtitleSources.add(FSubtitleSourceModel()
+      ..name = "ex-cn-srt"
+      ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-CN.srt"
+      ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_SRT);
+    model.subtitleSources.add(FSubtitleSourceModel()
+      ..name = "ex-in-srt"
+      ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-IN.srt"
+      ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_SRT);
+    model.subtitleSources.add(FSubtitleSourceModel()
+      ..name = "ex-en-vtt"
+      ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-EN.vtt"
+      ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_VTT);
+    models.add(model);
+
+    model = SuperPlayerModel();
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/3a76d6ac387702303793151471/387702307093360124.png";
+    model.videoURL = "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/3a76d6ac387702303793151471/iP3rnDdxMH4A.mov";
+    model.playAction = playAction;
+    model.isEnableDownload = false;
+    model.title = "Multi-audio track video";
+    models.add(model);
+
     List<Future<void>> requestList = [];
     for (SuperPlayerModel tempModel in models) {
       requestList.add(loader.getVideoData(tempModel, (_) {}));
@@ -403,7 +432,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     videoModels.clear();
     videoModels.addAll(models);
 
-    if(mounted) {
+    if (mounted) {
       setState(() {
         if (videoModels.isNotEmpty) {
           playVideo(videoModels[0]);

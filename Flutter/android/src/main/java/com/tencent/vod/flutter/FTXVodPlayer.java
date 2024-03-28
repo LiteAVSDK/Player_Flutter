@@ -14,7 +14,10 @@ import com.tencent.rtmp.TXBitrateItem;
 import com.tencent.rtmp.TXImageSprite;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXPlayInfoParams;
+import com.tencent.rtmp.TXPlayerDrmBuilder;
+import com.tencent.rtmp.TXTrackInfo;
 import com.tencent.rtmp.TXVodConstants;
+import com.tencent.rtmp.TXVodDef;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.messages.FtxMessages;
@@ -36,16 +39,19 @@ import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXVideoModel;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.plugin.common.EventChannel;
-import io.flutter.view.TextureRegistry;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.view.TextureRegistry;
 
 /**
  * vodPlayer plugin processor
@@ -55,6 +61,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     private static final String TAG = "FTXVodPlayer";
 
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
+    private ActivityPluginBinding mActivityPluginBinding;
 
     private final EventChannel mEventChannel;
     private final EventChannel mNetChannel;
@@ -99,7 +106,8 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
      *
      * 点播播放器
      */
-    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
+    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding,
+                        ActivityPluginBinding activityPluginBinding, FTXPIPManager pipManager) {
         super();
         mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;
@@ -250,6 +258,17 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             mVodPlayer.setVodListener(this);
             // prevent config null exception
             mVodPlayer.setConfig(new TXVodPlayConfig());
+            mVodPlayer.setVodSubtitleDataListener(new ITXVodPlayListener.ITXVodSubtitleDataListener() {
+                @Override
+                public void onSubtitleData(TXVodDef.TXVodSubtitleData sub) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString(FTXEvent.EXTRA_SUBTITLE_DATA, sub.subtitleData);
+                    bundle.putLong(FTXEvent.EXTRA_SUBTITLE_START_POSITION_MS, sub.startPositionMs);
+                    bundle.putLong(FTXEvent.EXTRA_SUBTITLE_DURATION_MS, sub.durationMs);
+                    bundle.putLong(FTXEvent.EXTRA_SUBTITLE_TRACK_INDEX, sub.trackIndex);
+                    mEventSink.success(TXCommonUtil.getParams(FTXEvent.EVENT_SUBTITLE_DATA, bundle));
+                }
+            });
             setPlayer(onlyAudio);
         }
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
@@ -377,6 +396,12 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         }
     }
 
+    public void seekToPdtTime(long pdtTimeMs) {
+        if (mVodPlayer != null) {
+            mVodPlayer.seekToPdtTime(pdtTimeMs);
+        }
+    }
+
     void setPlayerRate(float rate) {
         if (mVodPlayer != null) {
             mVodPlayer.setRate(rate);
@@ -386,6 +411,13 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     void setPlayConfig(FTXVodPlayConfigPlayerMsg config) {
         if (mVodPlayer != null) {
             TXVodPlayConfig playConfig = FTXTransformation.transformToVodConfig(config);
+            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> extInfoMap = playConfig.getExtInfoMap();
+            if (extInfoMap != null && !extInfoMap.isEmpty()) {
+                map.putAll(extInfoMap);
+            }
+            map.put("450", 0);
+            playConfig.setExtInfo(map);
             mVodPlayer.setConfig(playConfig);
         }
     }
@@ -488,6 +520,20 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
         startPlayerVodPlayWithParams(appId, fileId, psign);
     }
 
+    @NonNull
+    @Override
+    public IntMsg startPlayDrm(@NonNull FtxMessages.TXPlayerDrmMsg params) {
+        if (null != mVodPlayer) {
+            TXPlayerDrmBuilder builder = new TXPlayerDrmBuilder(params.getLicenseUrl(), params.getPlayUrl());
+            if (!TextUtils.isEmpty(params.getDeviceCertificateUrl())) {
+                builder.setDeviceCertificateUrl(params.getDeviceCertificateUrl());
+            }
+            int result = mVodPlayer.startPlayDrm(builder);
+            return TXCommonUtil.intMsgWith((long) result);
+        }
+        return TXCommonUtil.intMsgWith((long) Uninitialized);
+    }
+
     @Override
     public void setAutoPlay(@NonNull BoolPlayerMsg isAutoPlay) {
         if (null != isAutoPlay.getValue()) {
@@ -536,6 +582,13 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     public void seek(@NonNull DoublePlayerMsg progress) {
         if (null != progress.getValue()) {
             seekPlayer(progress.getValue().floatValue());
+        }
+    }
+
+    @Override
+    public void seekToPdtTime(@NonNull IntPlayerMsg pdtTimeMs) {
+        if (null != pdtTimeMs.getValue()) {
+            seekToPdtTime(pdtTimeMs.getValue().longValue());
         }
     }
 
@@ -707,5 +760,75 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             return TXCommonUtil.doubleMsgWith(bigDecimal.doubleValue());
         }
         return TXCommonUtil.doubleMsgWith(0D);
+    }
+
+    @Override
+    public void addSubtitleSource(@NonNull FtxMessages.SubTitlePlayerMsg playerMsg) {
+        if (null != mVodPlayer) {
+            mVodPlayer.addSubtitleSource(playerMsg.getUrl(), playerMsg.getName(), playerMsg.getMimeType());
+        }
+    }
+
+    @NonNull
+    @Override
+    public ListMsg getSubtitleTrackInfo(@NonNull PlayerMsg playerMsg) {
+        if (null != mVodPlayer) {
+            List<TXTrackInfo> trackInfoList = mVodPlayer.getSubtitleTrackInfo();
+            List<Object> json = new ArrayList<>();
+            for (TXTrackInfo trackInfo : trackInfoList) {
+                Map<Object, Object> map = new HashMap<>();
+                map.put("trackType", trackInfo.trackType);
+                map.put("trackIndex", trackInfo.trackIndex);
+                map.put("name", trackInfo.name);
+                map.put("isSelected", trackInfo.isSelected);
+                map.put("isExclusive", trackInfo.isExclusive);
+                map.put("isInternal", trackInfo.isInternal);
+                json.add(map);
+            }
+            return TXCommonUtil.listMsgWith(json);
+        }
+        return TXCommonUtil.listMsgWith(Collections.emptyList());
+    }
+
+    @NonNull
+    @Override
+    public ListMsg getAudioTrackInfo(@NonNull PlayerMsg playerMsg) {
+        if (null != mVodPlayer) {
+            List<TXTrackInfo> trackInfoList = mVodPlayer.getAudioTrackInfo();
+            List<Object> json = new ArrayList<>();
+            for (TXTrackInfo trackInfo : trackInfoList) {
+                Map<Object, Object> map = new HashMap<>();
+                map.put("trackType", trackInfo.trackType);
+                map.put("trackIndex", trackInfo.trackIndex);
+                map.put("name", trackInfo.name);
+                map.put("isSelected", trackInfo.isSelected);
+                map.put("isExclusive", trackInfo.isExclusive);
+                map.put("isInternal", trackInfo.isInternal);
+                json.add(map);
+            }
+            return TXCommonUtil.listMsgWith(json);
+        }
+        return TXCommonUtil.listMsgWith(Collections.emptyList());
+    }
+
+    @Override
+    public void selectTrack(@NonNull IntPlayerMsg playerMsg) {
+        if (null != mVodPlayer && null != playerMsg.getValue()) {
+            mVodPlayer.selectTrack(playerMsg.getValue().intValue());
+        }
+    }
+
+    @Override
+    public void deselectTrack(@NonNull IntPlayerMsg playerMsg) {
+        if (null != mVodPlayer && null != playerMsg.getValue()) {
+            mVodPlayer.deselectTrack(playerMsg.getValue().intValue());
+        }
+    }
+
+    @Override
+    public void setSubtitleStyle(@NonNull FtxMessages.SubTitleRenderModelPlayerMsg playerMsg) {
+        if (null != mVodPlayer) {
+            mVodPlayer.setSubtitleStyle(FTXTransformation.transToTitleRenderModel(playerMsg));
+        }
     }
 }
