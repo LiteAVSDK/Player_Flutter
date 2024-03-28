@@ -22,9 +22,9 @@ class _SuperPlayerObserver {
   Function onSysBackPress;
   Function onPreparePlayVideo;
   Function onDispose;
-  Function(List<FTXTrackInfo>) onRecAudioTrack;
-  Function(List<FTXTrackInfo>) onRecSubtitleTrack;
-  Function(FSubtitleData?) onSubtitleData;
+  Function(List<TXTrackInfo>) onRecAudioTrack;
+  Function(List<TXTrackInfo>) onRecSubtitleTrack;
+  Function(TXVodSubtitleData?) onSubtitleData;
  
 
   _SuperPlayerObserver(

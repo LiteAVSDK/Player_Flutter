@@ -15,8 +15,8 @@ class AudioListView extends StatefulWidget {
 class AudioListState extends State<AudioListView> {
   @override
   Widget build(BuildContext context) {
-    List<FTXTrackInfo> trackData = List.from(widget._controller.audioTrackData);
-    trackData.add(FTXTrackInfo(FSPLocal.current.txAudioTrackClose, -1, 0));
+    List<TXTrackInfo> trackData = List.from(widget._controller.audioTrackData);
+    trackData.add(TXTrackInfo(FSPLocal.current.txAudioTrackClose, -1, 0));
     return Positioned(
       right: 0,
       top: 0,
@@ -57,8 +57,8 @@ class AudioListState extends State<AudioListView> {
     );
   }
 
-  String getAudioName(List<FTXTrackInfo> trackData, int index) {
-    FTXTrackInfo trackInfo = trackData[index];
+  String getAudioName(List<TXTrackInfo> trackData, int index) {
+    TXTrackInfo trackInfo = trackData[index];
     String name = trackInfo.name;
     if (name.isEmpty) {
       name = FSPLocal.current.txAudioTrackTitleItem + "${trackInfo.trackIndex}";
@@ -66,9 +66,9 @@ class AudioListState extends State<AudioListView> {
     return name;
   }
 
-  void selectTrackInfo(FTXTrackInfo trackInfo) {
+  void selectTrackInfo(TXTrackInfo trackInfo) {
     widget._controller.currentTrackInfo = trackInfo;
-    for (Function(FTXTrackInfo) listener in widget._controller.onSwitchAudioTrack) {
+    for (Function(TXTrackInfo) listener in widget._controller.onSwitchAudioTrack) {
       listener(trackInfo);
     }
   }

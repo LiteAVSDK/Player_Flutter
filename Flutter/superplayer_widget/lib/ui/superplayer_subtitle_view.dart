@@ -124,7 +124,7 @@ class _SubtitleListState extends State<SubtitleListView> {
   void initState() {
     super.initState();
     // load setting initValue
-    FSubTitleRenderModel renderModel = widget._subtitleController.renderModel;
+    TXSubtitleRenderModel renderModel = widget._subtitleController.renderModel;
     styleFontColor = renderModel.fontColor ?? defaultFontColor;
     styleFontSize = renderModel.fontSize ?? defaultFontSize;
     if (null != renderModel.isBondFontStyle) {
@@ -254,8 +254,8 @@ class _SubtitleListState extends State<SubtitleListView> {
   }
 
   Widget _buildSubtitleList() {
-    List<FTXTrackInfo> trackData = List.from(widget._subtitleController.trackData);
-    trackData.add(FTXTrackInfo(FSPLocal.current.txSubtitleTitle, -1, 0));
+    List<TXTrackInfo> trackData = List.from(widget._subtitleController.trackData);
+    trackData.add(TXTrackInfo(FSPLocal.current.txSubtitleTitle, -1, 0));
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -305,13 +305,13 @@ class _SubtitleListState extends State<SubtitleListView> {
   }
 
   void _onTapSettingDone() {
-    FSubTitleRenderModel renderModel = FSubTitleRenderModel();
+    TXSubtitleRenderModel renderModel = TXSubtitleRenderModel();
     renderModel.outlineWidth = styleOutlineWidth;
     renderModel.outlineColor = styleOutlineColor;
     renderModel.fontColor = styleFontColor;
     renderModel.fontSize = styleFontSize;
     renderModel.isBondFontStyle = styleFondBold == "1";
-    for (Function(FSubTitleRenderModel) listener in widget._subtitleController.onSetRenderModel) {
+    for (Function(TXSubtitleRenderModel) listener in widget._subtitleController.onSetRenderModel) {
       listener(renderModel);
     }
     widget._subtitleController.renderModel = renderModel;
@@ -342,9 +342,9 @@ class _SubtitleListState extends State<SubtitleListView> {
     });
   }
 
-  void selectTrackInfo(FTXTrackInfo trackInfo) {
+  void selectTrackInfo(TXTrackInfo trackInfo) {
     widget._subtitleController.currentTrackInfo = trackInfo;
-    for (Function(FTXTrackInfo) listener in widget._subtitleController.onSwitchTrackClick) {
+    for (Function(TXTrackInfo) listener in widget._subtitleController.onSwitchTrackClick) {
       listener(trackInfo);
     }
   }

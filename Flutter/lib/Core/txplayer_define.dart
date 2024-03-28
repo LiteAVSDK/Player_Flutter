@@ -22,9 +22,17 @@ class TXPlayerValue {
   }
 }
 
+/// DRM playback information
+/// DRM播放信息
 class TXPlayerDrmBuilder {
+  /// URL to play media
+  /// 播放媒体的url
   String licenseUrl;
+  /// Decrypt key url
+  /// 解密key url
   String playUrl;
+  /// Certificate provider url
+  /// 证书提供商url
   String? deviceCertificateUrl;
   TXPlayerDrmBuilder(this.licenseUrl, this.playUrl, {this.deviceCertificateUrl});
 
@@ -244,7 +252,12 @@ abstract class TXVodPlayEvent {
   // Play PDT time, Player Premium version 11.6 starts to support
   // 播放PDT时间, 播放器高级版 11.6 版本开始支持
   static const EVT_PLAY_PDT_TIME_MS = "EVT_PLAY_PDT_TIME_MS";
-
+  /// External subtitle file in SRT format.
+  /// 外挂字幕SRT格式
+  static const VOD_PLAY_MIMETYPE_TEXT_SRT = "text/x-subrip";
+  /// External subtitle file in VTT format.
+  /// 外挂字幕VTT格式
+  static const VOD_PLAY_MIMETYPE_TEXT_VTT = "text/vtt";
   // AUTO type (default value, adaptive bit rate playback is not supported yet)
   // AUTO类型（默认值，自适应码率播放暂不支持）
   static const MEDIA_TYPE_AUTO = 0;
@@ -728,22 +741,44 @@ class TXVodDownloadMediaInfo {
   }
 }
 
-class FTXTrackInfo {
+/// Track details
+/// 轨道的详细信息
+class TXTrackInfo {
+  /// Unknown
+  /// 未知
   static const TX_VOD_MEDIA_TRACK_TYPE_UNKNOW = 0;
+  /// Video track
+  /// 视频轨
   static const TX_VOD_MEDIA_TRACK_TYPE_VIDEO = 1;
+  /// Audio track
+  /// 音频轨
   static const TX_VOD_MEDIA_TRACK_TYPE_AUDIO = 2;
+  /// Subtitle track
+  /// 字幕轨
   static const TX_VOD_MEDIA_TRACK_TYPE_SUBTITLE = 3;
 
+  /// track type
+  /// track类型
   int trackType;
+  /// Track index
+  /// 轨道index
   int trackIndex;
+  /// Track name
+  /// 轨道名字
   String name;
+  /// Whether the current track is selected
+  /// 当前轨道是否被选中
   bool isSelected = false;
+  /// If it is true, only one track of this type can be selected at each time. If it is false, multiple tracks of this type can be selected at the same time.
+  /// 如果是true，该类型轨道每个时刻只有一条能被选中，如果是false，该类型轨道可以同时选中多条
   bool isExclusive = true;
+  /// Whether the current track is the internal original track
+  ///  当前的轨道是否是内部原始轨道
   bool isInternal = true;
-  FTXTrackInfo(this.name, this.trackIndex, this.trackType);
+  TXTrackInfo(this.name, this.trackIndex, this.trackType);
 }
 
-class FSubtitleData{
+class TXVodSubtitleData{
   /// 字幕内容
   /// subtitle content
   String? subtitleData;
@@ -757,22 +792,43 @@ class FSubtitleData{
   /// Track Index of the current subtitle track
   int? trackIndex;
   
-  FSubtitleData(this.subtitleData,this.startPositionMs,this.durationMs,this.trackIndex);
+  TXVodSubtitleData(this.subtitleData,this.startPositionMs,this.durationMs,this.trackIndex);
 }
 
-class FSubTitleRenderModel {
-  int? canvasWidth;
-  int? canvasHeight;
-  String? familyName;
+class TXSubtitleRenderModel {
+  /// fontSize
+  /// 字体大小
   double? fontSize;
-  double? fontScale;
+  /// Font color, ARGB format If not set, the default is white opaque (0xFFFFFFFF)
+  /// 字体颜色，ARGB格式
+  /// 如果不设置，默认为白色不透明(0xFFFFFFFF)
   int? fontColor;
+  /// Whether it is bold, the default is normal font.
+  /// 是否是粗体，默认时正常字体
   bool? isBondFontStyle;
+ /// Stroke width. If not set, the default stroke width will be used internally.
+  /// 描边宽度
   double? outlineWidth;
+  /// Stroke color, ARGB format. If not set, the default is black opaque (0xFF000000).
+  /// 描边颜色，ARGB格式
+  /// 如果不设置，默认为黑色不透明(0xFF000000)
   int? outlineColor;
+
+  /// canvasWidth not support on Flutter platform
+  int? canvasWidth;
+  /// canvasHeight not support on Flutter platform
+  int? canvasHeight;
+  /// familyName not support on Flutter platform
+  String? familyName;
+  /// fontScale not support on Flutter platform
+  double? fontScale;
+  /// lineSpace not support on Flutter platform
   double? lineSpace;
+  /// startMargin not support on Flutter platform
   double? startMargin;
+  /// endMargin not support on Flutter platform
   double? endMargin;
+  /// verticalMargin not support on Flutter platform
   double? verticalMargin;
 
   SubTitleRenderModelPlayerMsg toMsg() {
@@ -792,21 +848,6 @@ class FSubTitleRenderModel {
     msg.verticalMargin = verticalMargin;
     return msg;
   }
-}
-
-class FSubtitleSourceModel {
-  static const VOD_PLAY_MIMETYPE_TEXT_SRT = "text/x-subrip";  // External subtitle file in SRT format.
-  static const VOD_PLAY_MIMETYPE_TEXT_VTT = "text/vtt";   // External subtitle file in VTT format.
-
-  String name = "";
-  String url = "";
-  String mimeType = VOD_PLAY_MIMETYPE_TEXT_SRT;
-  ///
-  /// @params
-  /// name:The name of the external subtitle file
-  /// url:The url of the external subtitle file
-  /// mimeType:The mimeType of the external subtitle file,must is one of [VOD_PLAY_MIMETYPE_TEXT_SRT] or [VOD_PLAY_MIMETYPE_TEXT_VTT]
-  FSubtitleSourceModel();
 }
 
 /// Player type.

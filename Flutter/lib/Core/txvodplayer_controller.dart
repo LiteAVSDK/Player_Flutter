@@ -331,10 +331,13 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..playerId = _playerId);
   }
 
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
   /// 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
   /// 播放器高级版 11.6 版本开始支持
   /// @param pdtTimeMs  视频流PDT时间点,单位毫秒(ms)
   ///
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
   /// Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
   /// Player Premium version 11.6 starts to support
   /// @param pdtTimeMs video stream PDT time point, unit millisecond (ms)
@@ -599,6 +602,16 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _vodPlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
   }
 
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
+  /// Play DRM encrypted video
+  /// @param playerDrmBuilder DRM playback information, please refer to [TXPlayerDrmBuilder]
+  /// @return Whether the playback is successfully started. 0: Success. -1: Failure
+  ///
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
+  /// 播放DRM加密视频
+  /// @param playerDrmBuilder DRM播放信息，请参考 [TXPlayerDrmBuilder]
+  /// @return 是否成功启动播放. 0: 成功. -1: 失败
   Future<int> startPlayDrm(TXPlayerDrmBuilder playerDrmBuilder) async {
     if (_isNeedDisposed) return 0;
     await _initPlayer.future;
@@ -606,21 +619,41 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return intMsg.value ?? 0;
   }
 
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
+  /// Add external subtitles
+  /// @param url subtitle address
+  /// @param name The name of the subtitle. If you add multiple subtitles, please set the subtitle name to a different name to distinguish it from other added subtitles, otherwise it may lead to incorrect subtitle selection.
+  /// @param mimeType subtitle type, only supports VVT and SRT formats [VOD_PLAY_MIMETYPE_TEXT_SRT] [VOD_PLAY_MIMETYPE_TEXT_VTT]
+  /// Later, you can get the corresponding name through the name in the result returned by [getSubtitleTrackInfo]
+  ///
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
+  /// 添加外挂字幕
+  ///  @param url 字幕地址
+  ///  @param name 字幕的名字。如果添加多个字幕，字幕名称请设置为不同的名字，用于区分与其他添加的字幕，否则可能会导致字幕选择错误。
+  ///  @param mimeType 字幕类型，仅支持VVT和SRT格式 [VOD_PLAY_MIMETYPE_TEXT_SRT] [VOD_PLAY_MIMETYPE_TEXT_VTT]
+  ///  后面可以通过[getSubtitleTrackInfo]返回结果中的 name 获取对应的名字
   Future<void> addSubtitleSource(String url, String name, {String? mimeType}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _vodPlayerApi.addSubtitleSource(SubTitlePlayerMsg(url: url, name: name, mimeType: mimeType)..playerId = _playerId);
   }
 
-  Future<List<FTXTrackInfo>> getSubtitleTrackInfo() async {
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
+  /// Returns the subtitle track information list
+  ///
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
+  /// 返回字幕轨道信息列表
+  Future<List<TXTrackInfo>> getSubtitleTrackInfo() async {
     if (_isNeedDisposed) return [];
     await _initPlayer.future;
     ListMsg listMsg = await _vodPlayerApi.getSubtitleTrackInfo(PlayerMsg(playerId: _playerId));
     if (null != listMsg.value) {
       List<dynamic>? transInfoData = listMsg.value!;
-      List<FTXTrackInfo> trackInfoList = [];
+      List<TXTrackInfo> trackInfoList = [];
       for (Map<dynamic, dynamic> map in transInfoData) {
-        FTXTrackInfo trackInfo = FTXTrackInfo(map["name"], map["trackIndex"], map["trackType"]);
+        TXTrackInfo trackInfo = TXTrackInfo(map["name"], map["trackIndex"], map["trackType"]);
         trackInfo.isSelected = map["isSelected"] ?? false;
         trackInfo.isExclusive = map["isExclusive"] ?? true;
         trackInfo.isInternal = map["isInternal"] ?? true;
@@ -631,15 +664,21 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return [];
   }
 
-  Future<List<FTXTrackInfo>> getAudioTrackInfo() async {
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
+  /// Returns the audio track information list
+  ///
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
+  /// 返回音频轨道信息列表
+  Future<List<TXTrackInfo>> getAudioTrackInfo() async {
     if (_isNeedDisposed) return [];
     await _initPlayer.future;
     ListMsg listMsg = await _vodPlayerApi.getAudioTrackInfo(PlayerMsg(playerId: _playerId));
     if (null != listMsg.value) {
       List<dynamic>? transInfoData = listMsg.value!;
-      List<FTXTrackInfo> trackInfoList = [];
+      List<TXTrackInfo> trackInfoList = [];
       for (Map<dynamic, dynamic> map in transInfoData) {
-        FTXTrackInfo trackInfo = FTXTrackInfo(map["name"], map["trackIndex"], map["trackType"]);
+        TXTrackInfo trackInfo = TXTrackInfo(map["name"], map["trackIndex"], map["trackType"]);
         trackInfo.isSelected = map["isSelected"] ?? false;
         trackInfo.isExclusive = map["isExclusive"] ?? true;
         trackInfo.isInternal = map["isInternal"] ?? true;
@@ -650,6 +689,14 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     return [];
   }
 
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
+  /// Select track
+  /// @param trackIndex track index, obtained through trackIndex of [TXTrackInfo]
+  ///
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
+  /// 选择轨道
+  /// @param trackIndex 轨道index，通过[TXTrackInfo]的trackIndex获取
   Future<void> selectTrack(int trackIndex) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -658,6 +705,14 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..value = trackIndex);
   }
 
+  /// This interface is only supported by the premium version of the player (Player_Premium),
+  /// and you need to purchase the premium version of the player mobile license.
+  /// Deselect track
+  /// @param trackIndex track index, obtained through trackIndex of [TXTrackInfo]
+  ///
+  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
+  /// 取消选择轨道
+  /// @param trackIndex 轨道index，通过[TXTrackInfo]的trackIndex获取
   Future<void> deselectTrack(int trackIndex) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
@@ -666,7 +721,8 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..value = trackIndex);
   }
 
-  Future<void> setSubtitleStyle(FSubTitleRenderModel renderModel) async {
+  /// Not support on Flutter platform, it will not take effect.
+  Future<void> setSubtitleStyle(TXSubtitleRenderModel renderModel) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _vodPlayerApi.setSubtitleStyle(renderModel.toMsg()..playerId = _playerId);

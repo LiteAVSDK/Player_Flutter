@@ -401,18 +401,19 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.isEnableDownload = false;
     model.title = "Multi-subtitle video";
     // add external subtitle
+
     model.subtitleSources.add(FSubtitleSourceModel()
       ..name = "ex-cn-srt"
       ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-CN.srt"
-      ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_SRT);
+      ..mimeType = TXVodPlayEvent.VOD_PLAY_MIMETYPE_TEXT_SRT);
     model.subtitleSources.add(FSubtitleSourceModel()
       ..name = "ex-in-srt"
       ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-IN.srt"
-      ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_SRT);
+      ..mimeType = TXVodPlayEvent.VOD_PLAY_MIMETYPE_TEXT_SRT);
     model.subtitleSources.add(FSubtitleSourceModel()
       ..name = "ex-en-vtt"
       ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-EN.vtt"
-      ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_VTT);
+      ..mimeType = TXVodPlayEvent.VOD_PLAY_MIMETYPE_TEXT_VTT);
     models.add(model);
 
     model = SuperPlayerModel();

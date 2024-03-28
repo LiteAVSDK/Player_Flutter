@@ -1,8 +1,8 @@
 part of demo_super_player_lib;
 
 class SubtitleDisplayView extends StatefulWidget {
-  final FSubtitleData subtitleData;
-  final FSubTitleRenderModel? renderModel;
+  final TXVodSubtitleData subtitleData;
+  final TXSubtitleRenderModel? renderModel;
   final AlignmentGeometry alignment;
 
   SubtitleDisplayView(this.subtitleData, {

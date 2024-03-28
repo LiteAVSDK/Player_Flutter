@@ -207,7 +207,7 @@ class SuperPlayerController {
           int? startPositionMs = event[TXVodPlayEvent.EXTRA_SUBTITLE_START_POSITION_MS];
           int? durationMs = event[TXVodPlayEvent.EXTRA_SUBTITLE_DURATION_MS];
           int? trackIndex = event[TXVodPlayEvent.EXTRA_SUBTITLE_TRACK_INDEX];
-          subtitleController.curSubtitleData = new FSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
+          subtitleController.curSubtitleData = new TXVodSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
           _observer?.onSubtitleData(subtitleController.curSubtitleData);
           break;
       }
@@ -387,10 +387,10 @@ class SuperPlayerController {
   }
 
   /// select audio track
-  Future<void> selectAudioTrack(FTXTrackInfo trackInfo) async {
+  Future<void> selectAudioTrack(TXTrackInfo trackInfo) async {
     if (playerType == SuperPlayerType.VOD) {
-      List<FTXTrackInfo> trackInfoList = await _vodPlayerController.getAudioTrackInfo();
-      for (FTXTrackInfo tempInfo in trackInfoList) {
+      List<TXTrackInfo> trackInfoList = await _vodPlayerController.getAudioTrackInfo();
+      for (TXTrackInfo tempInfo in trackInfoList) {
         if(tempInfo.trackIndex == trackInfo.trackIndex) {
           _vodPlayerController.selectTrack(tempInfo.trackIndex);
         } else {
@@ -401,10 +401,10 @@ class SuperPlayerController {
   }
 
   /// select subtitle track
-  Future<void> selectSubtitleTrack(FTXTrackInfo trackInfo) async {
+  Future<void> selectSubtitleTrack(TXTrackInfo trackInfo) async {
     if (playerType == SuperPlayerType.VOD) {
-      List<FTXTrackInfo> trackInfoList = await _vodPlayerController.getSubtitleTrackInfo();
-      for (FTXTrackInfo tempInfo in trackInfoList) {
+      List<TXTrackInfo> trackInfoList = await _vodPlayerController.getSubtitleTrackInfo();
+      for (TXTrackInfo tempInfo in trackInfoList) {
         if(tempInfo.trackIndex == trackInfo.trackIndex) {
           _vodPlayerController.selectTrack(tempInfo.trackIndex);
         } else {
@@ -936,16 +936,16 @@ class SubtitleController {
   static const defaultOutlineWidth = 1.00;
   static const defaultOutlineColor = 0xFF000000;
 
-  List<Function(FTXTrackInfo)> onSwitchTrackClick = [];
-  List<Function(FSubTitleRenderModel)> onSetRenderModel = [];
-  FTXTrackInfo? currentTrackInfo;
-  List<FTXTrackInfo> trackData;
-  FSubTitleRenderModel renderModel = FSubTitleRenderModel();
-  FSubtitleData? curSubtitleData;
+  List<Function(TXTrackInfo)> onSwitchTrackClick = [];
+  List<Function(TXSubtitleRenderModel)> onSetRenderModel = [];
+  TXTrackInfo? currentTrackInfo;
+  List<TXTrackInfo> trackData;
+  TXSubtitleRenderModel renderModel = TXSubtitleRenderModel();
+  TXVodSubtitleData? curSubtitleData;
 
   SubtitleController(this.trackData);
 
-  bool compareTrackWithCurrent(FTXTrackInfo trackInfo) {
+  bool compareTrackWithCurrent(TXTrackInfo trackInfo) {
     if (null != currentTrackInfo) {
       return trackInfo.trackIndex == currentTrackInfo!.trackIndex;
     }
@@ -958,13 +958,13 @@ class SubtitleController {
 }
 
 class AudioTrackController {
-  List<Function(FTXTrackInfo)> onSwitchAudioTrack = [];
-  FTXTrackInfo? currentTrackInfo;
-  List<FTXTrackInfo> audioTrackData;
+  List<Function(TXTrackInfo)> onSwitchAudioTrack = [];
+  TXTrackInfo? currentTrackInfo;
+  List<TXTrackInfo> audioTrackData;
 
   AudioTrackController(this.audioTrackData);
 
-  bool compareTrackWithCurrent(FTXTrackInfo trackInfo) {
+  bool compareTrackWithCurrent(TXTrackInfo trackInfo) {
     if (null != currentTrackInfo) {
       return trackInfo.trackIndex == currentTrackInfo!.trackIndex;
     }

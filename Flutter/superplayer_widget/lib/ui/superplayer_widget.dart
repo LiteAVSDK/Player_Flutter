@@ -60,7 +60,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   final GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
 
   Uint8List? _currentSprite;
-  FSubtitleData? _currentSubtitleData;
+  TXVodSubtitleData? _currentSubtitleData;
   bool _isShowSprite = false;
   int _pipPreUiStatus = SuperPlayerUIStatus.WINDOW_MODE;
 

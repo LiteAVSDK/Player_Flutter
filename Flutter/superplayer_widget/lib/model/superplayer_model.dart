@@ -151,3 +151,14 @@ class SliderPoint {
   Color pointColor = Colors.white;
   double progress = 0;
 }
+
+class FSubtitleSourceModel {
+  /// The name of the external subtitle file
+  String name = "";
+  /// The url of the external subtitle file
+  String url = "";
+  /// mimeType:The mimeType of the external subtitle file,must is one of [VOD_PLAY_MIMETYPE_TEXT_SRT] or [VOD_PLAY_MIMETYPE_TEXT_VTT]
+  String mimeType = TXVodPlayEvent.VOD_PLAY_MIMETYPE_TEXT_SRT;
+
+  FSubtitleSourceModel();
+}
