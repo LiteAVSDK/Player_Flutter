@@ -45,6 +45,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late SuperPlayerFullScreenController _superPlayerFullUIController;
   late CoverViewController _coverViewController;
   late MoreViewController _moreViewController;
+  late AudioTrackController _audioTrackController;
+  late SubtitleTrackController _subtitleTrackController;
 
   StreamSubscription? _volumeSubscription;
   StreamSubscription? _pipSubscription;
@@ -58,9 +60,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   final GlobalKey<_VideoTitleViewState> _videoTitleKey = GlobalKey();
   final GlobalKey<_SuperPlayerCoverViewState> _coverViewKey = GlobalKey();
   final GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
+  final GlobalKey<AudioListState> _audioListViewKey = GlobalKey();
+  final GlobalKey<_SubtitleListState> _subtitleListViewKey = GlobalKey();
 
   Uint8List? _currentSprite;
-  TXVodSubtitleData? _currentSubtitleData;
   bool _isShowSprite = false;
   int _pipPreUiStatus = SuperPlayerUIStatus.WINDOW_MODE;
 
@@ -72,8 +75,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     super.initState();
     TXPipController.instance.exitAndReleaseCurrentPip();
     _playController = widget._controller;
-    _playController.subtitleController.onSwitchTrackClick.add((p0) => hideControlView());
-    _playController.audioTrackController.onSwitchAudioTrack.add((p0) => hideControlView());
     _superPlayerFullUIController = SuperPlayerFullScreenController(_updateState);
     _titleViewController = _VideoTitleController(
         // onTapBack
@@ -105,9 +106,17 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _taskExecutors.addTask(() => _controlTest(false, 0));
     });
     _coverViewController = CoverViewController(_onDoubleTapVideo, _onSingleTapVideo);
-    _qualitListViewController = QualityListViewController((quality) {
+    _qualitListViewController = QualityListViewController((quality)  {
       _playController.switchStream(quality);
       hideControlView();
+    });
+    _audioTrackController = AudioTrackController((trackInfo) {
+      _playController.onSelectAudioTrack(trackInfo);
+    });
+    _subtitleTrackController = SubtitleTrackController((trackInfo) {
+      _playController.onSelectSubtitleTrack(trackInfo);
+    }, (renderModel) {
+      _playController.onSubtitleRenderModelChange(renderModel);
     });
     _moreViewController = MoreViewController(
         () => _playController._isOpenHWAcceleration,
@@ -234,20 +243,20 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }, () {
       // onSysBackPress
       _onControlFullScreen();
-    }, (audioTrackData) {
-      // onRecAudioTrack
+    }, (audioTrackList, selectedTrack) {
+      // onAudioTrackListChange
       setState(() {
-        _playController.audioTrackController.audioTrackData = audioTrackData;
+        _audioListViewKey.currentState?.updateAudioTrack(audioTrackList, selectedTrack);
       });
-    }, (subtitleData) {
-      // onRecSubtitleTrack
+    }, (subtitleTrackList, selectedTrack) {
+      // onSubtitleTrackListChange
       setState(() {
-        _playController.subtitleController.trackData = subtitleData;
+        _subtitleListViewKey.currentState?.updateSubtitleTrack(subtitleTrackList, selectedTrack);
       });
     }, (subtitleData) {
       // onSubtitleData
       setState(() {
-        _currentSubtitleData = subtitleData;
+        _playController.currentSubtitleData = subtitleData;
       });
     }, () {
       // onDispose
@@ -452,22 +461,27 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   }
 
   Widget _getAudioListView() {
-    return Visibility(visible:_isShowAudioListView, child: AudioListView(_playController.audioTrackController));
+    return Visibility(
+        visible:_isShowAudioListView,
+        child: AudioListView(_audioTrackController, _playController.audioTrackInfoList, _playController.currentAudioTrackInfo, _audioListViewKey));
   }
 
   Widget _getSubtitleListView() {
-    return Visibility(visible: _isShowSubtitleListView, child: SubtitleListView(_playController.subtitleController));
+    return Visibility(visible: _isShowSubtitleListView,
+        child: SubtitleListView(_subtitleTrackController, _playController.subtitleTrackInfoList, _playController.currentSubtitleTrackInfo, _subtitleListViewKey));
   }
 
   Widget _getSubtitleDisplayView() {
     // When switching between horizontal and vertical screens, different State-instances need to be synchronized
-    _currentSubtitleData = _playController.subtitleController.curSubtitleData;
-    bool needShowSubtitle = (_currentSubtitleData?.subtitleData ?? "") != "";
+    TXVodSubtitleData? subtitleData = _playController.currentSubtitleData;
+    bool needShowSubtitle = (subtitleData?.subtitleData ?? "") != "";
+
     return IgnorePointer(
       ignoring: true,
-      child: needShowSubtitle ? SubtitleDisplayView(_currentSubtitleData!,
-        renderModel: _playController.subtitleController.renderModel,
-        alignment: Alignment.bottomCenter,)
+      child: needShowSubtitle && subtitleData != null
+          ? SubtitleDisplayView(subtitleData,
+            renderModel: _playController?._currentSubtitleRenderModel ?? TXSubtitleRenderModel(),
+            alignment: Alignment.bottomCenter,)
           : Container(),
     );
   }
@@ -593,8 +607,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _isShowDownload,
           _isDownloaded,
           _videoTitleKey,
-          showAudioView: _playController.audioTrackController.audioTrackData.length > 1,
-          showSubtitleView: _playController.subtitleController.trackData.isNotEmpty,
+          showAudioView: _playController?.audioTrackInfoList?.isNotEmpty ?? false,
+          showSubtitleView: _playController?.subtitleTrackInfoList?.isNotEmpty ?? false,
         ),
       ),
     );

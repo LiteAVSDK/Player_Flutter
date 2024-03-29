@@ -2,9 +2,12 @@
 part of demo_super_player_lib;
 
 class SubtitleListView extends StatefulWidget {
-  final SubtitleController _subtitleController;
+  final SubtitleTrackController _controller;
+  final List<TXTrackInfo>? _trackInfoList;
+  final TXTrackInfo? _currentTrackInfo;
 
-  SubtitleListView(this._subtitleController);
+  SubtitleListView(this._controller, this._trackInfoList, this._currentTrackInfo, Key key)
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -15,17 +18,21 @@ class SubtitleListView extends StatefulWidget {
 class _SubtitleListState extends State<SubtitleListView> {
   bool _isShowSetting = false;
 
-  static const defaultFontColor = SubtitleController.defaultFontColor;
-  static const defaultFontSize = SubtitleController.defaultFontSize;
-  static const defaultFondBold = SubtitleController.defaultFondBold;
-  static const defaultOutlineWidth = SubtitleController.defaultOutlineWidth;
-  static const defaultOutlineColor = SubtitleController.defaultOutlineColor;
+  static const defaultFontColor = SubtitleTrackController.defaultFontColor;
+  static const defaultFontSize = SubtitleTrackController.defaultFontSize;
+  static const defaultFondBold = SubtitleTrackController.defaultFondBold;
+  static const defaultOutlineWidth = SubtitleTrackController.defaultOutlineWidth;
+  static const defaultOutlineColor = SubtitleTrackController.defaultOutlineColor;
 
   int styleFontColor = defaultFontColor;
   double styleFontSize = defaultFontSize;
   String styleFondBold = defaultFondBold;
   double styleOutlineWidth = defaultOutlineWidth;
   int styleOutlineColor = defaultOutlineColor;
+
+  List<TXTrackInfo>? _trackInfoList;
+  TXTrackInfo? _currentTXTrackInfo;
+  final TXTrackInfo closeItem = TXTrackInfo(FSPLocal.current.txSubtitleTitleClose, -1, 0);
 
   List<DropdownMenuItem<int>> _colorSettingList = [
     DropdownMenuItem(
@@ -123,17 +130,6 @@ class _SubtitleListState extends State<SubtitleListView> {
   @override
   void initState() {
     super.initState();
-    // load setting initValue
-    TXSubtitleRenderModel renderModel = widget._subtitleController.renderModel;
-    styleFontColor = renderModel.fontColor ?? defaultFontColor;
-    styleFontSize = renderModel.fontSize ?? defaultFontSize;
-    if (null != renderModel.isBondFontStyle) {
-      styleFondBold = renderModel.isBondFontStyle! ? "1" : "0";
-    } else {
-      styleFondBold = defaultFondBold;
-    }
-    styleOutlineWidth = renderModel.outlineWidth ?? defaultOutlineWidth;
-    styleOutlineColor = renderModel.outlineColor ?? defaultOutlineColor;
   }
 
   @override
@@ -254,8 +250,10 @@ class _SubtitleListState extends State<SubtitleListView> {
   }
 
   Widget _buildSubtitleList() {
-    List<TXTrackInfo> trackData = List.from(widget._subtitleController.trackData);
-    trackData.add(TXTrackInfo(FSPLocal.current.txSubtitleTitle, -1, 0));
+    _trackInfoList = List.from(widget._trackInfoList as Iterable);
+    _trackInfoList?.add(closeItem);
+    _currentTXTrackInfo = widget._currentTrackInfo;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -281,20 +279,18 @@ class _SubtitleListState extends State<SubtitleListView> {
         Expanded(
             child: Center(
           child: ListView.builder(
-              itemCount: trackData.length,
+              itemCount: _trackInfoList?.length,
               scrollDirection: Axis.vertical,
               shrinkWrap: true,
               itemBuilder: (context, index) {
                 return InkWell(
-                  onTap: () => selectTrackInfo(trackData[index]),
+                  onTap: () => widget._controller.onSelectSubtitleTrackInfo(_trackInfoList![index]),
                   child: Container(
                     margin: const EdgeInsets.only(top: 10, bottom: 10),
                     child: Text(
-                      trackData[index].name,
+                      _trackInfoList![index].name,
                       textAlign: TextAlign.center,
-                      style: widget._subtitleController.compareTrackWithCurrent(trackData[index])
-                          ? ThemeResource.getCheckedTextStyle()
-                          : ThemeResource.getCommonTextStyle(),
+                      style:  getTexStyle(index),
                     ),
                   ),
                 );
@@ -304,20 +300,28 @@ class _SubtitleListState extends State<SubtitleListView> {
     );
   }
 
-  void _onTapSettingDone() {
-    TXSubtitleRenderModel renderModel = TXSubtitleRenderModel();
-    renderModel.outlineWidth = styleOutlineWidth;
-    renderModel.outlineColor = styleOutlineColor;
-    renderModel.fontColor = styleFontColor;
-    renderModel.fontSize = styleFontSize;
-    renderModel.isBondFontStyle = styleFondBold == "1";
-    for (Function(TXSubtitleRenderModel) listener in widget._subtitleController.onSetRenderModel) {
-      listener(renderModel);
+  TextStyle getTexStyle(int index) {
+    if ( _currentTXTrackInfo?.trackIndex == _trackInfoList![index].trackIndex) {
+      return ThemeResource.getCheckedTextStyle();
+    } else {
+      return ThemeResource.getCommonTextStyle();
     }
-    widget._subtitleController.renderModel = renderModel;
+  }
+
+  void updateSubtitleTrack(List<TXTrackInfo>? trackDataList, TXTrackInfo? trackInfo) {
+    if (_trackInfoList != trackDataList || _currentTXTrackInfo != trackInfo) {
+      setState(() {
+        _trackInfoList = trackDataList;
+        _currentTXTrackInfo = trackInfo;
+      });
+    }
+  }
+
+  void _onTapSettingDone() {
     setState(() {
       _isShowSetting = false;
     });
+    _fireRenderModelChange();
   }
 
   void _onResetSetting() {
@@ -327,7 +331,19 @@ class _SubtitleListState extends State<SubtitleListView> {
       styleFondBold = defaultFondBold;
       styleOutlineWidth = defaultOutlineWidth;
       styleOutlineColor = defaultOutlineColor;
+      _isShowSetting = false;
     });
+    _fireRenderModelChange();
+  }
+
+  void _fireRenderModelChange() {
+    TXSubtitleRenderModel renderModel = TXSubtitleRenderModel();
+    renderModel.outlineWidth = styleOutlineWidth;
+    renderModel.outlineColor = styleOutlineColor;
+    renderModel.fontColor = styleFontColor;
+    renderModel.fontSize = styleFontSize;
+    renderModel.isBondFontStyle = styleFondBold == "1";
+    widget._controller.onSubtitleRenderModelChange(renderModel);
   }
 
   void _onTapBackBtn() {
@@ -341,11 +357,19 @@ class _SubtitleListState extends State<SubtitleListView> {
       _isShowSetting = true;
     });
   }
+}
 
-  void selectTrackInfo(TXTrackInfo trackInfo) {
-    widget._subtitleController.currentTrackInfo = trackInfo;
-    for (Function(TXTrackInfo) listener in widget._subtitleController.onSwitchTrackClick) {
-      listener(trackInfo);
-    }
-  }
+
+class SubtitleTrackController {
+
+  static const defaultFontColor = 0xFFFFFFFF;
+  static const defaultFontSize = 20.0;
+  static const defaultFondBold = "0";
+  static const defaultOutlineWidth = 1.00;
+  static const defaultOutlineColor = 0xFF000000;
+
+  Function(TXTrackInfo) onSelectSubtitleTrackInfo;
+  Function(TXSubtitleRenderModel) onSubtitleRenderModelChange;
+
+  SubtitleTrackController(this.onSelectSubtitleTrackInfo, this.onSubtitleRenderModelChange);
 }

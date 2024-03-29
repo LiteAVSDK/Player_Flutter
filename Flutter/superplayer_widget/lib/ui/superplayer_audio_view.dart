@@ -3,8 +3,9 @@ part of demo_super_player_lib;
 
 class AudioListView extends StatefulWidget {
   final AudioTrackController _controller;
-
-  AudioListView(this._controller);
+  final List<TXTrackInfo>? _trackInfoList;
+  final TXTrackInfo? _currentTrackInfo;
+  AudioListView(this._controller, this._trackInfoList, this._currentTrackInfo, Key key) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -13,10 +14,21 @@ class AudioListView extends StatefulWidget {
 }
 
 class AudioListState extends State<AudioListView> {
+  List<TXTrackInfo>? _trackInfoList;
+  TXTrackInfo? _currentTXTrackInfo;
+  final TXTrackInfo closeItem = TXTrackInfo(FSPLocal.current.txAudioTrackClose, -1, 0);
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<TXTrackInfo> trackData = List.from(widget._controller.audioTrackData);
-    trackData.add(TXTrackInfo(FSPLocal.current.txAudioTrackClose, -1, 0));
+    _trackInfoList = List.from(widget._trackInfoList as Iterable);
+    _trackInfoList?.add(closeItem);
+    _currentTXTrackInfo = widget._currentTrackInfo;
+
     return Positioned(
       right: 0,
       top: 0,
@@ -32,29 +44,37 @@ class AudioListState extends State<AudioListView> {
               Text(FSPLocal.current.txAudioTrackTitle, style: TextStyle(fontSize: 16, color: Colors.grey)),
               Expanded(
                   child: Center(
-                child: ListView.builder(
-                    itemCount: trackData.length,
+                child: _trackInfoList != null
+                      ? ListView.builder(
+                    itemCount: _trackInfoList?.length,
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
                     itemBuilder: (context, index) {
                       return InkWell(
-                        onTap: () => selectTrackInfo(trackData[index]),
+                        onTap: () => widget._controller.onSelectAudioTrackInfo(_trackInfoList![index]),
                         child: Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
                           child: Text(
-                            getAudioName(trackData, index),
+                            getAudioName(_trackInfoList!, index),
                             textAlign: TextAlign.center,
-                            style: widget._controller.compareTrackWithCurrent(trackData[index])
-                                ? ThemeResource.getCheckedTextStyle()
-                                : ThemeResource.getCommonTextStyle(),
+                            style: getTexStyle(index),
                           ),
                         ),
                       );
-                    }),
+                    })
+                    : Container(),
               ))
             ],
           )),
     );
+  }
+
+  TextStyle getTexStyle(int index) {
+    if ( _currentTXTrackInfo?.trackIndex == _trackInfoList![index].trackIndex) {
+      return ThemeResource.getCheckedTextStyle();
+    } else {
+      return ThemeResource.getCommonTextStyle();
+    }
   }
 
   String getAudioName(List<TXTrackInfo> trackData, int index) {
@@ -66,10 +86,18 @@ class AudioListState extends State<AudioListView> {
     return name;
   }
 
-  void selectTrackInfo(TXTrackInfo trackInfo) {
-    widget._controller.currentTrackInfo = trackInfo;
-    for (Function(TXTrackInfo) listener in widget._controller.onSwitchAudioTrack) {
-      listener(trackInfo);
+  void updateAudioTrack(List<TXTrackInfo>? trackDataList, TXTrackInfo? trackInfo) {
+    if (_trackInfoList != trackDataList || _currentTXTrackInfo != trackInfo) {
+      setState(() {
+        _trackInfoList = trackDataList;
+        _currentTXTrackInfo = trackInfo;
+      });
     }
   }
+}
+
+class AudioTrackController {
+  Function(TXTrackInfo) onSelectAudioTrackInfo;
+
+  AudioTrackController(this.onSelectAudioTrackInfo);
 }

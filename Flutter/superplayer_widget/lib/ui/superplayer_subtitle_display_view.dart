@@ -22,17 +22,17 @@ class _SubtitleDisplayViewState extends State<SubtitleDisplayView> {
     String subtitledDataStr = widget.subtitleData.subtitleData ?? "";
 
     int fontColorInt = widget.renderModel?.fontColor ??
-        SubtitleController.defaultFontColor;
+        SubtitleTrackController.defaultFontColor;
     Color fontColor = Color(fontColorInt);
     double fontSize = widget.renderModel?.fontSize ??
-        SubtitleController.defaultFontSize;
+        SubtitleTrackController.defaultFontSize;
     int outlineColorInt = widget.renderModel?.outlineColor ??
-        SubtitleController.defaultOutlineColor;
+        SubtitleTrackController.defaultOutlineColor;
     Color outlineColor = Color(outlineColorInt);
     double outlineWidth = widget.renderModel?.outlineWidth ??
-        SubtitleController.defaultOutlineWidth;
+        SubtitleTrackController.defaultOutlineWidth;
     bool isBold = widget.renderModel?.isBondFontStyle ??
-        SubtitleController.defaultFondBold == "1";
+        SubtitleTrackController.defaultFondBold == "1";
 
     return Align(
       alignment: widget.alignment,

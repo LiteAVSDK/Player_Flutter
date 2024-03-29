@@ -23,8 +23,12 @@ class SuperPlayerController {
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
   List<VideoQuality>? currentQualityList;
-  final SubtitleController subtitleController = SubtitleController([]);
-  AudioTrackController audioTrackController = AudioTrackController([]);
+  TXTrackInfo? currentAudioTrackInfo;
+  List<TXTrackInfo>? audioTrackInfoList;
+  TXTrackInfo? currentSubtitleTrackInfo;
+  List<TXTrackInfo>? subtitleTrackInfoList;
+  TXVodSubtitleData? currentSubtitleData;
+  TXSubtitleRenderModel? _currentSubtitleRenderModel;
   StreamController<TXPlayerHolder> playerStreamController = StreamController.broadcast();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
@@ -70,13 +74,6 @@ class SuperPlayerController {
   SuperPlayerController(this._context) {
     _initVodPlayer();
     _initLivePlayer();
-    subtitleController.onSwitchTrackClick.add((p0) => selectSubtitleTrack(p0));
-    subtitleController.onSetRenderModel.add((p0) {
-      // refresh the subtitle
-      _observer?.onSubtitleData(subtitleController.curSubtitleData);
-      _vodPlayerController.setSubtitleStyle(p0);
-    });
-    audioTrackController.onSwitchAudioTrack.add((p0) => selectAudioTrack(p0));
   }
 
   void _initVodPlayer() async {
@@ -149,7 +146,7 @@ class SuperPlayerController {
           }
           videoDuration = await _vodPlayerController.getDuration();
           currentDuration = await _vodPlayerController.getCurrentPlaybackTime();
-          _onPickTrackInfo();
+          _onSelectTrackInfoWhenPrepare();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
           if (playerState == SuperPlayerState.PAUSE) {
@@ -207,8 +204,8 @@ class SuperPlayerController {
           int? startPositionMs = event[TXVodPlayEvent.EXTRA_SUBTITLE_START_POSITION_MS];
           int? durationMs = event[TXVodPlayEvent.EXTRA_SUBTITLE_DURATION_MS];
           int? trackIndex = event[TXVodPlayEvent.EXTRA_SUBTITLE_TRACK_INDEX];
-          subtitleController.curSubtitleData = new TXVodSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
-          _observer?.onSubtitleData(subtitleController.curSubtitleData);
+          currentSubtitleData = new TXVodSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
+          _observer?.onSubtitleData(currentSubtitleData);
           break;
       }
     });
@@ -266,12 +263,28 @@ class SuperPlayerController {
     });
   }
 
-  void _onPickTrackInfo() async {
-    subtitleController.trackData = await _vodPlayerController.getSubtitleTrackInfo();
-    subtitleController.currentTrackInfo = null;
-    audioTrackController.audioTrackData = await _vodPlayerController.getAudioTrackInfo();
-    _observer?.onRecSubtitleTrack(subtitleController.trackData);
-    _observer?.onRecAudioTrack(audioTrackController.audioTrackData);
+  void _onSelectTrackInfoWhenPrepare() async {
+    // subtitle track info
+    List<TXTrackInfo> subtitleTrackList = await _vodPlayerController.getSubtitleTrackInfo();
+    TXTrackInfo? selectedSubtitleTrack;
+    for (TXTrackInfo track in subtitleTrackList) {
+      if (track.isSelected) {
+        selectedSubtitleTrack = track;
+        break;
+      }
+    }
+    _updateSubtitleTrackList(subtitleTrackList, selectedSubtitleTrack);
+
+    // audio track info
+    List<TXTrackInfo> audioTrackList = await _vodPlayerController.getAudioTrackInfo();
+    TXTrackInfo? selectedAudioTrack;
+    for (TXTrackInfo track in audioTrackList) {
+      if (track.isSelected) {
+        selectedAudioTrack = track;
+        break;
+      }
+    }
+    _updateAudioTrackList(audioTrackList, selectedAudioTrack);
   }
 
   void _configVideoSize(Map<dynamic, dynamic> event) {
@@ -677,6 +690,37 @@ class SuperPlayerController {
     _observer?.onVideoQualityListChange(qualityList, defaultQuality);
   }
 
+  void _updateSubtitleTrackList(List<TXTrackInfo>? subtitleTrackData, TXTrackInfo? selectedTrackInfo) {
+    subtitleTrackInfoList = subtitleTrackData;
+    currentSubtitleTrackInfo = selectedTrackInfo;
+    _observer?.onSubtitleTrackListChange(subtitleTrackInfoList!, currentSubtitleTrackInfo);
+  }
+
+  void onSubtitleRenderModelChange(TXSubtitleRenderModel renderModel) {
+    _currentSubtitleRenderModel = renderModel;
+  }
+
+  void onSelectSubtitleTrack(TXTrackInfo selectedTrack) {
+    selectSubtitleTrack(selectedTrack);
+    _updateSubtitleTrackList(subtitleTrackInfoList, selectedTrack);
+  }
+
+  void _updateAudioTrackList(List<TXTrackInfo>? audioTrackData, TXTrackInfo? selectedTrackInfo) {
+    audioTrackInfoList = audioTrackData;
+    currentAudioTrackInfo = selectedTrackInfo;
+    _observer?.onAudioTrackListChange(audioTrackInfoList!, currentAudioTrackInfo);
+  }
+
+  void onSelectAudioTrack(TXTrackInfo selectedTrack) {
+    if (selectedTrack.trackIndex == -1) {
+      setMute(true);
+    } else{
+      setMute(false);
+      selectAudioTrack(selectedTrack);
+    }
+    _updateAudioTrackList(audioTrackInfoList, selectedTrack);
+  }
+
   void _addSimpleEvent(String event) {
     Map<String, String> eventMap = {};
     eventMap['event'] = event;
@@ -726,7 +770,11 @@ class SuperPlayerController {
     currentQuality = null;
     currentQualityList?.clear();
     _currentProtocol = null;
-    subtitleController.curSubtitleData = null;
+    currentAudioTrackInfo = null;
+    audioTrackInfoList = null;
+    currentSubtitleTrackInfo = null;
+    subtitleTrackInfoList = null;
+    currentSubtitleData = null;
     // cancel all listener
     _vodPlayEventListener?.cancel();
     _vodNetEventListener?.cancel();
@@ -734,6 +782,7 @@ class SuperPlayerController {
     _liveNetEventListener?.cancel();
     await _vodPlayerController.stop();
     await _livePlayerController.stop();
+    await setMute(false);
 
     _updatePlayerState(SuperPlayerState.INIT);
   }
@@ -926,52 +975,5 @@ class SuperPlayerController {
   /// 获得当前播放器状态
   SuperPlayerState getPlayerState() {
     return playerState;
-  }
-}
-
-class SubtitleController {
-  static const defaultFontColor = 0xFFFFFFFF;
-  static const defaultFontSize = 20.0;
-  static const defaultFondBold = "0";
-  static const defaultOutlineWidth = 1.00;
-  static const defaultOutlineColor = 0xFF000000;
-
-  List<Function(TXTrackInfo)> onSwitchTrackClick = [];
-  List<Function(TXSubtitleRenderModel)> onSetRenderModel = [];
-  TXTrackInfo? currentTrackInfo;
-  List<TXTrackInfo> trackData;
-  TXSubtitleRenderModel renderModel = TXSubtitleRenderModel();
-  TXVodSubtitleData? curSubtitleData;
-
-  SubtitleController(this.trackData);
-
-  bool compareTrackWithCurrent(TXTrackInfo trackInfo) {
-    if (null != currentTrackInfo) {
-      return trackInfo.trackIndex == currentTrackInfo!.trackIndex;
-    }
-    return false;
-  }
-
-  void clearListener() {
-    onSwitchTrackClick.clear();
-  }
-}
-
-class AudioTrackController {
-  List<Function(TXTrackInfo)> onSwitchAudioTrack = [];
-  TXTrackInfo? currentTrackInfo;
-  List<TXTrackInfo> audioTrackData;
-
-  AudioTrackController(this.audioTrackData);
-
-  bool compareTrackWithCurrent(TXTrackInfo trackInfo) {
-    if (null != currentTrackInfo) {
-      return trackInfo.trackIndex == currentTrackInfo!.trackIndex;
-    }
-    return false;
-  }
-
-  void clearListener() {
-    onSwitchAudioTrack.clear();
   }
 }
