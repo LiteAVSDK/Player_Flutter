@@ -722,11 +722,11 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   }
 
   /// Not support on Flutter platform, it will not take effect.
-  Future<void> setSubtitleStyle(TXSubtitleRenderModel renderModel) async {
-    if (_isNeedDisposed) return;
-    await _initPlayer.future;
-    await _vodPlayerApi.setSubtitleStyle(renderModel.toMsg()..playerId = _playerId);
-  }
+  // Future<void> setSubtitleStyle(TXSubtitleRenderModel renderModel) async {
+  //   if (_isNeedDisposed) return;
+  //   await _initPlayer.future;
+  //   await _vodPlayerApi.setSubtitleStyle(renderModel.toMsg()..playerId = _playerId);
+  // }
 
   /// release controller
   ///

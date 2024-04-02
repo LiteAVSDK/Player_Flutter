@@ -398,6 +398,15 @@ abstract class TXVodPlayEvent {
 
   static const EVENT_RESULT = "result";
   static const EVENT_REASON = "reason";
+  /// Select track complete
+  /// 切换轨道完成
+  static const VOD_PLAY_EVT_SELECT_TRACK_COMPLETE  = 2020;
+  /// Switched media track index
+  /// 切换的媒体轨道index
+  static const EVT_KEY_SELECT_TRACK_INDEX    = "EVT_KEY_SELECT_TRACK_INDEX";
+  /// Return error code for switching media tracks
+  /// 切换媒体轨道的返回错误码
+  static const EVT_KEY_SELECT_TRACK_ERROR_CODE   = "EVT_KEY_SELECT_TRACK_ERROR_CODE";
   // subtitle data event
   // 回调 SubtitleData 事件id
   static const EVENT_SUBTITLE_DATA = 601;

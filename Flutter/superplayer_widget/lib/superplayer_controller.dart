@@ -207,6 +207,11 @@ class SuperPlayerController {
           currentSubtitleData = new TXVodSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
           _observer?.onSubtitleData(currentSubtitleData);
           break;
+        case TXVodPlayEvent.VOD_PLAY_EVT_SELECT_TRACK_COMPLETE: {
+          int trackIndex = event[TXVodPlayEvent.EVT_KEY_SELECT_TRACK_INDEX];
+          int errorCode = event[TXVodPlayEvent.EVT_KEY_SELECT_TRACK_ERROR_CODE];
+          LogUtils.d(TAG, "SELECT_TRACK_COMPLETE trackIndex: ${trackIndex}, errorCode: ${errorCode}");
+        }
       }
     });
     _vodNetEventListener = _vodPlayerController.onPlayerNetStatusBroadcast.listen((event) {
