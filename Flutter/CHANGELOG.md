@@ -168,3 +168,13 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - superPlayerWidget add stopPlay method
 - vod/live dispose method can await now
 - fix known issues
+
+
+#### Version: 11.7.0 2024.04.02
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 11.7.0.13946，tag：release_player_v11.7.0
+- set iOS TXLiteAVSDK_Player to 11.7.15343， tag：release_player_v11.7.0
+- Add setSDKListener in SuperPlayerPlugin
+- fix known issues
