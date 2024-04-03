@@ -1262,30 +1262,6 @@ Future<void> exitPictureInPictureMode() async;
 
 无
 
-### startPlayDrm
-
-**说明**
-
-播放器高级版  SDK 支持播放商业级 DRM 加密视频，目前支持 WideVine 和 Fairplay 两种 DRM 方案。
-
-注意：此功能需要播放器高级版 11.7 版本开始支持。
-
-**接口**
-
-```dart
-Future<int> startPlayDrm(TXPlayerDrmBuilder playerDrmBuilder) async;
-```
-
-**参数说明**
-
-TXPlayerDrmBuilder类：
-
-| 参数名               | 类型   | 描述           |
-| -------------------- | ------ | -------------- |
-| playUrl              | String | 播放媒体的 url |
-| licenseUrl           | String | 解密 key url   |
-| deviceCertificateUrl | String | 证书提供商 url |
-
 ### addSubtitleSource
 
 **说明**

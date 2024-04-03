@@ -604,23 +604,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   /// This interface is only supported by the premium version of the player (Player_Premium),
   /// and you need to purchase the premium version of the player mobile license.
-  /// Play DRM encrypted video
-  /// @param playerDrmBuilder DRM playback information, please refer to [TXPlayerDrmBuilder]
-  /// @return Whether the playback is successfully started. 0: Success. -1: Failure
-  ///
-  /// 此接口仅播放器高级版本（Player_Premium)支持，需要购买播放器移动端高级版 License
-  /// 播放DRM加密视频
-  /// @param playerDrmBuilder DRM播放信息，请参考 [TXPlayerDrmBuilder]
-  /// @return 是否成功启动播放. 0: 成功. -1: 失败
-  Future<int> startPlayDrm(TXPlayerDrmBuilder playerDrmBuilder) async {
-    if (_isNeedDisposed) return 0;
-    await _initPlayer.future;
-    IntMsg intMsg = await _vodPlayerApi.startPlayDrm(playerDrmBuilder.toMsg()..playerId = _playerId);
-    return intMsg.value ?? 0;
-  }
-
-  /// This interface is only supported by the premium version of the player (Player_Premium),
-  /// and you need to purchase the premium version of the player mobile license.
   /// Add external subtitles
   /// @param url subtitle address
   /// @param name The name of the subtitle. If you add multiple subtitles, please set the subtitle name to a different name to distinguish it from other added subtitles, otherwise it may lead to incorrect subtitle selection.
@@ -720,13 +703,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..playerId = _playerId
       ..value = trackIndex);
   }
-
-  /// Not support on Flutter platform, it will not take effect.
-  // Future<void> setSubtitleStyle(TXSubtitleRenderModel renderModel) async {
-  //   if (_isNeedDisposed) return;
-  //   await _initPlayer.future;
-  //   await _vodPlayerApi.setSubtitleStyle(renderModel.toMsg()..playerId = _playerId);
-  // }
 
   /// release controller
   ///
