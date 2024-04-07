@@ -30,6 +30,16 @@
     └── lib                        // 点播播放、直播播放、播放器组件使用例子
 ```
 
+## 分支说明
+
+Flutter 播放器依赖 TXLiteAVSDK，此工程提供 3 个分支，请根据业务需要进行集成：
+
+[main](https://github.com/LiteAVSDK/Player_Flutter/tree/main)：依赖 TXLiteAVSDK_Player SDK，默认分支。
+
+[Professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional)：依赖 TXLiteAVSDK_Professional SDK，如果项目中已经集成 TXLiteAVSDK_Professional SDK ，则需要集成此分支。
+
+[Player_Premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium)： 依赖 TXLiteAVSDK_Player_Premium SDK，包含外挂字幕、多音轨等增值功能，从 11.7 版本开始支持。
+
 ## Flutter播放器简介
 
 腾讯云视立方·播放器 SDK 是音视频终端 SDK（腾讯云视立方）的子产品 SDK 之一，基于腾讯云强大的后台能力与 AI 技术，提供视频点播和直播播放能力的强大播放载体。结合腾讯云点播或云直播使用，可以快速体验流畅稳定的播放性能。充分覆盖多类应用场景，满足客户多样需求，让客户轻松聚焦于业务发展本身，畅享极速高清播放新体验。
