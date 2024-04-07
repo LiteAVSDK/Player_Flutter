@@ -302,6 +302,121 @@ public class FtxMessages {
   }
 
   /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class TXPlayerDrmMsg {
+    private @NonNull String licenseUrl;
+
+    public @NonNull String getLicenseUrl() {
+      return licenseUrl;
+    }
+
+    public void setLicenseUrl(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"licenseUrl\" is null.");
+      }
+      this.licenseUrl = setterArg;
+    }
+
+    private @NonNull String playUrl;
+
+    public @NonNull String getPlayUrl() {
+      return playUrl;
+    }
+
+    public void setPlayUrl(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"playUrl\" is null.");
+      }
+      this.playUrl = setterArg;
+    }
+
+    private @Nullable Long playerId;
+
+    public @Nullable Long getPlayerId() {
+      return playerId;
+    }
+
+    public void setPlayerId(@Nullable Long setterArg) {
+      this.playerId = setterArg;
+    }
+
+    private @Nullable String deviceCertificateUrl;
+
+    public @Nullable String getDeviceCertificateUrl() {
+      return deviceCertificateUrl;
+    }
+
+    public void setDeviceCertificateUrl(@Nullable String setterArg) {
+      this.deviceCertificateUrl = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    TXPlayerDrmMsg() {}
+
+    public static final class Builder {
+
+      private @Nullable String licenseUrl;
+
+      public @NonNull Builder setLicenseUrl(@NonNull String setterArg) {
+        this.licenseUrl = setterArg;
+        return this;
+      }
+
+      private @Nullable String playUrl;
+
+      public @NonNull Builder setPlayUrl(@NonNull String setterArg) {
+        this.playUrl = setterArg;
+        return this;
+      }
+
+      private @Nullable Long playerId;
+
+      public @NonNull Builder setPlayerId(@Nullable Long setterArg) {
+        this.playerId = setterArg;
+        return this;
+      }
+
+      private @Nullable String deviceCertificateUrl;
+
+      public @NonNull Builder setDeviceCertificateUrl(@Nullable String setterArg) {
+        this.deviceCertificateUrl = setterArg;
+        return this;
+      }
+
+      public @NonNull TXPlayerDrmMsg build() {
+        TXPlayerDrmMsg pigeonReturn = new TXPlayerDrmMsg();
+        pigeonReturn.setLicenseUrl(licenseUrl);
+        pigeonReturn.setPlayUrl(playUrl);
+        pigeonReturn.setPlayerId(playerId);
+        pigeonReturn.setDeviceCertificateUrl(deviceCertificateUrl);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(4);
+      toListResult.add(licenseUrl);
+      toListResult.add(playUrl);
+      toListResult.add(playerId);
+      toListResult.add(deviceCertificateUrl);
+      return toListResult;
+    }
+
+    static @NonNull TXPlayerDrmMsg fromList(@NonNull ArrayList<Object> list) {
+      TXPlayerDrmMsg pigeonResult = new TXPlayerDrmMsg();
+      Object licenseUrl = list.get(0);
+      pigeonResult.setLicenseUrl((String) licenseUrl);
+      Object playUrl = list.get(1);
+      pigeonResult.setPlayUrl((String) playUrl);
+      Object playerId = list.get(2);
+      pigeonResult.setPlayerId((playerId == null) ? null : ((playerId instanceof Integer) ? (Integer) playerId : (Long) playerId));
+      Object deviceCertificateUrl = list.get(3);
+      pigeonResult.setDeviceCertificateUrl((String) deviceCertificateUrl);
+      return pigeonResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
   public static final class PipParamsPlayerMsg {
     private @Nullable Long playerId;
 
@@ -1056,6 +1171,20 @@ public class FtxMessages {
       this.preferredResolution = setterArg;
     }
 
+    /**
+     * Media asset type, default auto type, refer to value see[TXVodPlayEvent]
+     * 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
+     */
+    private @Nullable Long mediaType;
+
+    public @Nullable Long getMediaType() {
+      return mediaType;
+    }
+
+    public void setMediaType(@Nullable Long setterArg) {
+      this.mediaType = setterArg;
+    }
+
     public static final class Builder {
 
       private @Nullable Long playerId;
@@ -1198,6 +1327,13 @@ public class FtxMessages {
         return this;
       }
 
+      private @Nullable Long mediaType;
+
+      public @NonNull Builder setMediaType(@Nullable Long setterArg) {
+        this.mediaType = setterArg;
+        return this;
+      }
+
       public @NonNull FTXVodPlayConfigPlayerMsg build() {
         FTXVodPlayConfigPlayerMsg pigeonReturn = new FTXVodPlayConfigPlayerMsg();
         pigeonReturn.setPlayerId(playerId);
@@ -1220,13 +1356,14 @@ public class FtxMessages {
         pigeonReturn.setExtInfoMap(extInfoMap);
         pigeonReturn.setEnableRenderProcess(enableRenderProcess);
         pigeonReturn.setPreferredResolution(preferredResolution);
+        pigeonReturn.setMediaType(mediaType);
         return pigeonReturn;
       }
     }
 
     @NonNull
     ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<Object>(20);
+      ArrayList<Object> toListResult = new ArrayList<Object>(21);
       toListResult.add(playerId);
       toListResult.add(connectRetryCount);
       toListResult.add(connectRetryInterval);
@@ -1247,6 +1384,7 @@ public class FtxMessages {
       toListResult.add(extInfoMap);
       toListResult.add(enableRenderProcess);
       toListResult.add(preferredResolution);
+      toListResult.add(mediaType);
       return toListResult;
     }
 
@@ -1292,6 +1430,8 @@ public class FtxMessages {
       pigeonResult.setEnableRenderProcess((Boolean) enableRenderProcess);
       Object preferredResolution = list.get(19);
       pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
+      Object mediaType = list.get(20);
+      pigeonResult.setMediaType((mediaType == null) ? null : ((mediaType instanceof Integer) ? (Integer) mediaType : (Long) mediaType));
       return pigeonResult;
     }
   }
@@ -2547,6 +2687,437 @@ public class FtxMessages {
     }
   }
 
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class SubTitlePlayerMsg {
+    private @NonNull String url;
+
+    public @NonNull String getUrl() {
+      return url;
+    }
+
+    public void setUrl(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"url\" is null.");
+      }
+      this.url = setterArg;
+    }
+
+    private @NonNull String name;
+
+    public @NonNull String getName() {
+      return name;
+    }
+
+    public void setName(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"name\" is null.");
+      }
+      this.name = setterArg;
+    }
+
+    private @Nullable String mimeType;
+
+    public @Nullable String getMimeType() {
+      return mimeType;
+    }
+
+    public void setMimeType(@Nullable String setterArg) {
+      this.mimeType = setterArg;
+    }
+
+    private @Nullable Long playerId;
+
+    public @Nullable Long getPlayerId() {
+      return playerId;
+    }
+
+    public void setPlayerId(@Nullable Long setterArg) {
+      this.playerId = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    SubTitlePlayerMsg() {}
+
+    public static final class Builder {
+
+      private @Nullable String url;
+
+      public @NonNull Builder setUrl(@NonNull String setterArg) {
+        this.url = setterArg;
+        return this;
+      }
+
+      private @Nullable String name;
+
+      public @NonNull Builder setName(@NonNull String setterArg) {
+        this.name = setterArg;
+        return this;
+      }
+
+      private @Nullable String mimeType;
+
+      public @NonNull Builder setMimeType(@Nullable String setterArg) {
+        this.mimeType = setterArg;
+        return this;
+      }
+
+      private @Nullable Long playerId;
+
+      public @NonNull Builder setPlayerId(@Nullable Long setterArg) {
+        this.playerId = setterArg;
+        return this;
+      }
+
+      public @NonNull SubTitlePlayerMsg build() {
+        SubTitlePlayerMsg pigeonReturn = new SubTitlePlayerMsg();
+        pigeonReturn.setUrl(url);
+        pigeonReturn.setName(name);
+        pigeonReturn.setMimeType(mimeType);
+        pigeonReturn.setPlayerId(playerId);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(4);
+      toListResult.add(url);
+      toListResult.add(name);
+      toListResult.add(mimeType);
+      toListResult.add(playerId);
+      return toListResult;
+    }
+
+    static @NonNull SubTitlePlayerMsg fromList(@NonNull ArrayList<Object> list) {
+      SubTitlePlayerMsg pigeonResult = new SubTitlePlayerMsg();
+      Object url = list.get(0);
+      pigeonResult.setUrl((String) url);
+      Object name = list.get(1);
+      pigeonResult.setName((String) name);
+      Object mimeType = list.get(2);
+      pigeonResult.setMimeType((String) mimeType);
+      Object playerId = list.get(3);
+      pigeonResult.setPlayerId((playerId == null) ? null : ((playerId instanceof Integer) ? (Integer) playerId : (Long) playerId));
+      return pigeonResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class SubTitleRenderModelPlayerMsg {
+    private @Nullable Long canvasWidth;
+
+    public @Nullable Long getCanvasWidth() {
+      return canvasWidth;
+    }
+
+    public void setCanvasWidth(@Nullable Long setterArg) {
+      this.canvasWidth = setterArg;
+    }
+
+    private @Nullable Long canvasHeight;
+
+    public @Nullable Long getCanvasHeight() {
+      return canvasHeight;
+    }
+
+    public void setCanvasHeight(@Nullable Long setterArg) {
+      this.canvasHeight = setterArg;
+    }
+
+    private @Nullable String familyName;
+
+    public @Nullable String getFamilyName() {
+      return familyName;
+    }
+
+    public void setFamilyName(@Nullable String setterArg) {
+      this.familyName = setterArg;
+    }
+
+    private @Nullable Double fontSize;
+
+    public @Nullable Double getFontSize() {
+      return fontSize;
+    }
+
+    public void setFontSize(@Nullable Double setterArg) {
+      this.fontSize = setterArg;
+    }
+
+    private @Nullable Double fontScale;
+
+    public @Nullable Double getFontScale() {
+      return fontScale;
+    }
+
+    public void setFontScale(@Nullable Double setterArg) {
+      this.fontScale = setterArg;
+    }
+
+    private @Nullable Long fontColor;
+
+    public @Nullable Long getFontColor() {
+      return fontColor;
+    }
+
+    public void setFontColor(@Nullable Long setterArg) {
+      this.fontColor = setterArg;
+    }
+
+    private @Nullable Boolean isBondFontStyle;
+
+    public @Nullable Boolean getIsBondFontStyle() {
+      return isBondFontStyle;
+    }
+
+    public void setIsBondFontStyle(@Nullable Boolean setterArg) {
+      this.isBondFontStyle = setterArg;
+    }
+
+    private @Nullable Double outlineWidth;
+
+    public @Nullable Double getOutlineWidth() {
+      return outlineWidth;
+    }
+
+    public void setOutlineWidth(@Nullable Double setterArg) {
+      this.outlineWidth = setterArg;
+    }
+
+    private @Nullable Long outlineColor;
+
+    public @Nullable Long getOutlineColor() {
+      return outlineColor;
+    }
+
+    public void setOutlineColor(@Nullable Long setterArg) {
+      this.outlineColor = setterArg;
+    }
+
+    private @Nullable Double lineSpace;
+
+    public @Nullable Double getLineSpace() {
+      return lineSpace;
+    }
+
+    public void setLineSpace(@Nullable Double setterArg) {
+      this.lineSpace = setterArg;
+    }
+
+    private @Nullable Double startMargin;
+
+    public @Nullable Double getStartMargin() {
+      return startMargin;
+    }
+
+    public void setStartMargin(@Nullable Double setterArg) {
+      this.startMargin = setterArg;
+    }
+
+    private @Nullable Double endMargin;
+
+    public @Nullable Double getEndMargin() {
+      return endMargin;
+    }
+
+    public void setEndMargin(@Nullable Double setterArg) {
+      this.endMargin = setterArg;
+    }
+
+    private @Nullable Double verticalMargin;
+
+    public @Nullable Double getVerticalMargin() {
+      return verticalMargin;
+    }
+
+    public void setVerticalMargin(@Nullable Double setterArg) {
+      this.verticalMargin = setterArg;
+    }
+
+    private @Nullable Long playerId;
+
+    public @Nullable Long getPlayerId() {
+      return playerId;
+    }
+
+    public void setPlayerId(@Nullable Long setterArg) {
+      this.playerId = setterArg;
+    }
+
+    public static final class Builder {
+
+      private @Nullable Long canvasWidth;
+
+      public @NonNull Builder setCanvasWidth(@Nullable Long setterArg) {
+        this.canvasWidth = setterArg;
+        return this;
+      }
+
+      private @Nullable Long canvasHeight;
+
+      public @NonNull Builder setCanvasHeight(@Nullable Long setterArg) {
+        this.canvasHeight = setterArg;
+        return this;
+      }
+
+      private @Nullable String familyName;
+
+      public @NonNull Builder setFamilyName(@Nullable String setterArg) {
+        this.familyName = setterArg;
+        return this;
+      }
+
+      private @Nullable Double fontSize;
+
+      public @NonNull Builder setFontSize(@Nullable Double setterArg) {
+        this.fontSize = setterArg;
+        return this;
+      }
+
+      private @Nullable Double fontScale;
+
+      public @NonNull Builder setFontScale(@Nullable Double setterArg) {
+        this.fontScale = setterArg;
+        return this;
+      }
+
+      private @Nullable Long fontColor;
+
+      public @NonNull Builder setFontColor(@Nullable Long setterArg) {
+        this.fontColor = setterArg;
+        return this;
+      }
+
+      private @Nullable Boolean isBondFontStyle;
+
+      public @NonNull Builder setIsBondFontStyle(@Nullable Boolean setterArg) {
+        this.isBondFontStyle = setterArg;
+        return this;
+      }
+
+      private @Nullable Double outlineWidth;
+
+      public @NonNull Builder setOutlineWidth(@Nullable Double setterArg) {
+        this.outlineWidth = setterArg;
+        return this;
+      }
+
+      private @Nullable Long outlineColor;
+
+      public @NonNull Builder setOutlineColor(@Nullable Long setterArg) {
+        this.outlineColor = setterArg;
+        return this;
+      }
+
+      private @Nullable Double lineSpace;
+
+      public @NonNull Builder setLineSpace(@Nullable Double setterArg) {
+        this.lineSpace = setterArg;
+        return this;
+      }
+
+      private @Nullable Double startMargin;
+
+      public @NonNull Builder setStartMargin(@Nullable Double setterArg) {
+        this.startMargin = setterArg;
+        return this;
+      }
+
+      private @Nullable Double endMargin;
+
+      public @NonNull Builder setEndMargin(@Nullable Double setterArg) {
+        this.endMargin = setterArg;
+        return this;
+      }
+
+      private @Nullable Double verticalMargin;
+
+      public @NonNull Builder setVerticalMargin(@Nullable Double setterArg) {
+        this.verticalMargin = setterArg;
+        return this;
+      }
+
+      private @Nullable Long playerId;
+
+      public @NonNull Builder setPlayerId(@Nullable Long setterArg) {
+        this.playerId = setterArg;
+        return this;
+      }
+
+      public @NonNull SubTitleRenderModelPlayerMsg build() {
+        SubTitleRenderModelPlayerMsg pigeonReturn = new SubTitleRenderModelPlayerMsg();
+        pigeonReturn.setCanvasWidth(canvasWidth);
+        pigeonReturn.setCanvasHeight(canvasHeight);
+        pigeonReturn.setFamilyName(familyName);
+        pigeonReturn.setFontSize(fontSize);
+        pigeonReturn.setFontScale(fontScale);
+        pigeonReturn.setFontColor(fontColor);
+        pigeonReturn.setIsBondFontStyle(isBondFontStyle);
+        pigeonReturn.setOutlineWidth(outlineWidth);
+        pigeonReturn.setOutlineColor(outlineColor);
+        pigeonReturn.setLineSpace(lineSpace);
+        pigeonReturn.setStartMargin(startMargin);
+        pigeonReturn.setEndMargin(endMargin);
+        pigeonReturn.setVerticalMargin(verticalMargin);
+        pigeonReturn.setPlayerId(playerId);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(14);
+      toListResult.add(canvasWidth);
+      toListResult.add(canvasHeight);
+      toListResult.add(familyName);
+      toListResult.add(fontSize);
+      toListResult.add(fontScale);
+      toListResult.add(fontColor);
+      toListResult.add(isBondFontStyle);
+      toListResult.add(outlineWidth);
+      toListResult.add(outlineColor);
+      toListResult.add(lineSpace);
+      toListResult.add(startMargin);
+      toListResult.add(endMargin);
+      toListResult.add(verticalMargin);
+      toListResult.add(playerId);
+      return toListResult;
+    }
+
+    static @NonNull SubTitleRenderModelPlayerMsg fromList(@NonNull ArrayList<Object> list) {
+      SubTitleRenderModelPlayerMsg pigeonResult = new SubTitleRenderModelPlayerMsg();
+      Object canvasWidth = list.get(0);
+      pigeonResult.setCanvasWidth((canvasWidth == null) ? null : ((canvasWidth instanceof Integer) ? (Integer) canvasWidth : (Long) canvasWidth));
+      Object canvasHeight = list.get(1);
+      pigeonResult.setCanvasHeight((canvasHeight == null) ? null : ((canvasHeight instanceof Integer) ? (Integer) canvasHeight : (Long) canvasHeight));
+      Object familyName = list.get(2);
+      pigeonResult.setFamilyName((String) familyName);
+      Object fontSize = list.get(3);
+      pigeonResult.setFontSize((Double) fontSize);
+      Object fontScale = list.get(4);
+      pigeonResult.setFontScale((Double) fontScale);
+      Object fontColor = list.get(5);
+      pigeonResult.setFontColor((fontColor == null) ? null : ((fontColor instanceof Integer) ? (Integer) fontColor : (Long) fontColor));
+      Object isBondFontStyle = list.get(6);
+      pigeonResult.setIsBondFontStyle((Boolean) isBondFontStyle);
+      Object outlineWidth = list.get(7);
+      pigeonResult.setOutlineWidth((Double) outlineWidth);
+      Object outlineColor = list.get(8);
+      pigeonResult.setOutlineColor((outlineColor == null) ? null : ((outlineColor instanceof Integer) ? (Integer) outlineColor : (Long) outlineColor));
+      Object lineSpace = list.get(9);
+      pigeonResult.setLineSpace((Double) lineSpace);
+      Object startMargin = list.get(10);
+      pigeonResult.setStartMargin((Double) startMargin);
+      Object endMargin = list.get(11);
+      pigeonResult.setEndMargin((Double) endMargin);
+      Object verticalMargin = list.get(12);
+      pigeonResult.setVerticalMargin((Double) verticalMargin);
+      Object playerId = list.get(13);
+      pigeonResult.setPlayerId((playerId == null) ? null : ((playerId instanceof Integer) ? (Integer) playerId : (Long) playerId));
+      return pigeonResult;
+    }
+  }
+
   private static class TXFlutterSuperPlayerPluginAPICodec extends StandardMessageCodec {
     public static final TXFlutterSuperPlayerPluginAPICodec INSTANCE = new TXFlutterSuperPlayerPluginAPICodec();
 
@@ -3288,8 +3859,14 @@ public class FtxMessages {
         case (byte) 139:
           return StringPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 140:
-          return TXPlayInfoParamsPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return SubTitlePlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 141:
+          return SubTitleRenderModelPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 142:
+          return TXPlayInfoParamsPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 143:
+          return TXPlayerDrmMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 144:
           return UInt8ListMsg.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
@@ -3334,11 +3911,20 @@ public class FtxMessages {
       } else if (value instanceof StringPlayerMsg) {
         stream.write(139);
         writeValue(stream, ((StringPlayerMsg) value).toList());
-      } else if (value instanceof TXPlayInfoParamsPlayerMsg) {
+      } else if (value instanceof SubTitlePlayerMsg) {
         stream.write(140);
-        writeValue(stream, ((TXPlayInfoParamsPlayerMsg) value).toList());
-      } else if (value instanceof UInt8ListMsg) {
+        writeValue(stream, ((SubTitlePlayerMsg) value).toList());
+      } else if (value instanceof SubTitleRenderModelPlayerMsg) {
         stream.write(141);
+        writeValue(stream, ((SubTitleRenderModelPlayerMsg) value).toList());
+      } else if (value instanceof TXPlayInfoParamsPlayerMsg) {
+        stream.write(142);
+        writeValue(stream, ((TXPlayInfoParamsPlayerMsg) value).toList());
+      } else if (value instanceof TXPlayerDrmMsg) {
+        stream.write(143);
+        writeValue(stream, ((TXPlayerDrmMsg) value).toList());
+      } else if (value instanceof UInt8ListMsg) {
+        stream.write(144);
         writeValue(stream, ((UInt8ListMsg) value).toList());
       } else {
         super.writeValue(stream, value);
@@ -3393,6 +3979,13 @@ public class FtxMessages {
      */
     void startVodPlayWithParams(@NonNull TXPlayInfoParamsPlayerMsg params);
     /**
+     * 播放 DRM 加密视频
+     *
+     * Playing DRM-encrypted video.
+     */
+    @NonNull 
+    IntMsg startPlayDrm(@NonNull TXPlayerDrmMsg params);
+    /**
      * 设置是否自动播放
      *
      * set autoplay
@@ -3444,6 +4037,16 @@ public class FtxMessages {
      * progress 要定位的视频时间，单位 秒 The video playback time to be located, in seconds
      */
     void seek(@NonNull DoublePlayerMsg progress);
+    /**
+     * 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
+     * 单位毫秒(ms)
+     * 播放器高级版 11.6 版本开始支持
+     *
+     * Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
+     * Unit millisecond (ms)
+     * Player Premium version 11.6 starts to support
+     */
+    void seekToPdtTime(@NonNull IntPlayerMsg pdtTimeMs);
     /**
      * 设置播放速率，默认速率 1
      *
@@ -3590,6 +4193,20 @@ public class FtxMessages {
     @NonNull 
     DoubleMsg getDuration(@NonNull PlayerMsg playerMsg);
 
+    void addSubtitleSource(@NonNull SubTitlePlayerMsg playerMsg);
+
+    @NonNull 
+    ListMsg getSubtitleTrackInfo(@NonNull PlayerMsg playerMsg);
+
+    @NonNull 
+    ListMsg getAudioTrackInfo(@NonNull PlayerMsg playerMsg);
+
+    void selectTrack(@NonNull IntPlayerMsg playerMsg);
+
+    void deselectTrack(@NonNull IntPlayerMsg playerMsg);
+
+    void setSubtitleStyle(@NonNull SubTitleRenderModelPlayerMsg playerMsg);
+
     /** The codec used by TXFlutterVodPlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
       return TXFlutterVodPlayerApiCodec.INSTANCE;
@@ -3657,6 +4274,30 @@ public class FtxMessages {
                 try {
                   api.startVodPlayWithParams(paramsArg);
                   wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.startPlayDrm", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                TXPlayerDrmMsg paramsArg = (TXPlayerDrmMsg) args.get(0);
+                try {
+                  IntMsg output = api.startPlayDrm(paramsArg);
+                  wrapped.add(0, output);
                 }
  catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);
@@ -3848,6 +4489,30 @@ public class FtxMessages {
                 DoublePlayerMsg progressArg = (DoublePlayerMsg) args.get(0);
                 try {
                   api.seek(progressArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.seekToPdtTime", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                IntPlayerMsg pdtTimeMsArg = (IntPlayerMsg) args.get(0);
+                try {
+                  api.seekToPdtTime(pdtTimeMsArg);
                   wrapped.add(0, null);
                 }
  catch (Throwable exception) {
@@ -4353,6 +5018,150 @@ public class FtxMessages {
                 try {
                   DoubleMsg output = api.getDuration(playerMsgArg);
                   wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.addSubtitleSource", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                SubTitlePlayerMsg playerMsgArg = (SubTitlePlayerMsg) args.get(0);
+                try {
+                  api.addSubtitleSource(playerMsgArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.getSubtitleTrackInfo", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                try {
+                  ListMsg output = api.getSubtitleTrackInfo(playerMsgArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.getAudioTrackInfo", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                try {
+                  ListMsg output = api.getAudioTrackInfo(playerMsgArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.selectTrack", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                IntPlayerMsg playerMsgArg = (IntPlayerMsg) args.get(0);
+                try {
+                  api.selectTrack(playerMsgArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.deselectTrack", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                IntPlayerMsg playerMsgArg = (IntPlayerMsg) args.get(0);
+                try {
+                  api.deselectTrack(playerMsgArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterVodPlayerApi.setSubtitleStyle", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                SubTitleRenderModelPlayerMsg playerMsgArg = (SubTitleRenderModelPlayerMsg) args.get(0);
+                try {
+                  api.setSubtitleStyle(playerMsgArg);
+                  wrapped.add(0, null);
                 }
  catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);

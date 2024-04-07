@@ -160,6 +160,13 @@
     }
 }
 
+- (void)seekToPdtTimePdtTimeMs:(IntPlayerMsg *)pdtTimeMs error:(FlutterError * _Nullable __autoreleasing *)error {
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[pdtTimeMs.playerId];
+    if(api) {
+        [api seekToPdtTimePdtTimeMs:pdtTimeMs error:error];
+    }
+}
+
 - (void)setAudioPlayOutVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[volume.playerId];
     if(api) {
@@ -253,6 +260,65 @@
     }
     return nil;
 }
+
+- (IntMsg *)startPlayDrmParams:(TXPlayerDrmMsg *)params error:(FlutterError * _Nullable __autoreleasing *)error {
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[params.playerId];
+    if(api) {
+        return [api startPlayDrmParams:params error:error];
+    }
+    return nil;
+}
+
+- (void)addSubtitleSourcePlayerMsg:(nonnull SubTitlePlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        [api addSubtitleSourcePlayerMsg:playerMsg error:error];
+    }
+}
+
+
+- (void)deselectTrackPlayerMsg:(nonnull IntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        [api deselectTrackPlayerMsg:playerMsg error:error];
+    }
+}
+
+
+- (nullable ListMsg *)getAudioTrackInfoPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        return [api getAudioTrackInfoPlayerMsg:playerMsg error:error];
+    }
+    return nil;
+}
+
+
+- (nullable ListMsg *)getSubtitleTrackInfoPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        return [api getSubtitleTrackInfoPlayerMsg:playerMsg error:error];
+    }
+    return nil;
+}
+
+
+- (void)selectTrackPlayerMsg:(nonnull IntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        [api selectTrackPlayerMsg:playerMsg error:error];
+    }
+}
+
+
+- (void)setSubtitleStylePlayerMsg:(nonnull SubTitleRenderModelPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if(api) {
+        [api setSubtitleStylePlayerMsg:playerMsg error:error];
+    }
+}
+
+
 
 @end
 

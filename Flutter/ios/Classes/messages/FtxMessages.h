@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class PlayerMsg;
 @class LicenseMsg;
 @class TXPlayInfoParamsPlayerMsg;
+@class TXPlayerDrmMsg;
 @class PipParamsPlayerMsg;
 @class StringListPlayerMsg;
 @class BoolPlayerMsg;
@@ -34,6 +35,8 @@ NS_ASSUME_NONNULL_BEGIN
 @class PreLoadMsg;
 @class PreLoadInfoMsg;
 @class MapMsg;
+@class SubTitlePlayerMsg;
+@class SubTitleRenderModelPlayerMsg;
 
 /// Pigeon original component, used to generate native communication code for `messages`.
 /// The generation command is as follows. When using the generation command,
@@ -64,6 +67,19 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, nullable) NSString * fileId;
 @property(nonatomic, copy, nullable) NSString * psign;
 @property(nonatomic, copy, nullable) NSString * url;
+@end
+
+@interface TXPlayerDrmMsg : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithLicenseUrl:(NSString *)licenseUrl
+    playUrl:(NSString *)playUrl
+    playerId:(nullable NSNumber *)playerId
+    deviceCertificateUrl:(nullable NSString *)deviceCertificateUrl;
+@property(nonatomic, copy) NSString * licenseUrl;
+@property(nonatomic, copy) NSString * playUrl;
+@property(nonatomic, strong, nullable) NSNumber * playerId;
+@property(nonatomic, copy, nullable) NSString * deviceCertificateUrl;
 @end
 
 @interface PipParamsPlayerMsg : NSObject
@@ -145,7 +161,8 @@ NS_ASSUME_NONNULL_BEGIN
     overlayIv:(nullable NSString *)overlayIv
     extInfoMap:(nullable NSDictionary<NSString *, id> *)extInfoMap
     enableRenderProcess:(nullable NSNumber *)enableRenderProcess
-    preferredResolution:(nullable NSNumber *)preferredResolution;
+    preferredResolution:(nullable NSNumber *)preferredResolution
+    mediaType:(nullable NSNumber *)mediaType;
 @property(nonatomic, strong, nullable) NSNumber * playerId;
 @property(nonatomic, strong, nullable) NSNumber * connectRetryCount;
 @property(nonatomic, strong, nullable) NSNumber * connectRetryInterval;
@@ -166,6 +183,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong, nullable) NSDictionary<NSString *, id> * extInfoMap;
 @property(nonatomic, strong, nullable) NSNumber * enableRenderProcess;
 @property(nonatomic, strong, nullable) NSNumber * preferredResolution;
+/// Media asset type, default auto type, refer to value see[TXVodPlayEvent]
+/// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
+@property(nonatomic, strong, nullable) NSNumber * mediaType;
 @end
 
 @interface FTXLivePlayConfigPlayerMsg : NSObject
@@ -313,6 +333,50 @@ NS_ASSUME_NONNULL_BEGIN
 @interface MapMsg : NSObject
 + (instancetype)makeWithMap:(nullable NSDictionary<NSString *, NSString *> *)map;
 @property(nonatomic, strong, nullable) NSDictionary<NSString *, NSString *> * map;
+@end
+
+@interface SubTitlePlayerMsg : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithUrl:(NSString *)url
+    name:(NSString *)name
+    mimeType:(nullable NSString *)mimeType
+    playerId:(nullable NSNumber *)playerId;
+@property(nonatomic, copy) NSString * url;
+@property(nonatomic, copy) NSString * name;
+@property(nonatomic, copy, nullable) NSString * mimeType;
+@property(nonatomic, strong, nullable) NSNumber * playerId;
+@end
+
+@interface SubTitleRenderModelPlayerMsg : NSObject
++ (instancetype)makeWithCanvasWidth:(nullable NSNumber *)canvasWidth
+    canvasHeight:(nullable NSNumber *)canvasHeight
+    familyName:(nullable NSString *)familyName
+    fontSize:(nullable NSNumber *)fontSize
+    fontScale:(nullable NSNumber *)fontScale
+    fontColor:(nullable NSNumber *)fontColor
+    isBondFontStyle:(nullable NSNumber *)isBondFontStyle
+    outlineWidth:(nullable NSNumber *)outlineWidth
+    outlineColor:(nullable NSNumber *)outlineColor
+    lineSpace:(nullable NSNumber *)lineSpace
+    startMargin:(nullable NSNumber *)startMargin
+    endMargin:(nullable NSNumber *)endMargin
+    verticalMargin:(nullable NSNumber *)verticalMargin
+    playerId:(nullable NSNumber *)playerId;
+@property(nonatomic, strong, nullable) NSNumber * canvasWidth;
+@property(nonatomic, strong, nullable) NSNumber * canvasHeight;
+@property(nonatomic, copy, nullable) NSString * familyName;
+@property(nonatomic, strong, nullable) NSNumber * fontSize;
+@property(nonatomic, strong, nullable) NSNumber * fontScale;
+@property(nonatomic, strong, nullable) NSNumber * fontColor;
+@property(nonatomic, strong, nullable) NSNumber * isBondFontStyle;
+@property(nonatomic, strong, nullable) NSNumber * outlineWidth;
+@property(nonatomic, strong, nullable) NSNumber * outlineColor;
+@property(nonatomic, strong, nullable) NSNumber * lineSpace;
+@property(nonatomic, strong, nullable) NSNumber * startMargin;
+@property(nonatomic, strong, nullable) NSNumber * endMargin;
+@property(nonatomic, strong, nullable) NSNumber * verticalMargin;
+@property(nonatomic, strong, nullable) NSNumber * playerId;
 @end
 
 /// The codec used by TXFlutterSuperPlayerPluginAPI.
@@ -470,6 +534,12 @@ NSObject<FlutterMessageCodec> *TXFlutterVodPlayerApiGetCodec(void);
 /// @params : see[TXPlayInfoParams]
 /// return 是否播放成功  if play successful
 - (void)startVodPlayWithParamsParams:(TXPlayInfoParamsPlayerMsg *)params error:(FlutterError *_Nullable *_Nonnull)error;
+/// 播放 DRM 加密视频
+///
+/// Playing DRM-encrypted video.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable IntMsg *)startPlayDrmParams:(TXPlayerDrmMsg *)params error:(FlutterError *_Nullable *_Nonnull)error;
 /// 设置是否自动播放
 ///
 /// set autoplay
@@ -508,6 +578,14 @@ NSObject<FlutterMessageCodec> *TXFlutterVodPlayerApiGetCodec(void);
 /// Set the video playback progress to a specific time and start playing.
 /// progress 要定位的视频时间，单位 秒 The video playback time to be located, in seconds
 - (void)seekProgress:(DoublePlayerMsg *)progress error:(FlutterError *_Nullable *_Nonnull)error;
+/// 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
+/// 单位毫秒(ms)
+/// 播放器高级版 11.6 版本开始支持
+///
+/// Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
+/// Unit millisecond (ms)
+/// Player Premium version 11.6 starts to support
+- (void)seekToPdtTimePdtTimeMs:(IntPlayerMsg *)pdtTimeMs error:(FlutterError *_Nullable *_Nonnull)error;
 /// 设置播放速率，默认速率 1
 ///
 /// Set the playback speed, with a default speed of 1.
@@ -625,6 +703,14 @@ NSObject<FlutterMessageCodec> *TXFlutterVodPlayerApiGetCodec(void);
 ///
 /// @return `nil` only when `error != nil`.
 - (nullable DoubleMsg *)getDurationPlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)addSubtitleSourcePlayerMsg:(SubTitlePlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable ListMsg *)getSubtitleTrackInfoPlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable ListMsg *)getAudioTrackInfoPlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)selectTrackPlayerMsg:(IntPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)deselectTrackPlayerMsg:(IntPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setSubtitleStylePlayerMsg:(SubTitleRenderModelPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterVodPlayerApi> *_Nullable api);

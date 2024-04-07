@@ -84,6 +84,11 @@ class FSPLocal {
   String get txSpw2k => _localStrings["tx_spw_2k"]!;
   String get txSpw4k => _localStrings["tx_spw_4k"]!;
   String get txSpwOd => _localStrings["tx_spw_od"]!;
+  String get txSubtitleTitle => _localStrings["tx_subtitle_title"]!;
+  String get txSubtitleTitleClose => _localStrings["tx_subtitle_close"]!;
+  String get txAudioTrackTitle => _localStrings["tx_audio_track_title"]!;
+  String get txAudioTrackTitleItem => _localStrings["tx_audio_track_item"]!;
+  String get txAudioTrackClose => _localStrings["tx_audio_track_close"]!;
   // cgi
   String get txSpwErrFileNotExist => _localStrings["tx_spw_err_file_not_exist"]!;
   String get txSpwErrInvalidTrialDuration => _localStrings["tx_spw_err_invalid_trial_duration"]!;

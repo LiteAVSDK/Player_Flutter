@@ -1262,6 +1262,113 @@ Future<void> exitPictureInPictureMode() async;
 
 无
 
+### addSubtitleSource
+
+**说明**
+
+添加外挂字幕。
+
+注意：此功能需要播放器高级版 11.7 版本开始支持。
+
+**接口**
+
+```dart
+Future<void> addSubtitleSource(String url, String name, {String? mimeType}) async;
+```
+
+**参数说明**
+
+| 参数名   | 类型   | 描述                                                         |
+| -------- | ------ | ------------------------------------------------------------ |
+| url      | String | 字幕url                                                      |
+| name     | String | 字幕名称                                                     |
+| mimeType | String | 字幕类型，支持SRT（TXVodPlayEvent.VOD_PLAY_MIMETYPE_TEXT_SRT）和VVT（TXVodPlayEvent.VOD_PLAY_MIMETYPE_TEXT_VTT）格式 |
+
+### getSubtitleTrackInfo
+
+**说明**
+
+返回字幕轨道信息列表。
+
+注意：此功能需要播放器高级版 11.7 版本开始支持。
+
+**接口**
+
+```dart
+Future<List<TXTrackInfo>> getSubtitleTrackInfo() async;
+```
+
+**参数说明**
+
+TXTrackInfo类：
+
+| 参数名      | 类型   | 描述                                                         |
+| ----------- | ------ | ------------------------------------------------------------ |
+| trackType   | int    | 轨道类型。取值有：<br />视频轨：TX_VOD_MEDIA_TRACK_TYPE_VIDEO = 1<br />音频轨： TX_VOD_MEDIA_TRACK_TYPE_AUDIO = 2<br />字幕轨：TX_VOD_MEDIA_TRACK_TYPE_SUBTITLE = 3 |
+| trackIndex  | int    | 轨道index                                                    |
+| name        | String | 轨道名字                                                     |
+| isSelected  | bool   | 当前轨道是否被选中                                           |
+| isExclusive | bool   | 如果是true，该类型轨道每个时刻只有一条能被选中，如果是false，该类型轨道可以同时选中多条 |
+| isInternal  | bool   | 当前的轨道是否是内部原始轨道                                 |
+
+### getAudioTrackInfo
+
+**说明**
+
+返回字幕轨道信息列表。
+
+注意：此功能需要播放器高级版 11.7 版本开始支持。
+
+**接口**
+
+```dart
+Future<List<TXTrackInfo>> getAudioTrackInfo() async;
+```
+
+**参数说明**
+
+参考TXTrackInfo类
+
+### selectTrack
+
+**说明**
+
+选择轨道。
+
+注意：此功能需要播放器高级版 11.7 版本开始支持。
+
+**接口**
+
+```dart
+Future<void> selectTrack(int trackIndex) async;
+```
+
+**参数说明**
+
+| 参数名     | 类型 | 描述                                                         |
+| ---------- | ---- | ------------------------------------------------------------ |
+| trackIndex | int  | 轨道index，trackIndex 轨道index，通过[TXTrackInfo]的trackIndex获取。 |
+
+### deselectTrack
+
+**说明**
+
+取消选择轨道。
+
+注意：此功能需要播放器高级版 11.7 版本开始支持。
+
+**接口**
+
+```dart
+Future<void> deselectTrack(int trackIndex) async;
+```
+
+**参数说明**
+
+| 参数名     | 类型 | 描述                                                         |
+| ---------- | ---- | ------------------------------------------------------------ |
+| trackIndex | int  | 轨道index，trackIndex 轨道index，通过[TXTrackInfo]的trackIndex获取。 |
+
 ## FTXVodPlayConfig类
 
 #### 属性配置说明
@@ -1288,6 +1395,7 @@ Future<void> exitPictureInPictureMode() async;
 | extInfoMap | Map    | 一些不必周知的特殊配置|
 | enableRenderProcess | bool   | 是否允许加载后渲染后处理服务,默认开启，开启后超分插件如果存在，默认加载|
 | preferredResolution | int    | 优先播放的分辨率，preferredResolution = width * height|
+| mediaType | int | 设置媒资类型, 默认为 auto 类型。可选值有：<br/>TXVodConstants#MEDIA_TYPE_AUTO，AUTO 类型（默认值，自适应码率播放暂不支持）。<br/>TXVodConstants#MEDIA_TYPE_HLS_VOD，HLS 点播媒资。<br/>TXVodConstants#MEDIA_TYPE_HLS_LIVE，HLS 直播媒资。<br/>TXVodConstants#MEDIA_TYPE_FILE_VOD，MP4 等通用文件点播媒资（从 11.7 版本开始支持）。<br/>TXVodConstants#MEDIA_TYPE_DASH_VOD，DASH 点播媒资（从 11.7 版本开始支持）。 |
 
 
 ## TXLivePlayerController类

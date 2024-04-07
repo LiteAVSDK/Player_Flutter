@@ -2,6 +2,18 @@
 
 #import "TXCommonUtil.h"
 #import <Flutter/Flutter.h>
+#include "FTXLiteAVSDKHeader.h"
+
+#if __has_include(<TXLiteAVSDK_Player/TXVodDownloadManager.h>)
+#import <TXLiteAVSDK_Player/TXVodDownloadManager.h>
+#elif __has_include(<TXLiteAVSDK_Player_Premium/TXVodDownloadManager.h>)
+#import <TXLiteAVSDK_Player_Premium/TXVodDownloadManager.h>
+#elif __has_include(<TXLiteAVSDK_Professional/TXVodDownloadManager.h>)
+#import <TXLiteAVSDK_Professional/TXVodDownloadManager.h>
+#else
+#import <TXVodDownloadManager.h>
+#endif
+
 
 @implementation TXCommonUtil
 

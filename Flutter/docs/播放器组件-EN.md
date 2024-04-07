@@ -518,7 +518,7 @@ _controller.onSimplePlayerEventBroadcast.listen((event) {
 
 ## Advanced Features
 
-#### Requesting video data in advance through fileId
+### 1. Requesting video data in advance through fileId
 
 The `SuperVodDataLoader` API can be used to request the video data in advance to accelerate the playback start process.
 
@@ -536,6 +536,236 @@ loader.getVideoData(model, (resultModel) {
   _controller.playWithModelNeedLicence(resultModel);
 })
 ```
+
+### 2. Using Picture-in-Picture mode
+
+#### 1. Android platform configuration
+
+1.1 In your project's android package, find build.gradle, and ensure that the compileSdkVersion and targetSdkVersion versions are 31 or higher.
+
+#### 2. iOS platform configuration
+
+2.1 Under your project's target, select Signing & Capabilities, add Background Modes, and check Audio, AirPlay, and Picture in Picture.
+
+#### 3. Copy superPlayer sample code
+
+Import the superplayer_widget from the github project into your own lib directory, and integrate the player component by following the example code in demo_superplayer.dart. Then you can see the Picture-in-Picture mode button in the middle right of the player component's playback interface. Click it to enter Picture-in-Picture mode.
+
+#### 4. Listening to the lifecycle of Picture-in-Picture mode
+
+You can use onExtraEventBroadcast in SuperPlayerPlugin to listen to the lifecycle of Picture-in-Picture mode. The example code is as follows:
+
+```dart
+SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+  int eventCode = event["event"];
+  if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
+    // exit pip mode
+  } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
+    // enter pip mode
+  } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_ENTER) {
+    // already enter pip mode
+  } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) {
+    // will exit pip mode
+  } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_RESTORE_UI) {
+    // restore UI only support iOS
+  } 
+});
+```
+
+#### 5. Picture-in-Picture mode entry error code
+
+When entering Picture-in-Picture mode fails, in addition to log prompts, there will also be toast prompts. You can modify the error handling in the _onEnterPipMode method in superplayer_widget.dart. The error code meanings are as follows:
+
+| Parameter Name | Value | Description |
+| ------ | ------ | ------------------ |
+| NO_ERROR | 0 | Start successfully, no errors |
+| ERROR_PIP_LOWER_VERSION | -101 | The Android version is too low to support Picture-in-Picture mode |
+| ERROR_PIP_DENIED_PERMISSION | -102 | Picture-in-Picture mode permission is not turned on, or the current device does not support Picture-in-Picture |
+| ERROR_PIP_ACTIVITY_DESTROYED | -103 | The current interface has been destroyed |
+| ERROR_IOS_PIP_DEVICE_NOT_SUPPORT | -104 | The device or system version is not supported (PIP is only supported on iPad iOS9+) | only support iOS
+| ERROR_IOS_PIP_PLAYER_NOT_SUPPORT | -105 | The player is not supported | only support iOS
+| ERROR_IOS_PIP_VIDEO_NOT_SUPPORT | -106 | The video is not supported | only support iOS
+| ERROR_IOS_PIP_IS_NOT_POSSIBLE | -107 | PIP controller is not available | only support iOS
+| ERROR_IOS_PIP_FROM_SYSTEM | -108 | PIP controller error | only support iOS
+| ERROR_IOS_PIP_PLAYER_NOT_EXIST | -109 | The player object does not exist | only support iOS
+| ERROR_IOS_PIP_IS_RUNNING | -110 | PIP function is already running | only support iOS
+| ERROR_IOS_PIP_NOT_RUNNING | -111 | PIP function is not started | only support iOS
+
+#### 6. Determining whether the current device supports Picture-in-Picture
+
+You can use isDeviceSupportPip in SuperPlayerPlugin to determine whether Picture-in-Picture can be enabled at the current time. The code example is as follows:
+
+```dart
+int result = await SuperPlayerPlugin.isDeviceSupportPip();
+if(result == TXVodPlayEvent.NO_ERROR) {
+  // pip support
+}
+```
+
+The meaning of the return result is consistent with the Picture-in-Picture mode error code.
+
+#### 7. Using Picture-in-Picture controller to manage Picture-in-Picture
+
+The Picture-in-Picture controller TXPipController is a Picture-in-Picture tool encapsulated in superplayer_widget, and **must be used in conjunction with SuperPlayerView**. When entering Picture-in-Picture, the current interface will be automatically closed, and the pre-set listener method will be called back. In the callback method, you can save the necessary parameters of the current player interface. After the Picture-in-Picture is restored, the previous interface will be pushed back and the previously saved parameters will be passed.
+When using this controller, there can only be one instance of Picture-in-Picture or player. When re-entering the player interface, Picture-in-Picture will be automatically closed.
+
+7.1 In your project's entry point, such as main.dart, call TXPipController to set the Picture-in-Picture control jump, and the page to jump to is the player page used to enter Picture-in-Picture. You can set different interfaces according to your own project. The code example is as follows:
+
+```dart
+TXPipController.instance.setNavigatorHandle((params) {
+  navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => DemoSuperPlayer(initParams: params)));
+});
+```
+
+7.2 Set the listener for the Picture-in-Picture playback page. You need to implement the `TXPipPlayerRestorePage` method. After setting it, when you are about to enter Picture-in-Picture, the controller will call the `void onNeedSavePipPageState(Map<String, dynamic> params)` method back. At this time, you can save the parameters required for the current page in params.
+
+```dart
+TXPipController.instance.setPipPlayerPage(this);
+```
+
+7.3 Then, when the user clicks the enter Picture-in-Picture button on SuperPlayerView, the internal method `_onEnterPipMode` of `SuperPlayerView` will be called to enter Picture-in-Picture, or you can call the `enterPictureInPictureMode` method of `SuperPlayerController` to enter it.
+
+### 3. Video Download
+
+#### 1. Downloading Videos
+
+1. To use the video download function of the player component, you first need to turn on `isEnableDownload` in SuperPlayerModel. This field is turned off by default.
+
+```dart
+SuperPlayerModel model = SuperPlayerModel();
+// Turn on video download capability
+model.isEnableDownload = true;
+```
+
+The player component currently only enables downloads in VOD playback mode.
+
+2. You can use the `startDownload` method of `SuperPlayerController` to directly download the video currently being played by the player, corresponding to the clarity of the video being played. You can also use `DownloadHelper` to download a specific video, as follows:
+
+```dart
+DownloadHelper.instance.startDownloadBySize(videoModel, videoWidth, videoHeight);
+```
+
+Using `DownloadHelper`'s `startDownloadBySize`, you can download videos of a specific resolution. If there is no such resolution, a video with a similar resolution will be downloaded.
+In addition to the above interfaces, you can also choose to pass in the quality ID or mediaInfo to download directly.
+
+```dart
+// QUALITY_240P  240p
+// QUALITY_360P  360P
+// QUALITY_480P  480p
+// QUALITY_540P  540p
+// QUALITY_720P  720p
+// QUALITY_1080P 1080p
+// QUALITY_2K    2k
+// QUALITY_4K    4k
+// The quality parameter can be customized, taking the minimum value of the resolution width and height (such as a resolution of 1280*720, and you want to download a stream of this resolution, pass QUALITY_720P to the quality parameter)
+// The player SDK will select a stream smaller than or equal to the input resolution for download
+// Download using quality ID
+DownloadHelper.instance.startDownload(videoModel, qualityId);
+// Download using mediaInfo
+DownloadHelper.instance.startDownloadOrg(mediaInfo);
+```
+
+3. Quality ID conversion
+
+The VOD `CommonUtils` provides the `getDownloadQualityBySize` method to convert the resolution to the corresponding quality ID.
+
+```dart
+CommonUtils.getDownloadQualityBySize(width, height);
+```
+
+#### 2. Stop Downloading Videos
+
+You can use the `stopDownload` method of `DownloadHelper` to stop downloading the corresponding video. The code example is as follows:
+
+```dart
+DownloadHelper.instance.stopDownload(mediaInfo);
+```
+
+The `mediaInfo` can be obtained by `DownloadHelper`'s `getMediaInfoByCurrent` method, or by using `TXVodDownloadController`'s `getDownloadList` to obtain download information.
+
+#### 3. Delete Downloaded Videos
+
+You can use the `deleteDownload` method of `DownloadHelper` to delete the corresponding video.
+
+```dart
+bool deleteResult = await DownloadHelper.instance.deleteDownload(downloadModel.mediaInfo);
+```
+
+`deleteDownload` will return the deletion result to determine whether the deletion is successful.
+
+#### 4. Download Status
+
+`DownloadHelper` provides the basic `isDownloaded` method to determine whether the video has been downloaded. You can also register a listener to determine the download status in real time.
+
+`DownloadHelper` distributes download events, and you can register events as shown in the following code:
+
+```dart
+// Register download event listener
+DownloadHelper.instance.addDownloadListener(FTXDownloadListener((event, info) {
+      // Download status changes
+    }, (errorCode, errorMsg, info) {
+      // Download error callback
+    }));
+// Remove download event listener
+DownloadHelper.instance.removeDownloadListener(listener);
+```
+
+In addition, you can also use the `TXVodDownloadController.instance.getDownloadInfo(mediaInfo)` method or the `TXVodDownloadController.instance.getDownloadList()` method to directly query the downloadState in the `mediaInfo` to determine the download status.
+
+#### 5. Playing Downloaded Videos
+
+The video information obtained by `TXVodDownloadController.instance.getDownloadInfo(mediaInfo)` and `TXVodDownloadController.instance.getDownloadList()` has a `playPath` field, which can be played directly using `TXVodPlayerController`.
+
+```dart
+controller.startVodPlay(mediaInfo.playPath);
+```
+
+### 4. Using Full Screen Mode
+
+#### 1. Configuration for Switching between Portrait and Landscape Modes
+
+To switch between portrait and landscape modes in the player component, iOS needs to be opened using Xcode, and the project configuration needs to be opened. Under the Deployment tab on the General page, check `Landscape left` and `Landscape right`. Make sure that iOS devices support landscape mode.
+
+If you want other pages of your app to remain in portrait mode and not be affected by automatic rotation between portrait and landscape modes, you need to configure portrait mode at the entry point of your own project. The code is as follows:
+
+```dart
+SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+```
+
+#### 2. Automatically Switch to Full Screen Mode Based on Sensor Configuration
+
+On the Android side, you need to call the following method to start monitoring the sensor:
+
+```dart
+SuperPlayerPlugin.startVideoOrientationService();
+```
+
+After calling this method, the Android sensor will be monitored, and rotation events will be sent to the Flutter side through `SuperPlayerPlugin.instance.onEventBroadcast`. The player component will automatically rotate the player based on this event. An example of how to use the listener is as follows:
+
+```dart
+SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
+    int eventCode = event["event"];
+    if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED ) {
+      int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
+      // do orientation
+    }
+  });
+```
+
+### 5. External Subtitles
+
+You can add external subtitles through `SuperPlayerModel`'s `subtitleSources`.
+The code example is as follows:
+
+```dart
+model.subtitleSources.add(FSubtitleSourceModel()
+  ..name = "ex-cn-srt"
+  ..url = "https://mediacloud-76607.gzc.vod.tencent-cloud.com/DemoResource/TED-CN.srt"
+  ..mimeType = FSubtitleSourceModel.VOD_PLAY_MIMETYPE_TEXT_SRT);
+```
+
+Currently, VTT and SRT formats are supported.
+
 
 
 

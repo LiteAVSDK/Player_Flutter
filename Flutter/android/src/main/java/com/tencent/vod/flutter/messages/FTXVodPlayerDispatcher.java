@@ -72,6 +72,16 @@ public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi
         }
     }
 
+    @NonNull
+    @Override
+    public IntMsg startPlayDrm(@NonNull FtxMessages.TXPlayerDrmMsg params) {
+        TXFlutterVodPlayerApi api = getPlayer(params.getPlayerId());
+        if (null != api) {
+            return api.startPlayDrm(params);
+        }
+        return null;
+    }
+
     @Override
     public void setAutoPlay(@NonNull BoolPlayerMsg isAutoPlay) {
         TXFlutterVodPlayerApi api = getPlayer(isAutoPlay.getPlayerId());
@@ -137,6 +147,14 @@ public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi
         TXFlutterVodPlayerApi api = getPlayer(progress.getPlayerId());
         if (null != api) {
             api.seek(progress);
+        }
+    }
+
+    @Override
+    public void seekToPdtTime(@NonNull IntPlayerMsg pdtTimeMs) {
+        TXFlutterVodPlayerApi api = getPlayer(pdtTimeMs.getPlayerId());
+        if (null != api) {
+            api.seekToPdtTime(pdtTimeMs);
         }
     }
 
@@ -332,5 +350,57 @@ public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi
             return api.getDuration(playerMsg);
         }
         return null;
+    }
+
+    @Override
+    public void addSubtitleSource(@NonNull FtxMessages.SubTitlePlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            api.addSubtitleSource(playerMsg);
+        }
+    }
+
+    @NonNull
+    @Override
+    public ListMsg getSubtitleTrackInfo(@NonNull PlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.getSubtitleTrackInfo(playerMsg);
+        }
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public ListMsg getAudioTrackInfo(@NonNull PlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.getAudioTrackInfo(playerMsg);
+        }
+        return null;
+    }
+
+    @Override
+    public void selectTrack(@NonNull IntPlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            api.selectTrack(playerMsg);
+        }
+    }
+
+    @Override
+    public void deselectTrack(@NonNull IntPlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            api.deselectTrack(playerMsg);
+        }
+    }
+
+    @Override
+    public void setSubtitleStyle(@NonNull FtxMessages.SubTitleRenderModelPlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            api.setSubtitleStyle(playerMsg);
+        }
     }
 }

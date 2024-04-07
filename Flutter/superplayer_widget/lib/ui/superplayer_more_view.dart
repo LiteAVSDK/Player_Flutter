@@ -125,7 +125,7 @@ class _SuperPlayerMoreViewState extends State<SuperPlayerMoreView> {
       child: Row(
         children: [
           Text(
-            FSPLocal.current.txSpwMultiPlay,
+            FSPLocal.current.txSpwHardwareAccel,
             textAlign: TextAlign.center,
             style: ThemeResource.getCommonLabelTextStyle(),
           ),
