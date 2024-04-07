@@ -98,6 +98,42 @@ class TXPlayInfoParamsPlayerMsg {
   }
 }
 
+class TXPlayerDrmMsg {
+  TXPlayerDrmMsg({
+    required this.licenseUrl,
+    required this.playUrl,
+    this.playerId,
+    this.deviceCertificateUrl,
+  });
+
+  String licenseUrl;
+
+  String playUrl;
+
+  int? playerId;
+
+  String? deviceCertificateUrl;
+
+  Object encode() {
+    return <Object?>[
+      licenseUrl,
+      playUrl,
+      playerId,
+      deviceCertificateUrl,
+    ];
+  }
+
+  static TXPlayerDrmMsg decode(Object result) {
+    result as List<Object?>;
+    return TXPlayerDrmMsg(
+      licenseUrl: result[0]! as String,
+      playUrl: result[1]! as String,
+      playerId: result[2] as int?,
+      deviceCertificateUrl: result[3] as String?,
+    );
+  }
+}
+
 class PipParamsPlayerMsg {
   PipParamsPlayerMsg({
     this.playerId,
@@ -327,6 +363,7 @@ class FTXVodPlayConfigPlayerMsg {
     this.extInfoMap,
     this.enableRenderProcess,
     this.preferredResolution,
+    this.mediaType,
   });
 
   int? playerId;
@@ -369,6 +406,10 @@ class FTXVodPlayConfigPlayerMsg {
 
   int? preferredResolution;
 
+  /// Media asset type, default auto type, refer to value see[TXVodPlayEvent]
+  /// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
+  int? mediaType;
+
   Object encode() {
     return <Object?>[
       playerId,
@@ -391,6 +432,7 @@ class FTXVodPlayConfigPlayerMsg {
       extInfoMap,
       enableRenderProcess,
       preferredResolution,
+      mediaType,
     ];
   }
 
@@ -417,6 +459,7 @@ class FTXVodPlayConfigPlayerMsg {
       extInfoMap: (result[17] as Map<Object?, Object?>?)?.cast<String?, Object?>(),
       enableRenderProcess: result[18] as bool?,
       preferredResolution: result[19] as int?,
+      mediaType: result[20] as int?,
     );
   }
 }
@@ -858,6 +901,128 @@ class MapMsg {
     result as List<Object?>;
     return MapMsg(
       map: (result[0] as Map<Object?, Object?>?)?.cast<String?, String?>(),
+    );
+  }
+}
+
+class SubTitlePlayerMsg {
+  SubTitlePlayerMsg({
+    required this.url,
+    required this.name,
+    this.mimeType,
+    this.playerId,
+  });
+
+  String url;
+
+  String name;
+
+  String? mimeType;
+
+  int? playerId;
+
+  Object encode() {
+    return <Object?>[
+      url,
+      name,
+      mimeType,
+      playerId,
+    ];
+  }
+
+  static SubTitlePlayerMsg decode(Object result) {
+    result as List<Object?>;
+    return SubTitlePlayerMsg(
+      url: result[0]! as String,
+      name: result[1]! as String,
+      mimeType: result[2] as String?,
+      playerId: result[3] as int?,
+    );
+  }
+}
+
+class SubTitleRenderModelPlayerMsg {
+  SubTitleRenderModelPlayerMsg({
+    this.canvasWidth,
+    this.canvasHeight,
+    this.familyName,
+    this.fontSize,
+    this.fontScale,
+    this.fontColor,
+    this.isBondFontStyle,
+    this.outlineWidth,
+    this.outlineColor,
+    this.lineSpace,
+    this.startMargin,
+    this.endMargin,
+    this.verticalMargin,
+    this.playerId,
+  });
+
+  int? canvasWidth;
+
+  int? canvasHeight;
+
+  String? familyName;
+
+  double? fontSize;
+
+  double? fontScale;
+
+  int? fontColor;
+
+  bool? isBondFontStyle;
+
+  double? outlineWidth;
+
+  int? outlineColor;
+
+  double? lineSpace;
+
+  double? startMargin;
+
+  double? endMargin;
+
+  double? verticalMargin;
+
+  int? playerId;
+
+  Object encode() {
+    return <Object?>[
+      canvasWidth,
+      canvasHeight,
+      familyName,
+      fontSize,
+      fontScale,
+      fontColor,
+      isBondFontStyle,
+      outlineWidth,
+      outlineColor,
+      lineSpace,
+      startMargin,
+      endMargin,
+      verticalMargin,
+      playerId,
+    ];
+  }
+
+  static SubTitleRenderModelPlayerMsg decode(Object result) {
+    result as List<Object?>;
+    return SubTitleRenderModelPlayerMsg(
+      canvasWidth: result[0] as int?,
+      canvasHeight: result[1] as int?,
+      familyName: result[2] as String?,
+      fontSize: result[3] as double?,
+      fontScale: result[4] as double?,
+      fontColor: result[5] as int?,
+      isBondFontStyle: result[6] as bool?,
+      outlineWidth: result[7] as double?,
+      outlineColor: result[8] as int?,
+      lineSpace: result[9] as double?,
+      startMargin: result[10] as double?,
+      endMargin: result[11] as double?,
+      verticalMargin: result[12] as double?,
+      playerId: result[13] as int?,
     );
   }
 }
@@ -1591,11 +1756,20 @@ class _TXFlutterVodPlayerApiCodec extends StandardMessageCodec {
     } else if (value is StringPlayerMsg) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    } else if (value is TXPlayInfoParamsPlayerMsg) {
+    } else if (value is SubTitlePlayerMsg) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    } else if (value is UInt8ListMsg) {
+    } else if (value is SubTitleRenderModelPlayerMsg) {
       buffer.putUint8(141);
+      writeValue(buffer, value.encode());
+    } else if (value is TXPlayInfoParamsPlayerMsg) {
+      buffer.putUint8(142);
+      writeValue(buffer, value.encode());
+    } else if (value is TXPlayerDrmMsg) {
+      buffer.putUint8(143);
+      writeValue(buffer, value.encode());
+    } else if (value is UInt8ListMsg) {
+      buffer.putUint8(144);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -1630,8 +1804,14 @@ class _TXFlutterVodPlayerApiCodec extends StandardMessageCodec {
       case 139: 
         return StringPlayerMsg.decode(readValue(buffer)!);
       case 140: 
-        return TXPlayInfoParamsPlayerMsg.decode(readValue(buffer)!);
+        return SubTitlePlayerMsg.decode(readValue(buffer)!);
       case 141: 
+        return SubTitleRenderModelPlayerMsg.decode(readValue(buffer)!);
+      case 142: 
+        return TXPlayInfoParamsPlayerMsg.decode(readValue(buffer)!);
+      case 143: 
+        return TXPlayerDrmMsg.decode(readValue(buffer)!);
+      case 144: 
         return UInt8ListMsg.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -1755,6 +1935,36 @@ class TXFlutterVodPlayerApi {
       );
     } else {
       return;
+    }
+  }
+
+  /// 播放 DRM 加密视频
+  ///
+  /// Playing DRM-encrypted video.
+  Future<IntMsg> startPlayDrm(TXPlayerDrmMsg arg_params) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.startPlayDrm', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_params]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as IntMsg?)!;
     }
   }
 
@@ -1954,6 +2164,35 @@ class TXFlutterVodPlayerApi {
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_progress]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
+  /// 单位毫秒(ms)
+  /// 播放器高级版 11.6 版本开始支持
+  ///
+  /// Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
+  /// Unit millisecond (ms)
+  /// Player Premium version 11.6 starts to support
+  Future<void> seekToPdtTime(IntPlayerMsg arg_pdtTimeMs) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.seekToPdtTime', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_pdtTimeMs]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -2565,6 +2804,148 @@ class TXFlutterVodPlayerApi {
       );
     } else {
       return (replyList[0] as DoubleMsg?)!;
+    }
+  }
+
+  Future<void> addSubtitleSource(SubTitlePlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.addSubtitleSource', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<ListMsg> getSubtitleTrackInfo(PlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.getSubtitleTrackInfo', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as ListMsg?)!;
+    }
+  }
+
+  Future<ListMsg> getAudioTrackInfo(PlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.getAudioTrackInfo', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as ListMsg?)!;
+    }
+  }
+
+  Future<void> selectTrack(IntPlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.selectTrack', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> deselectTrack(IntPlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.deselectTrack', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> setSubtitleStyle(SubTitleRenderModelPlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.setSubtitleStyle', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

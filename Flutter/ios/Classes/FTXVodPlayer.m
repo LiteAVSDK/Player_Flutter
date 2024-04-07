@@ -3,7 +3,7 @@
 #import "FTXVodPlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
 #import "FTXTransformation.h"
-#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
+#import "FTXLiteAVSDKHeader.h"
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>
 #import <Flutter/Flutter.h>
@@ -160,7 +160,24 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         if (_txVodPlayer != nil) {
             [_txVodPlayer setVideoProcessDelegate:self];
         }
+        NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
+        [dic setObject:@(0xFFFFFFFF) forKey:@"fontColor"];
+        [dic setObject:@(0) forKey:@"bondFont"];
+        [dic setObject:@(1) forKey:@"outlineWidth"];
+        [dic setObject:@(0xFF000000) forKey:@"outlineColor"];
+        [self setSubtitleStyle:dic];
     }
+}
+
+-(void)setSubtitleStyle:(NSDictionary *)dic{
+    TXPlayerSubtitleRenderModel *model = [[TXPlayerSubtitleRenderModel alloc] init];
+    model.canvasWidth = 1920;  // 字幕渲染画布的宽
+    model.canvasHeight = 1080;  // 字幕渲染画布的高
+    model.isBondFontStyle = [dic[@"bondFont"] boolValue];  // 设置字幕字体是否为粗体
+    model.fontColor = [(NSNumber *)dic[@"fontColor"] unsignedIntValue]; // 设置字幕字体颜色，默认白色
+    model.outlineWidth = [(NSNumber *)dic[@"outlineWidth"] floatValue]; //描边宽度
+    model.outlineColor = [(NSNumber *)dic[@"outlineColor"] unsignedIntValue]; //描边颜色
+    [_txVodPlayer setSubtitleStyle:model];
 }
 
 #pragma mark -
@@ -256,6 +273,13 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 {
     if (_txVodPlayer != nil) {
         [_txVodPlayer seek:progress];
+    }
+}
+
+- (void)seekToPdtTimePdtTimeMs:(long long)pdtTimeMs
+{
+    if (_txVodPlayer != nil) {
+        [_txVodPlayer seekToPdtTime:pdtTimeMs];
     }
 }
 
@@ -454,6 +478,23 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     [_netStatusSink success:param];
 }
 
+/**
+ * 字幕数据回调
+ *
+ * @param player  当前播放器对象
+ * @param subtitleData  字幕数据，详细见 TXVodDef.h 文件
+ */
+- (void)onPlayer:(TXVodPlayer *)player subtitleData:(TXVodSubtitleData *)subtitleData
+{
+    NSMutableDictionary *mutableDic = [[NSMutableDictionary alloc] init];
+    mutableDic[EXTRA_SUBTITLE_DATA] = subtitleData.subtitleData;
+    mutableDic[EXTRA_SUBTITLE_START_POSITION_MS] = @(subtitleData.startPositionMs);
+    mutableDic[EXTRA_SUBTITLE_DURATION_MS] = @(subtitleData.durationMs);
+    mutableDic[EXTRA_SUBTITLE_TRACK_INDEX] = @(subtitleData.trackIndex);
+    [_eventSink success:[FTXVodPlayer getParamsWithEvent:EVENT_SUBTITLE_DATA withParams:mutableDic]];
+}
+
+
 #pragma mark - TXVideoCustomProcessDelegate
 
 /**
@@ -532,7 +573,17 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (void)setPlayerConfig:(FTXVodPlayConfigPlayerMsg *)args
 {
     if (_txVodPlayer != nil && args != nil) {
-        _txVodPlayer.config = [FTXTransformation transformMsgToVodConfig:args];
+        TXVodPlayConfig *vodConfig = [FTXTransformation transformMsgToVodConfig:args];
+        
+        NSMutableDictionary<NSString *, id> *newExtInfoMap = [NSMutableDictionary dictionary];
+        NSDictionary *extInfoMap = vodConfig.extInfoMap;
+        if(extInfoMap != nil && [extInfoMap count] >0){
+            [newExtInfoMap addEntriesFromDictionary:extInfoMap];
+        }
+        [newExtInfoMap setObject:@(0) forKey:@"450"];
+        [vodConfig setExtInfoMap:newExtInfoMap];
+        
+        _txVodPlayer.config = vodConfig;
     }
 }
 
@@ -906,6 +957,10 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     [self seek:progress.value.floatValue];
 }
 
+- (void)seekToPdtTimePdtTimeMs:(IntPlayerMsg *)pdtTimeMs error:(FlutterError * _Nullable __autoreleasing *)error {
+    [self seekToPdtTimePdtTimeMs:pdtTimeMs.value.longLongValue];
+}
+
 - (void)setAudioPlayOutVolumeVolume:(nonnull IntPlayerMsg *)volume error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [self setAudioPlayoutVolume:volume.value.intValue];
 }
@@ -960,5 +1015,89 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     BOOL r = [self stopPlay];
     return [TXCommonUtil boolMsgWith:r];
 }
+
+- (nullable IntMsg *)startPlayDrmParams:(nonnull TXPlayerDrmMsg *)params error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if (nil != _txVodPlayer) {
+        TXPlayerDrmBuilder *builder = [[TXPlayerDrmBuilder alloc] init];
+        builder.playUrl = params.playUrl;
+        builder.keyLicenseUrl = params.licenseUrl;
+        if(params.deviceCertificateUrl) {
+            builder.deviceCertificateUrl = builder.deviceCertificateUrl;
+        }
+        int result = [_txVodPlayer startPlayDrm:builder];
+        return [TXCommonUtil intMsgWith:@(result)];
+    }
+    return [TXCommonUtil intMsgWith:@(uninitialized)];
+}
+
+- (void)addSubtitleSourcePlayerMsg:(SubTitlePlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        TX_VOD_PLAYER_SUBTITLE_MIME_TYPE mimeType = TX_VOD_PLAYER_MIMETYPE_TEXT_SRT;
+        if([@"text/vtt" isEqualToString:playerMsg.mimeType]) {
+            mimeType = TX_VOD_PLAYER_MIMETYPE_TEXT_VTT;
+        }
+        [_txVodPlayer addSubtitleSource:playerMsg.url name:playerMsg.name mimeType:mimeType];
+    }
+}
+
+- (void)deselectTrackPlayerMsg:(nonnull IntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if (nil != _txVodPlayer && nil != playerMsg.value) {
+        [_txVodPlayer deselectTrack:[playerMsg.value intValue]];
+    }
+}
+
+- (nullable ListMsg *)getAudioTrackInfoPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if (nil != _txVodPlayer) {
+        NSArray *audioTrackInfoList = [_txVodPlayer getAudioTrackInfo];
+        NSMutableArray *subTitleTrackMapList = [[NSMutableArray alloc] init];
+        for (int i = 0; i < audioTrackInfoList.count; i++) {
+            TXTrackInfo *trackInfo = audioTrackInfoList[i];
+            NSMutableDictionary *map = [[NSMutableDictionary alloc] init];
+            [map setObject:@(trackInfo.trackType)forKey:@"trackType"];
+            [map setObject:@(trackInfo.trackIndex) forKey:@"trackIndex"];
+            [map setObject:trackInfo.name forKey:@"name"];
+            [map setObject:@(trackInfo.isSelected) forKey:@"isSelected"];
+            [map setObject:@(trackInfo.isExclusive) forKey:@"isExclusive"];
+            [map setObject:@(trackInfo.isInternal) forKey:@"isInternal"];
+            [subTitleTrackMapList addObject:map];
+        }
+        return [TXCommonUtil listMsgWith:subTitleTrackMapList];
+    }
+    return [TXCommonUtil listMsgWith:@[]];
+}
+
+- (nullable ListMsg *)getSubtitleTrackInfoPlayerMsg:(nonnull PlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if(nil != _txVodPlayer) {
+        NSArray *subTitleTrackInfoList = [_txVodPlayer getSubtitleTrackInfo];
+        NSMutableArray *subTitleTrackMapList = [[NSMutableArray alloc] init];
+        for (int i = 0; i < subTitleTrackInfoList.count; i++) {
+            TXTrackInfo *trackInfo = subTitleTrackInfoList[i];
+            NSMutableDictionary *map = [[NSMutableDictionary alloc] init];
+            [map setObject:@(trackInfo.trackType )forKey:@"trackType"];
+            [map setObject:@(trackInfo.trackIndex) forKey:@"trackIndex"];
+            [map setObject:trackInfo.name forKey:@"name"];
+            [map setObject:@(trackInfo.isSelected) forKey:@"isSelected"];
+            [map setObject:@(trackInfo.isExclusive) forKey:@"isExclusive"];
+            [map setObject:@(trackInfo.isInternal) forKey:@"isInternal"];
+            [subTitleTrackMapList addObject:map];
+        }
+        return [TXCommonUtil listMsgWith:subTitleTrackMapList];
+    }
+    return [TXCommonUtil listMsgWith:@[]];
+}
+
+- (void)selectTrackPlayerMsg:(nonnull IntPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if (nil != _txVodPlayer && nil != playerMsg.value) {
+        [_txVodPlayer selectTrack:[playerMsg.value intValue]];
+    }
+}
+
+
+- (void)setSubtitleStylePlayerMsg:(nonnull SubTitleRenderModelPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer setSubtitleStyle:[FTXTransformation transformToTitleRenderModel:playerMsg]];
+    }
+}
+
 
 @end

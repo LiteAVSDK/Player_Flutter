@@ -23,6 +23,12 @@ class SuperPlayerController {
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
   List<VideoQuality>? currentQualityList;
+  TXTrackInfo? currentAudioTrackInfo;
+  List<TXTrackInfo>? audioTrackInfoList;
+  TXTrackInfo? currentSubtitleTrackInfo;
+  List<TXTrackInfo>? subtitleTrackInfoList;
+  TXVodSubtitleData? currentSubtitleData;
+  TXSubtitleRenderModel? _currentSubtitleRenderModel;
   StreamController<TXPlayerHolder> playerStreamController = StreamController.broadcast();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
@@ -88,6 +94,11 @@ class SuperPlayerController {
     _vodPlayEventListener = _vodPlayerController.onPlayerEventBroadcast.listen((event) async {
       int eventCode = event['event'];
       switch (eventCode) {
+        case TXVodPlayEvent.VOD_PLAY_EVT_SELECT_TRACK_COMPLETE:
+          int? errorCode = event["EVT_KEY_SELECT_TRACK_ERROR_CODE"];
+          int? trackIndex = event["EVT_KEY_SELECT_TRACK_INDEX"];
+          LogUtils.d(TAG, "selectTrack,trackIndex:$trackIndex,errorCode:$errorCode");
+          break;
         case TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC:
           _currentPlayUrl = event[TXVodPlayEvent.EVT_PLAY_URL];
           PlayImageSpriteInfo playImageSpriteInfo = PlayImageSpriteInfo();
@@ -100,6 +111,7 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
           isPrepared = true;
+          addSubTitle();
           if (_isMultiBitrateStream) {
             List<dynamic>? bitrateListTemp = await _vodPlayerController.getSupportedBitrates();
             List<FTXBitrateItem> bitrateList = [];
@@ -134,6 +146,7 @@ class SuperPlayerController {
           }
           videoDuration = await _vodPlayerController.getDuration();
           currentDuration = await _vodPlayerController.getCurrentPlaybackTime();
+          _onSelectTrackInfoWhenPrepare();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
           if (playerState == SuperPlayerState.PAUSE) {
@@ -186,6 +199,19 @@ class SuperPlayerController {
           _configVideoSize(event);
           _observer?.onResolutionChanged();
           break;
+        case TXVodPlayEvent.EVENT_SUBTITLE_DATA:
+          String subtitleDataStr = event[TXVodPlayEvent.EXTRA_SUBTITLE_DATA] ?? "";
+          int? startPositionMs = event[TXVodPlayEvent.EXTRA_SUBTITLE_START_POSITION_MS];
+          int? durationMs = event[TXVodPlayEvent.EXTRA_SUBTITLE_DURATION_MS];
+          int? trackIndex = event[TXVodPlayEvent.EXTRA_SUBTITLE_TRACK_INDEX];
+          currentSubtitleData = new TXVodSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
+          _observer?.onSubtitleData(currentSubtitleData);
+          break;
+        case TXVodPlayEvent.VOD_PLAY_EVT_SELECT_TRACK_COMPLETE: {
+          int trackIndex = event[TXVodPlayEvent.EVT_KEY_SELECT_TRACK_INDEX];
+          int errorCode = event[TXVodPlayEvent.EVT_KEY_SELECT_TRACK_ERROR_CODE];
+          LogUtils.d(TAG, "SELECT_TRACK_COMPLETE trackIndex: ${trackIndex}, errorCode: ${errorCode}");
+        }
       }
     });
     _vodNetEventListener = _vodPlayerController.onPlayerNetStatusBroadcast.listen((event) {
@@ -240,6 +266,30 @@ class SuperPlayerController {
     _liveNetEventListener = _livePlayerController.onPlayerNetStatusBroadcast.listen((event) {
       _playerNetStatusStreamController.add(event);
     });
+  }
+
+  void _onSelectTrackInfoWhenPrepare() async {
+    // subtitle track info
+    List<TXTrackInfo> subtitleTrackList = await _vodPlayerController.getSubtitleTrackInfo();
+    TXTrackInfo? selectedSubtitleTrack;
+    for (TXTrackInfo track in subtitleTrackList) {
+      if (track.isSelected) {
+        selectedSubtitleTrack = track;
+        break;
+      }
+    }
+    _updateSubtitleTrackList(subtitleTrackList, selectedSubtitleTrack);
+
+    // audio track info
+    List<TXTrackInfo> audioTrackList = await _vodPlayerController.getAudioTrackInfo();
+    TXTrackInfo? selectedAudioTrack;
+    for (TXTrackInfo track in audioTrackList) {
+      if (track.isSelected) {
+        selectedAudioTrack = track;
+        break;
+      }
+    }
+    _updateAudioTrackList(audioTrackList, selectedAudioTrack);
   }
 
   void _configVideoSize(Map<dynamic, dynamic> event) {
@@ -311,6 +361,14 @@ class SuperPlayerController {
     }
   }
 
+  void addSubTitle() {
+    if (videoModel != null && videoModel!.subtitleSources.isNotEmpty) {
+      for (FSubtitleSourceModel sourceModel in videoModel!.subtitleSources) {
+        _vodPlayerController.addSubtitleSource(sourceModel.url, sourceModel.name, mimeType: sourceModel.mimeType);
+      }
+    }
+  }
+
   void getInfo(SuperPlayerModel videoModel) {
     PlayInfoProtocol temp = PlayInfoProtocol(videoModel);
     temp.sendRequest((protocol, resultModel) async {
@@ -344,6 +402,34 @@ class SuperPlayerController {
     }
     this.spriteInfo = spriteInfo;
     this.keyFrameInfo = keyFrameInfo;
+  }
+
+  /// select audio track
+  Future<void> selectAudioTrack(TXTrackInfo trackInfo) async {
+    if (playerType == SuperPlayerType.VOD) {
+      List<TXTrackInfo> trackInfoList = await _vodPlayerController.getAudioTrackInfo();
+      for (TXTrackInfo tempInfo in trackInfoList) {
+        if(tempInfo.trackIndex == trackInfo.trackIndex) {
+          _vodPlayerController.selectTrack(tempInfo.trackIndex);
+        } else {
+          _vodPlayerController.deselectTrack(tempInfo.trackIndex);
+        }
+      }
+    }
+  }
+
+  /// select subtitle track
+  Future<void> selectSubtitleTrack(TXTrackInfo trackInfo) async {
+    if (playerType == SuperPlayerType.VOD) {
+      List<TXTrackInfo> trackInfoList = await _vodPlayerController.getSubtitleTrackInfo();
+      for (TXTrackInfo tempInfo in trackInfoList) {
+        if(tempInfo.trackIndex == trackInfo.trackIndex) {
+          _vodPlayerController.selectTrack(tempInfo.trackIndex);
+        } else {
+          _vodPlayerController.deselectTrack(tempInfo.trackIndex);
+        }
+      }
+    }
   }
 
   Future<double> getPlayableDuration() async {
@@ -609,6 +695,37 @@ class SuperPlayerController {
     _observer?.onVideoQualityListChange(qualityList, defaultQuality);
   }
 
+  void _updateSubtitleTrackList(List<TXTrackInfo>? subtitleTrackData, TXTrackInfo? selectedTrackInfo) {
+    subtitleTrackInfoList = subtitleTrackData;
+    currentSubtitleTrackInfo = selectedTrackInfo;
+    _observer?.onSubtitleTrackListChange(subtitleTrackInfoList!, currentSubtitleTrackInfo);
+  }
+
+  void onSubtitleRenderModelChange(TXSubtitleRenderModel renderModel) {
+    _currentSubtitleRenderModel = renderModel;
+  }
+
+  void onSelectSubtitleTrack(TXTrackInfo selectedTrack) {
+    selectSubtitleTrack(selectedTrack);
+    _updateSubtitleTrackList(subtitleTrackInfoList, selectedTrack);
+  }
+
+  void _updateAudioTrackList(List<TXTrackInfo>? audioTrackData, TXTrackInfo? selectedTrackInfo) {
+    audioTrackInfoList = audioTrackData;
+    currentAudioTrackInfo = selectedTrackInfo;
+    _observer?.onAudioTrackListChange(audioTrackInfoList!, currentAudioTrackInfo);
+  }
+
+  void onSelectAudioTrack(TXTrackInfo selectedTrack) {
+    if (selectedTrack.trackIndex == -1) {
+      setMute(true);
+    } else{
+      setMute(false);
+      selectAudioTrack(selectedTrack);
+    }
+    _updateAudioTrackList(audioTrackInfoList, selectedTrack);
+  }
+
   void _addSimpleEvent(String event) {
     Map<String, String> eventMap = {};
     eventMap['event'] = event;
@@ -658,6 +775,11 @@ class SuperPlayerController {
     currentQuality = null;
     currentQualityList?.clear();
     _currentProtocol = null;
+    currentAudioTrackInfo = null;
+    audioTrackInfoList = null;
+    currentSubtitleTrackInfo = null;
+    subtitleTrackInfoList = null;
+    currentSubtitleData = null;
     // cancel all listener
     _vodPlayEventListener?.cancel();
     _vodNetEventListener?.cancel();
@@ -665,6 +787,7 @@ class SuperPlayerController {
     _liveNetEventListener?.cancel();
     await _vodPlayerController.stop();
     await _livePlayerController.stop();
+    await setMute(false);
 
     _updatePlayerState(SuperPlayerState.INIT);
   }

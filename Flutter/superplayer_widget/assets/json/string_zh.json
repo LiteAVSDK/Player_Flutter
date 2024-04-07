@@ -38,5 +38,10 @@
   "tx_spw_1080p" : "全高清1080p",
   "tx_spw_2k" : "2K",
   "tx_spw_4k" : "4k",
-  "tx_spw_od" : "原画"
+  "tx_spw_od" : "原画",
+  "tx_subtitle_title" : "字幕",
+  "tx_subtitle_close" : "关闭",
+  "tx_audio_track_title" : "音轨",
+  "tx_audio_track_item" : "音轨",
+  "tx_audio_track_close" : "关闭"
 }

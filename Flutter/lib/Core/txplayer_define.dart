@@ -22,6 +22,27 @@ class TXPlayerValue {
   }
 }
 
+/// DRM playback information
+/// DRM播放信息
+class TXPlayerDrmBuilder {
+  /// URL to play media
+  /// 播放媒体的url
+  String licenseUrl;
+  /// Decrypt key url
+  /// 解密key url
+  String playUrl;
+  /// Certificate provider url
+  /// 证书提供商url
+  String? deviceCertificateUrl;
+  TXPlayerDrmBuilder(this.licenseUrl, this.playUrl, {this.deviceCertificateUrl});
+
+  TXPlayerDrmMsg toMsg() {
+    TXPlayerDrmMsg msg = TXPlayerDrmMsg(licenseUrl: this.licenseUrl, playUrl: this.playUrl);
+    msg.deviceCertificateUrl = this.deviceCertificateUrl;
+    return msg;
+  }
+}
+
 ///
 /// Live stream type.
 ///
@@ -66,8 +87,8 @@ abstract class TXVodPlayEvent {
   // Video resolution changes (resolution is in the EVT_PARAM parameter).
   // 视频分辨率发生变化（分辨率在 EVT_PARAM 参数中）
   static const PLAY_EVT_CHANGE_RESOLUTION = 2009;
-  // If you receive this message during live streaming, it means that you have used TXVodPlayer incorrectly.
-  // 如果您在直播中收到此消息，说明错用成了 TXVodPlayer
+  // Successfully obtained on-demand file information.
+  // 获取点播文件信息成功
   static const PLAY_EVT_GET_PLAYINFO_SUCC = 2010;
   // Get custom SEI message embedded in video stream, message sending needs to use TXLivePusher.
   // 如果您在直播中收到此消息，说明错用成了 TXVodPlayer
@@ -149,6 +170,9 @@ abstract class TXVodPlayEvent {
   // Seek completed.
   // Seek 完成
   static const VOD_PLAY_EVT_SEEK_COMPLETE = 2019;
+  // Video SEI frame information, Player Premium version 11.6 starts to support
+  // 视频 SEI 帧信息, 播放器高级版 11.6 版本开始支持
+  static const VOD_PLAY_EVT_VIDEO_SEI = 2030;
 
   // UTC time
   // UTC时间
@@ -216,6 +240,40 @@ abstract class TXVodPlayEvent {
   // Encryption type.
   // 加密类型
   static const EVT_DRM_TYPE = "EVT_DRM_TYPE";
+  // Ghost watermark text (supported since version 11.5)
+  //  幽灵水印文本（11.5版本开始支持）
+  static const EVT_KEY_WATER_MARK_TEXT = "EVT_KEY_WATER_MARK_TEXT";
+  // SEI data type
+  static const EVT_KEY_SEI_TYPE = "EVT_KEY_SEI_TYPE";
+  // SEI data size
+  static const EVT_KEY_SEI_SIZE = "EVT_KEY_SEI_SIZE";
+  // SEI data
+  static const EVT_KEY_SEI_DATA = "EVT_KEY_SEI_DATA";
+  // Play PDT time, Player Premium version 11.6 starts to support
+  // 播放PDT时间, 播放器高级版 11.6 版本开始支持
+  static const EVT_PLAY_PDT_TIME_MS = "EVT_PLAY_PDT_TIME_MS";
+  /// External subtitle file in SRT format.
+  /// 外挂字幕SRT格式
+  static const VOD_PLAY_MIMETYPE_TEXT_SRT = "text/x-subrip";
+  /// External subtitle file in VTT format.
+  /// 外挂字幕VTT格式
+  static const VOD_PLAY_MIMETYPE_TEXT_VTT = "text/vtt";
+  // AUTO type (default value, adaptive bit rate playback is not supported yet)
+  // AUTO类型（默认值，自适应码率播放暂不支持）
+  static const MEDIA_TYPE_AUTO = 0;
+  // HLS on-demand media assets
+  // HLS点播媒资
+  static const MEDIA_TYPE_HLS_VOD = 1;
+  // HLS Live Media Assets
+  // HLS直播媒资
+  static const MEDIA_TYPE_HLS_LIVE = 2;
+  // MP4 and other general file on-demand media assets
+  // MP4等通用文件点播媒资
+  static const MEDIA_TYPE_FILE_VOD = 3;
+  // DASH on-demand media assets
+  // DASH点播媒资
+  static const MEDIA_TYPE_DASH_VOD = 4;
+
 
   /// superplayer plugin event
   // Volume change
@@ -340,6 +398,24 @@ abstract class TXVodPlayEvent {
 
   static const EVENT_RESULT = "result";
   static const EVENT_REASON = "reason";
+  /// Select track complete
+  /// 切换轨道完成
+  static const VOD_PLAY_EVT_SELECT_TRACK_COMPLETE  = 2020;
+  /// Switched media track index
+  /// 切换的媒体轨道index
+  static const EVT_KEY_SELECT_TRACK_INDEX    = "EVT_KEY_SELECT_TRACK_INDEX";
+  /// Return error code for switching media tracks
+  /// 切换媒体轨道的返回错误码
+  static const EVT_KEY_SELECT_TRACK_ERROR_CODE   = "EVT_KEY_SELECT_TRACK_ERROR_CODE";
+  // subtitle data event
+  // 回调 SubtitleData 事件id
+  static const EVENT_SUBTITLE_DATA = 601;
+  // subtitle data extra key
+  // 回调 SubtitleData 事件对应的key
+  static const EXTRA_SUBTITLE_DATA = "subtitleData";
+  static const EXTRA_SUBTITLE_START_POSITION_MS = "startPositionMs";
+  static const EXTRA_SUBTITLE_DURATION_MS = "durationMs";
+  static const EXTRA_SUBTITLE_TRACK_INDEX = "trackIndex";
 }
 
 abstract class TXVodNetEvent {
@@ -670,6 +746,115 @@ class TXVodDownloadMediaInfo {
     msg.downloadSize = downloadSize;
     msg.speed = speed;
     msg.isResourceBroken = isResourceBroken;
+    return msg;
+  }
+}
+
+/// Track details
+/// 轨道的详细信息
+class TXTrackInfo {
+  /// Unknown
+  /// 未知
+  static const TX_VOD_MEDIA_TRACK_TYPE_UNKNOW = 0;
+  /// Video track
+  /// 视频轨
+  static const TX_VOD_MEDIA_TRACK_TYPE_VIDEO = 1;
+  /// Audio track
+  /// 音频轨
+  static const TX_VOD_MEDIA_TRACK_TYPE_AUDIO = 2;
+  /// Subtitle track
+  /// 字幕轨
+  static const TX_VOD_MEDIA_TRACK_TYPE_SUBTITLE = 3;
+
+  /// track type
+  /// track类型
+  int trackType;
+  /// Track index
+  /// 轨道index
+  int trackIndex;
+  /// Track name
+  /// 轨道名字
+  String name;
+  /// Whether the current track is selected
+  /// 当前轨道是否被选中
+  bool isSelected = false;
+  /// If it is true, only one track of this type can be selected at each time. If it is false, multiple tracks of this type can be selected at the same time.
+  /// 如果是true，该类型轨道每个时刻只有一条能被选中，如果是false，该类型轨道可以同时选中多条
+  bool isExclusive = true;
+  /// Whether the current track is the internal original track
+  ///  当前的轨道是否是内部原始轨道
+  bool isInternal = true;
+  TXTrackInfo(this.name, this.trackIndex, this.trackType);
+}
+
+class TXVodSubtitleData{
+  /// 字幕内容
+  /// subtitle content
+  String? subtitleData;
+  /// 字幕持续时间, 单位毫秒
+  /// Subtitle duration, in milliseconds
+  int? startPositionMs;
+  /// 字幕开始时间，也就是视频的position位置，单位毫秒
+  /// Subtitle start time, which is the position of the video, in milliseconds
+  int? durationMs;
+  /// 当前字幕轨道的trackIndex
+  /// Track Index of the current subtitle track
+  int? trackIndex;
+  
+  TXVodSubtitleData(this.subtitleData,this.startPositionMs,this.durationMs,this.trackIndex);
+}
+
+class TXSubtitleRenderModel {
+  /// fontSize
+  /// 字体大小
+  double? fontSize;
+  /// Font color, ARGB format If not set, the default is white opaque (0xFFFFFFFF)
+  /// 字体颜色，ARGB格式
+  /// 如果不设置，默认为白色不透明(0xFFFFFFFF)
+  int? fontColor;
+  /// Whether it is bold, the default is normal font.
+  /// 是否是粗体，默认时正常字体
+  bool? isBondFontStyle;
+ /// Stroke width. If not set, the default stroke width will be used internally.
+  /// 描边宽度
+  double? outlineWidth;
+  /// Stroke color, ARGB format. If not set, the default is black opaque (0xFF000000).
+  /// 描边颜色，ARGB格式
+  /// 如果不设置，默认为黑色不透明(0xFF000000)
+  int? outlineColor;
+
+  /// canvasWidth not support on Flutter platform
+  int? canvasWidth;
+  /// canvasHeight not support on Flutter platform
+  int? canvasHeight;
+  /// familyName not support on Flutter platform
+  String? familyName;
+  /// fontScale not support on Flutter platform
+  double? fontScale;
+  /// lineSpace not support on Flutter platform
+  double? lineSpace;
+  /// startMargin not support on Flutter platform
+  double? startMargin;
+  /// endMargin not support on Flutter platform
+  double? endMargin;
+  /// verticalMargin not support on Flutter platform
+  double? verticalMargin;
+
+  SubTitleRenderModelPlayerMsg toMsg() {
+    SubTitleRenderModelPlayerMsg msg = SubTitleRenderModelPlayerMsg();
+    msg.canvasWidth = canvasWidth;
+    msg.canvasHeight = canvasHeight;
+    msg.familyName = familyName;
+    msg.fontSize = fontSize;
+    msg.fontScale = fontScale;
+    msg.fontColor = fontColor;
+    msg.isBondFontStyle = isBondFontStyle;
+    msg.outlineWidth = outlineWidth;
+    msg.outlineColor = outlineColor;
+    msg.lineSpace = lineSpace;
+    msg.startMargin = startMargin;
+    msg.endMargin = endMargin;
+    msg.verticalMargin = verticalMargin;
     return msg;
   }
 }

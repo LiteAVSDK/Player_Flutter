@@ -219,7 +219,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createVodPlayer() {
-        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
+        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mActivityPluginBinding, mTxPipManager);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();

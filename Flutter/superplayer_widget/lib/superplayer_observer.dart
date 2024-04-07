@@ -22,6 +22,10 @@ class _SuperPlayerObserver {
   Function onSysBackPress;
   Function onPreparePlayVideo;
   Function onDispose;
+  Function(List<TXTrackInfo>? audioTrackList, TXTrackInfo? selectedTrack) onAudioTrackListChange;
+  Function(List<TXTrackInfo>? subtitleTrackList, TXTrackInfo? selectedTrack) onSubtitleTrackListChange;
+  Function(TXVodSubtitleData?) onSubtitleData;
+ 
 
   _SuperPlayerObserver(
       this.onPreparePlayVideo,
@@ -44,5 +48,8 @@ class _SuperPlayerObserver {
       this.onVideoImageSpriteAndKeyFrameChanged,
       this.onResolutionChanged,
       this.onSysBackPress,
+      this.onAudioTrackListChange,
+      this.onSubtitleTrackListChange,
+      this.onSubtitleData,
       this.onDispose,);
 }

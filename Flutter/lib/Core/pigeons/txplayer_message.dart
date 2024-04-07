@@ -34,6 +34,14 @@ class TXPlayInfoParamsPlayerMsg {
   String? url;
 }
 
+class TXPlayerDrmMsg {
+  String licenseUrl;
+  String playUrl;
+  int? playerId;
+  String? deviceCertificateUrl;
+  TXPlayerDrmMsg(this.playUrl, this.licenseUrl);
+}
+
 class PipParamsPlayerMsg {
   int? playerId;
   String? backIconForAndroid;
@@ -136,6 +144,10 @@ class FTXVodPlayConfigPlayerMsg {
 
   // 优先播放的分辨率，preferredResolution = width * height
   int? preferredResolution;
+
+  /// Media asset type, default auto type, refer to value see[TXVodPlayEvent]
+  /// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
+  int? mediaType;
 }
 
 class FTXLivePlayConfigPlayerMsg {
@@ -281,6 +293,31 @@ class MapMsg {
   Map<String?, String?>? map;
 }
 
+class SubTitlePlayerMsg {
+  String url;
+  String name;
+  String? mimeType;
+  int? playerId;
+  SubTitlePlayerMsg(this.url, this.name, {this.playerId, this.mimeType});
+}
+
+class SubTitleRenderModelPlayerMsg {
+  int? canvasWidth;
+  int? canvasHeight;
+  String? familyName;
+  double? fontSize;
+  double? fontScale;
+  int? fontColor;
+  bool? isBondFontStyle;
+  double? outlineWidth;
+  int? outlineColor;
+  double? lineSpace;
+  double? startMargin;
+  double? endMargin;
+  double? verticalMargin;
+  int? playerId;
+}
+
 @HostApi()
 abstract class TXFlutterSuperPlayerPluginAPI {
   StringMsg getPlatformVersion();
@@ -424,6 +461,11 @@ abstract class TXFlutterVodPlayerApi {
   /// return 是否播放成功  if play successful
   void startVodPlayWithParams(TXPlayInfoParamsPlayerMsg params);
 
+  /// 播放 DRM 加密视频
+  ///
+  /// Playing DRM-encrypted video.
+  IntMsg startPlayDrm(TXPlayerDrmMsg params);
+
   /// 设置是否自动播放
   ///
   /// set autoplay
@@ -465,6 +507,16 @@ abstract class TXFlutterVodPlayerApi {
   /// Set the video playback progress to a specific time and start playing.
   /// progress 要定位的视频时间，单位 秒 The video playback time to be located, in seconds
   void seek(DoublePlayerMsg progress);
+
+  /// 跳转到视频流指定PDT时间点, 可实现视频快进,快退,进度条跳转等功能
+  /// 单位毫秒(ms)
+  /// 播放器高级版 11.6 版本开始支持
+  ///
+  /// Jump to the specified PDT time point of the video stream, which can realize video fast forward, fast rewind, progress bar jump and other functions.
+  /// Unit millisecond (ms)
+  /// Player Premium version 11.6 starts to support
+  void seekToPdtTime(IntPlayerMsg pdtTimeMs);
+
 
   /// 设置播放速率，默认速率 1
   ///
@@ -578,6 +630,18 @@ abstract class TXFlutterVodPlayerApi {
   ///
   /// To get the total duration
   DoubleMsg getDuration(PlayerMsg playerMsg);
+
+  void addSubtitleSource(SubTitlePlayerMsg playerMsg);
+
+  ListMsg getSubtitleTrackInfo(PlayerMsg playerMsg);
+
+  ListMsg getAudioTrackInfo(PlayerMsg playerMsg);
+
+  void selectTrack(IntPlayerMsg playerMsg);
+
+  void deselectTrack(IntPlayerMsg playerMsg);
+
+  void setSubtitleStyle(SubTitleRenderModelPlayerMsg playerMsg);
 }
 
 @HostApi()

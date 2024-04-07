@@ -4,9 +4,11 @@ package com.tencent.vod.flutter;
 
 import android.text.TextUtils;
 
+import com.tencent.liteav.txcplayer.model.TXSubtitleRenderModel;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXVodPlayConfig;
 
+import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.FTXVodPlayConfigPlayerMsg;
 import java.util.HashMap;
@@ -73,7 +75,7 @@ public class FTXTransformation {
         if (null != configPlayerMsg.getPreferredResolution()) {
             playConfig.setPreferredResolution(configPlayerMsg.getPreferredResolution());
         }
-
+        playConfig.setMediaType(configPlayerMsg.getMediaType().intValue());
         return playConfig;
     }
 
@@ -262,6 +264,48 @@ public class FTXTransformation {
             livePlayConfig.setFlvSessionKey(flvSessionKey);
         }
         return livePlayConfig;
+    }
+
+    public static TXSubtitleRenderModel transToTitleRenderModel(FtxMessages.SubTitleRenderModelPlayerMsg msg) {
+        TXSubtitleRenderModel renderModel = new TXSubtitleRenderModel();
+        if (null != msg.getCanvasWidth()) {
+            renderModel.canvasWidth = msg.getCanvasWidth().intValue();
+        }
+        if (null != msg.getCanvasHeight()) {
+            renderModel.canvasHeight = msg.getCanvasHeight().intValue();
+        }
+        renderModel.familyName = msg.getFamilyName();
+        if (null != msg.getFontSize()) {
+            renderModel.fontSize = msg.getFontSize().floatValue();
+        }
+        if (null != msg.getFontScale()) {
+            renderModel.fontScale = msg.getFontScale().floatValue();
+        }
+        if (null != msg.getFontColor()) {
+            renderModel.fontColor = msg.getFontColor().intValue();
+        }
+        if (null != msg.getIsBondFontStyle()) {
+            renderModel.isBondFontStyle = msg.getIsBondFontStyle();
+        }
+        if (null != msg.getOutlineWidth()) {
+            renderModel.outlineWidth = msg.getOutlineWidth().floatValue();
+        }
+        if (null != msg.getOutlineColor()) {
+            renderModel.outlineColor = msg.getOutlineColor().intValue();
+        }
+        if (null != msg.getLineSpace()) {
+            renderModel.lineSpace = msg.getLineSpace().floatValue();
+        }
+        if (null != msg.getStartMargin()) {
+            renderModel.startMargin = msg.getStartMargin().floatValue();
+        }
+        if (null != msg.getEndMargin()) {
+            renderModel.endMargin = msg.getEndMargin().floatValue();
+        }
+        if (null != msg.getVerticalMargin()) {
+            renderModel.verticalMargin = msg.getVerticalMargin().floatValue();
+        }
+        return renderModel;
     }
 
     private static boolean intIsNotEmpty(Integer value) {

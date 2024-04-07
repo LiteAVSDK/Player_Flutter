@@ -3,7 +3,7 @@
 #import "FTXLivePlayer.h"
 #import "FTXPlayerEventSinkQueue.h"
 #import "FTXTransformation.h"
-#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
+#import "FTXLiteAVSDKHeader.h"
 #import <Flutter/Flutter.h>
 #import <stdatomic.h>
 #import <libkern/OSAtomic.h>

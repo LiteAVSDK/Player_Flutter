@@ -181,4 +181,13 @@ public class FTXEvent {
     public static final String EVENT_HOST_NAME = "hostName";
     public static final String EVENT_IPS = "ips";
 
+    // subtitle data event
+    // 回调 SubtitleData 事件id
+    public static final int EVENT_SUBTITLE_DATA = 601;
+    // subtitle data extra key
+    // 回调 SubtitleData 事件对应的key
+    public static final String EXTRA_SUBTITLE_DATA = "subtitleData";
+    public static final String EXTRA_SUBTITLE_START_POSITION_MS = "startPositionMs";
+    public static final String EXTRA_SUBTITLE_DURATION_MS = "durationMs";
+    public static final String EXTRA_SUBTITLE_TRACK_INDEX = "trackIndex";
 }
