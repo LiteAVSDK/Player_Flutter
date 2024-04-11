@@ -164,8 +164,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _fullScreenController.switchToOrientation(orientation);
       }
     });
-    _registerObserver();
-    _initPlayerState();
+    _updateState();
   }
 
   void _registerObserver() {
@@ -344,7 +343,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     // ensure that the playback status is correct.
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) => setState(() {
           _initPlayerState();
-          _resizeVideo();
+          _calculateSize(_playController.videoWidth, _playController.videoHeight);
         }));
   }
 
@@ -411,23 +410,26 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _aspectRatio = 16.0 / 9.0;
       }
     } else {
+      double videoRadio = _videoWidth / _videoHeight;
+      double viewRadio = size.width / size.height;
       if (_playController._playerUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
-        double playerHeight = isLandscape ? size.width : size.height;
-        // remain height
-        double videoRadio = _videoWidth / _videoHeight;
-        _radioHeight = playerHeight;
-        _radioWidth = playerHeight * videoRadio;
-
-        _aspectRatio = _radioWidth / _radioHeight;
+        if (videoRadio > viewRadio) {
+          _radioHeight = size.height;
+          _radioWidth = _radioHeight * videoRadio;
+        } else {
+          _radioWidth = size.width;
+          _radioHeight = _radioWidth / videoRadio;
+        }
       } else {
-        double playerWidth = isLandscape ? size.height : size.width;
-        // remain width
-        double videoRadio = _videoWidth / _videoHeight;
-        _radioWidth = playerWidth;
-        _radioHeight = playerWidth / videoRadio;
-
-        _aspectRatio = _radioWidth / _radioHeight;
+        if (videoRadio > viewRadio) {
+          _radioWidth = size.width;
+          _radioHeight = _radioWidth / videoRadio;
+        } else {
+          _radioHeight = size.height;
+          _radioWidth = _radioHeight * videoRadio;
+        }
       }
+      _aspectRatio = _radioWidth / _radioHeight;
     }
   }
 

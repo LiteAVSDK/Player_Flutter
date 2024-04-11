@@ -70,6 +70,12 @@ public class FTXEvent {
     // Player to be operated on PIP
     // pip需要操作的播放器
     public static final String EXTRA_NAME_PLAYER_ID = "vodPlayerId";
+    // pip player event id
+    // 画中画播放器事件的事件id
+    public static final String EXTRA_NAME_PIP_PLAYER_EVENT_ID = "pipPlayerEventId";
+    // pip player event params
+    // 画中画播放器事件的事件参数
+    public static final String EXTRA_NAME_PIP_PLAYER_EVENT_PARAMS = "pipPlayerEventParams";
     // Progress rewind.
     // 进度回退
     public static final int EXTRA_PIP_PLAY_BACK = 101;
@@ -88,10 +94,13 @@ public class FTXEvent {
     // PIP error, current interface has been destroyed.
     // pip 错误，当前界面已销毁
     public static final int ERROR_PIP_ACTIVITY_DESTROYED = -103;
-    // Event from PIP container, broadcast key value.
-    // 来自画中画容器的事件，广播键值
+    // Event from PIP container,eventBus key value
+    // 来自画中画容器的事件，eventBus键值
     public static final String EVENT_PIP_ACTION = "com.tencent.flutter.pipevent";
-    // Event from PIP container, event key value.
+    // Player event from PIP players,eventBus key value
+    // 来自画中画容器的事件，eventBus键值
+    public static final String EVENT_PIP_PLAYER_EVENT_ACTION = "com.tencent.flutter.pipplayerevent";
+    // Event from PIP container,eventBus key value
     // 来自画中画容器的事件，事件键值
     public static final String EVENT_PIP_MODE_NAME = "pipEventName";
     // Current PIP playback time.

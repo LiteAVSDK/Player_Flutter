@@ -38,6 +38,8 @@ class SuperPlayerViewEvent {
   static const onStartFullScreenPlay = "onStartFullScreenPlay"; // Enter full screen playback
   static const onStopFullScreenPlay = "onStopFullScreenPlay"; // Exit full screen playback
   static const onSuperPlayerDidStart = "onSuperPlayerDidStart"; // Playback start notification
+  static const onSuperPlayerProgress = "onSuperPlayerProgress"; // Playback start notification
+  static const onSuperPlayerGetInfo = "onSuperPlayerGetInfo"; // Playback start notification
   static const onSuperPlayerDidEnd = "onSuperPlayerDidEnd"; // Playback end notification
   static const onSuperPlayerError = "onSuperPlayerError"; // Playback error notification
   static const onSuperPlayerBackAction = "onSuperPlayerBackAction"; // Back event

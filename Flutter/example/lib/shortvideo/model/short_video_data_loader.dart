@@ -16,8 +16,6 @@ class ShortVideoDataLoader {
   ];
   List<SuperPlayerModel> _defaultData = [];
 
-  SuperVodDataLoader _loader = SuperVodDataLoader();
-
   getPageListDataOneByOneFunction(Function(List<SuperPlayerModel> model) callback) {
     _currentModels.clear();
     for (int i = 0; i < _fileIdArray.length; i++) {
@@ -36,9 +34,8 @@ class ShortVideoDataLoader {
   }
 
   Future<void> _getVodListData(SuperPlayerModel model, Function(List<SuperPlayerModel> models) callback) async {
-    await _loader.getVideoData(model, (resultModel) {
-      _currentModels.add(resultModel);
-    });
+    // mock net wait
+    _currentModels.add(model);
   }
 }
 
