@@ -2,12 +2,11 @@
 part of demo_short_video_player_lib;
 
 class ShortVideoPageWidget extends StatefulWidget {
-  String videoUrl;
-  String coverUrl;
+  SuperPlayerModel model;
   int position;
   VideoEventDispatcher eventDispatcher;
 
-  ShortVideoPageWidget({required this.position, required this.videoUrl, required this.coverUrl, required this.eventDispatcher});
+  ShortVideoPageWidget({required this.position, required this.model, required this.eventDispatcher});
 
   @override
   State<StatefulWidget> createState() {
@@ -125,7 +124,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
             decoration: BoxDecoration(
                 color: Colors.black,
                 image: DecorationImage(
-                  image: NetworkImage(widget.coverUrl),
+                  image: NetworkImage(widget.model.coverUrl),
                   fit: BoxFit.fill,
                 )),
             child: Scaffold(
@@ -169,7 +168,14 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
       _isVideoPlaying = true;
     });
     await _controller.setLoop(true);
-    _controller.startVodPlay(widget.videoUrl);
+    final SuperPlayerModel model = widget.model;
+    if (model.videoURL.isNotEmpty) {
+      _controller.startVodPlay(model.videoURL);
+    } else if(model.videoId != null) {
+      _controller.startVodPlayWithParams(TXPlayInfoParams(appId: model.appId, fileId: model.videoId!.fileId, psign: model.videoId!.psign));
+    } else {
+      LogUtils.e(TAG, "shortVideo model source is empty$model");
+    }
   }
 
   _hideCover() {
@@ -196,14 +202,22 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
 
   _setPlayerListener() {
     _playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
-      if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
+      final int eventCode = event["event"];
+      if (eventCode == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         if (!mounted) return;
         double currentProgress = event["EVT_PLAY_PROGRESS"].toDouble();
         double videoDuration = event["EVT_PLAY_DURATION"].toDouble();
         _progressSliderKey.currentState?.updateProgress(currentProgress / videoDuration, videoDuration);
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
+      } else if (eventCode == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         LogUtils.i(TAG, " [received] TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME");
         _hideCover();
+      } else if (eventCode == TXVodPlayEvent.PLAY_EVT_GET_PLAYINFO_SUCC) {
+        String coverUrl = event[TXVodPlayEvent.EVT_PLAY_COVER_URL];
+        if (coverUrl.isNotEmpty) {
+          setState(() {
+            widget.model.coverUrl = coverUrl;
+          });
+        }
       }
     });
   }

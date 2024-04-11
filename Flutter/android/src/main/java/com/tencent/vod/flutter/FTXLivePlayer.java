@@ -13,6 +13,7 @@ import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXVodConstants;
+import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
@@ -69,6 +70,11 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
             if (isPipPlaying) {
                 resumePlayer();
             }
+        }
+
+        @Override
+        public void onPipPlayerEvent(int event, Bundle bundle) {
+            onPlayEvent(event, bundle);
         }
     };
 

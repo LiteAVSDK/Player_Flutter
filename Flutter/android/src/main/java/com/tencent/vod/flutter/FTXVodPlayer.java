@@ -61,7 +61,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     private static final String TAG = "FTXVodPlayer";
 
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
-    private ActivityPluginBinding mActivityPluginBinding;
 
     private final EventChannel mEventChannel;
     private final EventChannel mNetChannel;
@@ -99,6 +98,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
                 playerResume();
             }
         }
+
+        @Override
+        public void onPipPlayerEvent(int event, Bundle bundle) {
+            onPlayEvent(mVodPlayer, event, bundle);
+        }
     };
 
     /**
@@ -106,8 +110,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
      *
      * 点播播放器
      */
-    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding,
-                        ActivityPluginBinding activityPluginBinding, FTXPIPManager pipManager) {
+    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
         super();
         mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;

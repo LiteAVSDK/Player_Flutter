@@ -35,8 +35,7 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
     for (int i = 0; i < superPlayerModelList.length; i++) {
       widgetList.add(ShortVideoPageWidget(
         position: i,
-        videoUrl: superPlayerModelList[i].videoURL,
-        coverUrl: superPlayerModelList[i].coverUrl,
+        model: superPlayerModelList[i],
         eventDispatcher: eventDispatcher,
       ));
     }

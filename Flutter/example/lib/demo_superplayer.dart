@@ -31,7 +31,6 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   List<SuperPlayerModel> videoModels = [];
   bool _isFullScreen = false;
   late SuperPlayerController _controller;
-  SuperVodDataLoader loader = SuperVodDataLoader();
   StreamSubscription? simpleEventSubscription;
   int tabSelectPos = 0;
   SuperPlayerModel? currentVideoModel;
@@ -254,10 +253,8 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                 if (pSign.isNotEmpty) {
                   model.videoId!.psign = pSign;
                 }
-                loader.getVideoData(model, (resultModel) {
-                  _addVideoToCurrentList(resultModel);
-                  playCurrentModel(resultModel, 0);
-                });
+                _addVideoToCurrentList(model);
+                playCurrentModel(model, 0);
               } else {
                 EasyLoading.showError(AppLocals.current.playerInputAddTip);
               }
@@ -330,6 +327,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "8602268011437356984";
     model.title = AppLocals.current.playerVodVideo;
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/00eb06a88602268011437356984/coverBySnapshot/coverBySnapshot_10_0.jpg";
     model.playAction = playAction;
     model.isEnableDownload = true;
     models.add(model);
@@ -338,6 +336,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "5285890781763144364";
+    model.coverUrl = "http://1252463788.vod2.myqcloud.com/95576ef5vodtransgzp1252463788/e1ab85305285890781763144364/1536584350_1812858038.100_0.jpg";
     model.title = AppLocals.current.playerTencentCloud;
     model.playAction = playAction;
     model.isEnableDownload = false;
@@ -347,6 +346,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.title = AppLocals.current.playerEncryptVideo;
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
+    model.coverUrl = "https://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/35ab25fb243791578431393746/onEqUp.png";
     model.videoId!.fileId = "243791578431393746";
     model.videoId!.psign =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTUwMDAwNTgzMCwiZmlsZUlkIjoiMjQzNzkxNTc4NDMxMzkzNzQ2IiwiY"
@@ -362,6 +362,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "387702299774545556";
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/4fc091e4387702299774545556/387702299947278317.png";
     model.playAction = playAction;
     model.isEnableDownload = false;
     model.title = AppLocals.current.playerVideoTitleIntroduction;
@@ -371,6 +372,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "387702299774253670";
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/48d21c3d387702299774253670/387702299947604155.png";
     model.playAction = playAction;
     model.isEnableDownload = false;
     model.title = AppLocals.current.playerVideoTitleEasy;
@@ -380,6 +382,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "387702299774574470";
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/6c9a5118vodcq1500005830/4ff64b01387702299774574470/387702304138941858.png";
     model.playAction = playAction;
     model.title = AppLocals.current.playerVideoTitleNumber;
     model.isEnableDownload = false;
@@ -389,6 +392,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1500005830;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "387702299774251236";
+    model.coverUrl = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/48d0f1f9387702299774251236/coverBySnapshot/coverBySnapshot_10_0.jpg";
     model.playAction = playAction;
     model.isEnableDownload = false;
     model.title = AppLocals.current.playerVideoTitleAchievement;
@@ -424,12 +428,6 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.title = "Multi-audio track video";
     models.add(model);
 
-    List<Future<void>> requestList = [];
-    for (SuperPlayerModel tempModel in models) {
-      requestList.add(loader.getVideoData(tempModel, (_) {}));
-    }
-
-    await Future.wait(requestList);
     videoModels.clear();
     videoModels.addAll(models);
 

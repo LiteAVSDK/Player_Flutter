@@ -8,10 +8,8 @@ import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
 import android.app.PictureInPictureParams.Builder;
 import android.app.RemoteAction;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,6 +29,7 @@ import androidx.annotation.RequiresApi;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXVideoModel;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
+import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 import com.tencent.vod.flutter.ui.FlutterPipImplActivity;
 
 import java.io.IOException;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -48,53 +48,28 @@ import io.flutter.plugin.common.EventChannel;
  *
  * 画中画管理
  */
-public class FTXPIPManager {
+public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
 
     private static final String TAG = "FTXPIPManager";
 
     private boolean misInit = false;
     private final Map<Integer, PipCallback> pipCallbacks = new HashMap<>();
-
-    FTXAudioManager mTxAudioManager;
-    private ActivityPluginBinding mActivityBinding;
+    private final ActivityPluginBinding mActivityBinding;
     private final FlutterPlugin.FlutterAssets mFlutterAssets;
     private final EventChannel mPipEventChannel;
     private final FTXPlayerEventSink mPipEventSink = new FTXPlayerEventSink();
     private boolean mIsInPipMode = false;
-    private final BroadcastReceiver mPipBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (null != intent) {
-                int playerId = intent.getIntExtra(FTXEvent.EXTRA_NAME_PLAYER_ID, -1);
-                int pipEventId = intent.getIntExtra(FTXEvent.EVENT_PIP_MODE_NAME, -1);
-                Bundle callbackData = new Bundle();
-                Bundle data = intent.getExtras();
-                if ((pipEventId == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT
-                        || pipEventId == FTXEvent.EVENT_PIP_MODE_RESTORE_UI) && null != data) {
-                    TXPipResult pipResult = data.getParcelable(FTXEvent.EXTRA_NAME_RESULT);
-                    if (null != pipResult) {
-                        callbackData.putDouble(FTXEvent.EVENT_PIP_PLAY_TIME, pipResult.getPlayTime());
-                        handlePipResult(pipResult);
-                    }
-                }
-                mPipEventSink.success(TXCommonUtil.getParams(pipEventId, callbackData));
-            }
-        }
-    };
 
     /**
      * Picture-in-picture management.
      *
      * 画中画管理
-     * @param mTxAudioManager Audio management, used to request audio focus in picture-in-picture mode.
-     *                        音频管理，用于画中画模式下请求音频焦点
      * @param activityBinding activityBinding
      * @param flutterAssets Flutter resource management.
      *                      flutter资源管理
      */
-    public FTXPIPManager(FTXAudioManager mTxAudioManager, @NonNull EventChannel pipEventChannel,
-            ActivityPluginBinding activityBinding, FlutterPlugin.FlutterAssets flutterAssets) {
-        this.mTxAudioManager = mTxAudioManager;
+    public FTXPIPManager(@NonNull EventChannel pipEventChannel, ActivityPluginBinding activityBinding,
+                         FlutterPlugin.FlutterAssets flutterAssets) {
         this.mPipEventChannel = pipEventChannel;
         this.mActivityBinding = activityBinding;
         this.mFlutterAssets = flutterAssets;
@@ -125,10 +100,16 @@ public class FTXPIPManager {
      */
     public void registerActivityListener() {
         if (!mActivityBinding.getActivity().isDestroyed() && !misInit) {
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(FTXEvent.EVENT_PIP_ACTION);
-            mActivityBinding.getActivity().registerReceiver(mPipBroadcastReceiver, intentFilter);
+            TXSimpleEventBus.getInstance().register(FTXEvent.EVENT_PIP_ACTION, this);
+            TXSimpleEventBus.getInstance().register(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, this);
             misInit = true;
+        }
+    }
+
+    private void handlePlayerEvent(int playerId, int eventId, Bundle params) {
+        PipCallback pipCallback = pipCallbacks.get(playerId);
+        if (null != pipCallback) {
+            pipCallback.onPipPlayerEvent(eventId, params);
         }
     }
 
@@ -244,7 +225,8 @@ public class FTXPIPManager {
     public void releaseActivityListener() {
         try {
             if (misInit) {
-                mActivityBinding.getActivity().unregisterReceiver(mPipBroadcastReceiver);
+                TXSimpleEventBus.getInstance().unregister(FTXEvent.EVENT_PIP_ACTION, this);
+                TXSimpleEventBus.getInstance().unregister(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, this);
             }
         } catch (Exception e) {
             Log.getStackTraceString(e);
@@ -268,6 +250,30 @@ public class FTXPIPManager {
             return path;
         }
         return mFlutterAssets.getAssetFilePathByName(path);
+    }
+
+    @Override
+    public void onEvent(String eventType, Object data) {
+        if (TextUtils.equals(eventType, FTXEvent.EVENT_PIP_ACTION)) {
+            Bundle params = (Bundle) data;
+            int pipEventId = params.getInt(FTXEvent.EVENT_PIP_MODE_NAME, -1);
+            Bundle callbackData = new Bundle();
+            if ((pipEventId == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT
+                    || pipEventId == FTXEvent.EVENT_PIP_MODE_RESTORE_UI)) {
+                TXPipResult pipResult = params.getParcelable(FTXEvent.EXTRA_NAME_RESULT);
+                if (null != pipResult) {
+                    callbackData.putDouble(FTXEvent.EVENT_PIP_PLAY_TIME, pipResult.getPlayTime());
+                    handlePipResult(pipResult);
+                }
+            }
+            mPipEventSink.success(TXCommonUtil.getParams(pipEventId, callbackData));
+        } else if (TextUtils.equals(eventType, FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION)) {
+            Bundle params = (Bundle) data;
+            int playerId = params.getInt(FTXEvent.EXTRA_NAME_PLAYER_ID, -1);
+            int eventId = params.getInt(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_ID, -1);
+            Bundle playerEventParams = params.getBundle(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_PARAMS);
+            handlePlayerEvent(playerId, eventId, playerEventParams);
+        }
     }
 
 
@@ -381,6 +387,8 @@ public class FTXPIPManager {
             return mViewHeight;
         }
 
+        private AtomicInteger a = new AtomicInteger();
+
         /**
          * Construct PIP parameters.
          * 构造画中画参数
@@ -395,7 +403,7 @@ public class FTXPIPManager {
                 backData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentPlayerId);
                 Intent backIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(backData);
                 PendingIntent preIntent = PendingIntent.getBroadcast(activity, FTXEvent.EXTRA_PIP_PLAY_BACK, backIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
                 RemoteAction preAction = new RemoteAction(getBackIcon(activity), "skipPre", "skip pre", preIntent);
                 actions.add(preAction);
             }
@@ -408,8 +416,8 @@ public class FTXPIPManager {
                 Intent playOrPauseIntent =
                         new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
                 Icon playIcon = mIsPlaying ? getPauseIcon(activity) : getPlayIcon(activity);
-                PendingIntent playIntent = PendingIntent.getBroadcast(activity, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE,
-                        playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                PendingIntent playIntent = PendingIntent.getBroadcast(activity, a.incrementAndGet(),
+                        playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
                 RemoteAction playOrPauseAction = new RemoteAction(playIcon, "playOrPause", "play Or Pause", playIntent);
                 actions.add(playOrPauseAction);
             }
@@ -422,7 +430,7 @@ public class FTXPIPManager {
                 Intent forwardIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(forwardData);
                 PendingIntent nextIntent = PendingIntent.getBroadcast(activity, FTXEvent.EXTRA_PIP_PLAY_FORWARD,
                         forwardIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
                 RemoteAction nextAction = new RemoteAction(getForwardIcon(activity), "skipNext", "skip next",
                         nextIntent);
                 actions.add(nextAction);
@@ -502,5 +510,7 @@ public class FTXPIPManager {
          * pip关闭
          */
         void onPipResult(TXPipResult result);
+
+        void onPipPlayerEvent(int event, Bundle bundle);
     }
 }

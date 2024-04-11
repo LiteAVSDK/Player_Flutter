@@ -1022,7 +1022,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
         builder.playUrl = params.playUrl;
         builder.keyLicenseUrl = params.licenseUrl;
         if(params.deviceCertificateUrl) {
-            builder.deviceCertificateUrl = builder.deviceCertificateUrl;
+            builder.deviceCertificateUrl = params.deviceCertificateUrl;
         }
         int result = [_txVodPlayer startPlayDrm:builder];
         return [TXCommonUtil intMsgWith:@(result)];
