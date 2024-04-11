@@ -228,6 +228,9 @@ abstract class TXVodPlayEvent {
   // Playable duration of VOD (in milliseconds).
   // 点播可播放时长（毫秒）
   static const EVT_PLAYABLE_DURATION_MS = "EVT_PLAYABLE_DURATION_MS";
+  // Playable duration of VOD (in milliseconds).
+  // 点播可播放时长
+  static const EVT_PLAYABLE_DURATION = "EVT_PLAYABLE_DURATION";
   // Playback rate.
   // 播放速率
   static const EVT_PLAYABLE_RATE = "EVT_PLAYABLE_RATE";

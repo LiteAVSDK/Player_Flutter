@@ -19,7 +19,6 @@ class SuperPlayerController {
 
   SuperPlayerModel? videoModel;
   int _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
-  PlayInfoProtocol? _currentProtocol;
   _SuperPlayerObserver? _observer;
   VideoQuality? currentQuality;
   List<VideoQuality>? currentQualityList;
@@ -108,6 +107,7 @@ class SuperPlayerController {
           });
           _vodPlayerController.initImageSprite(playImageSpriteInfo.webVttUrl, playImageSpriteInfo.imageUrls);
           spriteInfo = playImageSpriteInfo;
+          _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerGetInfo, params: event);
           break;
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
           isPrepared = true;
@@ -167,7 +167,6 @@ class SuperPlayerController {
           _updatePlayerState(SuperPlayerState.PLAYING);
           break;
         case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME: // PLAY_EVT_RCV_FIRST_I_FRAME
-          _configVideoSize(event);
           if (_needToPause) {
             return;
           }
@@ -193,6 +192,7 @@ class SuperPlayerController {
           }
           if (videoDuration != 0) {
             _observer?.onPlayProgress(currentDuration, videoDuration, await getPlayableDuration());
+            _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerProgress, params: event);
           }
           break;
         case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION:
@@ -242,7 +242,6 @@ class SuperPlayerController {
           _updatePlayerState(SuperPlayerState.LOADING);
           break;
         case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
-          _configVideoSize(event);
           _updatePlayerState(SuperPlayerState.PLAYING);
           _observer?.onRcvFirstIframe();
           break;
@@ -347,18 +346,23 @@ class SuperPlayerController {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
     _updateImageSpriteAndKeyFrame(null, null);
-    _currentProtocol = null;
     callResume = false;
-
     // Priority use URL to play
     if (videoModel.videoURL.isNotEmpty) {
       _playWithUrl(videoModel);
-      getInfo(videoModel);
     } else if (videoModel.videoId != null && (videoModel.videoId!.fileId.isNotEmpty)) {
-      _currentProtocol = PlayInfoProtocol(videoModel);
-      // When there is no URL, make a request based on the field
-      await _sendRequest();
+      _playWithField(videoModel);
     }
+  }
+
+  Future<void> _playWithField(SuperPlayerModel model) async {
+    _setVodListener();
+    await _vodPlayerController.setToken(null);
+    _vodPlayerController.startVodPlayWithParams(TXPlayInfoParams(appId: model.appId,
+        fileId: model.videoId!.fileId, psign: model.videoId!.psign));
+    _updatePlayerType(SuperPlayerType.VOD);
+    _observer?.onPlayProgress(0, model.duration.toDouble(), await getPlayableDuration());
+    _updateImageSpriteAndKeyFrame(null, null);
   }
 
   void addSubTitle() {
@@ -367,30 +371,6 @@ class SuperPlayerController {
         _vodPlayerController.addSubtitleSource(sourceModel.url, sourceModel.name, mimeType: sourceModel.mimeType);
       }
     }
-  }
-
-  void getInfo(SuperPlayerModel videoModel) {
-    PlayInfoProtocol temp = PlayInfoProtocol(videoModel);
-    temp.sendRequest((protocol, resultModel) async {
-      _updateImageSpriteAndKeyFrame(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
-    }, (errCode, errorMsg) {});
-  }
-
-  Future<void> _sendRequest() async {
-    _currentProtocol?.sendRequest((protocol, resultModel) async {
-      // onSuccess
-      if (videoModel != resultModel) {
-        return;
-      }
-      _playModeVideo(protocol);
-      _updatePlayerType(SuperPlayerType.VOD);
-      _observer?.onPlayProgress(0, resultModel.duration.toDouble(), await getPlayableDuration());
-      _updateImageSpriteAndKeyFrame(protocol.getImageSpriteInfo(), protocol.getKeyFrameDescInfo());
-    }, (errCode, message) {
-      // onError
-      _observer?.onError(SuperPlayerCode.VOD_REQUEST_FILE_ID_FAIL, FSPLocal.current.txSpwErrPlayTo.txFormat(["$errCode", message]));
-      _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerError);
-    });
   }
 
   void _updateImageSpriteAndKeyFrame(PlayImageSpriteInfo? spriteInfo, List<PlayKeyFrameDescInfo>? keyFrameInfo) {
@@ -434,18 +414,6 @@ class SuperPlayerController {
 
   Future<double> getPlayableDuration() async {
     return await _vodPlayerController.getPlayableDuration();
-  }
-
-  void _playModeVideo(PlayInfoProtocol protocol) {
-    String? videoUrl = protocol.getUrl();
-    _playVodUrl(videoUrl);
-    List<VideoQuality>? qualityList = protocol.getVideoQualityList();
-
-    _isMultiBitrateStream = protocol.getResolutionNameList() != null ||
-        qualityList != null ||
-        (videoUrl != null && videoUrl.contains("m3u8"));
-
-    _updateVideoQualityList(qualityList, protocol.getDefaultVideoQuality());
   }
 
   void _playUrlVideo(SuperPlayerModel? model) {
@@ -497,6 +465,7 @@ class SuperPlayerController {
     _observer?.onPlayProgress(0, model.duration.toDouble(), 0);
     _updatePlayerType(isLivePlay ? SuperPlayerType.LIVE : SuperPlayerType.VOD);
     _updateVideoQualityList(videoQualities, defaultVideoQuality);
+    _updateImageSpriteAndKeyFrame(null, null);
   }
 
   Future<void> _playVodUrl(String? url) async {
@@ -514,35 +483,9 @@ class SuperPlayerController {
       await _vodPlayerController.setAutoPlay(isAutoPlay: true);
     }
     _setVodListener();
-    String drmType = "plain";
-    if (_currentProtocol != null) {
-      LogUtils.d(TAG, "TOKEN: ${_currentProtocol!.getToken()}");
-      await _vodPlayerController.setToken(_currentProtocol!.getToken());
-      if (_currentProtocol!.getDRMType() != null && _currentProtocol!.getDRMType()!.isNotEmpty) {
-        drmType = _currentProtocol!.getDRMType()!;
-      }
-    } else {
-      await _vodPlayerController.setToken(null);
-    }
-    if (videoModel!.videoId != null && videoModel!.appId != 0) {
-      Uri uri = Uri.parse(url);
-      String query = uri.query;
-      if (query == null || query.isEmpty) {
-        query = "";
-      } else {
-        query = "$query&";
-        if (query.contains("spfileid") || query.contains("spdrmtype") || query.contains("spappid")) {
-          LogUtils.d(TAG, "url contains superplay key. $query");
-        }
-      }
-      query += "spfileid=${videoModel!.videoId!.fileId}" "&spdrmtype=$drmType&spappid=${videoModel!.appId}";
-      Uri newUri = uri.replace(query: query);
-      LogUtils.d(TAG, 'playVodURL: newurl =  ${Uri.decodeFull(newUri.toString())}  ;url=  $url');
-      await _vodPlayerController.startVodPlay(Uri.decodeFull(newUri.toString()));
-    } else {
-      LogUtils.d(TAG, "playVodURL url:$url");
-      await _vodPlayerController.startVodPlay(url);
-    }
+    await _vodPlayerController.setToken(null);
+    LogUtils.d(TAG, "playVodURL url:$url");
+    await _vodPlayerController.startVodPlay(url);
   }
 
   /// pause video
@@ -681,10 +624,6 @@ class SuperPlayerController {
     String title = "";
     if (videoModel != null && null != videoModel!.title && videoModel!.title.isNotEmpty) {
       title = videoModel!.title;
-    } else if (_currentProtocol != null &&
-        null != _currentProtocol!.getName() &&
-        _currentProtocol!.getName()!.isNotEmpty) {
-      title = _currentProtocol!.getName()!;
     }
     return title;
   }
@@ -726,8 +665,9 @@ class SuperPlayerController {
     _updateAudioTrackList(audioTrackInfoList, selectedTrack);
   }
 
-  void _addSimpleEvent(String event) {
-    Map<String, String> eventMap = {};
+  void _addSimpleEvent(String event, {Map<dynamic, dynamic> params = const{}}) {
+    Map<dynamic, dynamic> eventMap = {};
+    eventMap.addAll(params);
     eventMap['event'] = event;
     _simpleEventStreamController.add(eventMap);
   }
@@ -774,7 +714,6 @@ class SuperPlayerController {
     videoDuration = 0;
     currentQuality = null;
     currentQualityList?.clear();
-    _currentProtocol = null;
     currentAudioTrackInfo = null;
     audioTrackInfoList = null;
     currentSubtitleTrackInfo = null;
@@ -930,15 +869,15 @@ class SuperPlayerController {
         LogUtils.d(TAG, "seek pos $_seekPos");
         resetPlayer();
         // When the `protocol` is empty, it means that the current video playback is a URL
-        if (_currentProtocol == null) {
-          _playUrlVideo(videoModel);
-        } else {
-          _playModeVideo(_currentProtocol!);
+        if (null != videoModel) {
+          _playWithModelInner(videoModel!);
         }
       }
     } else {
       await _vodPlayerController.enableHardwareDecode(enable);
-      await playWithModelNeedLicence(videoModel!);
+      if (null != videoModel) {
+        _playWithModelInner(videoModel!);
+      }
     }
   }
 
