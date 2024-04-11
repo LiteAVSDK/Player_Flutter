@@ -17,11 +17,6 @@ import 'package:super_player/super_player.dart';
 
 part 'superplayer_observer.dart';
 part 'superplayer_controller.dart';
-part 'cgi/play_info_parser_v2.dart';
-part 'cgi/play_info_parser_v4.dart';
-part 'cgi/playinfo_parser.dart';
-part 'cgi/playinfo_protocol.dart';
-part 'cgi/super_vod_data_loader.dart';
 part 'model/superplayer_define.dart';
 part 'model/superplayer_model.dart';
 part 'model/txpipplayer_data.dart';

@@ -16,7 +16,6 @@ class _DemoDownloadListState extends State<StatefulWidget> {
   static const DEFAULT_PLACE_HOLDER = "http://xiaozhibo-10055601.file.myqcloud.com/coverImg.jpg";
 
   List<DownloadModel> models = [];
-  SuperVodDataLoader loader = SuperVodDataLoader();
   late FTXDownloadListener listener;
 
   _DemoDownloadListState() {
@@ -82,9 +81,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         model.videoId!.psign = mediaInfo.dataSource!.pSign ?? "";
         model.playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
         model.videoURL = mediaInfo.playPath!;
-        requestList.add(loader.getVideoData(model, (resultModel) {
-          tempModels.add(DownloadModel(resultModel, mediaInfo));
-        }));
+        tempModels.add(DownloadModel(model, mediaInfo));
       } else {
         SuperPlayerModel model = SuperPlayerModel();
         model.isEnableDownload = false;

@@ -43,6 +43,7 @@ import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 
 import java.util.List;
 import java.util.Set;
@@ -80,6 +81,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private boolean mIsRegisterReceiver = false;
     private PipParams mCurrentParams;
     private Handler mMainHandler;
+    private boolean mIsPipFinishing = false;
 
     private final BroadcastReceiver pipActionReceiver = new BroadcastReceiver() {
         @Override
@@ -182,7 +184,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             needToExitPip = true;
         } else {
             if (isInPictureInPictureMode) {
-                sendPipBroadCast(FTXEvent.EVENT_PIP_MODE_ALREADY_ENTER, null);
+                sendPipEvent(FTXEvent.EVENT_PIP_MODE_ALREADY_ENTER, null);
                 showComponent();
             } else {
                 handlePipExitEvent();
@@ -199,7 +201,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     @Override
     public void onPictureInPictureUiStateChanged(@NonNull PictureInPictureUiState pipState) {
         super.onPictureInPictureUiStateChanged(pipState);
-        sendPipBroadCast(FTXEvent.EVENT_PIP_MODE_UI_STATE_CHANGED, null);
+        sendPipEvent(FTXEvent.EVENT_PIP_MODE_UI_STATE_CHANGED, null);
     }
 
     /**
@@ -261,7 +263,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             data.putParcelable(FTXEvent.EXTRA_NAME_RESULT, pipResult);
         }
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
-        sendPipBroadCast(codeEvent, data);
+        sendPipEvent(codeEvent, data);
         exitPip(codeEvent == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT);
     }
 
@@ -277,7 +279,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             if (TextUtils.equals(action, FTXEvent.PIP_ACTION_START)) {
                 startPipVideoFromIntent(intent);
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_EXIT)) {
-                exitPip(false);
+                exitPip(true);
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_UPDATE)) {
                 PipParams pipParams = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
                 updatePip(pipParams);
@@ -326,7 +328,11 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
      *                         mode and `false` to restore picture-in-picture mode.
      */
     private void exitPip(boolean closeImmediately) {
-        if (!isDestroyed()) {
+        if (mIsPipFinishing) {
+            return;
+        }
+        mIsPipFinishing = true;
+        if (!isDestroyed() || !isFinishing()) {
             // Due to the foreground service startup restriction in Android 12, if the activity interface is closed
             // too early after returning from picture-in-picture mode, the app cannot be launched normally.
             // Therefore, a delay processing is added here.
@@ -340,8 +346,9 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                     public void run() {
                         overridePendingTransition(0, 0);
                         finishAndRemoveTask();
+                        mIsPipFinishing = false;
                     }
-                }, 400);
+                }, 500);
             } else {
                 overridePendingTransition(0, 0);
                 if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
@@ -349,9 +356,10 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 } else {
                     finish();
                 }
+                mIsPipFinishing = false;
             }
         }
-        if (closeImmediately) {
+        if (!closeImmediately) {
             moveAppToFront();
         }
     }
@@ -497,15 +505,13 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         }
     }
 
-    private void sendPipBroadCast(int eventCode, Bundle data) {
-        Intent intent = new Intent();
-        intent.setAction(FTXEvent.EVENT_PIP_ACTION);
-        intent.putExtra(FTXEvent.EVENT_PIP_MODE_NAME, eventCode);
-        intent.putExtra(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
-        if (null != data) {
-            intent.putExtras(data);
+    private void sendPipEvent(int eventCode, Bundle data) {
+        if (null == data) {
+            data = new Bundle();
         }
-        sendBroadcast(intent);
+        data.putInt(FTXEvent.EVENT_PIP_MODE_NAME, eventCode);
+        data.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
+        TXSimpleEventBus.getInstance().post(FTXEvent.EVENT_PIP_ACTION, data);
     }
 
     /**
@@ -536,11 +542,12 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
                     // When playback is complete, automatically set the playback button to play.
                     mCurrentParams.setIsPlaying(false);
+                    updatePip(mCurrentParams);
                 } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
                     // When playback starts, automatically set the playback button to pause.
                     mCurrentParams.setIsPlaying(true);
+                    updatePip(mCurrentParams);
                 }
-                updatePip(mCurrentParams);
             }
             if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
                 // When playback is complete, automatically set the playback button to play.
@@ -563,10 +570,19 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 }
             }
         }
+        sendPlayerEvent(event, bundle);
     }
 
     @Override
     public void onPlayEvent(int event, Bundle bundle) {
+    }
+
+    private void sendPlayerEvent(int eventCode, Bundle data) {
+        Bundle params = new Bundle();
+        params.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
+        params.putInt(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_ID, eventCode);
+        params.putBundle(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_PARAMS, data);
+        TXSimpleEventBus.getInstance().post(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, params);
     }
 
     @Override
