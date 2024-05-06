@@ -181,3 +181,10 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - set iOS TXLiteAVSDK_Professional to 11.7.15343， tag：release_pro_v11.7.0
 - Add setSDKListener in SuperPlayerPlugin
 - fix known issues
+
+#### Version: 11.8.0 2024.05.06
+
+##### Features：
+
+- set Android TXLiteAVSDK_Professional to 11.8.0.14176，tag：release_pro_v11.8.0
+- set iOS TXLiteAVSDK_Professional to 11.8.15669， tag：release_pro_v11.8.0
