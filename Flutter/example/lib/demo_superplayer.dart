@@ -118,7 +118,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             ),
           ),
         ),
-        onWillPop: onWillPop);
+    onWillPop: onWillPop,);
   }
 
   Future<bool> onWillPop() async {
@@ -217,7 +217,9 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
           onTap: () => playCurrentModel(playModel, 0),
           horizontalTitleGap: 10,
         ),
-        Divider()
+        Divider(
+          color: Colors.transparent,
+        )
       ],
     );
   }
