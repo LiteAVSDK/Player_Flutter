@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
@@ -31,18 +30,17 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
-import com.tencent.rtmp.TXPlayInfoParams;
-import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.TXPipResult;
-import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.model.TXPlayerHolder;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 
 import java.util.List;
@@ -52,6 +50,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         ITXLivePlayListener, ServiceConnection {
 
     private static final String TAG = "FlutterPipImplActivity";
+    private static TXPlayerHolder pipPlayerHolder;
+    private static boolean isInPip = false;
 
     /**
      * Here, `needToExitPip` is used as a flag. When the `onPictureInPictureModeChanged` callback picture-in-picture
@@ -59,7 +59,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
      * interface change are detected in `onConfigurationChanged`, the event notification of exiting
      * picture-in-picture mode is performed.
      * for MIUI 12.5.1.
-     *
+     * <p>
      * 这里使用needToExitPip作为标志位，在出现onPictureInPictureModeChanged回调画中画状态和isInPictureInPictureMode不一致的时候。
      * 标记为true，然后在onConfigurationChanged监听到界面宽高发生变化的时候，进行画中画模式退出的事件通知。
      * for MIUI 12.5.1
@@ -71,17 +71,15 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private SurfaceView mVideoSurface;
     private ProgressBar mVideoProgress;
 
-    private TXVodPlayer mVodPlayer;
-    private TXLivePlayer mLivePlayer;
     private boolean mIsSurfaceCreated = false;
     // In picture-in-picture mode, clicking the X in the upper right corner will trigger `onStop` first.
     // Clicking the zoom button will not trigger `onStop`.
     private boolean mIsNeedToStop = false;
-    private TXVideoModel mVideoModel;
     private boolean mIsRegisterReceiver = false;
     private PipParams mCurrentParams;
     private Handler mMainHandler;
     private boolean mIsPipFinishing = false;
+    private TXPlayerHolder mPlayerHolder;
 
     private final BroadcastReceiver pipActionReceiver = new BroadcastReceiver() {
         @Override
@@ -102,13 +100,37 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                             handlePlayForward();
                             break;
                         default:
-                            Log.e(TAG, "unknown control code");
+                            LiteavLog.e(TAG, "unknown control code");
                             break;
                     }
                 }
             }
         }
     };
+
+    public static int startPip(Activity activity, PipParams params, TXPlayerHolder playerHolder) {
+        if (null == playerHolder) {
+            LiteavLog.e(TAG, "startPip failed, playerHolder is null");
+            return FTXEvent.ERROR_PIP_MISS_PLAYER;
+        }
+        if (null == playerHolder.getLivePlayer() && null == playerHolder.getVodPlayer()) {
+            LiteavLog.e(TAG, "startPip failed, all player is null");
+            return FTXEvent.ERROR_PIP_MISS_PLAYER;
+        }
+        if (isInPip) {
+            LiteavLog.e(TAG, "startPip failed, pip is busy");
+            return FTXEvent.ERROR_PIP_IN_BUSY;
+        }
+        isInPip = true;
+        // pause first, resume video after entered pip
+        playerHolder.tmpPause();
+        pipPlayerHolder = playerHolder;
+        Intent intent = new Intent(activity, FlutterPipImplActivity.class);
+        intent.setAction(FTXEvent.PIP_ACTION_START);
+        intent.putExtra(FTXEvent.EXTRA_NAME_PARAMS, params);
+        activity.startActivity(intent);
+        return FTXEvent.NO_ERROR;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,15 +139,27 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         bindAndroid12BugServiceIfNeed();
         registerPipBroadcast();
         setContentView(R.layout.activity_flutter_pip_impl);
-        mVodPlayer = new TXVodPlayer(this);
-        mLivePlayer = new TXLivePlayer(this);
         mVideoSurface = findViewById(R.id.sv_video_container);
         mVideoProgress = findViewById(R.id.pb_video_progress);
         mVideoSurface.getHolder().addCallback(this);
+        if (null == pipPlayerHolder) {
+            LiteavLog.e(TAG, "lack pipPlayerHolder, please check the pip argument");
+            finish();
+            return;
+        }
+        mPlayerHolder = pipPlayerHolder;
+        if (null != mPlayerHolder.getVodPlayer()) {
+            setVodPlayerListener();
+        } else if (null != mPlayerHolder.getLivePlayer()) {
+            setLivePlayerListener();
+        } else {
+            LiteavLog.e(TAG, "lack pipPlayerHolder player, please check the pip argument");
+            finish();
+        }
         Intent intent = getIntent();
         PipParams params = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
         if (null == params) {
-            Log.e(TAG, "lack pip params,please check the intent argument");
+            LiteavLog.e(TAG, "lack pip params,please check the argument");
             finish();
         } else {
             mCurrentParams = params;
@@ -135,19 +169,15 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                 configPipMode(null);
             }
         }
-        setVodPlayerListener();
-        setLivePlayerListener();
         handleIntent(intent);
     }
 
     private void setVodPlayerListener() {
-        // set default config
-        mVodPlayer.setConfig(new TXVodPlayConfig());
-        mVodPlayer.setVodListener(this);
+        mPlayerHolder.getVodPlayer().setVodListener(this);
     }
 
     private void setLivePlayerListener() {
-        mLivePlayer.setPlayListener(this);
+        mPlayerHolder.getLivePlayer().setPlayListener(this);
     }
 
     @Override
@@ -169,7 +199,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     /**
      * To be compatible with MIUI 12.5, in PIP mode, if you open another app and then swipe up to exit,
      * and then click the PIP window, `onPictureInPictureModeChanged` will be abnormally called back to close.
-     *
+     * <p>
      * 为了兼容MIUI 12.5，PIP模式下，打开其他app然后上滑退出，再点击画中画窗口，onPictureInPictureModeChanged会异常回调关闭的情况
      *
      * @param ignore 校对画中画状态 Verify picture-in-picture status.
@@ -206,7 +236,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
 
     /**
      * Callback notification after `enterPictureInPictureMode` takes effect, only for Android > 31.
-     *
+     * <p>
      * enterPictureInPictureMode生效后的回调通知，only for android > 31
      */
     @Override
@@ -237,7 +267,15 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private void registerPipBroadcast() {
         if (!mIsRegisterReceiver) {
             IntentFilter pipIntentFilter = new IntentFilter(FTXEvent.ACTION_PIP_PLAY_CONTROL);
-            registerReceiver(pipActionReceiver, pipIntentFilter);
+            if (VERSION.SDK_INT >= VERSION_CODES.O) {
+                /*
+                RECEIVER_VISIBLE_TO_INSTANT_APPS: export true
+                0 : export false
+                 */
+                registerReceiver(pipActionReceiver, pipIntentFilter, 0);
+            } else {
+                registerReceiver(pipActionReceiver, pipIntentFilter);
+            }
             mIsRegisterReceiver = true;
         }
     }
@@ -251,16 +289,27 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private void handlePipExitEvent() {
         Bundle data = new Bundle();
         TXPipResult pipResult = new TXPipResult();
-        if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_VOD) {
-            Float currentPlayTime = mVodPlayer.getCurrentPlaybackTime();
+        if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+            Float currentPlayTime = mPlayerHolder.getVodPlayer().getCurrentPlaybackTime();
             pipResult.setPlayTime(currentPlayTime);
-            pipResult.setPlaying(mVodPlayer.isPlaying());
+            pipResult.setPlaying(mPlayerHolder.getVodPlayer().isPlaying());
             pipResult.setPlayerId(mCurrentParams.getCurrentPlayerId());
             data.putParcelable(FTXEvent.EXTRA_NAME_RESULT, pipResult);
-        } else if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-            pipResult.setPlaying(mLivePlayer.isPlaying());
+        } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
+            pipResult.setPlaying(mPlayerHolder.getLivePlayer().isPlaying());
             pipResult.setPlayerId(mCurrentParams.getCurrentPlayerId());
             data.putParcelable(FTXEvent.EXTRA_NAME_RESULT, pipResult);
+        }
+        if (null != mPlayerHolder.getVodPlayer()) {
+            mPlayerHolder.getVodPlayer().setSurface(null);
+        }
+        if (null != mPlayerHolder.getLivePlayer()) {
+            mPlayerHolder.getLivePlayer().setSurface(null);
+        }
+        if (null != mPlayerHolder.getVodPlayer()) {
+            mPlayerHolder.getVodPlayer().pause();
+        } else if (null != mPlayerHolder.getLivePlayer()) {
+            mPlayerHolder.getLivePlayer().pause();
         }
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
         sendPipEvent(codeEvent, data);
@@ -277,14 +326,14 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         if (intent != null) {
             String action = intent.getAction();
             if (TextUtils.equals(action, FTXEvent.PIP_ACTION_START)) {
-                startPipVideoFromIntent(intent);
+                startPipVideo();
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_EXIT)) {
                 exitPip(true);
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_UPDATE)) {
                 PipParams pipParams = intent.getParcelableExtra(FTXEvent.EXTRA_NAME_PARAMS);
                 updatePip(pipParams);
             } else {
-                Log.e(TAG, "unknown pip action:" + action);
+                LiteavLog.e(TAG, "unknown pip action:" + action);
             }
         }
     }
@@ -320,7 +369,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
 
     /**
      * Close picture-in-picture mode by using `finish` to close the current interface.
-     *
+     * <p>
      * 关闭画中画，使用finish当前界面的方式，关闭画中画
      *
      * @param closeImmediately 立刻关闭，不执行延迟，一般关闭画中画为true，还原画中画为false。
@@ -337,8 +386,6 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             // too early after returning from picture-in-picture mode, the app cannot be launched normally.
             // Therefore, a delay processing is added here.
             if (VERSION.SDK_INT >= VERSION_CODES.S && !closeImmediately) {
-                mVodPlayer.stopPlay(true);
-                mLivePlayer.stopPlay(true);
                 mVideoSurface.setVisibility(View.GONE);
                 mVideoProgress.setVisibility(View.GONE);
                 mMainHandler.postDelayed(new Runnable() {
@@ -364,8 +411,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         }
     }
 
-    private void startPipVideoFromIntent(Intent intent) {
-        mVideoModel = (TXVideoModel) intent.getParcelableExtra(FTXEvent.EXTRA_NAME_VIDEO);
+    private void startPipVideo() {
         if (mIsSurfaceCreated) {
             attachSurface(mVideoSurface.getHolder().getSurface());
             startPlay();
@@ -373,29 +419,12 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void startPlay() {
-        if (null != mVideoModel) {
-            float playTime = mCurrentParams.getCurrentPlayTime();
-            boolean isPlaying = mCurrentParams.isPlaying();
-            if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_VOD) {
-                mVodPlayer.setStartTime(playTime);
-                mVodPlayer.setAutoPlay(isPlaying);
-                mVodPlayer.setToken(mVideoModel.getToken());
-                if (!TextUtils.isEmpty(mVideoModel.getVideoUrl())) {
-                    mVodPlayer.startVodPlay(mVideoModel.getVideoUrl());
-                } else if (!TextUtils.isEmpty(mVideoModel.getFileId())) {
-                    mVodPlayer.startVodPlay(
-                            new TXPlayInfoParams(mVideoModel.getAppId(), mVideoModel.getFileId(),
-                                    mVideoModel.getPSign()));
-                }
-            } else if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                mVideoProgress.setProgress(mVideoProgress.getMax());
-                mLivePlayer.startLivePlay(mVideoModel.getVideoUrl(), mVideoModel.getLiveType());
-                //  Live broadcast does not currently support picture-in-picture mode and
-                //  pausing the live broadcast when entering picture-in-picture mode.
-                mCurrentParams.setIsPlaying(true);
-                if (VERSION.SDK_INT >= VERSION_CODES.O) {
-                    setPictureInPictureParams(mCurrentParams.buildParams(this));
-                }
+        boolean isInitPlaying = pipPlayerHolder.isPlayingWhenCreate();
+        if (isInitPlaying) {
+            if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+                mPlayerHolder.getVodPlayer().resume();
+            } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
+                mPlayerHolder.getLivePlayer().resume();
             }
         }
     }
@@ -414,16 +443,12 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        mVodPlayer.setSurface(null);
-        mLivePlayer.setSurface(null);
         mIsSurfaceCreated = false;
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mVodPlayer.stopPlay(true);
-        mLivePlayer.stopPlay(true);
         mIsNeedToStop = true;
     }
 
@@ -439,6 +464,9 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         if (Build.VERSION.SDK_INT >= VERSION_CODES.S) {
             unbindService(this);
         }
+        mPlayerHolder = null;
+        pipPlayerHolder = null;
+        isInPip = false;
         super.onDestroy();
     }
 
@@ -452,42 +480,49 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void attachSurface(Surface surface) {
-        if (null != mVideoModel) {
-            if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_VOD) {
-                mVodPlayer.setSurface(surface);
-            } else if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                mLivePlayer.setSurface(surface);
+        if (null != mPlayerHolder) {
+            if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+                mPlayerHolder.getVodPlayer().setSurface(surface);
+            } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
+                mPlayerHolder.getLivePlayer().setSurface(surface);
             } else {
-                Log.e(TAG, "unknown player type:" + mVideoModel.getPlayerType());
+                LiteavLog.e(TAG, "unknown player type:" + mPlayerHolder.getPlayerType());
             }
         } else {
-            Log.e(TAG, "pip video model is null");
+            LiteavLog.e(TAG, "pip video model is null");
         }
     }
 
     private void handlePlayBack() {
-        if (mVodPlayer.isPlaying()) {
-            float backPlayTime = mVodPlayer.getCurrentPlaybackTime() - 10;
-            if (backPlayTime < 0) {
-                backPlayTime = 0;
+        if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+            TXVodPlayer vodPlayer = mPlayerHolder.getVodPlayer();
+            if (vodPlayer.isPlaying()) {
+                float backPlayTime = vodPlayer.getCurrentPlaybackTime() - 10;
+                if (backPlayTime < 0) {
+                    backPlayTime = 0;
+                }
+                vodPlayer.seek(backPlayTime);
             }
-            mVodPlayer.seek(backPlayTime);
         }
     }
 
     private void handleResumeOrPause() {
-        boolean dstPlaying = !mVodPlayer.isPlaying();
-        if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_VOD) {
+        boolean dstPlaying = false;
+        if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+            TXVodPlayer vodPlayer = mPlayerHolder.getVodPlayer();
+            dstPlaying = !vodPlayer.isPlaying();
             if (dstPlaying) {
-                mVodPlayer.resume();
+                vodPlayer.resume();
             } else {
-                mVodPlayer.pause();
+                vodPlayer.pause();
             }
-        } else if (mVideoModel.getPlayerType() == FTXEvent.PLAYER_LIVE) {
+        } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
+            TXLivePlayer livePlayer = mPlayerHolder.getLivePlayer();
+            dstPlaying = !livePlayer.isPlaying();
             if (dstPlaying) {
-                mLivePlayer.resume();
+                livePlayer.resume();
             } else {
-                mLivePlayer.pause();
+                livePlayer.pause();
             }
         }
         mCurrentParams.setIsPlaying(dstPlaying);
@@ -495,13 +530,16 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void handlePlayForward() {
-        if (mVodPlayer.isPlaying()) {
-            float forwardPlayTime = mVodPlayer.getCurrentPlaybackTime() + 10;
-            float duration = mVodPlayer.getDuration();
-            if (forwardPlayTime > duration) {
-                forwardPlayTime = duration;
+        if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+            TXVodPlayer vodPlayer = mPlayerHolder.getVodPlayer();
+            if (vodPlayer.isPlaying()) {
+                float forwardPlayTime = vodPlayer.getCurrentPlaybackTime() + 10;
+                float duration = vodPlayer.getDuration();
+                if (forwardPlayTime > duration) {
+                    forwardPlayTime = duration;
+                }
+                vodPlayer.seek(forwardPlayTime);
             }
-            mVodPlayer.seek(forwardPlayTime);
         }
     }
 
@@ -509,8 +547,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         if (null == data) {
             data = new Bundle();
         }
-        data.putInt(FTXEvent.EVENT_PIP_MODE_NAME, eventCode);
         data.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
+        data.putInt(FTXEvent.EVENT_PIP_MODE_NAME, eventCode);
         TXSimpleEventBus.getInstance().post(FTXEvent.EVENT_PIP_ACTION, data);
     }
 
@@ -519,7 +557,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
      * To prevent the black screen at the moment when picture-in-picture is started,
      * the component is initially in a hidden state, and the component will only be displayed
      * after entering picture-in-picture mode.
-     *
+     * <p>
      * 显示组件
      * 为了防止画中画启动一瞬间的黑屏，组件一开始为隐藏状态，只有进入画中画之后才会显示组件
      */

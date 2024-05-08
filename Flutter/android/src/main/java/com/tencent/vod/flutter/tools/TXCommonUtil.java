@@ -6,8 +6,8 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 
+import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.downloader.TXVodDownloadMediaInfo;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
@@ -68,7 +68,7 @@ public class TXCommonUtil {
                 maxBrightness = system.getInteger(resId);
             }
         } catch (Exception e) {
-            Log.getStackTraceString(e);
+            LiteavLog.e(TAG, "getBrightnessMax error", e);
         }
         if (TXCommonUtil.isMIUI() && Build.VERSION.SDK_INT >= 33) {
             maxBrightness = 128F;

@@ -16,7 +16,6 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.OrientationEventListener;
 import android.view.Window;
@@ -24,6 +23,7 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
@@ -74,12 +74,12 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     private EventChannel mEventChannel;
     private EventChannel mPipEventChannel;
-    private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
+    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     private VolumeBroadcastReceiver mVolumeBroadcastReceiver;
 
     private FlutterPluginBinding mFlutterPluginBinding;
     private ActivityPluginBinding mActivityPluginBinding;
-    private SparseArray<FTXBasePlayer> mPlayers;
+    private final SparseArray<FTXBasePlayer> mPlayers = new SparseArray<>();
 
     private FTXDownloadManager mFTXDownloadManager;
     private FTXAudioManager mTxAudioManager;
@@ -89,7 +89,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
     private final TXFlutterEngineHolder mEngineHolder = new TXFlutterEngineHolder();
     private boolean mIsBrightnessObserverRegistered = false;
-    private Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
@@ -114,15 +114,15 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     private final TXLiveBaseListener mSDKEvent = new TXLiveBaseListener() {
         @Override
-        public void onLog(int level, String module, String log) {
-            super.onLog(level, module, log);
+        public void onLog(int level, String module, String liteavLog) {
+            super.onLog(level, module, liteavLog);
 //            mMainHandler.post(new Runnable() {
 //                @Override
 //                public void run() {
 //                    Bundle params = new Bundle();
 //                    params.putInt(FTXEvent.EVENT_LOG_LEVEL, level);
 //                    params.putString(FTXEvent.EVENT_LOG_MODULE, module);
-//                    params.putString(FTXEvent.EVENT_LOG_MSG, log);
+//                    params.putString(FTXEvent.EVENT_LOG_MSG, LiteavLog);
 //                    mEventSink.success(getParams(FTXEvent.EVENT_ON_LOG, params));
 //                }
 //            });
@@ -178,7 +178,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        Log.i(TAG, "onAttachedToEngine");
+        LiteavLog.i(TAG, "onAttachedToEngine");
         TXFlutterSuperPlayerPluginAPI.setup(flutterPluginBinding.getBinaryMessenger(), this);
         TXFlutterNativeAPI.setup(flutterPluginBinding.getBinaryMessenger(), this);
         TXFlutterVodPlayerApi.setup(flutterPluginBinding.getBinaryMessenger(), new FTXVodPlayerDispatcher(
@@ -186,7 +186,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         TXFlutterLivePlayerApi.setup(flutterPluginBinding.getBinaryMessenger(), new FTXLivePlayerDispatcher(
                 () -> mPlayers));
         mFlutterPluginBinding = flutterPluginBinding;
-        mPlayers = new SparseArray<>();
         initAudioManagerIfNeed();
         mPipEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
                 FTXEvent.PIP_CHANNEL_NAME);
@@ -219,7 +218,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createVodPlayer() {
-        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
+        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager, mEngineHolder);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -230,7 +229,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createLivePlayer() {
-        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mTxPipManager);
+        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mTxPipManager, mEngineHolder);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -355,7 +354,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                 };
                 mOrientationManager.enable();
             } catch (Exception e) {
-                Log.getStackTraceString(e);
+                LiteavLog.e(TAG, "innerStartVideoOrientationService error", e);
                 return false;
             }
         }
@@ -442,7 +441,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        Log.i(TAG, "onDetachedFromEngine");
+        LiteavLog.i(TAG, "onDetachedFromEngine");
         mFTXDownloadManager.destroy();
         mFlutterPluginBinding = null;
         if (null != mOrientationManager) {
@@ -507,7 +506,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                     mFlutterPluginBinding.getApplicationContext().getContentResolver(),
                     Settings.System.ACCELEROMETER_ROTATION, 0) == 1);
         } catch (Exception e) {
-            Log.getStackTraceString(e);
+            LiteavLog.e(TAG, "isDeviceAutoRotateOn error", e);
             return false;
         }
     }
