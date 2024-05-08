@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/res/app_localizations.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 
 import 'ui/demo_inputdialog.dart';
 import 'ui/demo_volume_slider.dart';
@@ -94,6 +95,8 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
   @override
   void initState() {
     super.initState();
+    // stop pip window if exists
+    TXPipController.instance.exitAndReleaseCurrentPip();
     init();
     WidgetsBinding.instance.addObserver(this);
     EasyLoading.show(status: 'loading...');

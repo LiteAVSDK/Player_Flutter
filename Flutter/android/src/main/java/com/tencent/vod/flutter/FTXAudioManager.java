@@ -9,7 +9,8 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
+
+import com.tencent.liteav.base.util.LiteavLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +148,7 @@ public class FTXAudioManager {
             result = mAudioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC,
                     AudioManager.AUDIOFOCUS_GAIN);
         }
-        Log.e(TAG, "requestAudioFocus result:" + result);
+        LiteavLog.e(TAG, "requestAudioFocus result:" + result);
     }
 
     public void addAudioFocusChangedListener(AudioFocusChangeListener listener) {

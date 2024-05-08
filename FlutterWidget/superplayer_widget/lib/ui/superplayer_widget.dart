@@ -131,7 +131,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     // only register listen once
     _pipSubscription = SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
       int eventCode = event["event"];
-      if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
+      if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT
+        || eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_RESTORE_UI) {
         _isFloatingMode = false;
         _playController._updatePlayerUIStatus(_pipPreUiStatus);
       } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_REQUEST_START) {
@@ -632,7 +633,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         } else if (result == TXVodPlayEvent.ERROR_PIP_ACTIVITY_DESTROYED) {
           failedStr = "enterPip failed,because activity is destroyed";
         } else {
-          failedStr = "enterPip failed,unkonw error";
+          failedStr = "enterPip failed,unkonw error:$result";
         }
         LogUtils.e(TAG, failedStr);
       }

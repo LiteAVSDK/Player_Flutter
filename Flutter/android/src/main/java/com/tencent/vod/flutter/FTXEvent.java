@@ -94,6 +94,12 @@ public class FTXEvent {
     // PIP error, current interface has been destroyed.
     // pip 错误，当前界面已销毁
     public static final int ERROR_PIP_ACTIVITY_DESTROYED = -103;
+    // PIP error, miss player
+    // pip 错误，丢失播放器
+    public static final int ERROR_PIP_MISS_PLAYER = -104;
+    // PIP error, pip is busy
+    // pip 错误，已经存在画中画窗口
+    public static final int ERROR_PIP_IN_BUSY = -105;
     // Event from PIP container,eventBus key value
     // 来自画中画容器的事件，eventBus键值
     public static final String EVENT_PIP_ACTION = "com.tencent.flutter.pipevent";
@@ -134,9 +140,6 @@ public class FTXEvent {
     // PIP parameters.
     // 画中画参数
     public static final String EXTRA_NAME_PARAMS = "pipParams";
-    // Video source.
-    // 视频源
-    public static final String EXTRA_NAME_VIDEO = "videoModel";
     // End parameters of PIP.
     // 画中画结束参数
     public static final String EXTRA_NAME_RESULT = "pipResult";

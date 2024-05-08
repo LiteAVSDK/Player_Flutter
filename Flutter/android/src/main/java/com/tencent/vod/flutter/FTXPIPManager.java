@@ -20,14 +20,14 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.Rational;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.model.TXPipResult;
-import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.model.TXPlayerHolder;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 import com.tencent.vod.flutter.ui.FlutterPipImplActivity;
@@ -127,15 +127,13 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      *
      * @return {@link FTXEvent} ERROR_PIP
      */
-    public int enterPip(PipParams params, TXVideoModel videoModel) {
+    public int enterPip(PipParams params, TXPlayerHolder playerHolder) {
         int pipResult = isSupportDevice();
         if (pipResult == FTXEvent.NO_ERROR) {
-            mPipEventSink.success(TXCommonUtil.getParams(FTXEvent.EVENT_PIP_MODE_REQUEST_START, null));
-            Intent intent = new Intent(mActivityBinding.getActivity(), FlutterPipImplActivity.class);
-            intent.setAction(FTXEvent.PIP_ACTION_START);
-            intent.putExtra(FTXEvent.EXTRA_NAME_PARAMS, params);
-            intent.putExtra(FTXEvent.EXTRA_NAME_VIDEO, videoModel);
-            mActivityBinding.getActivity().startActivity(intent);
+            pipResult = FlutterPipImplActivity.startPip(mActivityBinding.getActivity(), params, playerHolder);
+            if (pipResult == FTXEvent.NO_ERROR) {
+                mPipEventSink.success(TXCommonUtil.getParams(FTXEvent.EVENT_PIP_MODE_REQUEST_START, null));
+            }
             mIsInPipMode = true;
         }
         return pipResult;
@@ -170,19 +168,20 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                         activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
                 if (!isSuccess) {
                     pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
-                    Log.e(TAG, "enterPip failed,because PIP feature is disabled");
+                    LiteavLog.e(TAG, "enterPip failed,because PIP feature is disabled");
                 } else if (!hasPipPermission(activity)) {
                     pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
-                    Log.e(TAG, "enterPip failed,because PIP has no permission");
+                    LiteavLog.e(TAG, "enterPip failed,because PIP has no permission");
                 }
             } else {
                 pipResult = FTXEvent.ERROR_PIP_LOWER_VERSION;
-                Log.e(TAG, "enterPip failed,because android version is too low,Minimum supported version is android "
-                        + "24,but current is " + Build.VERSION.SDK_INT);
+                LiteavLog.e(TAG, "enterPip failed,because android version is too low,"
+                        + "Minimum supported version is android 24,but current is "
+                        + Build.VERSION.SDK_INT);
             }
         } else {
             pipResult = FTXEvent.ERROR_PIP_ACTIVITY_DESTROYED;
-            Log.e(TAG, "enterPip failed,because activity is destroyed");
+            LiteavLog.e(TAG, "enterPip failed,because activity is destroyed");
         }
         return pipResult;
     }
@@ -229,7 +228,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                 TXSimpleEventBus.getInstance().unregister(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, this);
             }
         } catch (Exception e) {
-            Log.getStackTraceString(e);
+            LiteavLog.e(TAG, "releaseActivityListener error", e);
         }
     }
 
@@ -262,9 +261,10 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                     || pipEventId == FTXEvent.EVENT_PIP_MODE_RESTORE_UI)) {
                 TXPipResult pipResult = params.getParcelable(FTXEvent.EXTRA_NAME_RESULT);
                 if (null != pipResult) {
-                    callbackData.putDouble(FTXEvent.EVENT_PIP_PLAY_TIME, pipResult.getPlayTime());
+                    callbackData.putFloat(FTXEvent.EVENT_PIP_PLAY_TIME, pipResult.getPlayTime());
                     handlePipResult(pipResult);
                 }
+                mIsInPipMode = false;
             }
             mPipEventSink.success(TXCommonUtil.getParams(pipEventId, callbackData));
         } else if (TextUtils.equals(eventType, FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION)) {
@@ -474,7 +474,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                     return Icon.createWithBitmap(iconBitmap);
                 }
             } catch (IOException e) {
-                Log.getStackTraceString(e);
+                LiteavLog.e(TAG, "getIcon error", e);
             }
             return Icon.createWithResource(activity, defaultResId);
         }

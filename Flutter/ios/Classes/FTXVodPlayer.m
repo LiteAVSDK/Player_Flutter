@@ -11,6 +11,7 @@
 #import "FTXEvent.h"
 #import "FtxMessages.h"
 #import "TXCommonUtil.h"
+#import "FTXLog.h"
 
 static const int uninitialized = -1;
 static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
@@ -375,7 +376,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
             return data;
         }
     } else {
-        NSLog(@"getImageSprite failed, time is null or initImageSprite not invoke");
+        FTXLOGE(@"getImageSprite failed, time is null or initImageSprite not invoke");
     }
     return nil;
 }
@@ -462,7 +463,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         });
     }
     if (EvtID != PLAY_EVT_PLAY_PROGRESS) {
-        NSLog(@"onPlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
+        FTXLOGI(@"onPlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
     }
     [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
 }
@@ -786,7 +787,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
             break;
     }
     self.hasEnteredPipMode = NO;
-    NSLog(@"[onPlayer], pictureInPictureErrorDidOccur errorType= %ld", type);
+    FTXLOGE(@"[onPlayer], pictureInPictureErrorDidOccur errorType= %ld", type);
     if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateError:)]) {
         [self.delegate onPlayerPipStateError:type];
     }
