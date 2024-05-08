@@ -5,7 +5,7 @@ import 'package:super_player/super_player.dart';
 /// progress slider widget
 class VideoSliderView extends StatefulWidget {
 
-  final ChangeNotifier _controller;
+  final TXPlayerController _controller;
 
   VideoSliderView(this._controller,Key key):super(key: key);
 

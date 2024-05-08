@@ -12,6 +12,7 @@
 #import "FtxMessages.h"
 #import "FTXVodPlayerDispatcher.h"
 #import "FTXLivePlayerDispatcher.h"
+#import "FTXLog.h"
 
 @interface SuperPlayerPlugin ()<FlutterStreamHandler,FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, ITXPlayersBridge, FlutterPlugin, TXLiveBaseDelegate>
 
@@ -303,6 +304,7 @@ SuperPlayerPlugin* instance;
 
 - (void)setLogLevelLogLevel:(nonnull IntMsg *)logLevel error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [TXLiveBase setLogLevel:logLevel.value.intValue];
+    [FTXLog setLogLevel:logLevel.value.intValue];
 }
 
 - (nullable BoolMsg *)startVideoOrientationServiceWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {

@@ -27,7 +27,7 @@ dependencies:
     path: ../
   superplayer_widget:
     # 该路径根据superplayer_widget存放路径改变
-    path: ../superplayer_widget
+    path: ../../FlutterWidget/superplayer_widget
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

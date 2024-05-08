@@ -4,16 +4,17 @@ package com.tencent.vod.flutter;
 
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Surface;
+
 import androidx.annotation.NonNull;
+
+import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXVodConstants;
-import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.FTXLivePlayConfigPlayerMsg;
@@ -25,8 +26,9 @@ import com.tencent.vod.flutter.messages.FtxMessages.StringIntPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.model.TXPipResult;
-import com.tencent.vod.flutter.model.TXVideoModel;
+import com.tencent.vod.flutter.model.TXPlayerHolder;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
+import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -59,22 +61,44 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     private int mSurfaceHeight = 0;
 
     private final FTXPIPManager mPipManager;
-    private FTXPIPManager.PipParams mPipParams;
-    private TXVideoModel mVideoModel;
+    private boolean mNeedPipResume = false;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPipResult(TXPipResult result) {
-            // When starting PIP, if the current player is paused and PIP is still playing when exiting,
-            // the current player will also be set to playing state upon exiting PIP.
+            if (mLivePlayer != null) {
+                mLivePlayer.setSurface(mSurface);
+                mLivePlayer.setPlayListener(FTXLivePlayer.this);
+            }
+            // When starting PIP, the current player has been paused. After PIP exits,
+            // if PIP is still in playing state, the current player will also be set to playing state.
             boolean isPipPlaying = result.isPlaying();
             if (isPipPlaying) {
-                resumePlayer();
+                if (TXFlutterEngineHolder.getInstance().isInForeground()) {
+                    resumePlayer();
+                } else {
+                    mNeedPipResume = true;
+                }
             }
         }
 
         @Override
         public void onPipPlayerEvent(int event, Bundle bundle) {
             onPlayEvent(event, bundle);
+        }
+    };
+
+    private final TXFlutterEngineHolder.TXAppStatusListener mAppLifeListener
+            = new TXFlutterEngineHolder.TXAppStatusListener() {
+        @Override
+        public void onResume() {
+            if (mNeedPipResume) {
+                mNeedPipResume = false;
+                resumePlayer();
+            }
+        }
+
+        @Override
+        public void onEnterBack() {
         }
     };
 
@@ -87,8 +111,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
         super();
         mFlutterPluginBinding = flutterPluginBinding;
         mPipManager = pipManager;
-        mVideoModel = new TXVideoModel();
-        mVideoModel.setPlayerType(FTXEvent.PLAYER_LIVE);
+        TXFlutterEngineHolder.getInstance().addAppLifeListener(mAppLifeListener);
 
         mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
@@ -145,6 +168,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
             mSurface = null;
         }
 
+        TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
         mEventChannel.setStreamHandler(null);
         mNetChannel.setStreamHandler(null);
     }
@@ -161,7 +185,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
             mHardwareDecodeFail = true;
         }
         if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
-            Log.e(TAG, "onLivePlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
+            LiteavLog.e(TAG, "onLivePlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
         }
         mEventSink.success(TXCommonUtil.getParams(event, bundle));
     }
@@ -192,17 +216,15 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
             mLivePlayer = new TXLivePlayer(mFlutterPluginBinding.getApplicationContext());
             mLivePlayer.setPlayListener(this);
         }
-        Log.d("AndroidLog", "textureId :" + mSurfaceTextureEntry.id());
+        LiteavLog.d("AndroidLog", "textureId :" + mSurfaceTextureEntry.id());
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
     }
 
     int startPlayerLivePlay(String url, Integer type) {
-        Log.d(TAG, "startLivePlay:");
+        LiteavLog.d(TAG, "startLivePlay:");
         if (null == type) {
             type = TXLivePlayer.PLAY_TYPE_LIVE_FLV;
         }
-        mVideoModel.setVideoUrl(url);
-        mVideoModel.setLiveType(type);
         if (mLivePlayer != null) {
             mLivePlayer.setSurface(mSurface);
             mLivePlayer.setPlayListener(this);
@@ -215,7 +237,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
                     int width = texture.width;
                     int height = texture.height;
                     if (width != mSurfaceWidth || height != mSurfaceHeight) {
-                        Log.d(TAG, "onRenderVideoFrame: width=" + texture.width + ",height=" + texture.height);
+                        LiteavLog.d(TAG, "onRenderVideoFrame: width=" + texture.width + ",height=" + texture.height);
                         mLivePlayer.setSurfaceSize(width, height);
                         mSurfaceTexture.setDefaultBufferSize(width, height);
                         mSurfaceWidth = width;
@@ -429,14 +451,14 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     @Override
     public IntMsg enterPictureInPictureMode(@NonNull PipParamsPlayerMsg pipParamsMsg) {
         mPipManager.addCallback(getPlayerId(), pipCallback);
-        mPipParams = new FTXPIPManager.PipParams(
+        FTXPIPManager.PipParams pipParams = new FTXPIPManager.PipParams(
                 mPipManager.toAndroidPath(pipParamsMsg.getBackIconForAndroid()),
                 mPipManager.toAndroidPath(pipParamsMsg.getPlayIconForAndroid()),
                 mPipManager.toAndroidPath(pipParamsMsg.getPauseIconForAndroid()),
                 mPipManager.toAndroidPath(pipParamsMsg.getForwardIconForAndroid()),
                 getPlayerId(), false, false, true);
-        mPipParams.setIsPlaying(isPlayerPlaying());
-        int pipResult = mPipManager.enterPip(mPipParams, mVideoModel);
+        pipParams.setIsPlaying(isPlayerPlaying());
+        int pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(mLivePlayer));
         // After the startup is successful, pause the video on the current interface.
         if (pipResult == FTXEvent.NO_ERROR) {
             pausePlayer();

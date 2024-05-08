@@ -54,6 +54,10 @@ class TXPipController {
       } else if ((Platform.isIOS && eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) ||
           (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT)) {
         _playerData?.isEnterPip = false;
+        /**
+         * if you do not intend to continue reusing this vod player.
+         * exitAndReleaseCurrentPip must be called, otherwise there may be a obj leak
+         */
         await exitAndReleaseCurrentPip();
       } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_RESTORE_UI) {
         _extParams[ARGUMENT_PIP_START_TIME] = event["playTime"];

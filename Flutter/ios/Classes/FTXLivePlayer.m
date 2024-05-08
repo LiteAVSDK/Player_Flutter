@@ -9,6 +9,7 @@
 #import <libkern/OSAtomic.h>
 #import "FtxMessages.h"
 #import "TXCommonUtil.h"
+#import "FTXLog.h"
 
 static const int uninitialized = -1;
 
@@ -301,7 +302,7 @@ static const int uninitialized = -1;
 - (void)onPlayEvent:(int)EvtID withParam:(NSDictionary *)param
 {
     [_eventSink success:[FTXLivePlayer getParamsWithEvent:EvtID withParams:param]];
-    NSLog(@"onLivePlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
+    FTXLOGI(@"onLivePlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION])
 }
 
 /**
