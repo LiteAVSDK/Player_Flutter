@@ -29,6 +29,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.ITXLivePlayListener;
@@ -268,15 +269,8 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private void registerPipBroadcast() {
         if (!mIsRegisterReceiver) {
             IntentFilter pipIntentFilter = new IntentFilter(FTXEvent.ACTION_PIP_PLAY_CONTROL);
-            if (VERSION.SDK_INT >= VERSION_CODES.O) {
-                /*
-                RECEIVER_VISIBLE_TO_INSTANT_APPS: export true
-                0 : export false
-                 */
-                registerReceiver(pipActionReceiver, pipIntentFilter, 0);
-            } else {
-                registerReceiver(pipActionReceiver, pipIntentFilter);
-            }
+            ContextCompat.registerReceiver(this, pipActionReceiver, pipIntentFilter,
+                    ContextCompat.RECEIVER_NOT_EXPORTED);
             mIsRegisterReceiver = true;
         }
     }
