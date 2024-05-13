@@ -23,6 +23,7 @@ rootProject.allprojects {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace="com.tencent.vod.flutter"
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
