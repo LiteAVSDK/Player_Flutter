@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,6 +24,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveBaseListener;
@@ -522,7 +524,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mVolumeBroadcastReceiver = new VolumeBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
-        mActivityPluginBinding.getActivity().registerReceiver(mVolumeBroadcastReceiver, filter);
+        ContextCompat.registerReceiver(mActivityPluginBinding.getActivity(), mVolumeBroadcastReceiver, filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     public void enableBrightnessObserver(boolean enable) {
