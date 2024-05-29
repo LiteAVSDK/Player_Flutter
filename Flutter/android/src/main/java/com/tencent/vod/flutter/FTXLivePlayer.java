@@ -61,7 +61,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
     private int mSurfaceHeight = 0;
 
     private final FTXPIPManager mPipManager;
-    private TXFlutterEngineHolder mEngineHolder;
     private boolean mNeedPipResume = false;
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
@@ -74,7 +73,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
             // if PIP is still in playing state, the current player will also be set to playing state.
             boolean isPipPlaying = result.isPlaying();
             if (isPipPlaying) {
-                if (mEngineHolder.isInForeground()) {
+                if (TXFlutterEngineHolder.getInstance().isInForeground()) {
                     resumePlayer();
                 } else {
                     mNeedPipResume = true;
@@ -108,13 +107,11 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
      *
      * 直播播放器
      */
-    public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager,
-                         TXFlutterEngineHolder engineHolder) {
+    public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
         super();
         mFlutterPluginBinding = flutterPluginBinding;
         mPipManager = pipManager;
-        mEngineHolder = engineHolder;
-        engineHolder.addAppLifeListener(mAppLifeListener);
+        TXFlutterEngineHolder.getInstance().addAppLifeListener(mAppLifeListener);
 
         mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
@@ -171,7 +168,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements ITXLivePlayListener,
             mSurface = null;
         }
 
-        mEngineHolder.removeAppLifeListener(mAppLifeListener);
+        TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
         mEventChannel.setStreamHandler(null);
         mNetChannel.setStreamHandler(null);
     }

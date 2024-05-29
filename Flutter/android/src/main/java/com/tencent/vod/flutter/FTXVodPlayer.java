@@ -81,7 +81,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     private boolean mEnableHardwareDecode = true;
     private boolean mHardwareDecodeFail = false;
     private final FTXPIPManager mPipManager;
-    private final TXFlutterEngineHolder mEngineHolder;
     private boolean mNeedPipResume = false;
     private final FTXPIPManager.PipCallback mPipCallback = new FTXPIPManager.PipCallback() {
         @Override
@@ -95,7 +94,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
             // if PIP is still in playing state, the current player will also be set to playing state.
             boolean isPipPlaying = result.isPlaying();
             if (isPipPlaying) {
-                if (mEngineHolder.isInForeground()) {
+                if (TXFlutterEngineHolder.getInstance().isInForeground()) {
                     playerResume();
                 } else {
                     mNeedPipResume = true;
@@ -129,13 +128,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
      *
      * 点播播放器
      */
-    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager,
-                        TXFlutterEngineHolder engineHolder) {
+    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
         super();
         mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;
-        mEngineHolder = engineHolder;
-        engineHolder.addAppLifeListener(mAppLifeListener);
+        TXFlutterEngineHolder.getInstance().addAppLifeListener(mAppLifeListener);
 
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent"
                 + ".com/txvodplayer/event/" + super.getPlayerId());
@@ -191,7 +188,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
 
         mEventChannel.setStreamHandler(null);
         mNetChannel.setStreamHandler(null);
-        mEngineHolder.removeAppLifeListener(mAppLifeListener);
+        TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
         releaseTXImageSprite();
         if (null != mPipManager) {
             mPipManager.releaseCallback(getPlayerId());

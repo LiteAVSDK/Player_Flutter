@@ -3,7 +3,6 @@
 package com.tencent.vod.flutter.ui;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.PictureInPictureParams;
 import android.app.PictureInPictureUiState;
 import android.content.BroadcastReceiver;
@@ -13,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Build.VERSION;
@@ -36,16 +36,15 @@ import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.rtmp.TXVodConstants;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
+import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
-
-import java.util.List;
-import java.util.Set;
 
 
 public class FlutterPipImplActivity extends Activity implements Callback, ITXVodPlayListener,
@@ -82,6 +81,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private Handler mMainHandler;
     private boolean mIsPipFinishing = false;
     private TXPlayerHolder mPlayerHolder;
+    private boolean mIsPlayEnd = false;
 
     private final BroadcastReceiver pipActionReceiver = new BroadcastReceiver() {
         @Override
@@ -174,6 +174,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         handleIntent(intent);
     }
 
+
     private void setVodPlayerListener() {
         mPlayerHolder.getVodPlayer().setVodListener(this);
     }
@@ -252,7 +253,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     private void configPipMode(PictureInPictureParams params) {
-        mVideoSurface.postDelayed(new Runnable() {
+        mVideoSurface.post(new Runnable() {
             @Override
             public void run() {
                 if (VERSION.SDK_INT >= VERSION_CODES.N) {
@@ -263,7 +264,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
                     }
                 }
             }
-        }, 200);
+        });
     }
 
     private void registerPipBroadcast() {
@@ -285,8 +286,12 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         Bundle data = new Bundle();
         TXPipResult pipResult = new TXPipResult();
         if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
-            Float currentPlayTime = mPlayerHolder.getVodPlayer().getCurrentPlaybackTime();
-            pipResult.setPlayTime(currentPlayTime);
+            if (mIsPlayEnd) {
+                pipResult.setPlayTime(0F);
+            } else {
+                Float currentPlayTime = mPlayerHolder.getVodPlayer().getCurrentPlaybackTime();
+                pipResult.setPlayTime(currentPlayTime);
+            }
             pipResult.setPlaying(mPlayerHolder.getVodPlayer().isPlaying());
             pipResult.setPlayerId(mCurrentParams.getCurrentPlayerId());
             data.putParcelable(FTXEvent.EXTRA_NAME_RESULT, pipResult);
@@ -345,19 +350,13 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     /**
      * move task to from。Prevent the issue of picture-in-picture windows failing to launch the app in certain cases.
      */
-    public void moveAppToFront() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
-        }
-        ActivityManager activityManager =
-                (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-        final List<ActivityManager.AppTask> appTasks = activityManager.getAppTasks();
-        for (ActivityManager.AppTask task : appTasks) {
-            final Intent baseIntent = task.getTaskInfo().baseIntent;
-            final Set<String> categories = baseIntent.getCategories();
-            if (categories != null && categories.contains(Intent.CATEGORY_LAUNCHER)) {
-                task.moveToFront();
-                return;
+    public void movePreActToFront() {
+        if (VERSION.SDK_INT == VERSION_CODES.Q) {
+            Activity activity = TXFlutterEngineHolder.getInstance().getPreActivity();
+            if (null != activity) {
+                Intent intent = new Intent(FlutterPipImplActivity.this, activity.getClass());
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             }
         }
     }
@@ -380,29 +379,23 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             // Due to the foreground service startup restriction in Android 12, if the activity interface is closed
             // too early after returning from picture-in-picture mode, the app cannot be launched normally.
             // Therefore, a delay processing is added here.
-            if (VERSION.SDK_INT >= VERSION_CODES.S && !closeImmediately) {
+            if (!closeImmediately) {
                 mVideoSurface.setVisibility(View.GONE);
                 mVideoProgress.setVisibility(View.GONE);
                 mMainHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         overridePendingTransition(0, 0);
-                        finishAndRemoveTask();
+                        finish();
                         mIsPipFinishing = false;
+                        movePreActToFront();
                     }
                 }, 500);
             } else {
                 overridePendingTransition(0, 0);
-                if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                    finishAndRemoveTask();
-                } else {
-                    finish();
-                }
+                finish();
                 mIsPipFinishing = false;
             }
-        }
-        if (!closeImmediately) {
-            moveAppToFront();
         }
     }
 
@@ -559,6 +552,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private void showComponent() {
         mVideoSurface.setVisibility(View.VISIBLE);
         mVideoProgress.setVisibility(View.VISIBLE);
+        mVideoSurface.setBackgroundColor(Color.parseColor("#33000000"));
     }
 
     private void controlPipPlayStatus(boolean isPlaying) {
@@ -584,9 +578,11 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
             }
             if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
                 // When playback is complete, automatically set the playback button to play.
+                mIsPlayEnd = true;
                 controlPipPlayStatus(false);
             } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
                 // When playback starts, automatically set the playback button to pause.
+                mIsPlayEnd = false;
                 controlPipPlayStatus(true);
             } else if (event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
                 int progress = bundle.getInt(TXLiveConstants.EVT_PLAY_PROGRESS_MS);

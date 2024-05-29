@@ -20,6 +20,8 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
   @override
   void initState() {
     super.initState();
+    // stop pip window if exists
+    TXPipController.instance.exitAndReleaseCurrentPip();
     ShortVideoDataLoader loader = ShortVideoDataLoader();
     loader.getPageListDataOneByOneFunction((dataModels) {
       setState(() {

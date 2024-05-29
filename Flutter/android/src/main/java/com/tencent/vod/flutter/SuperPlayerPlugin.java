@@ -89,7 +89,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     private OrientationEventListener mOrientationManager;
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
-    private final TXFlutterEngineHolder mEngineHolder = new TXFlutterEngineHolder();
     private boolean mIsBrightnessObserverRegistered = false;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
@@ -220,7 +219,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createVodPlayer() {
-        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager, mEngineHolder);
+        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -231,7 +230,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createLivePlayer() {
-        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mTxPipManager, mEngineHolder);
+        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mTxPipManager);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -454,13 +453,13 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         if (null != mActivityPluginBinding && mActivityPluginBinding != binding) {
-            mEngineHolder.destroy(binding);
+            TXFlutterEngineHolder.getInstance().destroy(binding);
         }
         mActivityPluginBinding = binding;
         initAudioManagerIfNeed();
         initPipManagerIfNeed();
         registerReceiver();
-        mEngineHolder.attachBindLife(binding);
+        TXFlutterEngineHolder.getInstance().attachBindLife(binding);
         TXLiveBase.enableCustomHttpDNS(true);
         TXLiveBase.setListener(mSDKEvent);
     }
@@ -484,7 +483,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), TXAndroid12BridgeService.class);
         mActivityPluginBinding.getActivity().stopService(serviceIntent);
         unregisterReceiver();
-        mEngineHolder.destroy(mActivityPluginBinding);
+        TXFlutterEngineHolder.getInstance().destroy(mActivityPluginBinding);
         TXLiveBase.setListener(null);
     }
 

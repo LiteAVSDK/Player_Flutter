@@ -18,11 +18,20 @@ public class TXFlutterEngineHolder {
 
     private static final String TAG = "TXFlutterEngineHolder";
 
+    private static final class SingletonInstance {
+        private static TXFlutterEngineHolder instance = new TXFlutterEngineHolder();
+    }
+
     private int mFrontContextCount = 0;
     private Application.ActivityLifecycleCallbacks mLifeCallback;
     private final List<TXAppStatusListener> mListeners = new ArrayList<>();
     private boolean mIsEnterBack = false;
 
+    private final List<Activity> mActivityList = new ArrayList<>();
+
+    public static TXFlutterEngineHolder getInstance() {
+        return SingletonInstance.instance;
+    }
 
     public void attachBindLife(ActivityPluginBinding binding) {
         if (mLifeCallback != null) {
@@ -56,7 +65,15 @@ public class TXFlutterEngineHolder {
 
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
-
+                synchronized (mActivityList) {
+                    if (mActivityList.contains(activity)) {
+                        // refresh index
+                        mActivityList.remove(activity);
+                        mActivityList.add(activity);
+                    } else {
+                        mActivityList.add(activity);
+                    }
+                }
             }
 
             @Override
@@ -80,7 +97,9 @@ public class TXFlutterEngineHolder {
 
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
-
+                synchronized (mActivityList) {
+                    mActivityList.remove(activity);
+                }
             }
         };
         binding.getActivity().getApplication().registerActivityLifecycleCallbacks(mLifeCallback);
@@ -88,6 +107,23 @@ public class TXFlutterEngineHolder {
 
     public boolean isInForeground() {
         return !mIsEnterBack;
+    }
+
+    public Activity getActivityByIndex(int index) {
+        synchronized (mActivityList) {
+            if (index >= mActivityList.size() || index < 0) {
+                return null;
+            }
+            return mActivityList.get(index);
+        }
+    }
+
+    public Activity getPreActivity() {
+        synchronized (mActivityList) {
+            final int size = mActivityList.size();
+            final int preIndex = size - 2;
+            return getActivityByIndex(preIndex);
+        }
     }
 
     public void destroy(ActivityPluginBinding binding) {

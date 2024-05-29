@@ -173,6 +173,8 @@ abstract class TXVodPlayEvent {
   // Video SEI frame information, Player Premium version 11.6 starts to support
   // 视频 SEI 帧信息, 播放器高级版 11.6 版本开始支持
   static const VOD_PLAY_EVT_VIDEO_SEI = 2030;
+  // video loop once complete
+  static const VOD_PLAY_EVT_LOOP_ONCE_COMPLETE = 6001;
 
   // UTC time
   // UTC时间

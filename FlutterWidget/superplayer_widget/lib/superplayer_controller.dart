@@ -180,6 +180,10 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_END:
           _updatePlayerState(SuperPlayerState.END);
+          // reset start time when end
+          if (startPos > 0) {
+            await setStartTime(0);
+          }
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS:
           dynamic progress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS];
@@ -207,11 +211,17 @@ class SuperPlayerController {
           currentSubtitleData = new TXVodSubtitleData(subtitleDataStr, startPositionMs, durationMs, trackIndex);
           _observer?.onSubtitleData(currentSubtitleData);
           break;
-        case TXVodPlayEvent.VOD_PLAY_EVT_SELECT_TRACK_COMPLETE: {
+        case TXVodPlayEvent.VOD_PLAY_EVT_SELECT_TRACK_COMPLETE:
           int trackIndex = event[TXVodPlayEvent.EVT_KEY_SELECT_TRACK_INDEX];
           int errorCode = event[TXVodPlayEvent.EVT_KEY_SELECT_TRACK_ERROR_CODE];
           LogUtils.d(TAG, "SELECT_TRACK_COMPLETE trackIndex: ${trackIndex}, errorCode: ${errorCode}");
-        }
+          break;
+        case TXVodPlayEvent.VOD_PLAY_EVT_LOOP_ONCE_COMPLETE:
+          // reset start time when once complete
+          if (startPos > 0) {
+            await setStartTime(0);
+          }
+          break;
       }
     });
     _vodNetEventListener = _vodPlayerController.onPlayerNetStatusBroadcast.listen((event) {

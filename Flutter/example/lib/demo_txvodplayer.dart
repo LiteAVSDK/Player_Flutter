@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/res/app_localizations.dart';
+import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'ui/demo_inputdialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'ui/demo_volume_slider.dart';
@@ -102,6 +103,8 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   @override
   void initState() {
     super.initState();
+    // stop pip window if exists
+    TXPipController.instance.exitAndReleaseCurrentPip();
     _controller = TXVodPlayerController();
     init();
     WidgetsBinding.instance.addObserver(this);
