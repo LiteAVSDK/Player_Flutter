@@ -215,6 +215,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         TXPlayerAuthParams *p = [TXPlayerAuthParams new];
         p.appId = appId;
         p.fileId = fileId;
+        p.https = YES;
         if (sign.length > 0) {
             p.sign = sign;
         }
