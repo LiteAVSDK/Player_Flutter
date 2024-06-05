@@ -156,3 +156,49 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - set iOS TXLiteAVSDK_Player to 11.6.15007， tag：release_player_v11.6.0
 - Adapt the Flutter player to the new version of the Flutter SDK
 - fix player and player's widget known issues
+
+
+#### Version: 11.6.1 2024.01.29
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 11.6.0.13641，tag：release_player_v11.6.1
+- set iOS TXLiteAVSDK_Player to 11.6.15041， tag：release_player_v11.6.1
+- superPlayerWidget add renderMode config
+- superPlayerWidget add stopPlay method
+- vod/live dispose method can await now
+- fix known issues
+
+
+#### Version: 11.7.0 2024.04.02
+
+##### 版本特性：
+
+- set Android TXLiteAVSDK_Player to 11.7.0.13946，tag：release_player_v11.7.0
+- set iOS TXLiteAVSDK_Player to 11.7.15343， tag：release_player_v11.7.0
+- Add setSDKListener in SuperPlayerPlugin
+- fix known issues
+
+#### Version: 11.8.0 2024.05.06
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 11.8.0.14176，tag：release_player_v11.8.0
+- set iOS TXLiteAVSDK_Player to 11.8.15669， tag：release_player_v11.8.0
+
+#### Version: 11.8.1 2024.05.22
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 11.8.0.14188，tag：release_player_v11.8.1
+- set iOS TXLiteAVSDK_Player to 11.8.15687， tag：release_player_v11.8.1
+
+#### Version: 11.9.0 2024.06.05
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 11.9.0.14445，tag：release_player_v11.9.0
+- set iOS TXLiteAVSDK_Player to 11.9.15963， tag：release_player_v11.9.0
+- Android compatible with high version Gradle 
+- The location of the superPlayerWidget has changed, integrating superPlayer will no longer include the source code of the superPlayerWidget 
+- Android picture-in-picture feature logic optimization, compatible with more models
