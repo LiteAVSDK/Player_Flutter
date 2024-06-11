@@ -223,6 +223,12 @@ class SuperPlayerController {
           }
           break;
       }
+      // -100 is IOS valid view
+      if (eventCode < 0 && eventCode != -100) {
+        _observer?.onError(SuperPlayerCode.VOD_PLAY_FAIL, event.toString());
+        _addSimpleEvent(SuperPlayerViewEvent.onSuperPlayerError, params: event);
+        _updatePlayerState(SuperPlayerState.END);
+      }
     });
     _vodNetEventListener = _vodPlayerController.onPlayerNetStatusBroadcast.listen((event) {
       _playerNetStatusStreamController.add(event);
@@ -542,7 +548,9 @@ class SuperPlayerController {
         }
       }
     } else {
-      await _playVodUrl(_currentPlayUrl);
+      if (null != videoModel) {
+        await _playWithModelInner(videoModel!);
+      }
     }
   }
 

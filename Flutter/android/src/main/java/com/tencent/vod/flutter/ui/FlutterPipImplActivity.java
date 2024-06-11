@@ -13,7 +13,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.PixelFormat;
+import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -22,11 +22,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
-import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -36,7 +35,6 @@ import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayer;
-import com.tencent.rtmp.TXVodConstants;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
@@ -47,7 +45,7 @@ import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 
 
-public class FlutterPipImplActivity extends Activity implements Callback, ITXVodPlayListener,
+public class FlutterPipImplActivity extends Activity implements TextureView.SurfaceTextureListener, ITXVodPlayListener,
         ITXLivePlayListener, ServiceConnection {
 
     private static final String TAG = "FlutterPipImplActivity";
@@ -69,8 +67,9 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private int configWidth = 0;
     private int configHeight = 0;
 
-    private SurfaceView mVideoSurface;
+    private TextureView mVideoSurface;
     private ProgressBar mVideoProgress;
+    private RelativeLayout mPipContainer;
 
     private boolean mIsSurfaceCreated = false;
     // In picture-in-picture mode, clicking the X in the upper right corner will trigger `onStop` first.
@@ -141,9 +140,10 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
         bindAndroid12BugServiceIfNeed();
         registerPipBroadcast();
         setContentView(R.layout.activity_flutter_pip_impl);
-        mVideoSurface = findViewById(R.id.sv_video_container);
+        mVideoSurface = findViewById(R.id.tv_video_container);
         mVideoProgress = findViewById(R.id.pb_video_progress);
-        mVideoSurface.getHolder().addCallback(this);
+        mPipContainer = findViewById(R.id.rl_pip_container);
+        mVideoSurface.setSurfaceTextureListener(this);
         if (null == pipPlayerHolder) {
             LiteavLog.e(TAG, "lack pipPlayerHolder, please check the pip argument");
             finish();
@@ -401,7 +401,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
 
     private void startPipVideo() {
         if (mIsSurfaceCreated) {
-            attachSurface(mVideoSurface.getHolder().getSurface());
+            attachSurface(new Surface(mVideoSurface.getSurfaceTexture()));
             startPlay();
         }
     }
@@ -418,20 +418,26 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {
+    public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
         mIsSurfaceCreated = true;
-        holder.setFormat(PixelFormat.TRANSLUCENT);
-        attachSurface(holder.getSurface());
+        attachSurface(new Surface(surface));
         startPlay();
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
+
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+    public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
         mIsSurfaceCreated = false;
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+
     }
 
     @Override
@@ -552,7 +558,7 @@ public class FlutterPipImplActivity extends Activity implements Callback, ITXVod
     private void showComponent() {
         mVideoSurface.setVisibility(View.VISIBLE);
         mVideoProgress.setVisibility(View.VISIBLE);
-        mVideoSurface.setBackgroundColor(Color.parseColor("#33000000"));
+        mPipContainer.setBackgroundColor(Color.parseColor("#33000000"));
     }
 
     private void controlPipPlayStatus(boolean isPlaying) {
