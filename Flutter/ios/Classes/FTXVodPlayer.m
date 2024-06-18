@@ -1101,5 +1101,15 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     }
 }
 
+- (void)setStringOptionPlayerMsg:(StringOptionPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        if (playerMsg.value && [playerMsg.value count] != 0) {
+            id value = playerMsg.value[0];
+            [_txVodPlayer setExtentOptionInfo:@{
+                playerMsg.key : value
+            }];
+        }
+    }
+}
 
 @end
