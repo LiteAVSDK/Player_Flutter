@@ -88,18 +88,21 @@ public class FTXEvent {
     // PIP error, Android version is too low.
     // pip 错误，android版本过低
     public static final int ERROR_PIP_LOWER_VERSION = -101;
-    // PIP error, picture-in-picture permission is turned off/device does not support picture-in-picture.
-    // pip 错误，画中画权限关闭/设备不支持画中画
+    // PIP error, picture-in-picture permission is turned off.
+    // pip 错误，画中画权限关闭
     public static final int ERROR_PIP_DENIED_PERMISSION = -102;
     // PIP error, current interface has been destroyed.
     // pip 错误，当前界面已销毁
     public static final int ERROR_PIP_ACTIVITY_DESTROYED = -103;
     // PIP error, miss player
     // pip 错误，丢失播放器
-    public static final int ERROR_PIP_MISS_PLAYER = -104;
+    public static final int ERROR_PIP_MISS_PLAYER = -109;
     // PIP error, pip is busy
     // pip 错误，已经存在画中画窗口
-    public static final int ERROR_PIP_IN_BUSY = -105;
+    public static final int ERROR_PIP_IN_BUSY = -110;
+    // PIP error, device does not support picture-in-picture.
+    // pip 错误，设备不支持画中画
+    public static final int ERROR_PIP_FEATURE_NOT_SUPPORT = -104;
     // Event from PIP container,eventBus key value
     // 来自画中画容器的事件，eventBus键值
     public static final String EVENT_PIP_ACTION = "com.tencent.flutter.pipevent";
@@ -143,6 +146,9 @@ public class FTXEvent {
     // End parameters of PIP.
     // 画中画结束参数
     public static final String EXTRA_NAME_RESULT = "pipResult";
+    // End parameters of PIP.
+    // 画中画结束参数
+    public static final String EXTRA_NAME_IS_PLAYING = "isPlaying";
 
     // VOD player.
     // 点播播放器

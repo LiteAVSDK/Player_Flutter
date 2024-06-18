@@ -167,7 +167,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                 boolean isSuccess =
                         activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
                 if (!isSuccess) {
-                    pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
+                    pipResult = FTXEvent.ERROR_PIP_FEATURE_NOT_SUPPORT;
                     LiteavLog.e(TAG, "enterPip failed,because PIP feature is disabled");
                 } else if (!hasPipPermission(activity)) {
                     pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
@@ -193,12 +193,22 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                     android.os.Process.myUid(), activity.getPackageName());
             return permissionResult == AppOpsManager.MODE_ALLOWED;
         } else {
-            return false;
+            return true;
         }
     }
 
     public boolean isInPipMode() {
         return mIsInPipMode;
+    }
+
+    public void notifyCurrentPipPlayerPlayState(int playerId, boolean isPlaying) {
+        Bundle playOrPauseData = new Bundle();
+        playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, playerId);
+        playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE);
+        playOrPauseData.putInt(FTXEvent.EXTRA_NAME_IS_PLAYING, isPlaying ? 1 : 2);
+        Intent playOrPauseIntent =
+                new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
+        mActivityBinding.getActivity().sendBroadcast(playOrPauseIntent);
     }
 
     /**
@@ -239,8 +249,10 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      */
     public void updatePipActions(PipParams params) {
         Intent intent = new Intent(mActivityBinding.getActivity(), FlutterPipImplActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(FTXEvent.EXTRA_NAME_PARAMS, params);
         intent.setAction(FTXEvent.PIP_ACTION_UPDATE);
-        intent.putExtra(FTXEvent.EXTRA_NAME_PARAMS, params);
+        intent.putExtra("data", bundle);
         mActivityBinding.getActivity().startActivity(intent);
     }
 
