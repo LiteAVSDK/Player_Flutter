@@ -318,7 +318,12 @@
     }
 }
 
-
+- (void)setStringOptionPlayerMsg:(StringOptionPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing *)error {
+    id<TXFlutterVodPlayerApi> api = self.bridge.getPlayers[playerMsg.playerId];
+    if (api) {
+        [api setStringOptionPlayerMsg:playerMsg error:error];
+    }
+}
 
 @end
 

@@ -318,6 +318,13 @@ class SubTitleRenderModelPlayerMsg {
   int? playerId;
 }
 
+class StringOptionPlayerMsg {
+  String? key;
+  // pass obj value
+  List<Object?>? value;
+  int? playerId;
+}
+
 @HostApi()
 abstract class TXFlutterSuperPlayerPluginAPI {
   StringMsg getPlatformVersion();
@@ -642,6 +649,8 @@ abstract class TXFlutterVodPlayerApi {
   void deselectTrack(IntPlayerMsg playerMsg);
 
   void setSubtitleStyle(SubTitleRenderModelPlayerMsg playerMsg);
+
+  void setStringOption(StringOptionPlayerMsg playerMsg);
 }
 
 @HostApi()

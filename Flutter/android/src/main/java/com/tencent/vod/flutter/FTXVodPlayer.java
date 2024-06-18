@@ -341,6 +341,9 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     void playerPause() {
         if (mVodPlayer != null) {
             mVodPlayer.pause();
+            if (mPipManager.isInPipMode()) {
+                mPipManager.notifyCurrentPipPlayerPlayState(getPlayerId(), isPlayerPlaying());
+            }
         }
     }
 
@@ -842,6 +845,17 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener, F
     public void setSubtitleStyle(@NonNull FtxMessages.SubTitleRenderModelPlayerMsg playerMsg) {
         if (null != mVodPlayer) {
             mVodPlayer.setSubtitleStyle(FTXTransformation.transToTitleRenderModel(playerMsg));
+        }
+    }
+
+    @Override
+    public void setStringOption(@NonNull FtxMessages.StringOptionPlayerMsg playerMsg) {
+        if (null != mVodPlayer) {
+            List<Object> values = playerMsg.getValue();
+            if (null != values && !values.isEmpty()) {
+                Object value = values.get(0);
+                mVodPlayer.setStringOption(playerMsg.getKey(), value);
+            }
         }
     }
 }

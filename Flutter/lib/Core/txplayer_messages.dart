@@ -1027,6 +1027,37 @@ class SubTitleRenderModelPlayerMsg {
   }
 }
 
+class StringOptionPlayerMsg {
+  StringOptionPlayerMsg({
+    this.key,
+    this.value,
+    this.playerId,
+  });
+
+  String? key;
+
+  List<Object?>? value;
+
+  int? playerId;
+
+  Object encode() {
+    return <Object?>[
+      key,
+      value,
+      playerId,
+    ];
+  }
+
+  static StringOptionPlayerMsg decode(Object result) {
+    result as List<Object?>;
+    return StringOptionPlayerMsg(
+      key: result[0] as String?,
+      value: (result[1] as List<Object?>?)?.cast<Object?>(),
+      playerId: result[2] as int?,
+    );
+  }
+}
+
 class _TXFlutterSuperPlayerPluginAPICodec extends StandardMessageCodec {
   const _TXFlutterSuperPlayerPluginAPICodec();
   @override
@@ -1753,23 +1784,26 @@ class _TXFlutterVodPlayerApiCodec extends StandardMessageCodec {
     } else if (value is StringListPlayerMsg) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    } else if (value is StringPlayerMsg) {
+    } else if (value is StringOptionPlayerMsg) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    } else if (value is SubTitlePlayerMsg) {
+    } else if (value is StringPlayerMsg) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    } else if (value is SubTitleRenderModelPlayerMsg) {
+    } else if (value is SubTitlePlayerMsg) {
       buffer.putUint8(141);
       writeValue(buffer, value.encode());
-    } else if (value is TXPlayInfoParamsPlayerMsg) {
+    } else if (value is SubTitleRenderModelPlayerMsg) {
       buffer.putUint8(142);
       writeValue(buffer, value.encode());
-    } else if (value is TXPlayerDrmMsg) {
+    } else if (value is TXPlayInfoParamsPlayerMsg) {
       buffer.putUint8(143);
       writeValue(buffer, value.encode());
-    } else if (value is UInt8ListMsg) {
+    } else if (value is TXPlayerDrmMsg) {
       buffer.putUint8(144);
+      writeValue(buffer, value.encode());
+    } else if (value is UInt8ListMsg) {
+      buffer.putUint8(145);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -1802,16 +1836,18 @@ class _TXFlutterVodPlayerApiCodec extends StandardMessageCodec {
       case 138: 
         return StringListPlayerMsg.decode(readValue(buffer)!);
       case 139: 
-        return StringPlayerMsg.decode(readValue(buffer)!);
+        return StringOptionPlayerMsg.decode(readValue(buffer)!);
       case 140: 
-        return SubTitlePlayerMsg.decode(readValue(buffer)!);
+        return StringPlayerMsg.decode(readValue(buffer)!);
       case 141: 
-        return SubTitleRenderModelPlayerMsg.decode(readValue(buffer)!);
+        return SubTitlePlayerMsg.decode(readValue(buffer)!);
       case 142: 
-        return TXPlayInfoParamsPlayerMsg.decode(readValue(buffer)!);
+        return SubTitleRenderModelPlayerMsg.decode(readValue(buffer)!);
       case 143: 
-        return TXPlayerDrmMsg.decode(readValue(buffer)!);
+        return TXPlayInfoParamsPlayerMsg.decode(readValue(buffer)!);
       case 144: 
+        return TXPlayerDrmMsg.decode(readValue(buffer)!);
+      case 145: 
         return UInt8ListMsg.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -2930,6 +2966,28 @@ class TXFlutterVodPlayerApi {
   Future<void> setSubtitleStyle(SubTitleRenderModelPlayerMsg arg_playerMsg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.TXFlutterVodPlayerApi.setSubtitleStyle', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> setStringOption(StringOptionPlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterVodPlayerApi.setStringOption', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
