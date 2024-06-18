@@ -704,6 +704,15 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..value = trackIndex);
   }
 
+  Future<void> setStringOption(String key, Object value) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.setStringOption(StringOptionPlayerMsg()
+      ..playerId = _playerId
+      ..key = key
+      ..value = [value]);
+  }
+
   /// release controller
   ///
   /// 释放controller

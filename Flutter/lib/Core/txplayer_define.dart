@@ -336,14 +336,14 @@ abstract class TXVodPlayEvent {
   // PIP error, Android version is too low.
   // pip 错误，android版本过低
   static const ERROR_PIP_LOWER_VERSION = -101;
-  // PIP error, picture-in-picture permission is turned off/device does not support picture-in-picture.
-  // pip 错误，画中画权限关闭/设备不支持画中画
+  // PIP error, picture-in-picture permission is turned off
+  // pip 错误，画中画权限关闭
   static const ERROR_PIP_DENIED_PERMISSION = -102;
   // PIP error, current interface has been destroyed.
   // pip 错误，当前界面已销毁
   static const ERROR_PIP_ACTIVITY_DESTROYED = -103;
-  // PIP error, device or system version not supported (PIP is only supported on iPad iOS9+)
-  // pip 错误，设备或系统版本不支持（iPad iOS9+ 才支持PIP）
+  // PIP error, device or system version not supported (PIP is only supported on iPad iOS9+ and android 24)
+  // pip 错误，设备或系统版本不支持（iPad iOS9+ 才支持PIP， android 24 以上支持）
   static const ERROR_IOS_PIP_DEVICE_NOT_SUPPORT = -104;
   // PIP error, player does not support (only support iOS).
   // pip 错误，播放器不支持 only support iOS
@@ -357,11 +357,11 @@ abstract class TXVodPlayEvent {
   // PIP error, PIP controller error (only support iOS).
   // pip 错误，PIP控制器报错 only support iOS
   static const ERROR_IOS_PIP_FROM_SYSTEM = -108;
-  // PIP error, player object does not exist (only support iOS).
-  // pip 错误，播放器对象不存在 only support iOS
+  // PIP error, player object does not exist
+  // pip 错误，播放器对象不存在
   static const ERROR_IOS_PIP_PLAYER_NOT_EXIST = -109;
-  // PIP error, PIP function is already running (only support iOS).
-  // pip 错误，PIP功能已经运行 only support iOS
+  // PIP error, PIP function is already running
+  // pip 错误，PIP功能已经运行
   static const ERROR_IOS_PIP_IS_RUNNING = -110;
   // PIP error, PIP function is not started (only support iOS).
   // pip 错误，PIP功能没有启动 only support iOS

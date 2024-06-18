@@ -403,4 +403,12 @@ public class FTXVodPlayerDispatcher implements FtxMessages.TXFlutterVodPlayerApi
             api.setSubtitleStyle(playerMsg);
         }
     }
+
+    @Override
+    public void setStringOption(@NonNull FtxMessages.StringOptionPlayerMsg playerMsg) {
+        TXFlutterVodPlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            api.setStringOption(playerMsg);
+        }
+    }
 }
