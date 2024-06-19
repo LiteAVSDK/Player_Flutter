@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.tencent.liteav.base.util.LiteavLog;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class TXFlutterEngineHolder {
     private static final String TAG = "TXFlutterEngineHolder";
 
     private static final class SingletonInstance {
-        private static TXFlutterEngineHolder instance = new TXFlutterEngineHolder();
+        private static final TXFlutterEngineHolder instance = new TXFlutterEngineHolder();
     }
 
     private int mFrontContextCount = 0;
@@ -27,7 +28,7 @@ public class TXFlutterEngineHolder {
     private final List<TXAppStatusListener> mListeners = new ArrayList<>();
     private boolean mIsEnterBack = false;
 
-    private final List<Activity> mActivityList = new ArrayList<>();
+    private final List<WeakReference<Activity>> mActivityList = new ArrayList<>();
 
     public static TXFlutterEngineHolder getInstance() {
         return SingletonInstance.instance;
@@ -66,13 +67,12 @@ public class TXFlutterEngineHolder {
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
                 synchronized (mActivityList) {
-                    if (mActivityList.contains(activity)) {
+                    int index = findIndexByAct(activity);
+                    if (index >= 0) {
                         // refresh index
-                        mActivityList.remove(activity);
-                        mActivityList.add(activity);
-                    } else {
-                        mActivityList.add(activity);
+                        mActivityList.remove(index);
                     }
+                    mActivityList.add(new WeakReference<>(activity));
                 }
             }
 
@@ -105,6 +105,20 @@ public class TXFlutterEngineHolder {
         binding.getActivity().getApplication().registerActivityLifecycleCallbacks(mLifeCallback);
     }
 
+    private int findIndexByAct(Activity activity) {
+        synchronized (mActivityList) {
+            int index = -1;
+            for (int i = 0; i < mActivityList.size(); i++) {
+                WeakReference<Activity> weakReference = mActivityList.get(i);
+                if (weakReference.get() == activity) {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+    }
+
     public boolean isInForeground() {
         return !mIsEnterBack;
     }
@@ -114,7 +128,7 @@ public class TXFlutterEngineHolder {
             if (index >= mActivityList.size() || index < 0) {
                 return null;
             }
-            return mActivityList.get(index);
+            return mActivityList.get(index).get();
         }
     }
 

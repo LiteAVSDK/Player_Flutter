@@ -236,6 +236,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
             if (misInit) {
                 TXSimpleEventBus.getInstance().unregister(FTXEvent.EVENT_PIP_ACTION, this);
                 TXSimpleEventBus.getInstance().unregister(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, this);
+                misInit = false;
             }
         } catch (Exception e) {
             LiteavLog.e(TAG, "releaseActivityListener error", e);

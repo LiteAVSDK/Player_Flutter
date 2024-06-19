@@ -423,7 +423,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                         mIsPipFinishing = false;
                         movePreActToFront();
                     }
-                }, 1000);
+                }, 600);
             } else {
                 overridePendingTransition(0, 0);
                 if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
@@ -444,13 +444,17 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     }
 
     private void startPlay() {
-        boolean isInitPlaying = pipPlayerHolder.isPlayingWhenCreate();
-        if (isInitPlaying) {
-            if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
-                mPlayerHolder.getVodPlayer().resume();
-            } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                mPlayerHolder.getLivePlayer().resume();
+        if (null != mPlayerHolder) {
+            boolean isInitPlaying = mPlayerHolder.isPlayingWhenCreate();
+            if (isInitPlaying) {
+                if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
+                    mPlayerHolder.getVodPlayer().resume();
+                } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
+                    mPlayerHolder.getLivePlayer().resume();
+                }
             }
+        } else {
+            LiteavLog.e(TAG, "miss player when startPlay");
         }
     }
 
