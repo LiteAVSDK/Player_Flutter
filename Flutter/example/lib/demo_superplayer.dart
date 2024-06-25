@@ -275,6 +275,8 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   void playCurrentModel(SuperPlayerModel model, double startTime) {
+    model.videoId = null;
+    model.videoURL = "https://gdvideo.southcn.com/670d2ff019cc46958da2732c7678b262/f69ea8b368334bc19ed8dde47d4102e3-52955801563f5e16c0a0ade8511be598-hd.mp4";
     currentVideoModel = model;
     _controller.setStartTime(startTime);
     _controller.playWithModelNeedLicence(model);

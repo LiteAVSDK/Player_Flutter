@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 
 public class TXFlutterEngineHolder {
 
@@ -34,18 +34,12 @@ public class TXFlutterEngineHolder {
         return SingletonInstance.instance;
     }
 
-    public void attachBindLife(ActivityPluginBinding binding) {
+    public void attachBindLife(FlutterPlugin.FlutterPluginBinding binding) {
         if (mLifeCallback != null) {
             LiteavLog.w(TAG, "TXFlutterEngineHolder is already attach");
             return;
         }
         if (null == binding) {
-            return;
-        }
-        if (binding.getActivity().isDestroyed() || binding.getActivity().isFinishing()) {
-            return;
-        }
-        if (null == binding.getActivity().getApplication()) {
             return;
         }
         mLifeCallback = new Application.ActivityLifecycleCallbacks() {
@@ -98,11 +92,12 @@ public class TXFlutterEngineHolder {
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
                 synchronized (mActivityList) {
-                    mActivityList.remove(activity);
+                    int index = findIndexByAct(activity);
+                    mActivityList.remove(index);
                 }
             }
         };
-        binding.getActivity().getApplication().registerActivityLifecycleCallbacks(mLifeCallback);
+        ((Application)binding.getApplicationContext()).registerActivityLifecycleCallbacks(mLifeCallback);
     }
 
     private int findIndexByAct(Activity activity) {
@@ -140,20 +135,22 @@ public class TXFlutterEngineHolder {
         }
     }
 
-    public void destroy(ActivityPluginBinding binding) {
+    public Activity getCurActivity() {
+        synchronized (mActivityList) {
+            final int size = mActivityList.size();
+            final int preIndex = size - 1;
+            return getActivityByIndex(preIndex);
+        }
+    }
+
+    public void destroy(FlutterPlugin.FlutterPluginBinding binding) {
         if (null == mLifeCallback) {
             return;
         }
         if (null == binding) {
             return;
         }
-        if (binding.getActivity().isDestroyed()) {
-            return;
-        }
-        if (null == binding.getActivity().getApplication()) {
-            return;
-        }
-        binding.getActivity().getApplication().unregisterActivityLifecycleCallbacks(mLifeCallback);
+        ((Application)binding.getApplicationContext()).unregisterActivityLifecycleCallbacks(mLifeCallback);
     }
 
     public void addAppLifeListener(TXAppStatusListener listener) {
