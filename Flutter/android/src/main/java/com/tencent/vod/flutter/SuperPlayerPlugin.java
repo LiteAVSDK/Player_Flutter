@@ -2,6 +2,8 @@
 
 package com.tencent.vod.flutter;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -10,13 +12,13 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.OrientationEventListener;
 import android.view.Window;
@@ -47,7 +49,6 @@ import com.tencent.vod.flutter.ui.TXAndroid12BridgeService;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private VolumeBroadcastReceiver mVolumeBroadcastReceiver;
 
     private FlutterPluginBinding mFlutterPluginBinding;
-    private ActivityPluginBinding mActivityPluginBinding;
     private final SparseArray<FTXBasePlayer> mPlayers = new SparseArray<>();
 
     private FTXDownloadManager mFTXDownloadManager;
@@ -188,6 +188,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                 () -> mPlayers));
         mFlutterPluginBinding = flutterPluginBinding;
         initAudioManagerIfNeed();
+        TXFlutterEngineHolder.getInstance().attachBindLife(flutterPluginBinding);
         mPipEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
                 FTXEvent.PIP_CHANNEL_NAME);
         mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
@@ -204,6 +205,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
             }
         });
         mFTXDownloadManager = new FTXDownloadManager(flutterPluginBinding);
+        initPipManagerIfNeed();
+        registerReceiver();
+        TXLiveBase.setListener(mSDKEvent);
     }
 
     /******* native method call start *******/
@@ -372,8 +376,9 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
             // 保留两位小数
             BigDecimal bigDecimal = new BigDecimal(brightness);
             brightness = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
-                Window window = mActivityPluginBinding.getActivity().getWindow();
+            final Activity act = TXFlutterEngineHolder.getInstance().getCurActivity();
+            if (null != act && !act.isDestroyed()) {
+                Window window = act.getWindow();
                 if (null != window) {
                     WindowManager.LayoutParams params = window.getAttributes();
                     params.screenBrightness = Float.parseFloat(String.valueOf(brightness));
@@ -398,7 +403,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
      * 获得当前window亮度，如果当前window亮度未赋值，则返回当前系统亮度
      */
     private float getWindowBrightness() {
-        Window window = mActivityPluginBinding.getActivity().getWindow();
+        final Activity act = TXFlutterEngineHolder.getInstance().getCurActivity();
+        Window window = act.getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         float screenBrightness = params.screenBrightness;
         if (screenBrightness < 0) {
@@ -413,12 +419,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private float getSystemScreenBrightness() {
         float screenBrightness = -1;
         try {
-            if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
-                ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
-                final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
-                final float maxBrightness = TXCommonUtil.getBrightnessMax();
-                screenBrightness = brightnessInt / maxBrightness;
-            }
+            ContentResolver resolver = mFlutterPluginBinding.getApplicationContext().getContentResolver();
+            final int brightnessInt = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS);
+            final float maxBrightness = TXCommonUtil.getBrightnessMax();
+            screenBrightness = brightnessInt / maxBrightness;
         } catch (SettingNotFoundException e) {
             e.printStackTrace();
         }
@@ -435,8 +439,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     private void initPipManagerIfNeed() {
         if (null == mTxPipManager) {
-            mTxPipManager = new FTXPIPManager(mPipEventChannel, mActivityPluginBinding,
-                    mFlutterPluginBinding.getFlutterAssets());
+            mTxPipManager = new FTXPIPManager(mPipEventChannel, mFlutterPluginBinding);
         }
     }
 
@@ -448,20 +451,17 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         if (null != mOrientationManager) {
             mOrientationManager.disable();
         }
-    }
-
-    @Override
-    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-        if (null != mActivityPluginBinding && mActivityPluginBinding != binding) {
-            TXFlutterEngineHolder.getInstance().destroy(binding);
+        if (null != mTxPipManager) {
+            mTxPipManager.releaseActivityListener();
         }
-        mActivityPluginBinding = binding;
-        initAudioManagerIfNeed();
-        initPipManagerIfNeed();
-        registerReceiver();
-        TXFlutterEngineHolder.getInstance().attachBindLife(binding);
-        TXLiveBase.enableCustomHttpDNS(true);
-        TXLiveBase.setListener(mSDKEvent);
+        // Close the solution to the problem of the picture-in-picture click restore
+        // failure on some versions of Android 12.
+        // 关闭用于解决Android12部分版本上画中画点击还原失灵的问题
+        Intent serviceIntent = new Intent(binding.getApplicationContext(), TXAndroid12BridgeService.class);
+        binding.getApplicationContext().stopService(serviceIntent);
+        unregisterReceiver();
+        TXFlutterEngineHolder.getInstance().destroy(binding);
+        TXLiveBase.setListener(null);
     }
 
     @Override
@@ -473,18 +473,17 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+
+        Application application = binding.getActivity().getApplication();
+
+        Application application1 = (Application) mFlutterPluginBinding.getApplicationContext();
+
+        Log.e(TAG, "");
+    }
+
+    @Override
     public void onDetachedFromActivity() {
-        if (null != mTxPipManager) {
-            mTxPipManager.releaseActivityListener();
-        }
-        // Close the solution to the problem of the picture-in-picture click restore
-        // failure on some versions of Android 12.
-        // 关闭用于解决Android12部分版本上画中画点击还原失灵的问题
-        Intent serviceIntent = new Intent(mActivityPluginBinding.getActivity(), TXAndroid12BridgeService.class);
-        mActivityPluginBinding.getActivity().stopService(serviceIntent);
-        unregisterReceiver();
-        TXFlutterEngineHolder.getInstance().destroy(mActivityPluginBinding);
-        TXLiveBase.setListener(null);
     }
 
     void onHandleAudioFocusPause() {
@@ -522,22 +521,23 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mVolumeBroadcastReceiver = new VolumeBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
-        ContextCompat.registerReceiver(mActivityPluginBinding.getActivity(), mVolumeBroadcastReceiver, filter,
+        ContextCompat.registerReceiver(mFlutterPluginBinding.getApplicationContext(), mVolumeBroadcastReceiver, filter,
                 ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     public void enableBrightnessObserver(boolean enable) {
-        if (null != mActivityPluginBinding && !mActivityPluginBinding.getActivity().isDestroyed()) {
+        if (null != mFlutterPluginBinding) {
             if (enable) {
                 if (!mIsBrightnessObserverRegistered) {
                     // brightness observer
-                    ContentResolver resolver = mActivityPluginBinding.getActivity().getContentResolver();
+                    ContentResolver resolver = mFlutterPluginBinding.getApplicationContext().getContentResolver();
                     resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
                             true, brightnessObserver);
                     mIsBrightnessObserverRegistered = true;
                 }
             } else {
-                mActivityPluginBinding.getActivity().getContentResolver().unregisterContentObserver(brightnessObserver);
+                mFlutterPluginBinding.getApplicationContext().getContentResolver()
+                        .unregisterContentObserver(brightnessObserver);
                 mIsBrightnessObserverRegistered = false;
             }
         }
@@ -551,7 +551,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     public void unregisterReceiver() {
         try {
             mTxAudioManager.removeAudioFocusChangedListener(audioFocusChangeListener);
-            mActivityPluginBinding.getActivity().unregisterReceiver(mVolumeBroadcastReceiver);
+            mFlutterPluginBinding.getApplicationContext().unregisterReceiver(mVolumeBroadcastReceiver);
             enableBrightnessObserver(false);
         } catch (Exception e) {
             e.printStackTrace();
