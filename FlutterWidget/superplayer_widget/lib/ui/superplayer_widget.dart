@@ -165,7 +165,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _fullScreenController.switchToOrientation(orientation);
       }
     });
-    _updateState();
+    _initPlayerState();
   }
 
   void _registerObserver() {
@@ -339,13 +339,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _updateState() {
     // Refresh the binding of the observer.
     _registerObserver();
-    // Because no callbacks can be triggered after `pop`, and calling `setState` on the fullscreen controller is invalid,
-    // a task is added to the UI thread here. This task will be triggered after returning to this interface to
-    // ensure that the playback status is correct.
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => setState(() {
-          _initPlayerState();
-          _calculateSize(_playController.videoWidth, _playController.videoHeight);
-        }));
+    _calculateSize(_playController.videoWidth, _playController.videoHeight);
   }
 
   void _refreshDownloadStatus() async {
@@ -436,6 +430,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   @override
   Widget build(BuildContext context) {
+    _updateState();
     return Center(
         child: widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
         IntrinsicHeight(
@@ -770,13 +765,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _startHideRunnable() {
     _cancelHideRunnable();
     _controlViewTimer = Timer(const Duration(milliseconds: _controlViewShowTime), () {
-      hideControlView();
+      hideControlView(needHideMenuView: false);
     });
   }
 
   /// Hide all control components.
   /// 隐藏所有控制组件
-  void hideControlView() {
+  void hideControlView({bool needHideMenuView = true}) {
     if (!_isShowControlView || !mounted) {
       return;
     }
@@ -785,12 +780,16 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
     // Hide moreView
-    _moreViewKey.currentState?.hideShowMoreView();
+    if (needHideMenuView) {
+      _moreViewKey.currentState?.hideShowMoreView();
+    }
     setState(() {
-      _isShowQualityListView = false;
       _isShowControlView = false;
-      _isShowSubtitleListView = false;
-      _isShowAudioListView = false;
+      if (needHideMenuView) {
+        _isShowQualityListView = false;
+        _isShowSubtitleListView = false;
+        _isShowAudioListView = false;
+      }
     });
   }
 

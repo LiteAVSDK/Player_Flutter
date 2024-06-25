@@ -29,6 +29,7 @@ import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
+import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 import com.tencent.vod.flutter.ui.FlutterPipImplActivity;
 
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.EventChannel;
 
 /**
@@ -54,7 +54,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
 
     private boolean misInit = false;
     private final Map<Integer, PipCallback> pipCallbacks = new HashMap<>();
-    private final ActivityPluginBinding mActivityBinding;
+    private final FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
     private final FlutterPlugin.FlutterAssets mFlutterAssets;
     private final EventChannel mPipEventChannel;
     private final FTXPlayerEventSink mPipEventSink = new FTXPlayerEventSink();
@@ -64,15 +64,14 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      * Picture-in-picture management.
      *
      * 画中画管理
-     * @param activityBinding activityBinding
-     * @param flutterAssets Flutter resource management.
-     *                      flutter资源管理
+     * @param flutterPluginBinding FlutterPluginBinding.
+     *
      */
-    public FTXPIPManager(@NonNull EventChannel pipEventChannel, ActivityPluginBinding activityBinding,
-                         FlutterPlugin.FlutterAssets flutterAssets) {
+    public FTXPIPManager(@NonNull EventChannel pipEventChannel,
+                         FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         this.mPipEventChannel = pipEventChannel;
-        this.mActivityBinding = activityBinding;
-        this.mFlutterAssets = flutterAssets;
+        this.mFlutterAssets = flutterPluginBinding.getFlutterAssets();
+        this.mFlutterPluginBinding = flutterPluginBinding;
         registerActivityListener();
         initPipEventChannel();
     }
@@ -99,7 +98,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      * 注册activityResult回调，<h1>必须调用</h1>
      */
     public void registerActivityListener() {
-        if (!mActivityBinding.getActivity().isDestroyed() && !misInit) {
+        if (!misInit) {
             TXSimpleEventBus.getInstance().register(FTXEvent.EVENT_PIP_ACTION, this);
             TXSimpleEventBus.getInstance().register(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, this);
             misInit = true;
@@ -130,7 +129,8 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
     public int enterPip(PipParams params, TXPlayerHolder playerHolder) {
         int pipResult = isSupportDevice();
         if (pipResult == FTXEvent.NO_ERROR) {
-            pipResult = FlutterPipImplActivity.startPip(mActivityBinding.getActivity(), params, playerHolder);
+            pipResult = FlutterPipImplActivity.startPip(TXFlutterEngineHolder.getInstance().getCurActivity(),
+                    params, playerHolder);
             if (pipResult == FTXEvent.NO_ERROR) {
                 mPipEventSink.success(TXCommonUtil.getParams(FTXEvent.EVENT_PIP_MODE_REQUEST_START, null));
             }
@@ -146,10 +146,13 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      */
     public void exitPip() {
         if (mIsInPipMode) {
-            Intent intent = new Intent(mActivityBinding.getActivity(), FlutterPipImplActivity.class);
-            intent.setAction(FTXEvent.PIP_ACTION_EXIT);
-            mActivityBinding.getActivity().startActivity(intent);
-            mIsInPipMode = false;
+            final Activity curActivity = TXFlutterEngineHolder.getInstance().getCurActivity();
+            if (null != curActivity) {
+                Intent intent = new Intent(curActivity, FlutterPipImplActivity.class);
+                intent.setAction(FTXEvent.PIP_ACTION_EXIT);
+                curActivity.startActivity(intent);
+                mIsInPipMode = false;
+            }
         }
     }
 
@@ -160,7 +163,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      */
     public int isSupportDevice() {
         int pipResult = FTXEvent.NO_ERROR;
-        Activity activity = mActivityBinding.getActivity();
+        Activity activity = TXFlutterEngineHolder.getInstance().getCurActivity();
         if (!activity.isDestroyed()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // check permission
@@ -208,7 +211,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
         playOrPauseData.putInt(FTXEvent.EXTRA_NAME_IS_PLAYING, isPlaying ? 1 : 2);
         Intent playOrPauseIntent =
                 new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
-        mActivityBinding.getActivity().sendBroadcast(playOrPauseIntent);
+        mFlutterPluginBinding.getApplicationContext().sendBroadcast(playOrPauseIntent);
     }
 
     /**
@@ -249,12 +252,15 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
      * 更新PIP悬浮框按钮
      */
     public void updatePipActions(PipParams params) {
-        Intent intent = new Intent(mActivityBinding.getActivity(), FlutterPipImplActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(FTXEvent.EXTRA_NAME_PARAMS, params);
-        intent.setAction(FTXEvent.PIP_ACTION_UPDATE);
-        intent.putExtra("data", bundle);
-        mActivityBinding.getActivity().startActivity(intent);
+        final Activity mAct = TXFlutterEngineHolder.getInstance().getCurActivity();
+        if (null != mAct) {
+            Intent intent = new Intent(mAct, FlutterPipImplActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(FTXEvent.EXTRA_NAME_PARAMS, params);
+            intent.setAction(FTXEvent.PIP_ACTION_UPDATE);
+            intent.putExtra("data", bundle);
+            mAct.startActivity(intent);
+        }
     }
 
     public String toAndroidPath(String path) {
