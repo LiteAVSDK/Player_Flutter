@@ -173,6 +173,9 @@ abstract class TXVodPlayEvent {
   // Video SEI frame information, Player Premium version 11.6 starts to support
   // 视频 SEI 帧信息, 播放器高级版 11.6 版本开始支持
   static const VOD_PLAY_EVT_VIDEO_SEI = 2030;
+  // HEVC downgrade playback， Player Premium version 12.0 starts to support
+  // HEVC 降级播放，播放器高级版 12.0 版本开始支持
+  static const VOD_PLAY_EVT_HEVC_DOWNGRADE_PLAYBACK = 2031;
   // video loop once complete
   static const VOD_PLAY_EVT_LOOP_ONCE_COMPLETE = 6001;
 
