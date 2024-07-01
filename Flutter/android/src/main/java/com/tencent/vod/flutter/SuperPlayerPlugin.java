@@ -3,7 +3,6 @@
 package com.tencent.vod.flutter;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -18,7 +17,6 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.OrientationEventListener;
 import android.view.Window;
@@ -149,6 +147,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         @Override
         public void onLicenceLoaded(int result, String reason) {
             super.onLicenceLoaded(result, reason);
+            LiteavLog.v(TAG, "onLicenceLoaded,result:" + result + ",reason:" + reason);
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -336,19 +335,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                     @Override
                     public void onOrientationChanged(int orientation) {
                         if (isDeviceAutoRotateOn()) {
-                            int orientationEvent = mCurrentOrientation;
-                            // Each direction judges the current direction with an interval
-                            // of 60 degrees, with a total of 6 intervals.
-                            if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
-                                orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
-                            } else if (orientation > 240 && orientation < 300) {
-                                orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_RIGHT;
-                            } else if (orientation > 150 && orientation < 210) {
-                                orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_DOWN;
-                            } else if (orientation > 60 && orientation < 110) {
-                                orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_LEFT;
-                            }
+                            LiteavLog.v(TAG, "onOrientationChanged:" + orientation);
+                            int orientationEvent = getOrientationEvent(orientation);
                             if (orientationEvent != mCurrentOrientation) {
+                                LiteavLog.v(TAG, "orientationEvent changed:" + orientationEvent);
                                 mCurrentOrientation = orientationEvent;
                                 Bundle bundle = new Bundle();
                                 bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
@@ -366,6 +356,22 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         return true;
     }
 
+    private int getOrientationEvent(int orientation) {
+        int orientationEvent = mCurrentOrientation;
+        // Each direction judges the current direction with an interval
+        // of 60 degrees, with a total of 6 intervals.
+        if (((orientation >= 0) && (orientation < 30)) || (orientation > 330)) {
+            orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_UP;
+        } else if (orientation > 240 && orientation < 300) {
+            orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_RIGHT;
+        } else if (orientation > 150 && orientation < 210) {
+            orientationEvent = FTXEvent.ORIENTATION_PORTRAIT_DOWN;
+        } else if (orientation > 60 && orientation < 110) {
+            orientationEvent = FTXEvent.ORIENTATION_LANDSCAPE_LEFT;
+        }
+        return orientationEvent;
+    }
+
     /**
      * Set the current window brightness.
      *
@@ -373,6 +379,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
      */
     private void setWindowBrightness(Double brightness) {
         if (null != brightness) {
+            LiteavLog.v(TAG, "setWindowBrightness:" + brightness);
             // 保留两位小数
             BigDecimal bigDecimal = new BigDecimal(brightness);
             brightness = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
@@ -474,16 +481,12 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-
-        Application application = binding.getActivity().getApplication();
-
-        Application application1 = (Application) mFlutterPluginBinding.getApplicationContext();
-
-        Log.e(TAG, "");
+        LiteavLog.v(TAG, "called onAttachedToActivity");
     }
 
     @Override
     public void onDetachedFromActivity() {
+        LiteavLog.v(TAG, "called onDetachedFromActivity");
     }
 
     void onHandleAudioFocusPause() {
@@ -518,7 +521,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
      */
     public void registerReceiver() {
         // volume receiver
-        mVolumeBroadcastReceiver = new VolumeBroadcastReceiver();
+        mVolumeBroadcastReceiver = new VolumeBroadcastReceiver(mEventSink);
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
         ContextCompat.registerReceiver(mFlutterPluginBinding.getApplicationContext(), mVolumeBroadcastReceiver, filter,
@@ -558,12 +561,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         }
     }
 
-    private Map<String, Object> getParams(int event, Bundle bundle) {
+    private static Map<String, Object> getParams(int event, Bundle bundle) {
         Map<String, Object> param = new HashMap<>();
         if (event != 0) {
             param.put("event", event);
         }
-
         if (bundle != null && !bundle.isEmpty()) {
             Set<String> keySet = bundle.keySet();
             for (String key : keySet) {
@@ -643,7 +645,13 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         }
     }
 
-    private class VolumeBroadcastReceiver extends BroadcastReceiver {
+    private static class VolumeBroadcastReceiver extends BroadcastReceiver {
+
+        private final FTXPlayerEventSink mEventSink;
+
+        private VolumeBroadcastReceiver(FTXPlayerEventSink eventSink) {
+            mEventSink = eventSink;
+        }
 
         public void onReceive(Context context, Intent intent) {
             // Notify only when the media volume changes
