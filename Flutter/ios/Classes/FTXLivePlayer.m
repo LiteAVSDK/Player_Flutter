@@ -10,6 +10,7 @@
 #import "FtxMessages.h"
 #import "TXCommonUtil.h"
 #import "FTXLog.h"
+#import <stdatomic.h>
 
 static const int uninitialized = -1;
 
@@ -24,7 +25,7 @@ static const int uninitialized = -1;
     FlutterEventChannel *_eventChannel;
     FlutterEventChannel *_netStatusChannel;
     // The latest frame.
-    CVPixelBufferRef volatile _latestPixelBuffer;
+    CVPixelBufferRef _Atomic _latestPixelBuffer;
     // The old frame.
     CVPixelBufferRef _lastBuffer;
     int64_t _textureId;
@@ -59,9 +60,12 @@ static const int uninitialized = -1;
 
 - (void)destory
 {
+    FTXLOGV(@"livePlayer start called destory");
     [self stopPlay];
-    [_txLivePlayer removeVideoWidget];
-    _txLivePlayer = nil;
+    if (nil != _txLivePlayer) {
+        [_txLivePlayer removeVideoWidget];
+        _txLivePlayer = nil;
+    }
     
     if (_textureId >= 0) {
         [_textureRegistry unregisterTexture:_textureId];
@@ -70,8 +74,7 @@ static const int uninitialized = -1;
     }
 
     CVPixelBufferRef old = _latestPixelBuffer;
-    while (!OSAtomicCompareAndSwapPtrBarrier(old, nil,
-                                             (void **)&_latestPixelBuffer)) {
+    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, nil, memory_order_release, memory_order_relaxed)) {
         old = _latestPixelBuffer;
     }
     if (old) {
@@ -83,17 +86,46 @@ static const int uninitialized = -1;
         _lastBuffer = nil;
     }
 
-    [_eventSink setDelegate:nil];
-    _eventSink = nil;
-    [_eventChannel setStreamHandler:nil];
-    _eventChannel = nil;
-    [_netStatusSink setDelegate:nil];
-    _netStatusSink = nil;
+    if (nil != _eventSink) {
+        [_eventSink setDelegate:nil];
+        _eventSink = nil;
+    }
+    if (nil != _eventChannel) {
+        [_eventChannel setStreamHandler:nil];
+        _eventChannel = nil;
+    }
+    if (nil != _netStatusSink) {
+        [_netStatusSink setDelegate:nil];
+        _netStatusSink = nil;
+    }
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {
+    if (!_isTerminate) {
+        FTXLOGW(@"livePlayer is called notifyAppTerminate terminate");
+        [self notifyPlayerTerminate];
+    }
+}
+
+- (void)dealloc
+{
+    if (!_isTerminate) {
+        FTXLOGW(@"livePlayer is called delloc terminate");
+        [self notifyPlayerTerminate];
+    }
+}
+
+- (void)notifyPlayerTerminate {
+    FTXLOGW(@"livePlayer notifyPlayerTerminate");
     _isTerminate = YES;
     _textureRegistry = nil;
+    [self stopPlay];
+    if (nil != _txLivePlayer) {
+        [_txLivePlayer removeVideoWidget];
+        _txLivePlayer.videoProcessDelegate = nil;
+        _txLivePlayer = nil;
+    }
+    _textureId = -1;
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
@@ -284,8 +316,7 @@ static const int uninitialized = -1;
 - (CVPixelBufferRef _Nullable)copyPixelBuffer
 {
     CVPixelBufferRef pixelBuffer = _latestPixelBuffer;
-    while (!OSAtomicCompareAndSwapPtrBarrier(pixelBuffer, nil,
-                                             (void **)&_latestPixelBuffer)) {
+    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &pixelBuffer, NULL, memory_order_release, memory_order_relaxed)) {
         pixelBuffer = _latestPixelBuffer;
     }
     return pixelBuffer;
@@ -339,10 +370,11 @@ static const int uninitialized = -1;
         }
 
         CVPixelBufferRef newBuffer = pixelBuffer;
-
         CVPixelBufferRef old = _latestPixelBuffer;
-        while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
-                                                 (void **)&_latestPixelBuffer)) {
+        while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, newBuffer, memory_order_release, memory_order_relaxed)) {
+            if (_isTerminate) {
+                break;
+            }
             old = _latestPixelBuffer;
         }
 

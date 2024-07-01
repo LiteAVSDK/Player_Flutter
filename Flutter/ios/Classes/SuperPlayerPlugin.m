@@ -58,6 +58,7 @@ SuperPlayerPlugin* instance;
 (NSObject<FlutterPluginRegistrar> *)registrar {
     self = [super init];
     if (self) {
+        [registrar publish:self];
         _registrar = registrar;
         _players = @{}.mutableCopy;
     }
@@ -119,6 +120,14 @@ SuperPlayerPlugin* instance;
         [[UIScreen mainScreen] setBrightness:orginBrightness];
     } else {
         [[UIScreen mainScreen] setBrightness:brightness.floatValue];
+    }
+}
+
+-(void) releasePlayerInner:(NSNumber*)playerId {
+    FTXBasePlayer *player = [_players objectForKey:playerId];
+    [player destory];
+    if (player != nil) {
+        [_players removeObjectForKey:playerId];
     }
 }
 
@@ -260,11 +269,7 @@ SuperPlayerPlugin* instance;
 
 - (void)releasePlayerPlayerId:(nonnull PlayerMsg *)playerId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber *pid = playerId.playerId;
-    FTXBasePlayer *player = [_players objectForKey:pid];
-    [player destory];
-    if (player != nil) {
-        [_players removeObjectForKey:pid];
-    }
+    [self releasePlayerInner:pid];
 }
 
 - (void)setConsoleEnabledEnabled:(nonnull BoolMsg *)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
