@@ -309,9 +309,10 @@ abstract class TXVodPlayEvent {
   // PIP UI status changed (only support Android > 31).
   // pip UI状态发生变动，only support android > 31
   static const EVENT_PIP_MODE_UI_STATE_CHANGED = 4;
-  // Reset UI (only support iOS).
-  // 重置UI only support iOS
+  // Reset UI
+  // 重置UI，从画中画窗口恢复
   static const EVENT_IOS_PIP_MODE_RESTORE_UI = 5;
+  static const EVENT_PIP_MODE_RESTORE_UI = EVENT_IOS_PIP_MODE_RESTORE_UI;
   // Will exit picture-in-picture mode (only support iOS).
   // 将要退出画中画 only support iOS
   static const EVENT_IOS_PIP_MODE_WILL_EXIT = 6;

@@ -35,6 +35,7 @@
 SuperPlayerPlugin* instance;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
+    FTXLOGV(@"called registerWithRegistrar");
     instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
     TXFlutterSuperPlayerPluginAPISetup([registrar messenger], instance);
     TXFlutterNativeAPISetup([registrar messenger], instance);
@@ -45,6 +46,7 @@ SuperPlayerPlugin* instance;
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+    FTXLOGV(@"called detachFromEngineForRegistrar");
     if(nil != instance) {
         [instance destory];
     }
@@ -58,6 +60,7 @@ SuperPlayerPlugin* instance;
 (NSObject<FlutterPluginRegistrar> *)registrar {
     self = [super init];
     if (self) {
+        [registrar publish:self];
         _registrar = registrar;
         _players = @{}.mutableCopy;
     }
@@ -109,6 +112,7 @@ SuperPlayerPlugin* instance;
 }
 
 -(void) setSysBrightness:(NSNumber*)brightness {
+    FTXLOGV(@"called setSysBrightness,%@", brightness);
     if(brightness.floatValue > 1.0) {
         brightness = [NSNumber numberWithFloat:1.0];
     }
@@ -119,6 +123,15 @@ SuperPlayerPlugin* instance;
         [[UIScreen mainScreen] setBrightness:orginBrightness];
     } else {
         [[UIScreen mainScreen] setBrightness:brightness.floatValue];
+    }
+}
+
+-(void) releasePlayerInner:(NSNumber*)playerId {
+    FTXLOGV(@"called releasePlayerInner,%@ is start release", playerId);
+    FTXBasePlayer *player = [_players objectForKey:playerId];
+    [player destory];
+    if (player != nil) {
+        [_players removeObjectForKey:playerId];
     }
 }
 
@@ -133,6 +146,7 @@ SuperPlayerPlugin* instance;
 #pragma mark - FlutterPlugin
 
 - (void)applicationWillTerminate:(UIApplication *)application {
+    FTXLOGV(@"called applicationWillTerminate");
     for(id key in self.players) {
         id player = self.players[key];
         if([player respondsToSelector:@selector(notifyAppTerminate:)]) {
@@ -260,11 +274,7 @@ SuperPlayerPlugin* instance;
 
 - (void)releasePlayerPlayerId:(nonnull PlayerMsg *)playerId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     NSNumber *pid = playerId.playerId;
-    FTXBasePlayer *player = [_players objectForKey:pid];
-    [player destory];
-    if (player != nil) {
-        [_players removeObjectForKey:pid];
-    }
+    [self releasePlayerInner:pid];
 }
 
 - (void)setConsoleEnabledEnabled:(nonnull BoolMsg *)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -392,6 +402,7 @@ SuperPlayerPlugin* instance;
 }
 
 - (void)onLicenceLoaded:(int)result Reason:(NSString *)reason {
+    FTXLOGV(@"onLicenceLoaded,result:%d, reason:%@", result, reason);
     [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:@{
         @(EVENT_RESULT) : @(result),
         @(EVENT_REASON) : reason,
