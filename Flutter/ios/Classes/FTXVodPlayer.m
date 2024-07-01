@@ -12,6 +12,7 @@
 #import "FtxMessages.h"
 #import "TXCommonUtil.h"
 #import "FTXLog.h"
+#import <stdatomic.h>
 
 static const int uninitialized = -1;
 static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
@@ -36,7 +37,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     FlutterEventChannel *_eventChannel;
     FlutterEventChannel *_netStatusChannel;
     // The latest frame.
-    CVPixelBufferRef volatile _latestPixelBuffer;
+    CVPixelBufferRef _Atomic _latestPixelBuffer;
     // The old frame.
     CVPixelBufferRef _lastBuffer;
     int64_t _textureId;
@@ -95,36 +96,53 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {
+    if (!_isTerminate) {
+        FTXLOGW(@"vodPlayer is called _isTerminate terminate");
+        [self notifyPlayerTerminate];
+    }
+}
+
+- (void)dealloc
+{
+    if (!_isTerminate) {
+        FTXLOGW(@"vodPlayer is called delloc terminate");
+        [self notifyPlayerTerminate];
+    }
+}
+
+- (void)notifyPlayerTerminate {
+    FTXLOGW(@"vodPlayer notifyPlayerTerminate");
     _isTerminate = YES;
     _textureRegistry = nil;
     [self stopPlay];
     if (nil != _txVodPlayer) {
         [_txVodPlayer removeVideoWidget];
-        _txVodPlayer = nil;
         _txVodPlayer.videoProcessDelegate = nil;
+        _txVodPlayer = nil;
     }
     _textureId = -1;
 }
 
 - (void)destory
 {
+    FTXLOGV(@"vodPlayer start called destory");
     [self stopPlay];
-    [_txVodPlayer removeVideoWidget];
-    _txVodPlayer = nil;
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer removeVideoWidget];
+        _txVodPlayer = nil;
+    }
     
     self.txPipView = nil;
     _hasEnteredPipMode = NO;
     _restoreUI = NO;
     
-    if (_textureId >= 0) {
+    if (_textureId >= 0 && _textureRegistry) {
         [_textureRegistry unregisterTexture:_textureId];
         _textureId = -1;
         _textureRegistry = nil;
     }
-
     CVPixelBufferRef old = _latestPixelBuffer;
-    while (!OSAtomicCompareAndSwapPtrBarrier(old, nil,
-                                             (void **)&_latestPixelBuffer)) {
+    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, nil, memory_order_release, memory_order_relaxed)) {
         old = _latestPixelBuffer;
     }
     if (old) {
@@ -136,16 +154,22 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         _lastBuffer = nil;
     }
 
-    [_eventSink setDelegate:nil];
-    _eventSink = nil;
-    [_netStatusSink setDelegate:nil];
-    _netStatusSink = nil;
-    
-    [_eventChannel setStreamHandler:nil];
-    _eventChannel = nil;
-    
-    [_netStatusChannel setStreamHandler:nil];
-    _netStatusChannel = nil;
+    if (nil != _eventSink) {
+        [_eventSink setDelegate:nil];
+        _eventSink = nil;
+    }
+    if (nil != _netStatusSink) {
+        [_netStatusSink setDelegate:nil];
+        _netStatusSink = nil;
+    }
+    if (nil != _eventChannel) {
+        [_eventChannel setStreamHandler:nil];
+        _eventChannel = nil;
+    }
+    if (nil != _netStatusChannel) {
+        [_netStatusChannel setStreamHandler:nil];
+        _netStatusChannel = nil;
+    }
     [self releaseImageSprite];
 }
 
@@ -423,13 +447,14 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (CVPixelBufferRef _Nullable)copyPixelBuffer
 {
+    if(_isTerminate || _isStoped){
+        return nil;
+    }
     if (self.hasEnteredPipMode) {
         return [self getPipImagePixelBuffer];
     }
-
     CVPixelBufferRef pixelBuffer = _latestPixelBuffer;
-    while (!OSAtomicCompareAndSwapPtrBarrier(pixelBuffer, nil,
-                                             (void **)&_latestPixelBuffer)) {
+    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &pixelBuffer, NULL, memory_order_release, memory_order_relaxed)) {
         pixelBuffer = _latestPixelBuffer;
     }
     return pixelBuffer;
@@ -521,10 +546,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         }
 
         CVPixelBufferRef newBuffer = pixelBuffer;
-
         CVPixelBufferRef old = _latestPixelBuffer;
-        while (!OSAtomicCompareAndSwapPtrBarrier(old, newBuffer,
-                                                 (void **)&_latestPixelBuffer)) {
+        while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, newBuffer, memory_order_release, memory_order_relaxed)) {
             if (_isTerminate) {
                 break;
             }

@@ -23,6 +23,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)onPlayerPipStateError:(NSInteger)errorId;
 
+- (void) releasePlayerInner:(NSNumber*)playerId;
+
 @end
 
 @interface FTXVodPlayer : FTXBasePlayer

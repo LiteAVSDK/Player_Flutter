@@ -59,7 +59,7 @@ class TXPipController {
          * exitAndReleaseCurrentPip must be called, otherwise there may be a obj leak
          */
         await exitAndReleaseCurrentPip();
-      } else if (eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_RESTORE_UI) {
+      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_RESTORE_UI) {
         _extParams[ARGUMENT_PIP_START_TIME] = event["playTime"];
         await exitAndReleaseCurrentPip();
         _onJumpToPipPlayer?.call(_extParams);
