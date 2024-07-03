@@ -315,6 +315,9 @@ static const int uninitialized = -1;
 
 - (CVPixelBufferRef _Nullable)copyPixelBuffer
 {
+    if(_isTerminate || _isStoped){
+        return nil;
+    }
     CVPixelBufferRef pixelBuffer = _latestPixelBuffer;
     while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &pixelBuffer, NULL, memory_order_release, memory_order_relaxed)) {
         pixelBuffer = _latestPixelBuffer;
