@@ -53,7 +53,8 @@ abstract class TXPlayType {
   static const LIVE_RTMP = 0;
   static const LIVE_FLV = 1;
   static const LIVE_RTMP_ACC = 5;
-  static const VOD_HLS = 3;
+  /// must depend on professional sdk
+  static const VOD_HLS = 7;
 }
 
 abstract class TXVodPlayEvent {
