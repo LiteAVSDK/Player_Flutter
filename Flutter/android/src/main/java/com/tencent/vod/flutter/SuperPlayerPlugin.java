@@ -31,6 +31,7 @@ import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
 import com.tencent.vod.flutter.messages.FTXLivePlayerDispatcher;
 import com.tencent.vod.flutter.messages.FTXVodPlayerDispatcher;
+import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.DoubleMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
@@ -274,9 +275,25 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         if (!TextUtils.isEmpty(postfixPath.getValue())) {
             File sdcardDir = mFlutterPluginBinding.getApplicationContext().getExternalFilesDir(null);
             if (null != sdcardDir) {
+                LiteavLog.v(TAG, "setGlobalCacheFolderPath:" + postfixPath.getValue());
                 TXPlayerGlobalSetting.setCacheFolderPath(sdcardDir.getPath() + File.separator + postfixPath.getValue());
                 configResult = true;
             }
+        }
+        BoolMsg boolMsg = new BoolMsg();
+        boolMsg.setValue(configResult);
+        return boolMsg;
+    }
+
+    @NonNull
+    @Override
+    public BoolMsg setGlobalCacheFolderCustomPath(@NonNull FtxMessages.CachePathMsg cacheMsg) {
+        boolean configResult = false;
+        final String cachePath = cacheMsg.getAndroidAbsolutePath();
+        if (!TextUtils.isEmpty(cachePath)) {
+            LiteavLog.v(TAG, "setGlobalCacheFolderCustomPath:" + cachePath);
+            TXPlayerGlobalSetting.setCacheFolderPath(cachePath);
+            configResult = true;
         }
         BoolMsg boolMsg = new BoolMsg();
         boolMsg.setValue(configResult);
