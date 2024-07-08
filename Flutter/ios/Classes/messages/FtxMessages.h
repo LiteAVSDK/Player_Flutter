@@ -31,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class BoolMsg;
 @class IntMsg;
 @class StringMsg;
+@class CachePathMsg;
 @class DoubleMsg;
 @class PreLoadMsg;
 @class PreLoadInfoMsg;
@@ -300,6 +301,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, nullable) NSString * value;
 @end
 
+@interface CachePathMsg : NSObject
++ (instancetype)makeWithAndroidAbsolutePath:(nullable NSString *)androidAbsolutePath
+    iOSAbsolutePath:(nullable NSString *)iOSAbsolutePath;
+@property(nonatomic, copy, nullable) NSString * androidAbsolutePath;
+@property(nonatomic, copy, nullable) NSString * iOSAbsolutePath;
+@end
+
 @interface DoubleMsg : NSObject
 + (instancetype)makeWithValue:(nullable NSNumber *)value;
 @property(nonatomic, strong, nullable) NSNumber * value;
@@ -424,6 +432,10 @@ NSObject<FlutterMessageCodec> *TXFlutterSuperPlayerPluginAPIGetCodec(void);
 ///
 /// @return `nil` only when `error != nil`.
 - (nullable BoolMsg *)setGlobalCacheFolderPathPostfixPath:(StringMsg *)postfixPath error:(FlutterError *_Nullable *_Nonnull)error;
+/// 设置播放器资源缓存目录绝对路径，该方法会与 setGlobalCacheFolderPath(String postfixPath) 相互覆盖，调用其中一个即可
+///
+/// @return `nil` only when `error != nil`.
+- (nullable BoolMsg *)setGlobalCacheFolderCustomPathCacheMsg:(CachePathMsg *)cacheMsg error:(FlutterError *_Nullable *_Nonnull)error;
 /// 设置全局license
 - (void)setGlobalLicenseLicenseMsg:(LicenseMsg *)licenseMsg error:(FlutterError *_Nullable *_Nonnull)error;
 /// 设置log输出级别 [TXLogLevel]
