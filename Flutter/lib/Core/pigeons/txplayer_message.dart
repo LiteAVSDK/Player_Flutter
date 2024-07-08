@@ -1,6 +1,4 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
-// import 'package:pigeon/pigeon.dart';
-// import 'package:super_player/super_player.dart';
 /// Pigeon original component, used to generate native communication code for `messages`.
 /// The generation command is as follows. When using the generation command,
 /// the two import statements above need to be implemented or commented out.
@@ -269,6 +267,11 @@ class StringMsg {
   String? value;
 }
 
+class CachePathMsg {
+  String? androidAbsolutePath;
+  String? iOSAbsolutePath;
+}
+
 class DoubleMsg {
   double? value;
 }
@@ -357,6 +360,9 @@ abstract class TXFlutterSuperPlayerPluginAPI {
   /// @param postfixPath 缓存目录
   /// @return true 设置成功 false 设置失败
   BoolMsg setGlobalCacheFolderPath(StringMsg postfixPath);
+
+  /// 设置播放器资源缓存目录绝对路径，该方法会与 setGlobalCacheFolderPath(String postfixPath) 相互覆盖，调用其中一个即可
+  BoolMsg setGlobalCacheFolderCustomPath(CachePathMsg cacheMsg);
 
   /// 设置全局license
   void setGlobalLicense(LicenseMsg licenseMsg);

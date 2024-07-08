@@ -289,12 +289,25 @@ SuperPlayerPlugin* instance;
         NSString *preloadDataPath = [documentDirectory stringByAppendingPathComponent:postfixPathStr];
         NSError *error = nil;
         [[NSFileManager defaultManager] createDirectoryAtPath:preloadDataPath withIntermediateDirectories:NO attributes:nil error:&error];
+        FTXLOGV(@"setGlobalCacheFolderPathPostfixPath:%@", preloadDataPath);
         [TXPlayerGlobalSetting setCacheFolderPath:preloadDataPath];
         return [TXCommonUtil boolMsgWith:YES];
     } else {
         return [TXCommonUtil boolMsgWith:NO];
     }
-    
+}
+
+- (BoolMsg *)setGlobalCacheFolderCustomPathCacheMsg:(CachePathMsg *)cacheMsg error:(FlutterError * _Nullable __autoreleasing *)error {
+    NSString* cachePath = cacheMsg.iOSAbsolutePath;
+    if (cachePath && cachePath.length > 0) {
+        NSError *error = nil;
+        [[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:NO attributes:nil error:&error];
+        FTXLOGV(@"setGlobalCacheFolderCustomPathCacheMsg:%@", cachePath);
+        [TXPlayerGlobalSetting setCacheFolderPath:cachePath];
+        return [TXCommonUtil boolMsgWith:YES];
+    } else {
+        return [TXCommonUtil boolMsgWith:NO];
+    }
 }
 
 - (nullable IntMsg *)setGlobalEnvEnvConfig:(nonnull StringMsg *)envConfig error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {

@@ -2348,6 +2348,70 @@ public class FtxMessages {
   }
 
   /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class CachePathMsg {
+    private @Nullable String androidAbsolutePath;
+
+    public @Nullable String getAndroidAbsolutePath() {
+      return androidAbsolutePath;
+    }
+
+    public void setAndroidAbsolutePath(@Nullable String setterArg) {
+      this.androidAbsolutePath = setterArg;
+    }
+
+    private @Nullable String iOSAbsolutePath;
+
+    public @Nullable String getIOSAbsolutePath() {
+      return iOSAbsolutePath;
+    }
+
+    public void setIOSAbsolutePath(@Nullable String setterArg) {
+      this.iOSAbsolutePath = setterArg;
+    }
+
+    public static final class Builder {
+
+      private @Nullable String androidAbsolutePath;
+
+      public @NonNull Builder setAndroidAbsolutePath(@Nullable String setterArg) {
+        this.androidAbsolutePath = setterArg;
+        return this;
+      }
+
+      private @Nullable String iOSAbsolutePath;
+
+      public @NonNull Builder setIOSAbsolutePath(@Nullable String setterArg) {
+        this.iOSAbsolutePath = setterArg;
+        return this;
+      }
+
+      public @NonNull CachePathMsg build() {
+        CachePathMsg pigeonReturn = new CachePathMsg();
+        pigeonReturn.setAndroidAbsolutePath(androidAbsolutePath);
+        pigeonReturn.setIOSAbsolutePath(iOSAbsolutePath);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(2);
+      toListResult.add(androidAbsolutePath);
+      toListResult.add(iOSAbsolutePath);
+      return toListResult;
+    }
+
+    static @NonNull CachePathMsg fromList(@NonNull ArrayList<Object> list) {
+      CachePathMsg pigeonResult = new CachePathMsg();
+      Object androidAbsolutePath = list.get(0);
+      pigeonResult.setAndroidAbsolutePath((String) androidAbsolutePath);
+      Object iOSAbsolutePath = list.get(1);
+      pigeonResult.setIOSAbsolutePath((String) iOSAbsolutePath);
+      return pigeonResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
   public static final class DoubleMsg {
     private @Nullable Double value;
 
@@ -3214,12 +3278,14 @@ public class FtxMessages {
         case (byte) 128:
           return BoolMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 129:
-          return IntMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return CachePathMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 130:
-          return LicenseMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return IntMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 131:
-          return PlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return LicenseMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 132:
+          return PlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 133:
           return StringMsg.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
@@ -3231,17 +3297,20 @@ public class FtxMessages {
       if (value instanceof BoolMsg) {
         stream.write(128);
         writeValue(stream, ((BoolMsg) value).toList());
-      } else if (value instanceof IntMsg) {
+      } else if (value instanceof CachePathMsg) {
         stream.write(129);
+        writeValue(stream, ((CachePathMsg) value).toList());
+      } else if (value instanceof IntMsg) {
+        stream.write(130);
         writeValue(stream, ((IntMsg) value).toList());
       } else if (value instanceof LicenseMsg) {
-        stream.write(130);
+        stream.write(131);
         writeValue(stream, ((LicenseMsg) value).toList());
       } else if (value instanceof PlayerMsg) {
-        stream.write(131);
+        stream.write(132);
         writeValue(stream, ((PlayerMsg) value).toList());
       } else if (value instanceof StringMsg) {
-        stream.write(132);
+        stream.write(133);
         writeValue(stream, ((StringMsg) value).toList());
       } else {
         super.writeValue(stream, value);
@@ -3284,6 +3353,9 @@ public class FtxMessages {
      */
     @NonNull 
     BoolMsg setGlobalCacheFolderPath(@NonNull StringMsg postfixPath);
+    /** 设置播放器资源缓存目录绝对路径，该方法会与 setGlobalCacheFolderPath(String postfixPath) 相互覆盖，调用其中一个即可 */
+    @NonNull 
+    BoolMsg setGlobalCacheFolderCustomPath(@NonNull CachePathMsg cacheMsg);
     /** 设置全局license */
     void setGlobalLicense(@NonNull LicenseMsg licenseMsg);
     /** 设置log输出级别 [TXLogLevel] */
@@ -3471,6 +3543,30 @@ public class FtxMessages {
                 StringMsg postfixPathArg = (StringMsg) args.get(0);
                 try {
                   BoolMsg output = api.setGlobalCacheFolderPath(postfixPathArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterSuperPlayerPluginAPI.setGlobalCacheFolderCustomPath", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                CachePathMsg cacheMsgArg = (CachePathMsg) args.get(0);
+                try {
+                  BoolMsg output = api.setGlobalCacheFolderCustomPath(cacheMsgArg);
                   wrapped.add(0, output);
                 }
  catch (Throwable exception) {

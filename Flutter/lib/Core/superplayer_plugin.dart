@@ -137,6 +137,25 @@ class SuperPlayerPlugin {
     BoolMsg boolMsg = await _playerPluginApi.setGlobalCacheFolderPath(StringMsg()..value = postfixPath);
     return boolMsg.value;
   }
+  ///
+  /// Set the absolute path of the player resource cache directory. This method will override each other with
+  /// setGlobalCacheFolderPath(String postfixPath), and you only need to call one of them.
+  ///
+  /// @param androidAbsolutePath Android side absolute path
+  ///        iOSAbsolutePath Android side absolute path
+  /// @return true if the setting is successful, false otherwise
+  ///
+  /// 设置播放器资源缓存目录绝对路径，该方法会与 setGlobalCacheFolderPath(String postfixPath) 相互覆盖，调用其中一个即可。
+  ///
+  /// @param androidAbsolutePath 安卓侧绝对路径
+  ///        iOSAbsolutePath 安卓侧绝对路径
+  /// @return true 设置成功 false 设置失败
+  static Future<bool?> setGlobalCacheFolderCustomPath({String? androidAbsolutePath, String? iOSAbsolutePath}) async {
+    BoolMsg boolMsg = await _playerPluginApi.setGlobalCacheFolderCustomPath(CachePathMsg()
+      ..androidAbsolutePath = androidAbsolutePath
+      ..iOSAbsolutePath = iOSAbsolutePath);
+    return boolMsg.value;
+  }
 
   /// Setting the global license
   /// 设置全局license

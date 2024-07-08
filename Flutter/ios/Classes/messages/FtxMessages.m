@@ -142,6 +142,12 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface CachePathMsg ()
++ (CachePathMsg *)fromList:(NSArray *)list;
++ (nullable CachePathMsg *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @interface DoubleMsg ()
 + (DoubleMsg *)fromList:(NSArray *)list;
 + (nullable DoubleMsg *)nullableFromList:(NSArray *)list;
@@ -870,6 +876,31 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 }
 @end
 
+@implementation CachePathMsg
++ (instancetype)makeWithAndroidAbsolutePath:(nullable NSString *)androidAbsolutePath
+    iOSAbsolutePath:(nullable NSString *)iOSAbsolutePath {
+  CachePathMsg* pigeonResult = [[CachePathMsg alloc] init];
+  pigeonResult.androidAbsolutePath = androidAbsolutePath;
+  pigeonResult.iOSAbsolutePath = iOSAbsolutePath;
+  return pigeonResult;
+}
++ (CachePathMsg *)fromList:(NSArray *)list {
+  CachePathMsg *pigeonResult = [[CachePathMsg alloc] init];
+  pigeonResult.androidAbsolutePath = GetNullableObjectAtIndex(list, 0);
+  pigeonResult.iOSAbsolutePath = GetNullableObjectAtIndex(list, 1);
+  return pigeonResult;
+}
++ (nullable CachePathMsg *)nullableFromList:(NSArray *)list {
+  return (list) ? [CachePathMsg fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.androidAbsolutePath ?: [NSNull null]),
+    (self.iOSAbsolutePath ?: [NSNull null]),
+  ];
+}
+@end
+
 @implementation DoubleMsg
 + (instancetype)makeWithValue:(nullable NSNumber *)value {
   DoubleMsg* pigeonResult = [[DoubleMsg alloc] init];
@@ -1131,12 +1162,14 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     case 128: 
       return [BoolMsg fromList:[self readValue]];
     case 129: 
-      return [IntMsg fromList:[self readValue]];
+      return [CachePathMsg fromList:[self readValue]];
     case 130: 
-      return [LicenseMsg fromList:[self readValue]];
+      return [IntMsg fromList:[self readValue]];
     case 131: 
-      return [PlayerMsg fromList:[self readValue]];
+      return [LicenseMsg fromList:[self readValue]];
     case 132: 
+      return [PlayerMsg fromList:[self readValue]];
+    case 133: 
       return [StringMsg fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
@@ -1151,17 +1184,20 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   if ([value isKindOfClass:[BoolMsg class]]) {
     [self writeByte:128];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[IntMsg class]]) {
+  } else if ([value isKindOfClass:[CachePathMsg class]]) {
     [self writeByte:129];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[LicenseMsg class]]) {
+  } else if ([value isKindOfClass:[IntMsg class]]) {
     [self writeByte:130];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PlayerMsg class]]) {
+  } else if ([value isKindOfClass:[LicenseMsg class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[StringMsg class]]) {
+  } else if ([value isKindOfClass:[PlayerMsg class]]) {
     [self writeByte:132];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[StringMsg class]]) {
+    [self writeByte:133];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -1329,6 +1365,26 @@ void TXFlutterSuperPlayerPluginAPISetup(id<FlutterBinaryMessenger> binaryMesseng
         StringMsg *arg_postfixPath = GetNullableObjectAtIndex(args, 0);
         FlutterError *error;
         BoolMsg *output = [api setGlobalCacheFolderPathPostfixPath:arg_postfixPath error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// 设置播放器资源缓存目录绝对路径，该方法会与 setGlobalCacheFolderPath(String postfixPath) 相互覆盖，调用其中一个即可
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterSuperPlayerPluginAPI.setGlobalCacheFolderCustomPath"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterSuperPlayerPluginAPIGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setGlobalCacheFolderCustomPathCacheMsg:error:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(setGlobalCacheFolderCustomPathCacheMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        CachePathMsg *arg_cacheMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        BoolMsg *output = [api setGlobalCacheFolderCustomPathCacheMsg:arg_cacheMsg error:&error];
         callback(wrapResult(output, error));
       }];
     } else {
