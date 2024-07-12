@@ -93,7 +93,9 @@ public class TXFlutterEngineHolder {
             public void onActivityDestroyed(@NonNull Activity activity) {
                 synchronized (mActivityList) {
                     int index = findIndexByAct(activity);
-                    mActivityList.remove(index);
+                    if (index >= 0) {
+                        mActivityList.remove(index);
+                    }
                 }
             }
         };
