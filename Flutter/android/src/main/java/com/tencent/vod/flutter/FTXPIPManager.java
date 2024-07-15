@@ -420,7 +420,9 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                 Bundle backData = new Bundle();
                 backData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_BACK);
                 backData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentPlayerId);
-                Intent backIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(backData);
+                Intent backIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL)
+                        .putExtras(backData)
+                        .setPackage(activity.getPackageName());
                 PendingIntent preIntent = PendingIntent.getBroadcast(activity, FTXEvent.EXTRA_PIP_PLAY_BACK, backIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
                 RemoteAction preAction = new RemoteAction(getBackIcon(activity), "skipPre", "skip pre", preIntent);
@@ -432,8 +434,9 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                 Bundle playOrPauseData = new Bundle();
                 playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentPlayerId);
                 playOrPauseData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_RESUME_OR_PAUSE);
-                Intent playOrPauseIntent =
-                        new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(playOrPauseData);
+                Intent playOrPauseIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL)
+                        .putExtras(playOrPauseData)
+                        .setPackage(activity.getPackageName());
                 Icon playIcon = mIsPlaying ? getPauseIcon(activity) : getPlayIcon(activity);
                 PendingIntent playIntent = PendingIntent.getBroadcast(activity, a.incrementAndGet(),
                         playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
@@ -446,7 +449,9 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber {
                 Bundle forwardData = new Bundle();
                 forwardData.putInt(FTXEvent.EXTRA_NAME_PLAY_OP, FTXEvent.EXTRA_PIP_PLAY_FORWARD);
                 forwardData.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentPlayerId);
-                Intent forwardIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL).putExtras(forwardData);
+                Intent forwardIntent = new Intent(FTXEvent.ACTION_PIP_PLAY_CONTROL)
+                        .putExtras(forwardData)
+                        .setPackage(activity.getPackageName());
                 PendingIntent nextIntent = PendingIntent.getBroadcast(activity, FTXEvent.EXTRA_PIP_PLAY_FORWARD,
                         forwardIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);

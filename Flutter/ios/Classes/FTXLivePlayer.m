@@ -117,15 +117,15 @@ static const int uninitialized = -1;
 
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"livePlayer notifyPlayerTerminate");
+    if (nil != _txLivePlayer) {
+        _txLivePlayer.videoProcessDelegate = nil;
+        [_txLivePlayer removeVideoWidget];
+    }
     _isTerminate = YES;
     _textureRegistry = nil;
     [self stopPlay];
-    if (nil != _txLivePlayer) {
-        [_txLivePlayer removeVideoWidget];
-        _txLivePlayer.videoProcessDelegate = nil;
-        _txLivePlayer = nil;
-    }
     _textureId = -1;
+    _txLivePlayer = nil;
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio

@@ -61,7 +61,7 @@
 }
 
 - (void)onStartEvent:(long)tmpTaskId taskID:(int)taskID fileId:(NSString *)fileId url:(NSString *)url param:(NSDictionary *)param {
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    __block NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
     [dict setObject:@(taskID) forKey:@"taskId"];
     [dict setObject:fileId forKey:@"fileId"];
@@ -71,7 +71,7 @@
 }
 
 - (void)onErrorEvent:(long)tmpTaskId taskId:(int)taskID url:(NSString *)url error:(NSError *)error {
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    __block NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     if (tmpTaskId >= 0) {
         [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
     }
@@ -124,7 +124,7 @@
 
 + (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
 {
-    NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:@"event"];
+    __block NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:@"event"];
     if (params != nil && params.count != 0) {
         [dict addEntriesFromDictionary:params];
     }
@@ -135,7 +135,7 @@
 
 - (void)onComplete:(int)taskID url:(NSString *)url
 {
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    __block NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     [dict setObject:@(taskID) forKey:@"taskId"];
     [dict setObject:url forKey:@"url"];
     [_eventSink success:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_COMPLETE withParams:dict]];
@@ -177,7 +177,7 @@
 }
 
 - (NSMutableDictionary *)buildMapFromDownloadMediaInfo:(TXVodDownloadMediaInfo *)info{
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+    __block NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     if(nil != info) {
         [dict setValue:info.playPath forKey:@"playPath"];
         [dict setValue:@(info.progress) forKey:@"progress"];
