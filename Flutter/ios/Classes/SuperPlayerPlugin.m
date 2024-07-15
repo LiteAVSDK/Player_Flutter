@@ -129,8 +129,8 @@ SuperPlayerPlugin* instance;
 -(void) releasePlayerInner:(NSNumber*)playerId {
     FTXLOGV(@"called releasePlayerInner,%@ is start release", playerId);
     FTXBasePlayer *player = [_players objectForKey:playerId];
-    [player destory];
     if (player != nil) {
+        [player destory];
         [_players removeObjectForKey:playerId];
     }
 }
@@ -424,10 +424,13 @@ SuperPlayerPlugin* instance;
 
 - (void)onLicenceLoaded:(int)result Reason:(NSString *)reason {
     FTXLOGV(@"onLicenceLoaded,result:%d, reason:%@", result, reason);
-    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:@{
-        @(EVENT_RESULT) : @(result),
-        @(EVENT_REASON) : reason,
-    }]];
+    __block int blockResult = result;
+    __block NSString* blockReason = reason;
+    __block NSDictionary *param = @{
+        @(EVENT_RESULT) : @(blockResult),
+        @(EVENT_REASON) : blockReason,
+    };
+    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:param]];
     
 }
 
