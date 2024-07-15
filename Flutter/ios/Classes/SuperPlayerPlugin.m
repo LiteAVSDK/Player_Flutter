@@ -129,8 +129,8 @@ SuperPlayerPlugin* instance;
 -(void) releasePlayerInner:(NSNumber*)playerId {
     FTXLOGV(@"called releasePlayerInner,%@ is start release", playerId);
     FTXBasePlayer *player = [_players objectForKey:playerId];
-    [player destory];
     if (player != nil) {
+        [player destory];
         [_players removeObjectForKey:playerId];
     }
 }
