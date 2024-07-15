@@ -335,6 +335,14 @@ SuperPlayerPlugin* instance;
     return [TXCommonUtil boolMsgWith:YES];
 }
 
+- (void)setUserIdMsg:(StringMsg *)msg error:(FlutterError * _Nullable __autoreleasing *)error {
+    [TXLiveBase setUserId:msg.value];
+}
+
+- (void)setLicenseFlexibleValidMsg:(BoolMsg *)msg error:(FlutterError * _Nullable __autoreleasing *)error {
+    [TXPlayerGlobalSetting setLicenseFlexibleValid:msg.value];
+}
+
 #pragma mark nativeAPI
 
 - (void)abandonAudioFocusWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {

@@ -195,12 +195,12 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
         _isPlaying = false;
         _controller.pause();
       }),
-      _createItem(AppLocals.current.playerVariableSpeedPlay, () => onClickSetRate),
+      _createItem(AppLocals.current.playerVariableSpeedPlay, () {onClickSetRate();}),
       _createItem(_isMute ? AppLocals.current.playerCancelMute : AppLocals.current.playerSetMute, () {
         _isMute = !_isMute;
         _controller.setMute(_isMute);
       }),
-      _createItem(AppLocals.current.playerAdjustVolume, () => onClickVolume),
+      _createItem(AppLocals.current.playerAdjustVolume, () {onClickVolume();}),
       _createItem(AppLocals.current.playerSwitchBitrate, () {
         if (_supportedBitrates.length > 1) {
           onClickBitrate();

@@ -6,7 +6,7 @@
 /// pigeon原始原件，由此文件生成messages原生通信代码
 /// 生成命令如下，使用生成命令的时候，需要实现注释掉以上两个import导入
 /*
-    flutter pub run pigeon \
+    dart run pigeon \
     --input lib/Core/pigeons/txplayer_message.dart \
     --dart_out lib/Core/txplayer_messages.dart \
     --objc_header_out ios/Classes/messages/FtxMessages.h \
@@ -14,6 +14,7 @@
     --java_out ./android/src/main/java/com/tencent/vod/flutter/messages/FtxMessages.java \
     --java_package "com.tencent.vod.flutter.messages" \
     --copyright_header lib/Core/pigeons/txplayer_copy_right.dart
+
  */
 class PlayerMsg {
   int? playerId;
@@ -391,6 +392,10 @@ abstract class TXFlutterSuperPlayerPluginAPI {
   /// @return true : 开启成功
   ///         false : 开启失败，如开启过早，还未等到上下文初始化、获取sensor失败等原因
   BoolMsg startVideoOrientationService();
+
+  void setUserId(StringMsg msg);
+
+  void setLicenseFlexibleValid(BoolMsg msg);
 }
 
 @HostApi()

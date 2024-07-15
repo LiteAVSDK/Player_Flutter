@@ -308,4 +308,21 @@ class SuperPlayerPlugin {
   void setSDKListener({FTXLicenceLoadedListener? licenceLoadedListener}) {
     _licenseLoadedListener = licenceLoadedListener;
   }
+
+  ///
+  /// 设置 userId，便于定位问题
+  ///
+  /// Set the userId to facilitate problem localization.
+  static Future<void> setUserId(String userId) async {
+    await _playerPluginApi.setUserId(StringMsg(value: userId));
+  }
+
+  ///
+  /// 开启播放器 License 柔性校验，开启后在播放器首次启动后前 2 次播放校验将默认通过
+  ///
+  /// Enable flexible verification of player License; once enabled, the verification will pass by default for the
+  /// first two times after the player is launched for the first time.
+  static Future<void> setLicenseFlexibleValid(bool enabled) async {
+    await _playerPluginApi.setLicenseFlexibleValid(BoolMsg(value: enabled));
+  }
 }
