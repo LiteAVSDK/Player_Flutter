@@ -112,15 +112,15 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"vodPlayer notifyPlayerTerminate");
+    if (nil != _txVodPlayer) {
+        _txVodPlayer.videoProcessDelegate = nil;
+        [_txVodPlayer removeVideoWidget];
+    }
     _isTerminate = YES;
     _textureRegistry = nil;
     [self stopPlay];
-    if (nil != _txVodPlayer) {
-        [_txVodPlayer removeVideoWidget];
-        _txVodPlayer.videoProcessDelegate = nil;
-        _txVodPlayer = nil;
-    }
     _textureId = -1;
+    _txVodPlayer = nil;
 }
 
 - (void)destory
@@ -715,7 +715,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         [self.delegate onPlayerPipRequestStart];
     }
     
-    UIViewController* flutterVC = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    UIViewController* flutterVC = [self getFlutterViewController];
     [flutterVC.view addSubview:self.txPipView];
     [_txVodPlayer setupVideoWidget:self.txPipView insertIndex:0];
     [_txVodPlayer enterPictureInPicture];
@@ -730,6 +730,35 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         _txPipView.hidden = YES;
     }
     return _txPipView;
+}
+
+- (UIViewController *)getFlutterViewController {
+    UIWindow *window = nil;
+    if (@available(iOS 13.0, *)) {
+        NSSet<UIScene *> *connectedScenes = [UIApplication sharedApplication].connectedScenes;
+        for (UIScene *scene in connectedScenes) {
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                UIWindowScene *windowScene = (UIWindowScene *)scene;
+                for (UIWindow *w in windowScene.windows) {
+                    if (w.isKeyWindow) {
+                        window = w;
+                        break;
+                    }
+                }
+                if (window != nil) {
+                    break;
+                }
+            }
+        }
+    } else {
+        for (UIWindow *w in [UIApplication sharedApplication].windows) {
+            if (w.isKeyWindow) {
+                window = w;
+                break;
+            }
+        }
+    }
+    return window.rootViewController;
 }
 
 #pragma mark - PIP delegate
