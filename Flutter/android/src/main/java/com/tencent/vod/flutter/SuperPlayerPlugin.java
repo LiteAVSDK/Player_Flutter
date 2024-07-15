@@ -339,6 +339,18 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         return boolMsg;
     }
 
+    @Override
+    public void setUserId(@NonNull StringMsg msg) {
+        TXLiveBase.setUserId(msg.getValue());
+    }
+
+    @Override
+    public void setLicenseFlexibleValid(@NonNull BoolMsg msg) {
+        if (null != msg.getValue()) {
+            TXPlayerGlobalSetting.setLicenseFlexibleValid(msg.getValue());
+        }
+    }
+
     /******* native method call end *******/
 
 

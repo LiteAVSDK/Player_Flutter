@@ -465,6 +465,8 @@ NSObject<FlutterMessageCodec> *TXFlutterSuperPlayerPluginAPIGetCodec(void);
 ///
 /// @return `nil` only when `error != nil`.
 - (nullable BoolMsg *)startVideoOrientationServiceWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setUserIdMsg:(StringMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setLicenseFlexibleValidMsg:(BoolMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void TXFlutterSuperPlayerPluginAPISetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterSuperPlayerPluginAPI> *_Nullable api);

@@ -3387,6 +3387,10 @@ public class FtxMessages {
     @NonNull 
     BoolMsg startVideoOrientationService();
 
+    void setUserId(@NonNull StringMsg msg);
+
+    void setLicenseFlexibleValid(@NonNull BoolMsg msg);
+
     /** The codec used by TXFlutterSuperPlayerPluginAPI. */
     static @NonNull MessageCodec<Object> getCodec() {
       return TXFlutterSuperPlayerPluginAPICodec.INSTANCE;
@@ -3684,6 +3688,54 @@ public class FtxMessages {
                 try {
                   BoolMsg output = api.startVideoOrientationService();
                   wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterSuperPlayerPluginAPI.setUserId", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                StringMsg msgArg = (StringMsg) args.get(0);
+                try {
+                  api.setUserId(msgArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterSuperPlayerPluginAPI.setLicenseFlexibleValid", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                BoolMsg msgArg = (BoolMsg) args.get(0);
+                try {
+                  api.setLicenseFlexibleValid(msgArg);
+                  wrapped.add(0, null);
                 }
  catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);

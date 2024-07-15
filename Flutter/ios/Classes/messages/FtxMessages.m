@@ -1500,6 +1500,44 @@ void TXFlutterSuperPlayerPluginAPISetup(id<FlutterBinaryMessenger> binaryMesseng
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterSuperPlayerPluginAPI.setUserId"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterSuperPlayerPluginAPIGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setUserIdMsg:error:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(setUserIdMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        StringMsg *arg_msg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setUserIdMsg:arg_msg error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterSuperPlayerPluginAPI.setLicenseFlexibleValid"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterSuperPlayerPluginAPIGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setLicenseFlexibleValidMsg:error:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(setLicenseFlexibleValidMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        BoolMsg *arg_msg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setLicenseFlexibleValidMsg:arg_msg error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 @interface TXFlutterNativeAPICodecReader : FlutterStandardReader
 @end
