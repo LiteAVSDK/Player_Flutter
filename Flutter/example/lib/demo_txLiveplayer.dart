@@ -204,7 +204,9 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                       _controller.setMute(_isMute);
                     });
                   }),
-                  _createItem(AppLocals.current.playerAdjustVolume, () => onClickVolume),
+                  _createItem(AppLocals.current.playerAdjustVolume, () {
+                    onClickVolume();
+                  }),
                 ],
               )),
               Expanded(
