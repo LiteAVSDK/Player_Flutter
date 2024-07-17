@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  pigeon: ^9.0.1
+#  pigeon: ^9.0.1
   synchronized: ^3.0.0+3
   # internationalization
   flutter_localizations:
@@ -19,7 +19,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pigeon: ^9.0.1
+#  pigeon: ^9.0.1
   synchronized: ^3.0.0+3
 
 # For information on the generic Dart part of this file, see the
