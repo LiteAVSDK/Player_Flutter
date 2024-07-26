@@ -340,8 +340,18 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       String? playIconForAndroid,
       String? pauseIconForAndroid,
       String? forwardIconForAndroid}) async {
-    /// live not support
-    return -1;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await _initPlayer.future;
+      IntMsg intMsg = await _livePlayerApi.enterPictureInPictureMode(PipParamsPlayerMsg()
+        ..backIconForAndroid = backIconForAndroid
+        ..playIconForAndroid = playIconForAndroid
+        ..pauseIconForAndroid = pauseIconForAndroid
+        ..forwardIconForAndroid = forwardIconForAndroid
+        ..playerId = _playerId);
+      return intMsg.value ?? -1;
+    } else {
+      return -1;
+    }
   }
 
   /// Exit picture-in-picture mode if the player is in picture-in-picture mode.
