@@ -33,6 +33,9 @@ public class TXPipResult implements Parcelable {
     };
 
     public Float getPlayTime() {
+        if (null == mPlayTime) {
+            return 0F;
+        }
         return mPlayTime;
     }
 

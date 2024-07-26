@@ -496,8 +496,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   Widget _getPipEnterView() {
     return Visibility(
       visible: _isShowControlView &&
-          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE &&
-          _playController.playerType == SuperPlayerType.VOD,
+          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE
+           && (defaultTargetPlatform == TargetPlatform.android
+              || _playController.playerType == SuperPlayerType.VOD),
       child: Positioned(
         right: 10,
         top: 0,
