@@ -1157,9 +1157,19 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     if (nil != _txVodPlayer) {
         if (playerMsg.value && [playerMsg.value count] != 0) {
             id value = playerMsg.value[0];
-            [_txVodPlayer setExtentOptionInfo:@{
-                playerMsg.key : value
-            }];
+            NSString *key = playerMsg.key;
+            // HEVC 降级播放参数进行特殊判断，保证 flutter 层接口一致
+            if ([key isEqualToString:VOD_KEY_VIDEO_CODEC_TYPE] && [value isKindOfClass:[NSString class]]) {
+                if ([(NSString *) value isEqualToString:@"video/hevc"]) {
+                    [_txVodPlayer setExtentOptionInfo:@{
+                        VOD_KEY_VIDEO_CODEC_TYPE : @(kCMVideoCodecType_HEVC)
+                    }];
+                }
+            } else {
+                [_txVodPlayer setExtentOptionInfo:@{
+                    key : value
+                }];
+            }
         }
     }
 }

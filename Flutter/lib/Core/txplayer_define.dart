@@ -426,6 +426,19 @@ abstract class TXVodPlayEvent {
   static const EXTRA_SUBTITLE_START_POSITION_MS = "startPositionMs";
   static const EXTRA_SUBTITLE_DURATION_MS = "durationMs";
   static const EXTRA_SUBTITLE_TRACK_INDEX = "trackIndex";
+
+  /// Alternative playback URL for HEVC downgrade playback, supported by the Advanced Player 12.0
+  /// HEVC 降级播放时备选播放 URL， 播放器高级版 12.0 版本开始支持
+  static const VOD_KEY_BACKUP_URL = "VOD_KEY_BACKUP_URL";
+  /// When HEVC is downgraded, the main video encoding type
+  /// HEVC 降级播放时，主播放的视频编码类型
+  static const VOD_KEY_VIDEO_CODEC_TYPE = "VOD_KEY_VIDEO_CODEC_TYPE";
+  /// MediaType of alternative playback URL resource during HEVC downgrade playback, supported by the Advanced Player 12.0
+  /// HEVC 降级播放时备选播放 URL 资源的 MediaType， 播放器高级版 12.0 版本开始支持
+  static const VOD_KEY_BACKUP_URL_MEDIA_TYPE = "VOD_KEY_BACKUP_URL_MEDIA_TYPE";
+  /// HEVC format, supported by the player advanced version 12.0
+  /// HEVC 格式， 播放器高级版 12.0 版本开始支持
+  static const VOD_PLAY_MIMETYPE_H265 = "video/hevc";
 }
 
 abstract class TXVodNetEvent {
