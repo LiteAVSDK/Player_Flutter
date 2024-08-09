@@ -756,12 +756,18 @@ class SuperPlayerController {
 
   /// Release the player. Once the player is released, it cannot be used again
   /// 释放播放器，播放器释放之后，将不能再使用
-  Future<void> releasePlayer() async {
+  Future<void> releasePlayer({bool? cancelListenerWhenPip}) async {
     // If in picture-in-picture mode, the player should not be released temporarily.
     if (!TXPipController.instance.isPlayerInPip(getCurrentController())) {
       await stopPlay();
       await _vodPlayerController.dispose();
       await _livePlayerController.dispose();
+    } else if (null != cancelListenerWhenPip && cancelListenerWhenPip) {
+      // cancel listener when enter pip
+      _vodPlayEventListener?.cancel();
+      _vodNetEventListener?.cancel();
+      _livePlayEventListener?.cancel();
+      _liveNetEventListener?.cancel();
     }
     // Remove the event listener for the widget.
     _observer?.onDispose();
