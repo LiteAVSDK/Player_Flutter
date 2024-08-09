@@ -359,8 +359,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 退出画中画，如果该播放器处于画中画模式
   @override
   Future<void> exitPictureInPictureMode() async {
-    /// live not support
-    // await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
+    await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()..playerId = _playerId);
   }
 
   /// Release player resource occupation.

@@ -452,7 +452,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
   Future<void> _releasePlayerSource() async {
     // must invoke when page exit.
-    await _controller.releasePlayer();
+    await _controller.releasePlayer(cancelListenerWhenPip: true);
     // restore current brightness to sys brightness
     SuperPlayerPlugin.restorePageBrightness();
     // unregister brightness observer
