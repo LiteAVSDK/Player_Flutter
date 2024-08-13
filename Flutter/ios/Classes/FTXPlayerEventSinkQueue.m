@@ -48,21 +48,25 @@
 
 - (void)flushIfNeed
 {
-    if (self.eventSink == nil) {
-        return;
+    @synchronized(self) {
+        if (self.eventSink == nil) {
+            return;
+        }
+        
+        // array Immutable handle
+        NSArray *array = [NSArray arrayWithArray:self.eventQueue];
+        for (NSObject *obj in array) {
+            self.eventSink(obj);
+        }
+        [self.eventQueue removeAllObjects];
     }
-    
-    // array Immutable handle
-    NSArray *array = [NSArray arrayWithArray:self.eventQueue];
-    for (NSObject *obj in array) {
-        self.eventSink(obj);
-    }
-    [self.eventQueue removeAllObjects];
 }
 
 - (void)enqueue:(NSObject *)event
 {
-    [self.eventQueue addObject:event];
+    @synchronized (self) {
+        [self.eventQueue addObject:event];
+    }
 }
 
 @end
