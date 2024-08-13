@@ -720,9 +720,9 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> dispose() async {
     _isNeedDisposed = true;
     if (!_isDisposed) {
-      await _eventSubscription!.cancel();
+      await _eventSubscription?.cancel();
       _eventSubscription = null;
-      await _netSubscription!.cancel();
+      await _netSubscription?.cancel();
       _netSubscription = null;
 
       await _release();
