@@ -12,7 +12,6 @@ import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.IntPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.PipParamsPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
-import com.tencent.vod.flutter.messages.FtxMessages.StringIntPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 
@@ -47,7 +46,7 @@ public class FTXLivePlayerDispatcher implements FtxMessages.TXFlutterLivePlayerA
 
     @NonNull
     @Override
-    public BoolMsg startLivePlay(@NonNull StringIntPlayerMsg playerMsg) {
+    public BoolMsg startLivePlay(@NonNull StringPlayerMsg playerMsg) {
         TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
         if (null != api) {
             return api.startLivePlay(playerMsg);
@@ -167,5 +166,64 @@ public class FTXLivePlayerDispatcher implements FtxMessages.TXFlutterLivePlayerA
         if (null != api) {
             api.exitPictureInPictureMode(playerMsg);
         }
+    }
+
+    @NonNull
+    @Override
+    public Long enableReceiveSeiMessage(@NonNull PlayerMsg playerMsg,
+                                        @NonNull Boolean isEnabled, @NonNull Long payloadType) {
+        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.enableReceiveSeiMessage(playerMsg, isEnabled, payloadType);
+        }
+        return null;
+    }
+
+    @Override
+    public void showDebugView(@NonNull PlayerMsg playerMsg, @NonNull Boolean isShow) {
+        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            api.showDebugView(playerMsg, isShow);
+        }
+    }
+
+    @NonNull
+    @Override
+    public Long setProperty(@NonNull PlayerMsg playerMsg, @NonNull String key, @NonNull Object value) {
+        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.setProperty(playerMsg, key, value);
+        }
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public FtxMessages.ListMsg getSupportedBitrate(@NonNull PlayerMsg playerMsg) {
+        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.getSupportedBitrate(playerMsg);
+        }
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Long setCacheParams(@NonNull PlayerMsg playerMsg, @NonNull Double minTime, @NonNull Double maxTime) {
+        TXFlutterLivePlayerApi api = getPlayer(playerMsg.getPlayerId());
+        if (null != api) {
+            return api.setCacheParams(playerMsg, minTime, maxTime);
+        }
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Long enablePictureInPicture(@NonNull BoolPlayerMsg msg) {
+        TXFlutterLivePlayerApi api = getPlayer(msg.getPlayerId());
+        if (null != api) {
+            return api.enablePictureInPicture(msg);
+        }
+        return null;
     }
 }

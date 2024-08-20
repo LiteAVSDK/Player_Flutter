@@ -882,6 +882,26 @@ class TXSubtitleRenderModel {
   }
 }
 
+class FSteamInfo {
+  int? width;
+  int? height;
+  int? bitrate;
+  int? frameRate;
+  String? url;
+
+  static FSteamInfo createFromMsg(Object obj) {
+    FSteamInfo info = FSteamInfo();
+    if (obj is Map) {
+      info.width = obj["width"];
+      info.height = obj["height"];
+      info.bitrate = obj["bitrate"];
+      info.frameRate = obj["framerate"];
+      info.url = obj["url"];
+    }
+    return info;
+  }
+}
+
 /// Player type.
 ///
 /// 播放器类型

@@ -693,91 +693,6 @@ public class FtxMessages {
   }
 
   /** Generated class from Pigeon that represents data sent in messages. */
-  public static final class StringIntPlayerMsg {
-    private @Nullable Long playerId;
-
-    public @Nullable Long getPlayerId() {
-      return playerId;
-    }
-
-    public void setPlayerId(@Nullable Long setterArg) {
-      this.playerId = setterArg;
-    }
-
-    private @Nullable String strValue;
-
-    public @Nullable String getStrValue() {
-      return strValue;
-    }
-
-    public void setStrValue(@Nullable String setterArg) {
-      this.strValue = setterArg;
-    }
-
-    private @Nullable Long intValue;
-
-    public @Nullable Long getIntValue() {
-      return intValue;
-    }
-
-    public void setIntValue(@Nullable Long setterArg) {
-      this.intValue = setterArg;
-    }
-
-    public static final class Builder {
-
-      private @Nullable Long playerId;
-
-      public @NonNull Builder setPlayerId(@Nullable Long setterArg) {
-        this.playerId = setterArg;
-        return this;
-      }
-
-      private @Nullable String strValue;
-
-      public @NonNull Builder setStrValue(@Nullable String setterArg) {
-        this.strValue = setterArg;
-        return this;
-      }
-
-      private @Nullable Long intValue;
-
-      public @NonNull Builder setIntValue(@Nullable Long setterArg) {
-        this.intValue = setterArg;
-        return this;
-      }
-
-      public @NonNull StringIntPlayerMsg build() {
-        StringIntPlayerMsg pigeonReturn = new StringIntPlayerMsg();
-        pigeonReturn.setPlayerId(playerId);
-        pigeonReturn.setStrValue(strValue);
-        pigeonReturn.setIntValue(intValue);
-        return pigeonReturn;
-      }
-    }
-
-    @NonNull
-    ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<Object>(3);
-      toListResult.add(playerId);
-      toListResult.add(strValue);
-      toListResult.add(intValue);
-      return toListResult;
-    }
-
-    static @NonNull StringIntPlayerMsg fromList(@NonNull ArrayList<Object> list) {
-      StringIntPlayerMsg pigeonResult = new StringIntPlayerMsg();
-      Object playerId = list.get(0);
-      pigeonResult.setPlayerId((playerId == null) ? null : ((playerId instanceof Integer) ? (Integer) playerId : (Long) playerId));
-      Object strValue = list.get(1);
-      pigeonResult.setStrValue((String) strValue);
-      Object intValue = list.get(2);
-      pigeonResult.setIntValue((intValue == null) ? null : ((intValue instanceof Integer) ? (Integer) intValue : (Long) intValue));
-      return pigeonResult;
-    }
-  }
-
-  /** Generated class from Pigeon that represents data sent in messages. */
   public static final class StringPlayerMsg {
     private @Nullable Long playerId;
 
@@ -5453,19 +5368,55 @@ public class FtxMessages {
         case (byte) 129:
           return BoolPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 130:
-          return FTXLivePlayConfigPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return CachePathMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 131:
-          return IntMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return DoubleMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 132:
-          return IntPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return DoublePlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 133:
-          return PipParamsPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return FTXLivePlayConfigPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 134:
-          return PlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return FTXVodPlayConfigPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 135:
-          return StringIntPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+          return IntMsg.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 136:
+          return IntPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 137:
+          return LicenseMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 138:
+          return ListMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 139:
+          return MapMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 140:
+          return PipParamsPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 141:
+          return PlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 142:
+          return PreLoadInfoMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 143:
+          return PreLoadMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 144:
+          return StringListPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 145:
+          return StringMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 146:
+          return StringOptionPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 147:
           return StringPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 148:
+          return SubTitlePlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 149:
+          return SubTitleRenderModelPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 150:
+          return TXDownloadListMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 151:
+          return TXPlayInfoParamsPlayerMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 152:
+          return TXPlayerDrmMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 153:
+          return TXVodDownloadMediaMsg.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 154:
+          return UInt8ListMsg.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
       }
@@ -5479,27 +5430,81 @@ public class FtxMessages {
       } else if (value instanceof BoolPlayerMsg) {
         stream.write(129);
         writeValue(stream, ((BoolPlayerMsg) value).toList());
-      } else if (value instanceof FTXLivePlayConfigPlayerMsg) {
+      } else if (value instanceof CachePathMsg) {
         stream.write(130);
-        writeValue(stream, ((FTXLivePlayConfigPlayerMsg) value).toList());
-      } else if (value instanceof IntMsg) {
+        writeValue(stream, ((CachePathMsg) value).toList());
+      } else if (value instanceof DoubleMsg) {
         stream.write(131);
+        writeValue(stream, ((DoubleMsg) value).toList());
+      } else if (value instanceof DoublePlayerMsg) {
+        stream.write(132);
+        writeValue(stream, ((DoublePlayerMsg) value).toList());
+      } else if (value instanceof FTXLivePlayConfigPlayerMsg) {
+        stream.write(133);
+        writeValue(stream, ((FTXLivePlayConfigPlayerMsg) value).toList());
+      } else if (value instanceof FTXVodPlayConfigPlayerMsg) {
+        stream.write(134);
+        writeValue(stream, ((FTXVodPlayConfigPlayerMsg) value).toList());
+      } else if (value instanceof IntMsg) {
+        stream.write(135);
         writeValue(stream, ((IntMsg) value).toList());
       } else if (value instanceof IntPlayerMsg) {
-        stream.write(132);
+        stream.write(136);
         writeValue(stream, ((IntPlayerMsg) value).toList());
+      } else if (value instanceof LicenseMsg) {
+        stream.write(137);
+        writeValue(stream, ((LicenseMsg) value).toList());
+      } else if (value instanceof ListMsg) {
+        stream.write(138);
+        writeValue(stream, ((ListMsg) value).toList());
+      } else if (value instanceof MapMsg) {
+        stream.write(139);
+        writeValue(stream, ((MapMsg) value).toList());
       } else if (value instanceof PipParamsPlayerMsg) {
-        stream.write(133);
+        stream.write(140);
         writeValue(stream, ((PipParamsPlayerMsg) value).toList());
       } else if (value instanceof PlayerMsg) {
-        stream.write(134);
+        stream.write(141);
         writeValue(stream, ((PlayerMsg) value).toList());
-      } else if (value instanceof StringIntPlayerMsg) {
-        stream.write(135);
-        writeValue(stream, ((StringIntPlayerMsg) value).toList());
+      } else if (value instanceof PreLoadInfoMsg) {
+        stream.write(142);
+        writeValue(stream, ((PreLoadInfoMsg) value).toList());
+      } else if (value instanceof PreLoadMsg) {
+        stream.write(143);
+        writeValue(stream, ((PreLoadMsg) value).toList());
+      } else if (value instanceof StringListPlayerMsg) {
+        stream.write(144);
+        writeValue(stream, ((StringListPlayerMsg) value).toList());
+      } else if (value instanceof StringMsg) {
+        stream.write(145);
+        writeValue(stream, ((StringMsg) value).toList());
+      } else if (value instanceof StringOptionPlayerMsg) {
+        stream.write(146);
+        writeValue(stream, ((StringOptionPlayerMsg) value).toList());
       } else if (value instanceof StringPlayerMsg) {
-        stream.write(136);
+        stream.write(147);
         writeValue(stream, ((StringPlayerMsg) value).toList());
+      } else if (value instanceof SubTitlePlayerMsg) {
+        stream.write(148);
+        writeValue(stream, ((SubTitlePlayerMsg) value).toList());
+      } else if (value instanceof SubTitleRenderModelPlayerMsg) {
+        stream.write(149);
+        writeValue(stream, ((SubTitleRenderModelPlayerMsg) value).toList());
+      } else if (value instanceof TXDownloadListMsg) {
+        stream.write(150);
+        writeValue(stream, ((TXDownloadListMsg) value).toList());
+      } else if (value instanceof TXPlayInfoParamsPlayerMsg) {
+        stream.write(151);
+        writeValue(stream, ((TXPlayInfoParamsPlayerMsg) value).toList());
+      } else if (value instanceof TXPlayerDrmMsg) {
+        stream.write(152);
+        writeValue(stream, ((TXPlayerDrmMsg) value).toList());
+      } else if (value instanceof TXVodDownloadMediaMsg) {
+        stream.write(153);
+        writeValue(stream, ((TXVodDownloadMediaMsg) value).toList());
+      } else if (value instanceof UInt8ListMsg) {
+        stream.write(154);
+        writeValue(stream, ((UInt8ListMsg) value).toList());
       } else {
         super.writeValue(stream, value);
       }
@@ -5516,15 +5521,14 @@ public class FtxMessages {
     IntMsg initialize(@NonNull BoolPlayerMsg onlyAudio);
     /**
      *
-     * 当设置[LivePlayer] 类型播放器时，需要参数[playType]
-     * 参考: [PlayType.LIVE_RTMP] ...
+     * 当设置[LivePlayer] 类型播放器时
      * 10.7版本开始，startPlay变更为startLivePlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
      * 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
      * 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
      * (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
      */
     @NonNull 
-    BoolMsg startLivePlay(@NonNull StringIntPlayerMsg playerMsg);
+    BoolMsg startLivePlay(@NonNull StringPlayerMsg playerMsg);
     /**
      * 停止播放
      * return 是否停止成功
@@ -5570,6 +5574,23 @@ public class FtxMessages {
     /** 退出画中画，如果该播放器处于画中画模式 */
     void exitPictureInPictureMode(@NonNull PlayerMsg playerMsg);
 
+    @NonNull 
+    Long enableReceiveSeiMessage(@NonNull PlayerMsg playerMsg, @NonNull Boolean isEnabled, @NonNull Long payloadType);
+
+    void showDebugView(@NonNull PlayerMsg playerMsg, @NonNull Boolean isShow);
+
+    @NonNull 
+    Long setProperty(@NonNull PlayerMsg playerMsg, @NonNull String key, @NonNull Object value);
+
+    @NonNull 
+    ListMsg getSupportedBitrate(@NonNull PlayerMsg playerMsg);
+
+    @NonNull 
+    Long setCacheParams(@NonNull PlayerMsg playerMsg, @NonNull Double minTime, @NonNull Double maxTime);
+
+    @NonNull 
+    Long enablePictureInPicture(@NonNull BoolPlayerMsg msg);
+
     /** The codec used by TXFlutterLivePlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
       return TXFlutterLivePlayerApiCodec.INSTANCE;
@@ -5609,7 +5630,7 @@ public class FtxMessages {
               (message, reply) -> {
                 ArrayList<Object> wrapped = new ArrayList<Object>();
                 ArrayList<Object> args = (ArrayList<Object>) message;
-                StringIntPlayerMsg playerMsgArg = (StringIntPlayerMsg) args.get(0);
+                StringPlayerMsg playerMsgArg = (StringPlayerMsg) args.get(0);
                 try {
                   BoolMsg output = api.startLivePlay(playerMsgArg);
                   wrapped.add(0, output);
@@ -5925,6 +5946,157 @@ public class FtxMessages {
                 try {
                   api.exitPictureInPictureMode(playerMsgArg);
                   wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterLivePlayerApi.enableReceiveSeiMessage", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                Boolean isEnabledArg = (Boolean) args.get(1);
+                Number payloadTypeArg = (Number) args.get(2);
+                try {
+                  Long output = api.enableReceiveSeiMessage(playerMsgArg, isEnabledArg, (payloadTypeArg == null) ? null : payloadTypeArg.longValue());
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterLivePlayerApi.showDebugView", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                Boolean isShowArg = (Boolean) args.get(1);
+                try {
+                  api.showDebugView(playerMsgArg, isShowArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterLivePlayerApi.setProperty", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                String keyArg = (String) args.get(1);
+                Object valueArg = args.get(2);
+                try {
+                  Long output = api.setProperty(playerMsgArg, keyArg, valueArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterLivePlayerApi.getSupportedBitrate", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                try {
+                  ListMsg output = api.getSupportedBitrate(playerMsgArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterLivePlayerApi.setCacheParams", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                PlayerMsg playerMsgArg = (PlayerMsg) args.get(0);
+                Double minTimeArg = (Double) args.get(1);
+                Double maxTimeArg = (Double) args.get(2);
+                try {
+                  Long output = api.setCacheParams(playerMsgArg, minTimeArg, maxTimeArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.TXFlutterLivePlayerApi.enablePictureInPicture", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                BoolPlayerMsg msgArg = (BoolPlayerMsg) args.get(0);
+                try {
+                  Long output = api.enablePictureInPicture(msgArg);
+                  wrapped.add(0, output);
                 }
  catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);

@@ -31,10 +31,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.tencent.liteav.base.util.LiteavLog;
-import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.ITXVodPlayListener;
 import com.tencent.rtmp.TXLiveConstants;
-import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager.PipParams;
@@ -46,7 +44,7 @@ import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 
 
 public class FlutterPipImplActivity extends Activity implements TextureView.SurfaceTextureListener, ITXVodPlayListener,
-        ITXLivePlayListener, ServiceConnection {
+        ServiceConnection {
 
     private static final String TAG = "FlutterPipImplActivity";
     private static TXPlayerHolder pipPlayerHolder;
@@ -129,7 +127,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
         }
         isInPip = true;
         // pause first, resume video after entered pip
-        playerHolder.tmpPause();
+        playerHolder.pause();
         pipPlayerHolder = playerHolder;
         Intent intent = new Intent(activity, FlutterPipImplActivity.class);
         Bundle bundle = new Bundle();
@@ -166,7 +164,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
             LiteavLog.e(TAG, "lack pipPlayerHolder player, please check the pip argument");
             finish();
         }
-        Intent intent =  getIntent();
+        Intent intent = getIntent();
         Bundle data = intent.getBundleExtra("data");
         if (null != data) {
             PipParams params = data.getParcelable(FTXEvent.EXTRA_NAME_PARAMS);
@@ -191,7 +189,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     }
 
     private void setLivePlayerListener() {
-        mPlayerHolder.getLivePlayer().setPlayListener(this);
+        // pip not need live observer
     }
 
     @Override
@@ -296,6 +294,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     private void handlePipExitEvent() {
         Bundle data = new Bundle();
         TXPipResult pipResult = new TXPipResult();
+        pipResult.setPlaying(mPlayerHolder.isPlaying());
         if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
             if (mIsPlayEnd) {
                 pipResult.setPlayTime(0F);
@@ -303,11 +302,9 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                 Float currentPlayTime = mPlayerHolder.getVodPlayer().getCurrentPlaybackTime();
                 pipResult.setPlayTime(currentPlayTime);
             }
-            pipResult.setPlaying(mPlayerHolder.getVodPlayer().isPlaying());
             pipResult.setPlayerId(mCurrentParams.getCurrentPlayerId());
             data.putParcelable(FTXEvent.EXTRA_NAME_RESULT, pipResult);
         } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-            pipResult.setPlaying(mPlayerHolder.getLivePlayer().isPlaying());
             pipResult.setPlayerId(mCurrentParams.getCurrentPlayerId());
             data.putParcelable(FTXEvent.EXTRA_NAME_RESULT, pipResult);
         }
@@ -315,13 +312,9 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
             mPlayerHolder.getVodPlayer().setSurface(null);
         }
         if (null != mPlayerHolder.getLivePlayer()) {
-            mPlayerHolder.getLivePlayer().setSurface(null);
+            mPlayerHolder.getLivePlayer().setRenderView((TextureView) null);
         }
-        if (null != mPlayerHolder.getVodPlayer()) {
-            mPlayerHolder.getVodPlayer().pause();
-        } else if (null != mPlayerHolder.getLivePlayer()) {
-            mPlayerHolder.getLivePlayer().pause();
-        }
+        mPlayerHolder.pause();
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
         sendPipEvent(codeEvent, data);
         exitPip(codeEvent == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT);
@@ -387,7 +380,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                 intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
             }
-        },2000);
+        }, 2000);
     }
 
     /**
@@ -447,11 +440,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
         if (null != mPlayerHolder) {
             boolean isInitPlaying = mPlayerHolder.isPlayingWhenCreate();
             if (isInitPlaying) {
-                if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
-                    mPlayerHolder.getVodPlayer().resume();
-                } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                    mPlayerHolder.getLivePlayer().resume();
-                }
+                mPlayerHolder.resume();
             }
         } else {
             LiteavLog.e(TAG, "miss player when startPlay");
@@ -519,7 +508,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
             if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
                 mPlayerHolder.getVodPlayer().setSurface(surface);
             } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                mPlayerHolder.getLivePlayer().setSurface(surface);
+                mPlayerHolder.getLivePlayer().setRenderView(mVideoSurface);
             } else {
                 LiteavLog.e(TAG, "unknown player type:" + mPlayerHolder.getPlayerType());
             }
@@ -542,23 +531,11 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     }
 
     private void handleResumeOrPause() {
-        boolean dstPlaying = false;
-        if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
-            TXVodPlayer vodPlayer = mPlayerHolder.getVodPlayer();
-            dstPlaying = !vodPlayer.isPlaying();
-            if (dstPlaying) {
-                vodPlayer.resume();
-            } else {
-                vodPlayer.pause();
-            }
-        } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-            TXLivePlayer livePlayer = mPlayerHolder.getLivePlayer();
-            dstPlaying = !livePlayer.isPlaying();
-            if (dstPlaying) {
-                livePlayer.resume();
-            } else {
-                livePlayer.pause();
-            }
+        boolean dstPlaying = !mPlayerHolder.isPlaying();
+        if (dstPlaying) {
+            mPlayerHolder.resume();
+        } else {
+            mPlayerHolder.pause();
         }
         handleResumeOrPause(dstPlaying);
     }
@@ -653,10 +630,6 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
         sendPlayerEvent(event, bundle);
     }
 
-    @Override
-    public void onPlayEvent(int event, Bundle bundle) {
-    }
-
     private void sendPlayerEvent(int eventCode, Bundle data) {
         Bundle params = new Bundle();
         params.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
@@ -670,15 +643,10 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     }
 
     @Override
-    public void onNetStatus(Bundle bundle) {
-    }
-
-    @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
     }
-
 }
