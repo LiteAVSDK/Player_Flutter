@@ -41,7 +41,15 @@ class _MyAppState extends State<MyApp> {
 
   /// set player license
   Future<void> initPlayerLicense() async {
+    // must called before setGlobalLicense
+    SuperPlayerPlugin.instance.setSDKListener(licenceLoadedListener:(code, result) {
+      if (code == 0) {
+        isLicenseSuc.complete(true);
+      }
+    });
     await SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
+    // enable flexible license valid
+    SuperPlayerPlugin.setLicenseFlexibleValid(true);
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

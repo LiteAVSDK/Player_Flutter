@@ -64,12 +64,6 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
-@interface StringIntPlayerMsg ()
-+ (StringIntPlayerMsg *)fromList:(NSArray *)list;
-+ (nullable StringIntPlayerMsg *)nullableFromList:(NSArray *)list;
-- (NSArray *)toList;
-@end
-
 @interface StringPlayerMsg ()
 + (StringPlayerMsg *)fromList:(NSArray *)list;
 + (nullable StringPlayerMsg *)nullableFromList:(NSArray *)list;
@@ -395,35 +389,6 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   return @[
     (self.playerId ?: [NSNull null]),
     (self.value ?: [NSNull null]),
-  ];
-}
-@end
-
-@implementation StringIntPlayerMsg
-+ (instancetype)makeWithPlayerId:(nullable NSNumber *)playerId
-    strValue:(nullable NSString *)strValue
-    intValue:(nullable NSNumber *)intValue {
-  StringIntPlayerMsg* pigeonResult = [[StringIntPlayerMsg alloc] init];
-  pigeonResult.playerId = playerId;
-  pigeonResult.strValue = strValue;
-  pigeonResult.intValue = intValue;
-  return pigeonResult;
-}
-+ (StringIntPlayerMsg *)fromList:(NSArray *)list {
-  StringIntPlayerMsg *pigeonResult = [[StringIntPlayerMsg alloc] init];
-  pigeonResult.playerId = GetNullableObjectAtIndex(list, 0);
-  pigeonResult.strValue = GetNullableObjectAtIndex(list, 1);
-  pigeonResult.intValue = GetNullableObjectAtIndex(list, 2);
-  return pigeonResult;
-}
-+ (nullable StringIntPlayerMsg *)nullableFromList:(NSArray *)list {
-  return (list) ? [StringIntPlayerMsg fromList:list] : nil;
-}
-- (NSArray *)toList {
-  return @[
-    (self.playerId ?: [NSNull null]),
-    (self.strValue ?: [NSNull null]),
-    (self.intValue ?: [NSNull null]),
   ];
 }
 @end
@@ -2854,19 +2819,55 @@ void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSOb
     case 129: 
       return [BoolPlayerMsg fromList:[self readValue]];
     case 130: 
-      return [FTXLivePlayConfigPlayerMsg fromList:[self readValue]];
+      return [CachePathMsg fromList:[self readValue]];
     case 131: 
-      return [IntMsg fromList:[self readValue]];
+      return [DoubleMsg fromList:[self readValue]];
     case 132: 
-      return [IntPlayerMsg fromList:[self readValue]];
+      return [DoublePlayerMsg fromList:[self readValue]];
     case 133: 
-      return [PipParamsPlayerMsg fromList:[self readValue]];
+      return [FTXLivePlayConfigPlayerMsg fromList:[self readValue]];
     case 134: 
-      return [PlayerMsg fromList:[self readValue]];
+      return [FTXVodPlayConfigPlayerMsg fromList:[self readValue]];
     case 135: 
-      return [StringIntPlayerMsg fromList:[self readValue]];
+      return [IntMsg fromList:[self readValue]];
     case 136: 
+      return [IntPlayerMsg fromList:[self readValue]];
+    case 137: 
+      return [LicenseMsg fromList:[self readValue]];
+    case 138: 
+      return [ListMsg fromList:[self readValue]];
+    case 139: 
+      return [MapMsg fromList:[self readValue]];
+    case 140: 
+      return [PipParamsPlayerMsg fromList:[self readValue]];
+    case 141: 
+      return [PlayerMsg fromList:[self readValue]];
+    case 142: 
+      return [PreLoadInfoMsg fromList:[self readValue]];
+    case 143: 
+      return [PreLoadMsg fromList:[self readValue]];
+    case 144: 
+      return [StringListPlayerMsg fromList:[self readValue]];
+    case 145: 
+      return [StringMsg fromList:[self readValue]];
+    case 146: 
+      return [StringOptionPlayerMsg fromList:[self readValue]];
+    case 147: 
       return [StringPlayerMsg fromList:[self readValue]];
+    case 148: 
+      return [SubTitlePlayerMsg fromList:[self readValue]];
+    case 149: 
+      return [SubTitleRenderModelPlayerMsg fromList:[self readValue]];
+    case 150: 
+      return [TXDownloadListMsg fromList:[self readValue]];
+    case 151: 
+      return [TXPlayInfoParamsPlayerMsg fromList:[self readValue]];
+    case 152: 
+      return [TXPlayerDrmMsg fromList:[self readValue]];
+    case 153: 
+      return [TXVodDownloadMediaMsg fromList:[self readValue]];
+    case 154: 
+      return [UInt8ListMsg fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
   }
@@ -2883,26 +2884,80 @@ void TXFlutterVodPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSOb
   } else if ([value isKindOfClass:[BoolPlayerMsg class]]) {
     [self writeByte:129];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[FTXLivePlayConfigPlayerMsg class]]) {
+  } else if ([value isKindOfClass:[CachePathMsg class]]) {
     [self writeByte:130];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[IntMsg class]]) {
+  } else if ([value isKindOfClass:[DoubleMsg class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[IntPlayerMsg class]]) {
+  } else if ([value isKindOfClass:[DoublePlayerMsg class]]) {
     [self writeByte:132];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PipParamsPlayerMsg class]]) {
+  } else if ([value isKindOfClass:[FTXLivePlayConfigPlayerMsg class]]) {
     [self writeByte:133];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PlayerMsg class]]) {
+  } else if ([value isKindOfClass:[FTXVodPlayConfigPlayerMsg class]]) {
     [self writeByte:134];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[StringIntPlayerMsg class]]) {
+  } else if ([value isKindOfClass:[IntMsg class]]) {
     [self writeByte:135];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[StringPlayerMsg class]]) {
+  } else if ([value isKindOfClass:[IntPlayerMsg class]]) {
     [self writeByte:136];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[LicenseMsg class]]) {
+    [self writeByte:137];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[ListMsg class]]) {
+    [self writeByte:138];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[MapMsg class]]) {
+    [self writeByte:139];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[PipParamsPlayerMsg class]]) {
+    [self writeByte:140];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[PlayerMsg class]]) {
+    [self writeByte:141];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[PreLoadInfoMsg class]]) {
+    [self writeByte:142];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[PreLoadMsg class]]) {
+    [self writeByte:143];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[StringListPlayerMsg class]]) {
+    [self writeByte:144];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[StringMsg class]]) {
+    [self writeByte:145];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[StringOptionPlayerMsg class]]) {
+    [self writeByte:146];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[StringPlayerMsg class]]) {
+    [self writeByte:147];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[SubTitlePlayerMsg class]]) {
+    [self writeByte:148];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[SubTitleRenderModelPlayerMsg class]]) {
+    [self writeByte:149];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXDownloadListMsg class]]) {
+    [self writeByte:150];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXPlayInfoParamsPlayerMsg class]]) {
+    [self writeByte:151];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXPlayerDrmMsg class]]) {
+    [self writeByte:152];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[TXVodDownloadMediaMsg class]]) {
+    [self writeByte:153];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[UInt8ListMsg class]]) {
+    [self writeByte:154];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -2954,8 +3009,7 @@ void TXFlutterLivePlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSO
     }
   }
   ///
-  /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
-  /// 参考: [PlayType.LIVE_RTMP] ...
+  /// 当设置[LivePlayer] 类型播放器时
   /// 10.7版本开始，startPlay变更为startLivePlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
   /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
@@ -2970,7 +3024,7 @@ void TXFlutterLivePlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSO
       NSCAssert([api respondsToSelector:@selector(startLivePlayPlayerMsg:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(startLivePlayPlayerMsg:error:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
         NSArray *args = message;
-        StringIntPlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        StringPlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
         FlutterError *error;
         BoolMsg *output = [api startLivePlayPlayerMsg:arg_playerMsg error:&error];
         callback(wrapResult(output, error));
@@ -3241,6 +3295,127 @@ void TXFlutterLivePlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSO
         FlutterError *error;
         [api exitPictureInPictureModePlayerMsg:arg_playerMsg error:&error];
         callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterLivePlayerApi.enableReceiveSeiMessage"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterLivePlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(enableReceiveSeiMessagePlayerMsg:isEnabled:payloadType:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(enableReceiveSeiMessagePlayerMsg:isEnabled:payloadType:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_isEnabled = GetNullableObjectAtIndex(args, 1);
+        NSNumber *arg_payloadType = GetNullableObjectAtIndex(args, 2);
+        FlutterError *error;
+        NSNumber *output = [api enableReceiveSeiMessagePlayerMsg:arg_playerMsg isEnabled:arg_isEnabled payloadType:arg_payloadType error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterLivePlayerApi.showDebugView"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterLivePlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(showDebugViewPlayerMsg:isShow:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(showDebugViewPlayerMsg:isShow:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_isShow = GetNullableObjectAtIndex(args, 1);
+        FlutterError *error;
+        [api showDebugViewPlayerMsg:arg_playerMsg isShow:arg_isShow error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterLivePlayerApi.setProperty"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterLivePlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setPropertyPlayerMsg:key:value:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(setPropertyPlayerMsg:key:value:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        NSString *arg_key = GetNullableObjectAtIndex(args, 1);
+        id arg_value = GetNullableObjectAtIndex(args, 2);
+        FlutterError *error;
+        NSNumber *output = [api setPropertyPlayerMsg:arg_playerMsg key:arg_key value:arg_value error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterLivePlayerApi.getSupportedBitrate"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterLivePlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getSupportedBitratePlayerMsg:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(getSupportedBitratePlayerMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        ListMsg *output = [api getSupportedBitratePlayerMsg:arg_playerMsg error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterLivePlayerApi.setCacheParams"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterLivePlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setCacheParamsPlayerMsg:minTime:maxTime:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(setCacheParamsPlayerMsg:minTime:maxTime:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PlayerMsg *arg_playerMsg = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_minTime = GetNullableObjectAtIndex(args, 1);
+        NSNumber *arg_maxTime = GetNullableObjectAtIndex(args, 2);
+        FlutterError *error;
+        NSNumber *output = [api setCacheParamsPlayerMsg:arg_playerMsg minTime:arg_minTime maxTime:arg_maxTime error:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.TXFlutterLivePlayerApi.enablePictureInPicture"
+        binaryMessenger:binaryMessenger
+        codec:TXFlutterLivePlayerApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(enablePictureInPictureMsg:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(enablePictureInPictureMsg:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        BoolPlayerMsg *arg_msg = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        NSNumber *output = [api enablePictureInPictureMsg:arg_msg error:&error];
+        callback(wrapResult(output, error));
       }];
     } else {
       [channel setMessageHandler:nil];

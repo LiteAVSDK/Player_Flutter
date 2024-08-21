@@ -232,37 +232,6 @@ class BoolPlayerMsg {
   }
 }
 
-class StringIntPlayerMsg {
-  StringIntPlayerMsg({
-    this.playerId,
-    this.strValue,
-    this.intValue,
-  });
-
-  int? playerId;
-
-  String? strValue;
-
-  int? intValue;
-
-  Object encode() {
-    return <Object?>[
-      playerId,
-      strValue,
-      intValue,
-    ];
-  }
-
-  static StringIntPlayerMsg decode(Object result) {
-    result as List<Object?>;
-    return StringIntPlayerMsg(
-      playerId: result[0] as int?,
-      strValue: result[1] as String?,
-      intValue: result[2] as int?,
-    );
-  }
-}
-
 class StringPlayerMsg {
   StringPlayerMsg({
     this.playerId,
@@ -3121,26 +3090,80 @@ class _TXFlutterLivePlayerApiCodec extends StandardMessageCodec {
     } else if (value is BoolPlayerMsg) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else if (value is FTXLivePlayConfigPlayerMsg) {
+    } else if (value is CachePathMsg) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is IntMsg) {
+    } else if (value is DoubleMsg) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is IntPlayerMsg) {
+    } else if (value is DoublePlayerMsg) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is PipParamsPlayerMsg) {
+    } else if (value is FTXLivePlayConfigPlayerMsg) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is PlayerMsg) {
+    } else if (value is FTXVodPlayConfigPlayerMsg) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is StringIntPlayerMsg) {
+    } else if (value is IntMsg) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is StringPlayerMsg) {
+    } else if (value is IntPlayerMsg) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is LicenseMsg) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
+    } else if (value is ListMsg) {
+      buffer.putUint8(138);
+      writeValue(buffer, value.encode());
+    } else if (value is MapMsg) {
+      buffer.putUint8(139);
+      writeValue(buffer, value.encode());
+    } else if (value is PipParamsPlayerMsg) {
+      buffer.putUint8(140);
+      writeValue(buffer, value.encode());
+    } else if (value is PlayerMsg) {
+      buffer.putUint8(141);
+      writeValue(buffer, value.encode());
+    } else if (value is PreLoadInfoMsg) {
+      buffer.putUint8(142);
+      writeValue(buffer, value.encode());
+    } else if (value is PreLoadMsg) {
+      buffer.putUint8(143);
+      writeValue(buffer, value.encode());
+    } else if (value is StringListPlayerMsg) {
+      buffer.putUint8(144);
+      writeValue(buffer, value.encode());
+    } else if (value is StringMsg) {
+      buffer.putUint8(145);
+      writeValue(buffer, value.encode());
+    } else if (value is StringOptionPlayerMsg) {
+      buffer.putUint8(146);
+      writeValue(buffer, value.encode());
+    } else if (value is StringPlayerMsg) {
+      buffer.putUint8(147);
+      writeValue(buffer, value.encode());
+    } else if (value is SubTitlePlayerMsg) {
+      buffer.putUint8(148);
+      writeValue(buffer, value.encode());
+    } else if (value is SubTitleRenderModelPlayerMsg) {
+      buffer.putUint8(149);
+      writeValue(buffer, value.encode());
+    } else if (value is TXDownloadListMsg) {
+      buffer.putUint8(150);
+      writeValue(buffer, value.encode());
+    } else if (value is TXPlayInfoParamsPlayerMsg) {
+      buffer.putUint8(151);
+      writeValue(buffer, value.encode());
+    } else if (value is TXPlayerDrmMsg) {
+      buffer.putUint8(152);
+      writeValue(buffer, value.encode());
+    } else if (value is TXVodDownloadMediaMsg) {
+      buffer.putUint8(153);
+      writeValue(buffer, value.encode());
+    } else if (value is UInt8ListMsg) {
+      buffer.putUint8(154);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -3155,19 +3178,55 @@ class _TXFlutterLivePlayerApiCodec extends StandardMessageCodec {
       case 129: 
         return BoolPlayerMsg.decode(readValue(buffer)!);
       case 130: 
-        return FTXLivePlayConfigPlayerMsg.decode(readValue(buffer)!);
+        return CachePathMsg.decode(readValue(buffer)!);
       case 131: 
-        return IntMsg.decode(readValue(buffer)!);
+        return DoubleMsg.decode(readValue(buffer)!);
       case 132: 
-        return IntPlayerMsg.decode(readValue(buffer)!);
+        return DoublePlayerMsg.decode(readValue(buffer)!);
       case 133: 
-        return PipParamsPlayerMsg.decode(readValue(buffer)!);
+        return FTXLivePlayConfigPlayerMsg.decode(readValue(buffer)!);
       case 134: 
-        return PlayerMsg.decode(readValue(buffer)!);
+        return FTXVodPlayConfigPlayerMsg.decode(readValue(buffer)!);
       case 135: 
-        return StringIntPlayerMsg.decode(readValue(buffer)!);
+        return IntMsg.decode(readValue(buffer)!);
       case 136: 
+        return IntPlayerMsg.decode(readValue(buffer)!);
+      case 137: 
+        return LicenseMsg.decode(readValue(buffer)!);
+      case 138: 
+        return ListMsg.decode(readValue(buffer)!);
+      case 139: 
+        return MapMsg.decode(readValue(buffer)!);
+      case 140: 
+        return PipParamsPlayerMsg.decode(readValue(buffer)!);
+      case 141: 
+        return PlayerMsg.decode(readValue(buffer)!);
+      case 142: 
+        return PreLoadInfoMsg.decode(readValue(buffer)!);
+      case 143: 
+        return PreLoadMsg.decode(readValue(buffer)!);
+      case 144: 
+        return StringListPlayerMsg.decode(readValue(buffer)!);
+      case 145: 
+        return StringMsg.decode(readValue(buffer)!);
+      case 146: 
+        return StringOptionPlayerMsg.decode(readValue(buffer)!);
+      case 147: 
         return StringPlayerMsg.decode(readValue(buffer)!);
+      case 148: 
+        return SubTitlePlayerMsg.decode(readValue(buffer)!);
+      case 149: 
+        return SubTitleRenderModelPlayerMsg.decode(readValue(buffer)!);
+      case 150: 
+        return TXDownloadListMsg.decode(readValue(buffer)!);
+      case 151: 
+        return TXPlayInfoParamsPlayerMsg.decode(readValue(buffer)!);
+      case 152: 
+        return TXPlayerDrmMsg.decode(readValue(buffer)!);
+      case 153: 
+        return TXVodDownloadMediaMsg.decode(readValue(buffer)!);
+      case 154: 
+        return UInt8ListMsg.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -3214,13 +3273,12 @@ class TXFlutterLivePlayerApi {
   }
 
   ///
-  /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
-  /// 参考: [PlayType.LIVE_RTMP] ...
+  /// 当设置[LivePlayer] 类型播放器时
   /// 10.7版本开始，startPlay变更为startLivePlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
   /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
   /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
-  Future<BoolMsg> startLivePlay(StringIntPlayerMsg arg_playerMsg) async {
+  Future<BoolMsg> startLivePlay(StringPlayerMsg arg_playerMsg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.TXFlutterLivePlayerApi.startLivePlay', codec,
         binaryMessenger: _binaryMessenger);
@@ -3575,6 +3633,163 @@ class TXFlutterLivePlayerApi {
       );
     } else {
       return;
+    }
+  }
+
+  Future<int> enableReceiveSeiMessage(PlayerMsg arg_playerMsg, bool arg_isEnabled, int arg_payloadType) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterLivePlayerApi.enableReceiveSeiMessage', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg, arg_isEnabled, arg_payloadType]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as int?)!;
+    }
+  }
+
+  Future<void> showDebugView(PlayerMsg arg_playerMsg, bool arg_isShow) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterLivePlayerApi.showDebugView', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg, arg_isShow]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<int> setProperty(PlayerMsg arg_playerMsg, String arg_key, Object arg_value) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterLivePlayerApi.setProperty', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg, arg_key, arg_value]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as int?)!;
+    }
+  }
+
+  Future<ListMsg> getSupportedBitrate(PlayerMsg arg_playerMsg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterLivePlayerApi.getSupportedBitrate', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as ListMsg?)!;
+    }
+  }
+
+  Future<int> setCacheParams(PlayerMsg arg_playerMsg, double arg_minTime, double arg_maxTime) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterLivePlayerApi.setCacheParams', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_playerMsg, arg_minTime, arg_maxTime]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as int?)!;
+    }
+  }
+
+  Future<int> enablePictureInPicture(BoolPlayerMsg arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.TXFlutterLivePlayerApi.enablePictureInPicture', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as int?)!;
     }
   }
 }

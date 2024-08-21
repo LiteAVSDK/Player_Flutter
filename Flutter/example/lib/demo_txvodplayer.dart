@@ -11,6 +11,7 @@ import 'ui/demo_volume_slider.dart';
 import 'ui/demo_speed_slider.dart';
 import 'ui/demo_bitrate_checkbox.dart';
 import 'ui/demo_video_slider_view.dart';
+import 'common/demo_config.dart';
 
 class DemoTXVodPlayer extends StatefulWidget {
   @override
@@ -84,10 +85,15 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     });
     await _controller.setLoop(true);
     await _controller.enableHardwareDecode(enableHardware);
-    await _controller.setAudioPlayoutVolume(volume);
+    await _controller.setConfig(FTXVodPlayConfig());
 
-    _controller.setConfig(FTXVodPlayConfig());
-    await _controller.startVodPlay(_url);
+    if (!isLicenseSuc.isCompleted) {
+      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
+      await isLicenseSuc.future;
+      await _controller.startVodPlay(_url);
+    } else {
+      await _controller.startVodPlay(_url);
+    }
   }
 
   void _resizeVideo(Map<dynamic, dynamic> event) {

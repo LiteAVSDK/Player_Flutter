@@ -278,9 +278,6 @@ class SuperPlayerController {
           break;
       }
     });
-    _liveNetEventListener = _livePlayerController.onPlayerNetStatusBroadcast.listen((event) {
-      _playerNetStatusStreamController.add(event);
-    });
   }
 
   void _onSelectTrackInfoWhenPrepare() async {
@@ -467,13 +464,8 @@ class SuperPlayerController {
       _observer?.onError(SuperPlayerCode.PLAY_URL_EMPTY, FSPLocal.current.txSpwErrEmptyUrl);
       return;
     }
-    if (_isRTMPPlay(videoUrl) || _isWebRtcPlay(videoUrl)) {
-      _playLiveURL(videoUrl, TXPlayType.LIVE_RTMP);
-    } else if (_isFLVPlay(videoUrl)) {
-      _playTimeShiftLiveURL(model.appId, videoUrl);
-      if (model.multiVideoURLs.isNotEmpty) {
-        _startMultiStreamLiveURL(videoUrl);
-      }
+    if (_isRTMPPlay(videoUrl) || _isWebRtcPlay(videoUrl) || _isFLVPlay(videoUrl)) {
+      _playLiveURL(videoUrl);
     } else {
       _playVodUrl(videoUrl);
     }
@@ -539,13 +531,8 @@ class SuperPlayerController {
   /// 重新开始播放视频
   Future<void> reStart() async {
     if (playerType == SuperPlayerType.LIVE || playerType == SuperPlayerType.LIVE_SHIFT) {
-      if (_isRTMPPlay(_currentPlayUrl) || _isWebRtcPlay(_currentPlayUrl)) {
-        _playLiveURL(_currentPlayUrl, TXPlayType.LIVE_RTMP);
-      } else if (_isFLVPlay(_currentPlayUrl) && null != videoModel) {
-        _playTimeShiftLiveURL(videoModel!.appId, _currentPlayUrl);
-        if (videoModel!.multiVideoURLs.isNotEmpty) {
-          _startMultiStreamLiveURL(_currentPlayUrl);
-        }
+      if (_isRTMPPlay(_currentPlayUrl) || _isWebRtcPlay(_currentPlayUrl) || _isFLVPlay(_currentPlayUrl)) {
+        _playLiveURL(_currentPlayUrl);
       }
     } else {
       if (null != videoModel) {
@@ -554,20 +541,12 @@ class SuperPlayerController {
     }
   }
 
-  void _startMultiStreamLiveURL(String url) {
-    _liveConfig.autoAdjustCacheTime = false;
-    _liveConfig.maxAutoAdjustCacheTime = 5.0;
-    _liveConfig.minAutoAdjustCacheTime = 5.0;
-    _livePlayerController.setConfig(_liveConfig);
-    _observer?.onPlayTimeShiftLive(_livePlayerController, url);
-  }
-
   /// Play live streaming
   /// 播放直播URL
-  void _playLiveURL(String url, int playType) async {
+  void _playLiveURL(String url) async {
     _currentPlayUrl = url;
     _setLiveListener();
-    bool result = await _livePlayerController.startLivePlay(url, playType: playType);
+    bool result = await _livePlayerController.startLivePlay(url);
     if (result) {
       _updatePlayerState(SuperPlayerState.PLAYING);
     } else {
@@ -575,22 +554,14 @@ class SuperPlayerController {
     }
   }
 
-  /// Play time-shifted live streaming URL.
-  /// This function is no longer valid.
-  /// 播放时移直播url
-  @deprecated
-  void _playTimeShiftLiveURL(int appId, String url) {
-    String bizid = url.substring(url.indexOf("//") + 2, url.indexOf("."));
-    String streamid = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
-    LogUtils.i(TAG, "bizid:$bizid,streamid:$streamid,appid:$appId");
-    _playLiveURL(url, TXPlayType.LIVE_FLV);
-  }
-
   void _updatePlayerType(SuperPlayerType type) {
     if (playerType != type) {
       playerType = type;
       updatePlayerView();
       _observer?.onPlayerTypeChange(type);
+      if (type == SuperPlayerType.VOD) {
+        _livePlayerController.exitPictureInPictureMode();
+      }
     }
   }
 
@@ -871,11 +842,16 @@ class SuperPlayerController {
             pauseIconForAndroid: pauseIcon,
             forwardIconForAndroid: forwardIcon);
       } else {
-        return TXPipController.instance.enterPip(_livePlayerController, _context,
-            backIconForAndroid: backIcon,
-            playIconForAndroid: playIcon,
-            pauseIconForAndroid: pauseIcon,
-            forwardIconForAndroid: forwardIcon);
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          return TXPipController.instance.enterPip(_livePlayerController, _context,
+              backIconForAndroid: backIcon,
+              playIconForAndroid: playIcon,
+              pauseIconForAndroid: pauseIcon,
+              forwardIconForAndroid: forwardIcon);
+        } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+          TXPipController.instance.exitAndReleaseCurrentPip();
+          return _livePlayerController.enterPictureInPictureMode();
+        }
       }
     }
     return TXVodPlayEvent.ERROR_PIP_CAN_NOT_ENTER;

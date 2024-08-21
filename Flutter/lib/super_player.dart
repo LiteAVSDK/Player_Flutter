@@ -6,6 +6,7 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:synchronized/synchronized.dart';
 import 'package:flutter/cupertino.dart';

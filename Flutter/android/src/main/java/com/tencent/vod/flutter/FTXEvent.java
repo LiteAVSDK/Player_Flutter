@@ -2,6 +2,8 @@
 
 package com.tencent.vod.flutter;
 
+import com.tencent.rtmp.TXLiveConstants;
+
 /**
  * 通用事件码
  */
@@ -208,4 +210,35 @@ public class FTXEvent {
     public static final String EXTRA_SUBTITLE_START_POSITION_MS = "startPositionMs";
     public static final String EXTRA_SUBTITLE_DURATION_MS = "durationMs";
     public static final String EXTRA_SUBTITLE_TRACK_INDEX = "trackIndex";
+
+    // player event
+    public static final String EVT_KEY_PLAYER_EVENT = "event";
+    public static final String EVT_KEY_PLAYER_WIDTH = "EVT_WIDTH";
+    public static final String EVT_KEY_PLAYER_HEIGHT = "EVT_HEIGHT";
+
+    public interface TUINetConst {
+        String NET_STATUS_CPU_USAGE = TXLiveConstants.NET_STATUS_CPU_USAGE;
+        String NET_STATUS_VIDEO_WIDTH = TXLiveConstants.NET_STATUS_VIDEO_WIDTH;
+        String NET_STATUS_VIDEO_HEIGHT = TXLiveConstants.NET_STATUS_VIDEO_HEIGHT;
+        String NET_STATUS_VIDEO_FPS = TXLiveConstants.NET_STATUS_VIDEO_FPS;
+        String NET_STATUS_VIDEO_GOP = TXLiveConstants.NET_STATUS_VIDEO_GOP;
+        String NET_STATUS_VIDEO_BITRATE = TXLiveConstants.NET_STATUS_VIDEO_BITRATE;
+        String NET_STATUS_AUDIO_BITRATE = TXLiveConstants.NET_STATUS_AUDIO_BITRATE;
+        String NET_STATUS_NET_SPEED = TXLiveConstants.NET_STATUS_NET_SPEED;
+        String NET_STATUS_AUDIO_CACHE = TXLiveConstants.NET_STATUS_AUDIO_CACHE;
+        String NET_STATUS_VIDEO_CACHE = TXLiveConstants.NET_STATUS_VIDEO_CACHE;
+        String NET_STATUS_AUDIO_INFO = TXLiveConstants.NET_STATUS_AUDIO_INFO;
+        String NET_STATUS_NET_JITTER = TXLiveConstants.NET_STATUS_NET_JITTER;
+        String NET_STATUS_SERVER_IP = TXLiveConstants.NET_STATUS_SERVER_IP;
+        String NET_STATUS_VIDEO_DPS = TXLiveConstants.NET_STATUS_VIDEO_DPS;
+        String NET_STATUS_QUALITY_LEVEL = TXLiveConstants.NET_STATUS_QUALITY_LEVEL;
+        String NET_STATUS_SYSTEM_CPU = "SYSTEM_CPU";
+        String NET_STATUS_VIDEO_LOSS = "VIDEO_PACKET_LOSS";
+        String NET_STATUS_AUDIO_LOSS = "AUDIO_PACKET_LOSS";
+        String NET_STATUS_AUDIO_TOTAL_BLOCK_TIME = "AUDIO_TOTAL_BLOCK_TIME";
+        String NET_STATUS_VIDEO_TOTAL_BLOCK_TIME = "VIDEO_TOTAL_BLOCK_TIME";
+        String NET_STATUS_VIDEO_BLOCK_RATE = "VIDEO_BLOCK_RATE";
+        String NET_STATUS_AUDIO_BLOCK_RATE = "AUDIO_BLOCK_RATE";
+        String NET_STATUS_RTT = "RTT";
+    }
 }
