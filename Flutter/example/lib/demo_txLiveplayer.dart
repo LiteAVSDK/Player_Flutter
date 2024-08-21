@@ -10,6 +10,7 @@ import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'ui/demo_inputdialog.dart';
 import 'ui/demo_volume_slider.dart';
 import 'ui/demo_video_slider_view.dart';
+import 'common/demo_config.dart';
 
 class DemoTXLivePlayer extends StatefulWidget {
   @override
@@ -19,13 +20,12 @@ class DemoTXLivePlayer extends StatefulWidget {
 class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver {
   late TXLivePlayerController _controller;
   double _aspectRatio = 16.0 / 9.0;
-  double _progress = 0.0;
   int _volume = 100;
   bool _isMute = false;
   String _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
+  int _currentBitRateIndex = 0;
   bool _isStop = true;
   bool _isPlaying = false;
-  double _maxLiveProgressTime = 0;
   StreamSubscription? playEventSubscription;
   StreamSubscription? playNetEventSubscription;
   StreamSubscription? playerStateEventSubscription;
@@ -39,36 +39,28 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
 
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) {
       // Subscribe to event distribution
-      if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
-        _progress = event["EVT_PLAY_PROGRESS"].toDouble();
-        _maxLiveProgressTime = _progress >= _maxLiveProgressTime ? _progress : _maxLiveProgressTime;
-        progressSliderKey.currentState?.updateProgress(1, _maxLiveProgressTime);
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
+      int evtCode = event["event"];
+      if (evtCode == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         // First frame appearance
         _isStop = false;
         _isPlaying = true;
         EasyLoading.dismiss();
         _resizeVideo(event);
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
+      } else if (evtCode == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN) {
+        _isPlaying = true;
+      } else if (evtCode== TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
         // Stream switching successful.
         EasyLoading.dismiss();
-        if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv") {
-          EasyLoading.showSuccess(AppLocals.current.playerSwitchTo1080);
-        } else {
-          EasyLoading.showSuccess(AppLocals.current.playerSwitchTo480);
-        }
-      } else if (event["event"] == TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL) {
+        EasyLoading.showSuccess(AppLocals.current.playerSwitchSuc);
+      } else if (evtCode == TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL) {
         EasyLoading.dismiss();
         EasyLoading.showError(AppLocals.current.playerLiveSwitchFailed);
-        switchUrl();
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
+      } else if (evtCode == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
         LogUtils.w("PLAY_EVT_CHANGE_RESOLUTION", event);
         _resizeVideo(event);
+      } else if(evtCode < 0 && evtCode != -100) {
+        EasyLoading.showError("play failed, code:$evtCode,event:$event");
       }
-    });
-
-    playNetEventSubscription = _controller.onPlayerNetStatusBroadcast.listen((event) {
-      // Subscribe to status changes
     });
 
     playerStateEventSubscription = _controller.onPlayerState.listen((event) {
@@ -78,8 +70,14 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
 
     await SuperPlayerPlugin.setConsoleEnabled(true);
     await _controller.initialize();
-    await _controller.setConfig(FTXLivePlayConfig());
-    await _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV);
+
+    if (!isLicenseSuc.isCompleted) {
+      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
+      await isLicenseSuc.future;
+      await _controller.startLivePlay(_url);
+    } else {
+      await _controller.startLivePlay(_url);
+    }
   }
 
   void _resizeVideo(Map<dynamic, dynamic> event) {
@@ -122,12 +120,17 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     }
   }
 
-  void switchUrl() {
+  bool switchUrl() {
+    bool switchStarted = true;
     if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv") {
       _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
-    } else {
+    } else if (_url == "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv") {
       _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo480p.flv";
+    } else {
+      switchStarted = false;
+      EasyLoading.showInfo("no other steam to switch");
     }
+    return switchStarted;
   }
 
   @override
@@ -193,10 +196,21 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                       EasyLoading.showError(AppLocals.current.playerLiveStopTip);
                       return;
                     }
-                    switchUrl();
-                    _controller.switchStream(_url);
-
-                    EasyLoading.show(status: 'loading...');
+                    List<FSteamInfo> steamInfo = await _controller.getSupportedBitrate();
+                    if (steamInfo.isNotEmpty) {
+                      FSteamInfo info = steamInfo[++_currentBitRateIndex % steamInfo.length];
+                      if (info.url != null) {
+                        _controller.switchStream(info.url!);
+                        EasyLoading.show(status: 'loading...');
+                      } else {
+                        EasyLoading.showError("steam url is null");
+                      }
+                    } else {
+                      if (switchUrl()) {
+                        _controller.switchStream(_url);
+                        EasyLoading.show(status: 'loading...');
+                      }
+                    }
                   }),
                   _createItem(_isMute ? AppLocals.current.playerCancelMute : AppLocals.current.playerSetMute, () async {
                     setState(() {

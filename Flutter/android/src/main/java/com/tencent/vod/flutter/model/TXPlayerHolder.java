@@ -1,25 +1,28 @@
 package com.tencent.vod.flutter.model;
 
-import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.live2.V2TXLivePlayer;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
 
 public class TXPlayerHolder {
 
     private TXVodPlayer mVodPlayer;
-    private TXLivePlayer mLivePlayer;
-    private int mPlayerType;
-    private boolean mInitPlayingStatus;
+    private V2TXLivePlayer mLivePlayer;
+    private final int mPlayerType;
+    private boolean mPlayingStatus;
+    private boolean mIsPlayingWhenCreated = false;
 
     public TXPlayerHolder(TXVodPlayer vodPlayer) {
         mVodPlayer = vodPlayer;
-        mInitPlayingStatus = vodPlayer.isPlaying();
+        mPlayingStatus = vodPlayer.isPlaying();
+        mIsPlayingWhenCreated = mPlayingStatus;
         mPlayerType = FTXEvent.PLAYER_VOD;
     }
 
-    public TXPlayerHolder(TXLivePlayer livePlayer) {
+    public TXPlayerHolder(V2TXLivePlayer livePlayer, boolean initPauseStatus) {
         mLivePlayer = livePlayer;
-        mInitPlayingStatus = livePlayer.isPlaying();
+        mPlayingStatus = !initPauseStatus;
+        mIsPlayingWhenCreated = mPlayingStatus;
         mPlayerType = FTXEvent.PLAYER_LIVE;
     }
 
@@ -27,19 +30,37 @@ public class TXPlayerHolder {
         return mVodPlayer;
     }
 
-    public TXLivePlayer getLivePlayer() {
+    public V2TXLivePlayer getLivePlayer() {
         return mLivePlayer;
     }
 
     public boolean isPlayingWhenCreate() {
-        return mInitPlayingStatus;
+        return mIsPlayingWhenCreated;
     }
 
-    public void tmpPause() {
+    public boolean isPlaying() {
+        return mPlayingStatus;
+    }
+
+    public void pause() {
         if (null != mVodPlayer) {
             mVodPlayer.pause();
+            mPlayingStatus = false;
         } else if (null != mLivePlayer) {
-            mLivePlayer.pause();
+            mLivePlayer.pauseAudio();
+            mLivePlayer.pauseVideo();
+            mPlayingStatus = false;
+        }
+    }
+
+    public void resume() {
+        if (null != mVodPlayer) {
+            mVodPlayer.resume();
+            mPlayingStatus = true;
+        } else if (null != mLivePlayer) {
+            mLivePlayer.resumeAudio();
+            mLivePlayer.resumeVideo();
+            mPlayingStatus = true;
         }
     }
 

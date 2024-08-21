@@ -671,13 +671,12 @@ abstract class TXFlutterLivePlayerApi {
   IntMsg initialize(BoolPlayerMsg onlyAudio);
 
   ///
-  /// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
-  /// 参考: [PlayType.LIVE_RTMP] ...
+  /// 当设置[LivePlayer] 类型播放器时
   /// 10.7版本开始，startPlay变更为startLivePlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
   /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
   /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
   /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
-  BoolMsg startLivePlay(StringIntPlayerMsg playerMsg);
+  BoolMsg startLivePlay(StringPlayerMsg playerMsg);
 
   /// 停止播放
   /// return 是否停止成功
@@ -724,6 +723,18 @@ abstract class TXFlutterLivePlayerApi {
 
   /// 退出画中画，如果该播放器处于画中画模式
   void exitPictureInPictureMode(PlayerMsg playerMsg);
+
+  int enableReceiveSeiMessage(PlayerMsg playerMsg, bool isEnabled, int payloadType);
+
+  void showDebugView(PlayerMsg playerMsg, bool isShow);
+
+  int setProperty(PlayerMsg playerMsg, String key, Object value);
+
+  ListMsg getSupportedBitrate(PlayerMsg playerMsg);
+
+  int setCacheParams(PlayerMsg playerMsg, double minTime, double maxTime);
+
+  int enablePictureInPicture(BoolPlayerMsg msg);
 }
 
 @HostApi()
