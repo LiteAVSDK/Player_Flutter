@@ -125,9 +125,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         (playRate) => _playController.setPlayRate(playRate),
         () => _playController.playerType == SuperPlayerType.VOD);
 
-    _playController.onPlayerNetStatusBroadcast.listen((event) {
-      // do nothing
-    });
     // only register listen once
     _pipSubscription =
         SuperPlayerPlugin.instance.onExtraEventBroadcast.listen((event) {
@@ -284,6 +281,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       hideControlView();
     });
+    WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.addObserver(this);
     _initDownloadStatus();
   }
@@ -345,6 +343,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _refreshDownloadStatus() async {
     _isDownloaded = await _playController.isDownloaded();
   }
+
+
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -498,9 +498,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   Widget _getPipEnterView() {
     return Visibility(
       visible: _isShowControlView &&
-          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE
-           && (defaultTargetPlatform == TargetPlatform.android
-              || _playController.playerType == SuperPlayerType.VOD),
+          _playController._playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE,
       child: Positioned(
         right: 10,
         top: 0,

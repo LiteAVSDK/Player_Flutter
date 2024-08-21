@@ -92,7 +92,7 @@ public class TXCommonUtil {
     public static Map<String, Object> getParams(int event, Bundle bundle) {
         Map<String, Object> param = new HashMap<>();
         if (event != 0) {
-            param.put("event", event);
+            param.put(FTXEvent.EVT_KEY_PLAYER_EVENT, event);
         }
 
         if (bundle != null && !bundle.isEmpty()) {

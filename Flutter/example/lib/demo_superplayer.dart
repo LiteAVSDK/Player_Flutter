@@ -338,7 +338,6 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     model.appId = 1252463788;
     model.videoId = new SuperPlayerVideoId();
     model.videoId!.fileId = "5285890781763144364";
-    model.coverUrl = "http://1252463788.vod2.myqcloud.com/95576ef5vodtransgzp1252463788/e1ab85305285890781763144364/1536584350_1812858038.100_0.jpg";
     model.title = AppLocals.current.playerTencentCloud;
     model.playAction = playAction;
     model.isEnableDownload = false;

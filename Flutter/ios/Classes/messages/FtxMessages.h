@@ -18,7 +18,6 @@ NS_ASSUME_NONNULL_BEGIN
 @class PipParamsPlayerMsg;
 @class StringListPlayerMsg;
 @class BoolPlayerMsg;
-@class StringIntPlayerMsg;
 @class StringPlayerMsg;
 @class DoublePlayerMsg;
 @class IntPlayerMsg;
@@ -111,15 +110,6 @@ NS_ASSUME_NONNULL_BEGIN
     value:(nullable NSNumber *)value;
 @property(nonatomic, strong, nullable) NSNumber * playerId;
 @property(nonatomic, strong, nullable) NSNumber * value;
-@end
-
-@interface StringIntPlayerMsg : NSObject
-+ (instancetype)makeWithPlayerId:(nullable NSNumber *)playerId
-    strValue:(nullable NSString *)strValue
-    intValue:(nullable NSNumber *)intValue;
-@property(nonatomic, strong, nullable) NSNumber * playerId;
-@property(nonatomic, copy, nullable) NSString * strValue;
-@property(nonatomic, strong, nullable) NSNumber * intValue;
 @end
 
 @interface StringPlayerMsg : NSObject
@@ -750,15 +740,14 @@ NSObject<FlutterMessageCodec> *TXFlutterLivePlayerApiGetCodec(void);
 /// @return `nil` only when `error != nil`.
 - (nullable IntMsg *)initializeOnlyAudio:(BoolPlayerMsg *)onlyAudio error:(FlutterError *_Nullable *_Nonnull)error;
 ///
-/// 当设置[LivePlayer] 类型播放器时，需要参数[playType]
-/// 参考: [PlayType.LIVE_RTMP] ...
+/// 当设置[LivePlayer] 类型播放器时
 /// 10.7版本开始，startPlay变更为startLivePlay，需要通过 {@link SuperPlayerPlugin#setGlobalLicense} 设置 Licence 后方可成功播放，
 /// 否则将播放失败（黑屏），全局仅设置一次即可。直播 Licence、短视频 Licence 和视频播放 Licence 均可使用，若您暂未获取上述 Licence ，
 /// 可[快速免费申请测试版 Licence](https://cloud.tencent.com/act/event/License) 以正常播放，正式版 License 需[购买]
 /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
 ///
 /// @return `nil` only when `error != nil`.
-- (nullable BoolMsg *)startLivePlayPlayerMsg:(StringIntPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (nullable BoolMsg *)startLivePlayPlayerMsg:(StringPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
 /// 停止播放
 /// return 是否停止成功
 ///
@@ -802,6 +791,17 @@ NSObject<FlutterMessageCodec> *TXFlutterLivePlayerApiGetCodec(void);
 - (nullable IntMsg *)enterPictureInPictureModePipParamsMsg:(PipParamsPlayerMsg *)pipParamsMsg error:(FlutterError *_Nullable *_Nonnull)error;
 /// 退出画中画，如果该播放器处于画中画模式
 - (void)exitPictureInPictureModePlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)enableReceiveSeiMessagePlayerMsg:(PlayerMsg *)playerMsg isEnabled:(NSNumber *)isEnabled payloadType:(NSNumber *)payloadType error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)showDebugViewPlayerMsg:(PlayerMsg *)playerMsg isShow:(NSNumber *)isShow error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)setPropertyPlayerMsg:(PlayerMsg *)playerMsg key:(NSString *)key value:(id)value error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable ListMsg *)getSupportedBitratePlayerMsg:(PlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)setCacheParamsPlayerMsg:(PlayerMsg *)playerMsg minTime:(NSNumber *)minTime maxTime:(NSNumber *)maxTime error:(FlutterError *_Nullable *_Nonnull)error;
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)enablePictureInPictureMsg:(BoolPlayerMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void TXFlutterLivePlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterLivePlayerApi> *_Nullable api);
