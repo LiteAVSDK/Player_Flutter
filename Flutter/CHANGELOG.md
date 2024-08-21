@@ -41,3 +41,16 @@ Player_Premium 分支：Android & iOS 端集成TXLiteAVSDK_Player_Premium lastes
 - Fixed potential memory leak issues.
 - Optimized the logic of superPlayer Widget 
 - Fixed other known issues.
+
+#### Version: 12.0.0 2024.08.21
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player_Premium to 12.0.0.14681，tag：release_premium_v12.0.0
+- set iOS TXLiteAVSDK_Player_Premium to 12.0.16292， tag：release_premium_v12.0.0
+- Live streaming replaces the new kernel.
+- As the new kernel has been replaced, the live streaming live config currently only retains the properties of maxAutoAdjustCacheTime, minAutoAdjustCacheTime, connectRetryCount, and connectRetryInterval, with the rest of the parameters marked as deprecated.
+- New interfaces have been added to live streaming: enableReceiveSeiMessage, showDebugView, setProperty, getSupportedBitrate, and setCacheParams.
+- When playing live streaming, there is no longer a need to pass the playType parameter, which has been deprecated.
+- The live streaming and on-demand demo pages have added logic to wait for the license to load successfully before playing.
+- Other known issues have been fixed.
