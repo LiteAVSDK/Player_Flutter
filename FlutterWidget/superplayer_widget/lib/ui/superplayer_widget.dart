@@ -163,6 +163,12 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _initPlayerState();
   }
 
+  @override
+  void didUpdateWidget(covariant SuperPlayerView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _playController = widget._controller;
+  }
+
   void _registerObserver() {
     _playController._observer = _SuperPlayerObserver(() {
       // preparePlayVideo
@@ -581,10 +587,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         child:  widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
         AspectRatio(
             aspectRatio: _aspectRatio,
-            child: TXPlayerVideo(controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream()))
+            child: TXPlayerVideo(controller: _playController.getCurrentController()))
         : SizedBox(
           child: TXPlayerVideo(
-              controller: _playController.getCurrentController(), playerStream: _playController.getPlayerStream()),
+              controller: _playController.getCurrentController()),
         )
       ),
     );
