@@ -346,7 +346,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     }
 
     private void updatePip(PipParams pipParams) {
-        if (null != pipParams) {
+        if (null != pipParams && !isDestroyed() && !isFinishing()) {
             mCurrentParams = pipParams;
             if (VERSION.SDK_INT >= VERSION_CODES.O) {
                 setPictureInPictureParams(pipParams.buildParams(this));
