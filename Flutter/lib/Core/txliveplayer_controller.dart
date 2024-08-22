@@ -144,6 +144,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 参考: [PlayType.LIVE_RTMP] ...
   @deprecated
   Future<bool> play(String url, {int? playType}) async {
+    if (_isNeedDisposed) return false;
     return await startLivePlay(url, playType: playType);
   }
 
@@ -168,6 +169,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   ///
   Future<bool> startLivePlay(String url, {@deprecated int? playType}) async {
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
@@ -214,6 +216,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 视频是否处于正在播放中
   @override
   Future<bool> isPlaying() async {
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     BoolMsg boolMsg = await _livePlayerApi.isPlaying(PlayerMsg()..playerId = _playerId);
     return boolMsg.value ?? false;
@@ -339,6 +342,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   @override
   Future<int> enterPictureInPictureMode(
       {String? backIconForAndroid, String? playIconForAndroid, String? pauseIconForAndroid, String? forwardIconForAndroid}) async {
+    if (_isNeedDisposed) return -1;
     await _initPlayer.future;
     if (defaultTargetPlatform == TargetPlatform.android) {
       IntMsg intMsg = await _livePlayerApi.enterPictureInPictureMode(PipParamsPlayerMsg()
@@ -361,6 +365,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 退出画中画，如果该播放器处于画中画模式
   @override
   Future<void> exitPictureInPictureMode() async {
+    if (_isNeedDisposed) return;
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()
         ..playerId = _playerId);
@@ -383,6 +388,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///                   指定接收 SEI 消息的 payloadType，支持 5、242、243，请与发送端的 payloadType 保持一致。
   ///
   Future<int> enableReceiveSeiMessage(bool isEnabled, int payloadType) async {
+    if (_isNeedDisposed) return -1;
     return await _livePlayerApi.enableReceiveSeiMessage(PlayerMsg(playerId: _playerId),
         isEnabled, payloadType);
   }
@@ -395,6 +401,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// @param isShow 是否显示。default：NO。
   ///
   Future<void> showDebugView(bool isShow) async {
+    if (_isNeedDisposed) return;
     await _livePlayerApi.showDebugView(PlayerMsg(playerId: _playerId), isShow);
   }
 
@@ -418,6 +425,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///         - -2: 操作失败，key 不允许为 nil。
   ///
   Future<int> setProperty(String key, Object value) async {
+    if (_isNeedDisposed) return -1;
     return await _livePlayerApi.setProperty(PlayerMsg(playerId: _playerId), key, value);
   }
 
@@ -427,6 +435,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 获取码流信息
   ///
   Future<List<FSteamInfo>> getSupportedBitrate() async {
+    if (_isNeedDisposed) return [];
     ListMsg listMsg = await _livePlayerApi.getSupportedBitrate(PlayerMsg(playerId: _playerId));
     List<FSteamInfo> steamList = [];
     if (null != listMsg.value) {
@@ -459,6 +468,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///         - -3: 播放器处于播放状态，不支持修改缓存策略。
   ///
   Future<int> setCacheParams(double minTime, double maxTime) async {
+    if (_isNeedDisposed) return -1;
     return await _livePlayerApi.setCacheParams(PlayerMsg(playerId: _playerId), minTime, maxTime);
   }
 
