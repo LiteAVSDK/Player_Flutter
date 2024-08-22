@@ -28,7 +28,6 @@ class SuperPlayerController {
   List<TXTrackInfo>? subtitleTrackInfoList;
   TXVodSubtitleData? currentSubtitleData;
   TXSubtitleRenderModel? _currentSubtitleRenderModel;
-  StreamController<TXPlayerHolder> playerStreamController = StreamController.broadcast();
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
   FTXVodPlayConfig _vodConfig = FTXVodPlayConfig();
@@ -557,22 +556,11 @@ class SuperPlayerController {
   void _updatePlayerType(SuperPlayerType type) {
     if (playerType != type) {
       playerType = type;
-      updatePlayerView();
       _observer?.onPlayerTypeChange(type);
       if (type == SuperPlayerType.VOD) {
         _livePlayerController.exitPictureInPictureMode();
       }
     }
-  }
-
-  void updatePlayerView() async {
-    TXPlayerController controller = getCurrentController();
-    TXPlayerHolder model = TXPlayerHolder(controller);
-    playerStreamController.sink.add(model);
-  }
-
-  Stream<TXPlayerHolder> getPlayerStream() {
-    return playerStreamController.stream;
   }
 
   /// Get the current controller being used
@@ -742,7 +730,6 @@ class SuperPlayerController {
     }
     // Remove the event listener for the widget.
     _observer?.onDispose();
-    playerStreamController.close();
   }
 
   /// return true: executed exit full screen and other operations, consumed the return event. return false: did not consume the event.

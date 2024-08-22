@@ -3,9 +3,8 @@ part of SuperPlayer;
 
 class TXPlayerVideo extends StatefulWidget {
   final TXPlayerController controller;
-  final Stream<TXPlayerHolder>? playerStream;
 
-  TXPlayerVideo({required this.controller, this.playerStream});
+  TXPlayerVideo({required this.controller});
 
   @override
   TXPlayerVideoState createState() => TXPlayerVideoState();
@@ -16,55 +15,31 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
   int _textureId = -1;
 
   StreamSubscription? streamSubscription;
-  late TXPlayerController controller;
 
   @override
   void initState() {
     super.initState();
-
-    controller = widget.controller;
-    _checkStreamListen();
-    _resetControllerLink();
+    _obtainTextureId();
   }
 
-  void _checkStreamListen() {
-    if(null != streamSubscription) {
-      streamSubscription!.cancel();
-    }
-    streamSubscription = widget.playerStream?.listen((event) {
-      controller = event.controller;
-      _resetControllerLink();
-    });
+  @override
+  void didUpdateWidget(covariant TXPlayerVideo oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _obtainTextureId();
   }
 
-  void _resetControllerLink() async {
-    int remainTextureId = await controller.textureId;
-    if (remainTextureId >= 0) {
-      if (remainTextureId != _textureId) {
-        _refreshTextureId(remainTextureId);
-      }
-    } else {
+  void _obtainTextureId() async {
+    int remainTextureId = await widget.controller.textureId;
+    if (_textureId != remainTextureId) {
       setState(() {
-        _textureId = -1;
+        _textureId = remainTextureId;
       });
-      controller.textureId.then((newTextureId) {
-        if (_textureId != newTextureId) {
-          _refreshTextureId(newTextureId);
-        }
-      });
-    }
-  }
-
-  void _refreshTextureId(int textureId) {
-    LogUtils.d(TAG, "_textureId = $textureId");
-    _textureId = textureId;
-    if (mounted) {
-      setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    TXPlayerController controller = widget.controller;
     if ((defaultTargetPlatform == TargetPlatform.android) &&
         (controller.resizeVideoHeight! > 0 && controller.resizeVideoWidth! > 0)) {
       return _textureId == -1
