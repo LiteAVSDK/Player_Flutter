@@ -177,6 +177,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   /// @param url : 视频播放地址 video playback address
   /// return 是否播放成功 if play successfully
   Future<bool> startVodPlay(String url) async {
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
@@ -203,6 +204,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   /// @params : see[TXPlayInfoParams]
   /// return 是否播放成功  if play successful
   Future<void> startVodPlayWithParams(TXPlayInfoParams params) async {
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _createTexture.future;
     _changeState(TXPlayerState.buffering);
@@ -270,6 +272,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   /// 视频是否处于正在播放中
   @override
   Future<bool> isPlaying() async {
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     BoolMsg boolMsg = await _vodPlayerApi.isPlaying(PlayerMsg()..playerId = _playerId);
     return boolMsg.value ?? false;
