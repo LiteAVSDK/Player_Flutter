@@ -5,7 +5,7 @@ buildLog() {
 }
 
 inputVersion=$1
-export VERSION_NAME="12.0.0"
+export VERSION_NAME="12.0.1"
 if [ -n "$inputVersion" ]; then
   VERSION_NAME=$inputVersion
 fi

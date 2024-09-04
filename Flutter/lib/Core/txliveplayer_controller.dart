@@ -1,12 +1,12 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
-final TXFlutterLivePlayerApi _livePlayerApi = TXFlutterLivePlayerApi();
-
-class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>, TXPlayerController {
+class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue?>,
+    TXPlayerController, TXLivePlayerFlutterAPI {
   int? _playerId = -1;
   static String kTag = "TXLivePlayerController";
 
+  late TXFlutterLivePlayerApi _livePlayerApi;
   final Completer<int> _initPlayer;
   final Completer<int> _createTexture;
   bool _isDisposed = false;
@@ -15,17 +15,34 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   TXPlayerState? _state;
 
   TXPlayerState? get playState => _state;
-  StreamSubscription? _eventSubscription;
-  StreamSubscription? _netSubscription;
+
+  @override
+  get value => _value;
+
+  set value(TXPlayerValue? val) {
+    if (_value == val) return;
+    _value = val;
+    notifyListeners();
+  }
+
+  @override
+  Future<int> get textureId async {
+    return _createTexture.future;
+  }
+
+  double? resizeVideoWidth = 0;
+  double? resizeVideoHeight = 0;
+  double? videoLeft = 0;
+  double? videoTop = 0;
+  double? videoRight = 0;
+  double? videoBottom = 0;
 
   final StreamController<TXPlayerState?> _stateStreamController = StreamController.broadcast();
 
   final StreamController<Map<dynamic, dynamic>> _eventStreamController = StreamController.broadcast();
-
   final StreamController<Map<dynamic, dynamic>> _netStatusStreamController = StreamController.broadcast();
 
   Stream<TXPlayerState?> get onPlayerState => _stateStreamController.stream;
-
   Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
 
   @Deprecated("playerNetEvent will no longer return any events.")
@@ -41,89 +58,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
 
   Future<void> _create() async {
     _playerId = await SuperPlayerPlugin.createLivePlayer();
-    _eventSubscription = EventChannel("cloud.tencent.com/txliveplayer/event/$_playerId")
-        .receiveBroadcastStream("event")
-        .listen(_eventHandler, onError: _errorHandler);
-    _netSubscription = EventChannel("cloud.tencent.com/txliveplayer/net/$_playerId")
-        .receiveBroadcastStream("net")
-        .listen(_netHandler, onError: _errorHandler);
+    _livePlayerApi = TXFlutterLivePlayerApi(messageChannelSuffix: _playerId.toString());
+    TXLivePlayerFlutterAPI.setUp(this, messageChannelSuffix: _playerId.toString());
     _initPlayer.complete(_playerId);
-  }
-
-  /// event type
-  ///
-  /// event 类型
-  /// see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
-  ///
-  _eventHandler(event) {
-    if (event == null) return;
-    final Map<dynamic, dynamic> map = event;
-    switch (map["event"]) {
-      case TXVodPlayEvent.PLAY_EVT_RTMP_STREAM_BEGIN:
-        break;
-      case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
-        if (_isNeedDisposed) return;
-        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
-        break;
-      case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
-        if (_isNeedDisposed) return;
-        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
-        break;
-      case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS: //EVT_PLAY_PROGRESS
-        break;
-      case TXVodPlayEvent.PLAY_EVT_PLAY_END:
-        _changeState(TXPlayerState.stopped);
-        break;
-      case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
-        _changeState(TXPlayerState.buffering);
-        break;
-      case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION: //下行视频分辨率改变
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          int? videoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
-          int? videoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
-          videoWidth ??= event[TXVodPlayEvent.EVT_PARAM1];
-          videoHeight ??= event[TXVodPlayEvent.EVT_PARAM2];
-          if ((videoWidth != null && videoWidth > 0) && (videoHeight != null && videoHeight > 0)) {
-            resizeVideoWidth = videoWidth.toDouble();
-            resizeVideoHeight = videoHeight.toDouble();
-            videoLeft = event["videoLeft"] ?? 0;
-            videoTop = event["videoTop"] ?? 0;
-            videoRight = event["videoRight"] ?? 0;
-            videoBottom = event["videoBottom"] ?? 0;
-          }
-        }
-        break;
-      // Live broadcast, stream switching succeeded (stream switching can play videos of different sizes):
-      case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC:
-        break;
-      case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT: //disconnect
-        _changeState(TXPlayerState.failed);
-        break;
-      case TXVodPlayEvent.PLAY_WARNING_RECONNECT: //reconnect
-        break;
-      case TXVodPlayEvent.PLAY_WARNING_DNS_FAIL: //dnsFail
-        break;
-      case TXVodPlayEvent.PLAY_WARNING_SEVER_CONN_FAIL: //severConnFail
-        break;
-      case TXVodPlayEvent.PLAY_WARNING_SHAKE_FAIL: //shakeFail
-        break;
-      case TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL: //failed
-        _changeState(TXPlayerState.failed);
-        break;
-      default:
-        break;
-    }
-    _eventStreamController.add(map);
-  }
-
-  _errorHandler(error) {
-    //debugPrint("= error = ${error.toString()}");
-  }
-
-  _netHandler(event) {
-    if (event == null) return;
-    final Map<dynamic, dynamic> map = event;
-    _netStatusStreamController.add(map);
   }
 
   _changeState(TXPlayerState playerState) {
@@ -487,11 +424,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<void> dispose() async {
     _isNeedDisposed = true;
     if (!_isDisposed) {
-      await _eventSubscription?.cancel();
-      _eventSubscription = null;
-      await _netSubscription?.cancel();
-      _netSubscription = null;
-
       await _release();
       _changeState(TXPlayerState.disposed);
       _isDisposed = true;
@@ -503,28 +435,79 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   @override
-  get value => _value;
-
-  set value(TXPlayerValue? val) {
-    if (_value == val) return;
-    _value = val;
-    notifyListeners();
-  }
-
-  @override
-  Future<int> get textureId async {
-    return _createTexture.future;
-  }
-
-  double? resizeVideoWidth = 0;
-  double? resizeVideoHeight = 0;
-  double? videoLeft = 0;
-  double? videoTop = 0;
-  double? videoRight = 0;
-  double? videoBottom = 0;
-
-  @override
   TXPlayerValue? playerValue() {
     return _value;
+  }
+
+  @override
+  void onNetEvent(Map<dynamic, dynamic> event) {
+    final Map<dynamic, dynamic> map = event;
+    _netStatusStreamController.add(map);
+  }
+
+  /// event type
+  ///
+  /// event 类型
+  /// see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
+  ///
+  @override
+  void onPlayerEvent(Map<dynamic, dynamic> event) {
+    final Map<dynamic, dynamic> map = event;
+    switch (map["event"]) {
+      case TXVodPlayEvent.PLAY_EVT_RTMP_STREAM_BEGIN:
+        break;
+      case TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME:
+        if (_isNeedDisposed) return;
+        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
+        break;
+      case TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN:
+        if (_isNeedDisposed) return;
+        if (_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
+        break;
+      case TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS: //EVT_PLAY_PROGRESS
+        break;
+      case TXVodPlayEvent.PLAY_EVT_PLAY_END:
+        _changeState(TXPlayerState.stopped);
+        break;
+      case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING:
+        _changeState(TXPlayerState.buffering);
+        break;
+      case TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION: //下行视频分辨率改变
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          int? videoWidth = event[TXVodPlayEvent.EVT_VIDEO_WIDTH];
+          int? videoHeight = event[TXVodPlayEvent.EVT_VIDEO_HEIGHT];
+          videoWidth ??= event[TXVodPlayEvent.EVT_PARAM1];
+          videoHeight ??= event[TXVodPlayEvent.EVT_PARAM2];
+          if ((videoWidth != null && videoWidth > 0) && (videoHeight != null && videoHeight > 0)) {
+            resizeVideoWidth = videoWidth.toDouble();
+            resizeVideoHeight = videoHeight.toDouble();
+            videoLeft = event["videoLeft"] ?? 0;
+            videoTop = event["videoTop"] ?? 0;
+            videoRight = event["videoRight"] ?? 0;
+            videoBottom = event["videoBottom"] ?? 0;
+          }
+        }
+        break;
+      // Live broadcast, stream switching succeeded (stream switching can play videos of different sizes):
+      case TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC:
+        break;
+      case TXVodPlayEvent.PLAY_ERR_NET_DISCONNECT: //disconnect
+        _changeState(TXPlayerState.failed);
+        break;
+      case TXVodPlayEvent.PLAY_WARNING_RECONNECT: //reconnect
+        break;
+      case TXVodPlayEvent.PLAY_WARNING_DNS_FAIL: //dnsFail
+        break;
+      case TXVodPlayEvent.PLAY_WARNING_SEVER_CONN_FAIL: //severConnFail
+        break;
+      case TXVodPlayEvent.PLAY_WARNING_SHAKE_FAIL: //shakeFail
+        break;
+      case TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL: //failed
+        _changeState(TXPlayerState.failed);
+        break;
+      default:
+        break;
+    }
+    _eventStreamController.add(map);
   }
 }

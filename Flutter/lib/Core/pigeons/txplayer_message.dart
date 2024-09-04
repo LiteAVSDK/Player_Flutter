@@ -1,4 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+// import 'package:pigeon/pigeon.dart';
+
 /// Pigeon original component, used to generate native communication code for `messages`.
 /// The generation command is as follows. When using the generation command,
 /// the two import statements above need to be implemented or commented out.
@@ -13,9 +15,9 @@
     --objc_source_out ios/Classes/messages/FtxMessages.m \
     --java_out ./android/src/main/java/com/tencent/vod/flutter/messages/FtxMessages.java \
     --java_package "com.tencent.vod.flutter.messages" \
-    --copyright_header lib/Core/pigeons/txplayer_copy_right.dart
-
+    --copyright_header lib/Core/pigeons/txplayer_copy_right.txt
  */
+
 class PlayerMsg {
   int? playerId;
 }
@@ -776,4 +778,44 @@ abstract class TXFlutterDownloadApi {
 
   /// 删除下载任务
   BoolMsg deleteDownloadMediaInfo(TXVodDownloadMediaMsg msg);
+}
+
+@FlutterApi()
+abstract class TXDownloadFlutterAPI {
+
+  void onDownloadEvent(Map<String, Object> event);
+
+  void onPreDownloadEvent(Map<String, Object> event);
+
+}
+
+@FlutterApi()
+abstract class TXPluginFlutterAPI {
+
+  void onSDKListener(Map<String, Object> event);
+
+  void onNativeEvent(Map<String, Object> event);
+}
+
+@FlutterApi()
+abstract class TXPipFlutterAPI {
+
+  void onPipEvent(Map<String, Object> event);
+
+}
+
+@FlutterApi()
+abstract class TXVodPlayerFlutterAPI {
+
+  void onPlayerEvent(Map<String, Object> event);
+
+  void onNetEvent(Map<String, Object> event);
+}
+
+@FlutterApi()
+abstract class TXLivePlayerFlutterAPI {
+
+  void onPlayerEvent(Map<String, Object> event);
+
+  void onNetEvent(Map<String, Object> event);
 }

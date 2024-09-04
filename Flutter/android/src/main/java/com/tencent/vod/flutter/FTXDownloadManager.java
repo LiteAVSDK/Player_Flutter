@@ -4,10 +4,12 @@ package com.tencent.vod.flutter;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXPlayInfoParams;
 import com.tencent.rtmp.downloader.ITXVodDownloadListener;
 import com.tencent.rtmp.downloader.ITXVodFilePreloadListener;
@@ -26,9 +28,6 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterDownloadApi;
 import com.tencent.vod.flutter.messages.FtxMessages.TXVodDownloadMediaMsg;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.plugin.common.EventChannel;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,19 +35,22 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+
 /**
  * Download management, pre-download, and offline download.
  *
  * 下载管理，预下载、离线下载
  */
-public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDownloadApi {
+public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDownloadApi, FtxMessages.VoidResult {
 
-    private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
-    private final EventChannel mEventChannel;
-    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
-    private final Handler mMainHandler;
+    private static final String TAG = "FTXDownloadManager";
 
-    private ExecutorService mPreloadPool = Executors.newCachedThreadPool();
+    private final FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
+    private boolean isInitDownloadListener = false;
+    private final ExecutorService mPreloadPool = Executors.newCachedThreadPool();
+    private final FtxMessages.TXDownloadFlutterAPI mDownloadFlutterApi;
+    private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     /**
      * Video download management.
@@ -57,27 +59,18 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
      */
     public FTXDownloadManager(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
         mFlutterPluginBinding = flutterPluginBinding;
-        mMainHandler = new Handler(mFlutterPluginBinding.getApplicationContext().getMainLooper());
-
-        TXFlutterDownloadApi.setup(mFlutterPluginBinding.getBinaryMessenger(), this);
-
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
-                "cloud.tencent.com/txvodplayer/download/event");
-        mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object o, EventChannel.EventSink eventSink) {
-                mEventSink.setEventSinkProxy(eventSink);
-            }
-
-            @Override
-            public void onCancel(Object o) {
-                mEventSink.setEventSinkProxy(null);
-            }
-        });
-        TXVodDownloadManager.getInstance().setListener(this);
+        TXFlutterDownloadApi.setUp(mFlutterPluginBinding.getBinaryMessenger(), this);
+        mDownloadFlutterApi = new FtxMessages.TXDownloadFlutterAPI(flutterPluginBinding.getBinaryMessenger());
     }
 
-    private void onStartEvent(long tmpTaskId, int taskId, String fileId, String url, Bundle params) {
+    private void initDownloadListenerIfNeed() {
+        if (!isInitDownloadListener) {
+            isInitDownloadListener = true;
+            TXVodDownloadManager.getInstance().setListener(this);
+        }
+    }
+
+    private void onPreLoadStartEvent(long tmpTaskId, int taskId, String fileId, String url, Bundle params) {
         Bundle bundle = new Bundle();
         bundle.putLong("tmpTaskId", tmpTaskId);
         bundle.putInt("taskId", taskId);
@@ -85,17 +78,17 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         bundle.putString("url", url);
         Map<String, Object> result = TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_START, bundle);
         result.put("params", TXCommonUtil.transToMap(params));
-        sendSuccessEvent(result);
+        onPreloadCallback(result);
     }
 
-    private void onCompleteEvent(int taskId, String url) {
+    private void onPreLoadCompleteEvent(int taskId, String url) {
         Bundle bundle = new Bundle();
         bundle.putInt("taskId", taskId);
         bundle.putString("url", url);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
+        onPreloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_COMPLETE, bundle));
     }
 
-    private void onErrorEvent(long tmpTaskId, int taskId, String url, int code, String msg) {
+    private void onPreLoadErrorEvent(long tmpTaskId, int taskId, String url, int code, String msg) {
         Bundle bundle = new Bundle();
         if (tmpTaskId >= 0) {
             bundle.putLong("tmpTaskId", tmpTaskId);
@@ -104,21 +97,19 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         bundle.putInt("code", code);
         bundle.putString("url", url);
         bundle.putString("msg", msg);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_ERROR, bundle));
+        onPreloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_PREDOWNLOAD_ON_ERROR, bundle));
     }
 
-    private void sendSuccessEvent(final Object event) {
+    private void onPreloadCallback(Map<String, Object> eventArg) {
         mMainHandler.post(new Runnable() {
             @Override
             public void run() {
-                mEventSink.success(event);
+                mDownloadFlutterApi.onPreDownloadEvent(eventArg, FTXDownloadManager.this);
             }
         });
     }
 
-
     public void destroy() {
-        mEventChannel.setStreamHandler(null);
         TXVodDownloadManager.getInstance().setListener(null);
     }
 
@@ -239,26 +230,25 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     @Override
     public void onDownloadStart(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_START, bundle));
+        onDownloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_START, bundle));
     }
-
 
     @Override
     public void onDownloadProgress(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_PROGRESS, bundle));
+        onDownloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_PROGRESS, bundle));
     }
 
     @Override
     public void onDownloadStop(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_STOP, bundle));
+        onDownloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_STOP, bundle));
     }
 
     @Override
     public void onDownloadFinish(TXVodDownloadMediaInfo txVodDownloadMediaInfo) {
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_FINISH, bundle));
+        onDownloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_FINISH, bundle));
     }
 
     @Override
@@ -266,7 +256,16 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         Bundle bundle = buildCommonDownloadBundle(txVodDownloadMediaInfo);
         bundle.putInt("errorCode", i);
         bundle.putString("errorMsg", s);
-        sendSuccessEvent(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_ERROR, bundle));
+        onDownloadCallback(TXCommonUtil.getParams(FTXEvent.EVENT_DOWNLOAD_ERROR, bundle));
+    }
+
+    private void onDownloadCallback(Map<String, Object> eventArg) {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mDownloadFlutterApi.onDownloadEvent(eventArg, FTXDownloadManager.this);
+            }
+        });
     }
 
     /**
@@ -291,12 +290,12 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                 new ITXVodPreloadListener() {
                     @Override
                     public void onComplete(int taskID, String url) {
-                        onCompleteEvent(taskID, url);
+                        onPreLoadCompleteEvent(taskID, url);
                     }
 
                     @Override
                     public void onError(int taskID, String url, int code, String msg) {
-                        onErrorEvent(-1, taskID, url, code, msg);
+                        onPreLoadErrorEvent(-1, taskID, url, code, msg);
                     }
                 });
         IntMsg res = new IntMsg();
@@ -304,7 +303,6 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         return res;
     }
 
-    @NonNull
     @Override
     public void startPreLoadByParams(@NonNull FtxMessages.PreLoadInfoMsg msg) {
         mPreloadPool.execute(new Runnable() {
@@ -329,22 +327,22 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                     @Override
                     public void onStart(int taskID, String fileId, String url, Bundle bundle) {
                         if (tmpTaskId >= 0) {
-                            onStartEvent(tmpTaskId, taskID, fileId, url, bundle);
+                            onPreLoadStartEvent(tmpTaskId, taskID, fileId, url, bundle);
                         }
                     }
 
                     @Override
                     public void onComplete(int taskID, String url) {
-                        onCompleteEvent(taskID, url);
+                        onPreLoadCompleteEvent(taskID, url);
                     }
 
                     @Override
                     public void onError(int taskID, String url, int code, String msg) {
-                        onErrorEvent(tmpTaskId, taskID, url, code, msg);
+                        onPreLoadErrorEvent(tmpTaskId, taskID, url, code, msg);
                     }
                 });
                 if (isUrlPreload && tmpTaskId >= 0) {
-                    onStartEvent(tmpTaskId, retTaskID, msg.getFileId(), msg.getPlayUrl(), new Bundle());
+                    onPreLoadStartEvent(tmpTaskId, retTaskID, msg.getFileId(), msg.getPlayUrl(), new Bundle());
                 }
             }
         });
@@ -361,6 +359,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
 
     @Override
     public void startDownload(@NonNull TXVodDownloadMediaMsg msg) {
+        initDownloadListenerIfNeed();
         Integer quality = null != msg.getQuality() ? msg.getQuality().intValue() : 0;
         String videoUrl = msg.getUrl();
         Integer appId = null != msg.getAppId() ? msg.getAppId().intValue() : null;
@@ -378,6 +377,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
 
     @Override
     public void resumeDownload(@NonNull TXVodDownloadMediaMsg msg) {
+        initDownloadListenerIfNeed();
         TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
         if (null != mediaInfo) {
             TXVodDownloadDataSource dataSource = mediaInfo.getDataSource();
@@ -391,6 +391,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
 
     @Override
     public void stopDownload(@NonNull TXVodDownloadMediaMsg msg) {
+        initDownloadListenerIfNeed();
         TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
         TXVodDownloadManager.getInstance().stopDownload(mediaInfo);
     }
@@ -426,10 +427,20 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
         boolean deleteResult = false;
         if (mediaInfo != null) {
+            TXVodDownloadManager.getInstance().stopDownload(mediaInfo);
             deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
         }
         BoolMsg res = new BoolMsg();
         res.setValue(deleteResult);
         return res;
+    }
+
+    @Override
+    public void success() {
+    }
+
+    @Override
+    public void error(@NonNull Throwable error) {
+        LiteavLog.e(TAG, "callback message error:" + error);
     }
 }

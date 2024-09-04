@@ -203,7 +203,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     return Column(
       children: [
         ListTile(
-          leading: Image.network(
+          leading: ImageWithGrayBackground(
             playModel.coverUrl.isEmpty ? DEFAULT_PLACE_HOLDER : playModel.coverUrl,
             width: 100,
             height: 60,

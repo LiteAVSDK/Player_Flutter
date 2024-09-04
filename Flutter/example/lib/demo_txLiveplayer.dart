@@ -169,7 +169,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                 mainAxisSpacing: 30.0,
                 padding: EdgeInsets.all(10.0),
                 crossAxisCount: 4,
-                childAspectRatio: 2,
+                childAspectRatio: 1.5,
                 children: [
                   _createItem(AppLocals.current.playerResumePlay, () async {
                     if (_isStop) {
@@ -190,7 +190,8 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
                     _isStop = true;
                     _controller.stop();
                   }),
-                  _createItem(AppLocals.current.playerReplay, () => _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV)),
+                  _createItem(AppLocals.current.playerReplay,
+                      () => _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV)),
                   _createItem(AppLocals.current.playerQualitySwitch, () async {
                     if (_isStop) {
                       EasyLoading.showError(AppLocals.current.playerLiveStopTip);
@@ -245,7 +246,7 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
       onTap: tapBlock,
       child: Container(
         child: Text(name,
-          style: TextStyle(fontSize: 18, color: Colors.blue),
+          style: TextStyle(fontSize: 14, color: Colors.blue),
           overflow: TextOverflow.visible,),
       ),
     );

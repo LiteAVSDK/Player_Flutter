@@ -33,6 +33,7 @@ part 'ui/superplayer_video_slider.dart';
 part 'ui/superplayer_subtitle_view.dart';
 part 'ui/superplayer_subtitle_display_view.dart';
 part 'ui/superplayer_audio_view.dart';
+part 'ui/superplayer_image_error_place_holder.dart';
 part 'common/color_resource.dart';
 part 'common/player_constants.dart';
 part 'common/theme_resource.dart';

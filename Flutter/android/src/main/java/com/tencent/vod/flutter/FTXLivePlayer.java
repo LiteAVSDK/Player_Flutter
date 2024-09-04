@@ -42,25 +42,18 @@ import java.util.Locale;
 import java.util.Map;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.plugin.common.EventChannel;
 import io.flutter.view.TextureRegistry;
 
 /**
  * live player processor
  */
-public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerApi {
+public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerApi, FtxMessages.VoidResult {
 
     private static final String TAG = "FTXLivePlayer";
     private final FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
-    private final EventChannel mEventChannel;
-    private final EventChannel mNetChannel;
-
     private SurfaceTexture mSurfaceTexture;
     private Surface mSurface;
-
-    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
-    private final FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
     private V2TXLivePlayer mLivePlayer;
     private static final int Uninitialized = -101;
@@ -72,6 +65,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     private final FTXV2LiveObserver mObserver;
     private int mLastPlayEvent = -1;
     private boolean mIsPaused = false;
+    private FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
 
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
@@ -123,6 +117,10 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         super();
         mFlutterPluginBinding = flutterPluginBinding;
         mPipManager = pipManager;
+        FtxMessages.TXFlutterLivePlayerApi.setUp(flutterPluginBinding.getBinaryMessenger(),
+                String.valueOf(getPlayerId()), this);
+        mLiveFlutterApi = new FtxMessages.TXLivePlayerFlutterAPI(flutterPluginBinding.getBinaryMessenger(),
+                String.valueOf(getPlayerId()));
         TXFlutterEngineHolder.getInstance().addAppLifeListener(mAppLifeListener);
 
         mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
@@ -130,34 +128,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         mSurface = new Surface(mSurfaceTexture);
         mRender = new FTXV2LiveRender(mSurfaceTexture);
         mObserver = new FTXV2LiveObserver(this);
-
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
-                "cloud.tencent.com/txliveplayer/event/" + super.getPlayerId());
-        mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object o, EventChannel.EventSink eventSink) {
-                mEventSink.setEventSinkProxy(eventSink);
-            }
-
-            @Override
-            public void onCancel(Object o) {
-                mEventSink.setEventSinkProxy(null);
-            }
-        });
-
-        mNetChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
-                "cloud.tencent.com/txliveplayer/net/" + super.getPlayerId());
-        mNetChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object o, EventChannel.EventSink eventSink) {
-                mNetStatusSink.setEventSinkProxy(eventSink);
-            }
-
-            @Override
-            public void onCancel(Object o) {
-                mNetStatusSink.setEventSinkProxy(null);
-            }
-        });
     }
 
     @Override
@@ -188,8 +158,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         }
 
         TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
-        mEventChannel.setStreamHandler(null);
-        mNetChannel.setStreamHandler(null);
     }
 
     protected long init(boolean onlyAudio) {
@@ -486,25 +454,33 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
 
     private void notifyPlayerEvent(int evtId, Bundle bundle) {
         mLastPlayEvent = evtId;
-        mEventSink.success(TXCommonUtil.getParams(evtId, bundle));
+        mLiveFlutterApi.onPlayerEvent(TXCommonUtil.getParams(evtId, bundle), this);
         LiteavLog.e(TAG, "onLivePlayEvent:" + evtId
                 + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
     }
 
-    private static class FTXV2LiveObserver extends V2TXLivePlayerObserver {
+    @Override
+    public void success() {
+
+    }
+
+    @Override
+    public void error(@NonNull Throwable error) {
+        LiteavLog.e(TAG, "callback message error:" + error);
+    }
+
+    private static class FTXV2LiveObserver extends V2TXLivePlayerObserver implements FtxMessages.VoidResult {
 
         private static final String TAG = "FTXV2LiveObserver";
 
         private final FTXV2LiveRender mRender;
-        private final FTXPlayerEventSink mEventSink;
-        private final FTXPlayerEventSink mNetStatusSink;
         private final FTXLivePlayer mLivePlayer;
+        private final FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
 
         public FTXV2LiveObserver(FTXLivePlayer livePlayer) {
             mLivePlayer = livePlayer;
             mRender = livePlayer.mRender;
-            mEventSink = livePlayer.mEventSink;
-            mNetStatusSink = livePlayer.mNetStatusSink;
+            mLiveFlutterApi = livePlayer.mLiveFlutterApi;
         }
 
         @Override
@@ -615,7 +591,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         public void onStatisticsUpdate(V2TXLivePlayer player, V2TXLiveDef.V2TXLivePlayerStatistics statistics) {
             super.onStatisticsUpdate(player, statistics);
             Bundle bundle = FTXV2LiveTools.buildNetBundle(statistics);
-            mNetStatusSink.success(TXCommonUtil.getParams(0, bundle));
+            mLiveFlutterApi.onNetEvent(TXCommonUtil.getParams(0, bundle), this);
         }
 
         @Override
@@ -665,6 +641,16 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         @Override
         public void onLocalRecordComplete(V2TXLivePlayer player, int code, String storagePath) {
             super.onLocalRecordComplete(player, code, storagePath);
+        }
+
+        @Override
+        public void success() {
+
+        }
+
+        @Override
+        public void error(@NonNull Throwable error) {
+            LiteavLog.e(TAG, "callback message error:" + error);
         }
     }
 }

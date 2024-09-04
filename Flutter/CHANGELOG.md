@@ -199,8 +199,8 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 
 - set Android TXLiteAVSDK_Player to 11.9.0.14445，tag：release_player_v11.9.0
 - set iOS TXLiteAVSDK_Player to 11.9.15963， tag：release_player_v11.9.0
-- Android compatible with high version Gradle 
-- The location of the superPlayerWidget has changed, integrating superPlayer will no longer include the source code of the superPlayerWidget 
+- Android compatible with high version Gradle
+- The location of the superPlayerWidget has changed, integrating superPlayer will no longer include the source code of the superPlayerWidget
 - Android picture-in-picture feature logic optimization, compatible with more models
 
 #### Version: 11.9.1 2024.06.05
@@ -211,7 +211,7 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - TXVodPlayerController has introduced a new setStringOption interface for configuring extensions.
 - The Flutter side's operation of the player can now affect the UI updates for playing and pausing in the picture-in-picture window.
 - Fixed potential memory leak issues.
-- Optimized the logic of superPlayer Widget 
+- Optimized the logic of superPlayer Widget
 - Fixed other known issues.
 
 #### Version: 12.0.0 2024.08.21
@@ -226,3 +226,15 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - When playing live streaming, there is no longer a need to pass the playType parameter, which has been deprecated.
 - The live streaming and on-demand demo pages have added logic to wait for the license to load successfully before playing.
 - Other known issues have been fixed.
+
+#### Version: 12.0.1 2024.09.14
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 12.0.0.14689，tag：release_player_v12.0.1
+- set iOS TXLiteAVSDK_Player to 12.0.16301， tag：release_player_v12.0.1
+- Fix the issue where textures are not refreshed in some cases
+- Fix the issue where updating Picture-in-Picture produces errors when Picture-in-Picture ends in some cases
+- Modify the plugin callback Flutter side message architecture
+- During SDK initialization, all modules are changed to lazy loading
+- The demo and player components no longer need to force set the language; if not set, it defaults to English
