@@ -923,7 +923,8 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     playUrl:(nullable NSString *)playUrl
     preloadSizeMB:(nullable NSNumber *)preloadSizeMB
     preferredResolution:(nullable NSNumber *)preferredResolution
-    tmpPreloadTaskId:(nullable NSNumber *)tmpPreloadTaskId {
+    tmpPreloadTaskId:(nullable NSNumber *)tmpPreloadTaskId
+    httpHeader:(nullable NSDictionary<NSString *, NSString *> *)httpHeader {
   PreLoadInfoMsg* pigeonResult = [[PreLoadInfoMsg alloc] init];
   pigeonResult.appId = appId;
   pigeonResult.fileId = fileId;
@@ -932,6 +933,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.preloadSizeMB = preloadSizeMB;
   pigeonResult.preferredResolution = preferredResolution;
   pigeonResult.tmpPreloadTaskId = tmpPreloadTaskId;
+  pigeonResult.httpHeader = httpHeader;
   return pigeonResult;
 }
 + (PreLoadInfoMsg *)fromList:(NSArray *)list {
@@ -943,6 +945,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.preloadSizeMB = GetNullableObjectAtIndex(list, 4);
   pigeonResult.preferredResolution = GetNullableObjectAtIndex(list, 5);
   pigeonResult.tmpPreloadTaskId = GetNullableObjectAtIndex(list, 6);
+  pigeonResult.httpHeader = GetNullableObjectAtIndex(list, 7);
   return pigeonResult;
 }
 + (nullable PreLoadInfoMsg *)nullableFromList:(NSArray *)list {
@@ -957,6 +960,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.preloadSizeMB ?: [NSNull null]),
     (self.preferredResolution ?: [NSNull null]),
     (self.tmpPreloadTaskId ?: [NSNull null]),
+    (self.httpHeader ?: [NSNull null]),
   ];
 }
 @end

@@ -2526,6 +2526,16 @@ public class FtxMessages {
       this.tmpPreloadTaskId = setterArg;
     }
 
+    private @Nullable Map<String, String> httpHeader;
+
+    public @Nullable Map<String, String> getHttpHeader() {
+      return httpHeader;
+    }
+
+    public void setHttpHeader(@Nullable Map<String, String> setterArg) {
+      this.httpHeader = setterArg;
+    }
+
     public static final class Builder {
 
       private @Nullable Long appId;
@@ -2577,6 +2587,13 @@ public class FtxMessages {
         return this;
       }
 
+      private @Nullable Map<String, String> httpHeader;
+
+      public @NonNull Builder setHttpHeader(@Nullable Map<String, String> setterArg) {
+        this.httpHeader = setterArg;
+        return this;
+      }
+
       public @NonNull PreLoadInfoMsg build() {
         PreLoadInfoMsg pigeonReturn = new PreLoadInfoMsg();
         pigeonReturn.setAppId(appId);
@@ -2586,13 +2603,14 @@ public class FtxMessages {
         pigeonReturn.setPreloadSizeMB(preloadSizeMB);
         pigeonReturn.setPreferredResolution(preferredResolution);
         pigeonReturn.setTmpPreloadTaskId(tmpPreloadTaskId);
+        pigeonReturn.setHttpHeader(httpHeader);
         return pigeonReturn;
       }
     }
 
     @NonNull
     ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<Object>(7);
+      ArrayList<Object> toListResult = new ArrayList<Object>(8);
       toListResult.add(appId);
       toListResult.add(fileId);
       toListResult.add(pSign);
@@ -2600,6 +2618,7 @@ public class FtxMessages {
       toListResult.add(preloadSizeMB);
       toListResult.add(preferredResolution);
       toListResult.add(tmpPreloadTaskId);
+      toListResult.add(httpHeader);
       return toListResult;
     }
 
@@ -2619,6 +2638,8 @@ public class FtxMessages {
       pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
       Object tmpPreloadTaskId = list.get(6);
       pigeonResult.setTmpPreloadTaskId((tmpPreloadTaskId == null) ? null : ((tmpPreloadTaskId instanceof Integer) ? (Integer) tmpPreloadTaskId : (Long) tmpPreloadTaskId));
+      Object httpHeader = list.get(7);
+      pigeonResult.setHttpHeader((Map<String, String>) httpHeader);
       return pigeonResult;
     }
   }

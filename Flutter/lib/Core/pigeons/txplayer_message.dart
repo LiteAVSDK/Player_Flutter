@@ -291,6 +291,7 @@ class PreLoadInfoMsg {
   double? preloadSizeMB;
   int? preferredResolution;
   int? tmpPreloadTaskId;
+  Map<String?, String?>? httpHeader;
 }
 
 class MapMsg {

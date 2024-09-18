@@ -319,7 +319,8 @@ NS_ASSUME_NONNULL_BEGIN
     playUrl:(nullable NSString *)playUrl
     preloadSizeMB:(nullable NSNumber *)preloadSizeMB
     preferredResolution:(nullable NSNumber *)preferredResolution
-    tmpPreloadTaskId:(nullable NSNumber *)tmpPreloadTaskId;
+    tmpPreloadTaskId:(nullable NSNumber *)tmpPreloadTaskId
+    httpHeader:(nullable NSDictionary<NSString *, NSString *> *)httpHeader;
 @property(nonatomic, strong, nullable) NSNumber * appId;
 @property(nonatomic, copy, nullable) NSString * fileId;
 @property(nonatomic, copy, nullable) NSString * pSign;
@@ -327,6 +328,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong, nullable) NSNumber * preloadSizeMB;
 @property(nonatomic, strong, nullable) NSNumber * preferredResolution;
 @property(nonatomic, strong, nullable) NSNumber * tmpPreloadTaskId;
+@property(nonatomic, strong, nullable) NSDictionary<NSString *, NSString *> * httpHeader;
 @end
 
 @interface MapMsg : NSObject

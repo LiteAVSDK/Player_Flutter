@@ -837,6 +837,7 @@ class PreLoadInfoMsg {
     this.preloadSizeMB,
     this.preferredResolution,
     this.tmpPreloadTaskId,
+    this.httpHeader,
   });
 
   int? appId;
@@ -853,6 +854,8 @@ class PreLoadInfoMsg {
 
   int? tmpPreloadTaskId;
 
+  Map<String?, String?>? httpHeader;
+
   Object encode() {
     return <Object?>[
       appId,
@@ -862,6 +865,7 @@ class PreLoadInfoMsg {
       preloadSizeMB,
       preferredResolution,
       tmpPreloadTaskId,
+      httpHeader,
     ];
   }
 
@@ -875,6 +879,7 @@ class PreLoadInfoMsg {
       preloadSizeMB: result[4] as double?,
       preferredResolution: result[5] as int?,
       tmpPreloadTaskId: result[6] as int?,
+      httpHeader: (result[7] as Map<Object?, Object?>?)?.cast<String?, String?>(),
     );
   }
 }

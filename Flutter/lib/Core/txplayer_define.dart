@@ -609,8 +609,9 @@ class TXPlayInfoParams {
   // video url, only applicable for preloading. When using it, you only need to fill in either the url or fileId.
   // The priority of the url is higher than that of the fileId.
   final String? url;
-
-  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign = "", this.url = ""});
+  // Custom httpHeader
+  final Map<String, String>? httpHeader;
+  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign = "", this.url = "", this.httpHeader});
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
@@ -618,6 +619,7 @@ class TXPlayInfoParams {
     json["fileId"] = fileId;
     json["psign"] = psign;
     json["url"] = url;
+    json["httpHeader"] = httpHeader;
     return json;
   }
 }
