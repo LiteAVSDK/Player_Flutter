@@ -1,7 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "FTXVodPlayer.h"
-#import "FTXPlayerEventSinkQueue.h"
 #import "FTXTransformation.h"
 #import "FTXLiteAVSDKHeader.h"
 #import <stdatomic.h>
@@ -17,13 +16,14 @@
 static const int uninitialized = -1;
 static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
-@interface FTXVodPlayer ()<FlutterStreamHandler, FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate, TXFlutterVodPlayerApi>
+@interface FTXVodPlayer ()<FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate, TXFlutterVodPlayerApi>
 
 @property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) BOOL hasEnteredPipMode;
 @property (nonatomic, assign) BOOL restoreUI;
 @property (atomic, assign) BOOL isStoped;
 @property (atomic) BOOL isTerminate;
+@property (nonatomic, strong) TXVodPlayerFlutterAPI* vodFlutterApi;
 
 @end
 /**
@@ -32,10 +32,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 @implementation FTXVodPlayer {
     TXVodPlayer *_txVodPlayer;
     TXImageSprite *_txImageSprite;
-    FTXPlayerEventSinkQueue *_eventSink;
-    FTXPlayerEventSinkQueue *_netStatusSink;
-    FlutterEventChannel *_eventChannel;
-    FlutterEventChannel *_netStatusChannel;
     // The latest frame.
     CVPixelBufferRef _Atomic _latestPixelBuffer;
     // The old frame.
@@ -68,14 +64,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         playerMainqueue = dispatch_get_main_queue();
         self.hasEnteredPipMode = NO;
         self.restoreUI = NO;
-        _eventSink = [FTXPlayerEventSinkQueue new];
-        _netStatusSink = [FTXPlayerEventSinkQueue new];
-        
-        _eventChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txvodplayer/event/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
-        [_eventChannel setStreamHandler:self];
-        
-        _netStatusChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txvodplayer/net/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
-        [_netStatusChannel setStreamHandler:self];
+        SetUpTXFlutterVodPlayerApiWithSuffix([registrar messenger], self, [self.playerId stringValue]);
+        self.vodFlutterApi = [[TXVodPlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onApplicationTerminateClick) name:UIApplicationWillTerminateNotification object:nil];
     }
@@ -152,23 +142,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (_lastBuffer) {
         CVPixelBufferRelease(_lastBuffer);
         _lastBuffer = nil;
-    }
-
-    if (nil != _eventSink) {
-        [_eventSink setDelegate:nil];
-        _eventSink = nil;
-    }
-    if (nil != _netStatusSink) {
-        [_netStatusSink setDelegate:nil];
-        _netStatusSink = nil;
-    }
-    if (nil != _eventChannel) {
-        [_eventChannel setStreamHandler:nil];
-        _eventChannel = nil;
-    }
-    if (nil != _netStatusChannel) {
-        [_netStatusChannel setStreamHandler:nil];
-        _netStatusChannel = nil;
     }
     [self releaseImageSprite];
 }
@@ -415,34 +388,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     return dict;
 }
 
-#pragma mark - FlutterStreamHandler
-
-- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
-                                       eventSink:(FlutterEventSink)events
-{
-    if ([arguments isKindOfClass:NSString.class]) {
-        if ([arguments isEqualToString:@"event"]) {
-            [_eventSink setDelegate:events];
-        }else if ([arguments isEqualToString:@"net"]) {
-            [_netStatusSink setDelegate:events];
-        }
-    }
-
-    return nil;
-}
-
-- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments
-{
-    if ([arguments isKindOfClass:NSString.class]) {
-        if ([arguments isEqualToString:@"event"]) {
-            [_eventSink setDelegate:nil];
-        }else if ([arguments isEqualToString:@"net"]) {
-            [_netStatusSink setDelegate:nil];
-        }
-    }
-    return nil;
-}
-
 #pragma mark - FlutterTexture
 
 - (CVPixelBufferRef _Nullable)copyPixelBuffer
@@ -490,7 +435,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (EvtID != PLAY_EVT_PLAY_PROGRESS) {
         FTXLOGI(@"onPlayEvent:%i,%@", EvtID, param[EVT_PLAY_DESCRIPTION]);
     }
-    [_eventSink success:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param]];
+    [self.vodFlutterApi onPlayerEventEvent:[FTXVodPlayer getParamsWithEvent:EvtID withParams:param] completion:^(FlutterError * _Nullable error) {
+        FTXLOGE(@"callback message error:%@", error);
+    }];
 }
 
 /**
@@ -502,7 +449,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
  */
 - (void)onNetStatus:(TXVodPlayer *)player withParam:(NSDictionary*)param
 {
-    [_netStatusSink success:param];
+    [self.vodFlutterApi onNetEventEvent:param completion:^(FlutterError * _Nullable error) {
+        FTXLOGE(@"callback message error:%@", error);
+    }];
 }
 
 /**
@@ -518,7 +467,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     mutableDic[EXTRA_SUBTITLE_START_POSITION_MS] = @(subtitleData.startPositionMs);
     mutableDic[EXTRA_SUBTITLE_DURATION_MS] = @(subtitleData.durationMs);
     mutableDic[EXTRA_SUBTITLE_TRACK_INDEX] = @(subtitleData.trackIndex);
-    [_eventSink success:[FTXVodPlayer getParamsWithEvent:EVENT_SUBTITLE_DATA withParams:mutableDic]];
+    [self.vodFlutterApi onPlayerEventEvent:[FTXVodPlayer getParamsWithEvent:EVENT_SUBTITLE_DATA withParams:mutableDic] completion:^(FlutterError * _Nullable error) {
+        FTXLOGE(@"callback message error:%@", error);
+    }];
 }
 
 

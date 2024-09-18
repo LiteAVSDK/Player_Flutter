@@ -4,11 +4,19 @@ part of demo_super_player_lib;
 class FSPLocal {
   final Locale locale;
 
+  static FSPLocal _defaultLocal = FSPLocal(Locale.fromSubtags(languageCode: 'en'));
+
   static FSPLocal? _current;
 
   static Map<String, String> _localStrings = {};
 
   static FSPLocal get current {
+    if (_current == null) {
+      _current = _defaultLocal;
+      Locale tmpLocal = _current!.locale;
+      final name = (tmpLocal.countryCode?.isEmpty ?? false) ? tmpLocal.languageCode : tmpLocal.toString();
+      _current!.loadIntl(name);
+    }
     assert(_current != null, 'No instance of FSPLocal was loaded. '
         'Try to initialize the FSPLocal delegate before accessing FSPLocal.current.');
     return _current!;
@@ -17,7 +25,10 @@ class FSPLocal {
   FSPLocal(this.locale);
 
   static FSPLocal of(BuildContext context) {
-    final instance = FSPLocal.maybeOf(context);
+    var instance = FSPLocal.maybeOf(context);
+    if (null == instance) {
+      instance = current;
+    }
     assert(instance != null,
     'No instance of FSPLocal present in the widget tree. Did you add SuperPlayerLocalizations in localizationsDelegates?');
     return instance!;
@@ -55,51 +66,51 @@ class FSPLocal {
   }
 
   // SuperPlayer
-  String get txSpwNetWeak => _localStrings["tx_spw_net_weak"]!;
-  String get txSpwErrPlayTo => _localStrings["tx_spw_err_play_to"]!;
-  String get txSpwErrEmptyUrl => _localStrings["tx_spw_err_empty_url"]!;
-  String get txSpwStartDownload => _localStrings["tx_spw_start_download"]!;
-  String get txSpwDownloadComplete => _localStrings["tx_spw_download_complete"]!;
-  String get txSpwDownloadErrorTo => _localStrings["tx_spw_download_error_to"]!;
-  String get txSpwSound => _localStrings["tx_spw_sound"]!;
-  String get txSpwBrightness => _localStrings["tx_spw_brightness"]!;
-  String get txSpwMultiPlay => _localStrings["tx_spw_multi_play"]!;
-  String get txSpwHardwareAccel => _localStrings["tx_spw_hardware_accel"]!;
-  String get txSpwOpeningPip => _localStrings["tx_spw_opening_pip"]!;
-  String get txSpwClosingPip => _localStrings["tx_spw_closing_pip"]!;
-  String get txSpwOpenPipFailed => _localStrings["tx_spw_open_pip_failed"]!;
-  String get txSpwTestVideo => _localStrings["tx_spw_test_video"]!;
-  String get txSpwFlu => _localStrings["tx_spw_flu"]!;
-  String get txSpwSd => _localStrings["tx_spw_sd"]!;
-  String get txSpwHd => _localStrings["tx_spw_hd"]!;
-  String get txSpwFsd => _localStrings["tx_spw_fsd"]!;
-  String get txSpwFhd => _localStrings["tx_spw_fhd"]!;
-  String get txSpwFhd2 => _localStrings["tx_spw_fhd2"]!;
-  String get txSpw240p => _localStrings["tx_spw_240p"]!;
-  String get txSpw360p => _localStrings["tx_spw_360p"]!;
-  String get txSpw480p => _localStrings["tx_spw_480p"]!;
-  String get txSpw540p => _localStrings["tx_spw_540p"]!;
-  String get txSpw720p => _localStrings["tx_spw_720p"]!;
-  String get txSpw1080p => _localStrings["tx_spw_1080p"]!;
-  String get txSpw2k => _localStrings["tx_spw_2k"]!;
-  String get txSpw4k => _localStrings["tx_spw_4k"]!;
-  String get txSpwOd => _localStrings["tx_spw_od"]!;
-  String get txSubtitleTitle => _localStrings["tx_subtitle_title"]!;
-  String get txSubtitleTitleClose => _localStrings["tx_subtitle_close"]!;
-  String get txAudioTrackTitle => _localStrings["tx_audio_track_title"]!;
-  String get txAudioTrackTitleItem => _localStrings["tx_audio_track_item"]!;
-  String get txAudioTrackClose => _localStrings["tx_audio_track_close"]!;
+  String get txSpwNetWeak => _localStrings["tx_spw_net_weak"] ?? "";
+  String get txSpwErrPlayTo => _localStrings["tx_spw_err_play_to"] ?? "";
+  String get txSpwErrEmptyUrl => _localStrings["tx_spw_err_empty_url"] ?? "";
+  String get txSpwStartDownload => _localStrings["tx_spw_start_download"] ?? "";
+  String get txSpwDownloadComplete => _localStrings["tx_spw_download_complete"] ?? "";
+  String get txSpwDownloadErrorTo => _localStrings["tx_spw_download_error_to"] ?? "";
+  String get txSpwSound => _localStrings["tx_spw_sound"] ?? "";
+  String get txSpwBrightness => _localStrings["tx_spw_brightness"] ?? "";
+  String get txSpwMultiPlay => _localStrings["tx_spw_multi_play"] ?? "";
+  String get txSpwHardwareAccel => _localStrings["tx_spw_hardware_accel"] ?? "";
+  String get txSpwOpeningPip => _localStrings["tx_spw_opening_pip"] ?? "";
+  String get txSpwClosingPip => _localStrings["tx_spw_closing_pip"] ?? "";
+  String get txSpwOpenPipFailed => _localStrings["tx_spw_open_pip_failed"] ?? "";
+  String get txSpwTestVideo => _localStrings["tx_spw_test_video"] ?? "";
+  String get txSpwFlu => _localStrings["tx_spw_flu"] ?? "";
+  String get txSpwSd => _localStrings["tx_spw_sd"] ?? "";
+  String get txSpwHd => _localStrings["tx_spw_hd"] ?? "";
+  String get txSpwFsd => _localStrings["tx_spw_fsd"] ?? "";
+  String get txSpwFhd => _localStrings["tx_spw_fhd"] ?? "";
+  String get txSpwFhd2 => _localStrings["tx_spw_fhd2"] ?? "";
+  String get txSpw240p => _localStrings["tx_spw_240p"] ?? "";
+  String get txSpw360p => _localStrings["tx_spw_360p"] ?? "";
+  String get txSpw480p => _localStrings["tx_spw_480p"] ?? "";
+  String get txSpw540p => _localStrings["tx_spw_540p"] ?? "";
+  String get txSpw720p => _localStrings["tx_spw_720p"] ?? "";
+  String get txSpw1080p => _localStrings["tx_spw_1080p"] ?? "";
+  String get txSpw2k => _localStrings["tx_spw_2k"] ?? "";
+  String get txSpw4k => _localStrings["tx_spw_4k"] ?? "";
+  String get txSpwOd => _localStrings["tx_spw_od"] ?? "";
+  String get txSubtitleTitle => _localStrings["tx_subtitle_title"] ?? "";
+  String get txSubtitleTitleClose => _localStrings["tx_subtitle_close"] ?? "";
+  String get txAudioTrackTitle => _localStrings["tx_audio_track_title"] ?? "";
+  String get txAudioTrackTitleItem => _localStrings["tx_audio_track_item"] ?? "";
+  String get txAudioTrackClose => _localStrings["tx_audio_track_close"] ?? "";
   // cgi
-  String get txSpwErrFileNotExist => _localStrings["tx_spw_err_file_not_exist"]!;
-  String get txSpwErrInvalidTrialDuration => _localStrings["tx_spw_err_invalid_trial_duration"]!;
-  String get txSpwErrPcfgNotUnique => _localStrings["tx_spw_err_pcfg_not_unique"]!;
-  String get txSpwErrLicenseExpired => _localStrings["tx_spw_err_license_expired"]!;
-  String get txSpwErrNoAdaptiveStream => _localStrings["tx_spw_err_no_adaptive_stream"]!;
-  String get txSpwErrInvalidRequestFormat => _localStrings["tx_spw_err_invalid_request_format"]!;
-  String get txSpwErrNoUser => _localStrings["tx_spw_err_no_user"]!;
-  String get txSpwErrNoAntiLeechInfo => _localStrings["tx_spw_err_no_anti-leech_info"]!;
-  String get txSpwErrCheckSignFailed => _localStrings["tx_spw_err_check_sign_failed"]!;
-  String get txSpwErrOther => _localStrings["tx_spw_err_other"]!;
-  String get txSpwErrInternal => _localStrings["tx_spw_err_internal"]!;
+  String get txSpwErrFileNotExist => _localStrings["tx_spw_err_file_not_exist"] ?? "";
+  String get txSpwErrInvalidTrialDuration => _localStrings["tx_spw_err_invalid_trial_duration"] ?? "";
+  String get txSpwErrPcfgNotUnique => _localStrings["tx_spw_err_pcfg_not_unique"] ?? "";
+  String get txSpwErrLicenseExpired => _localStrings["tx_spw_err_license_expired"] ?? "";
+  String get txSpwErrNoAdaptiveStream => _localStrings["tx_spw_err_no_adaptive_stream"] ?? "";
+  String get txSpwErrInvalidRequestFormat => _localStrings["tx_spw_err_invalid_request_format"] ?? "";
+  String get txSpwErrNoUser => _localStrings["tx_spw_err_no_user"] ?? "";
+  String get txSpwErrNoAntiLeechInfo => _localStrings["tx_spw_err_no_anti-leech_info"] ?? "";
+  String get txSpwErrCheckSignFailed => _localStrings["tx_spw_err_check_sign_failed"] ?? "";
+  String get txSpwErrOther => _localStrings["tx_spw_err_other"] ?? "";
+  String get txSpwErrInternal => _localStrings["tx_spw_err_internal"] ?? "";
 
 }
