@@ -86,6 +86,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     await _controller.setLoop(true);
     await _controller.enableHardwareDecode(enableHardware);
     await _controller.setConfig(FTXVodPlayConfig());
+    await _controller.setStartTime(0);
 
     if (!isLicenseSuc.isCompleted) {
       SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
@@ -267,8 +268,8 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
       child: Container(
         child: Text(
           name,
-          style: TextStyle(fontSize: 18, color: Colors.blue),
-          overflow: TextOverflow.visible,
+          style: TextStyle(fontSize: 14, color: Colors.blue),
+          overflow: TextOverflow.clip,
         ),
       ),
     );
@@ -292,6 +293,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
             _url = url;
             _appId = appId;
             _fileId = fileId;
+            _controller.setStartTime(0);
             if (url.isNotEmpty) {
               _controller.startVodPlay(url);
             } else if (appId != 0 && fileId.isNotEmpty) {

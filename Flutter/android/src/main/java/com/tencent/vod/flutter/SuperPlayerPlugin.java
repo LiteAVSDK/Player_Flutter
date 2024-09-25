@@ -2,6 +2,7 @@
 
 package com.tencent.vod.flutter;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -29,8 +30,6 @@ import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
-import com.tencent.vod.flutter.messages.FTXLivePlayerDispatcher;
-import com.tencent.vod.flutter.messages.FTXVodPlayerDispatcher;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.DoubleMsg;
@@ -38,10 +37,8 @@ import com.tencent.vod.flutter.messages.FtxMessages.IntMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.LicenseMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
-import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterNativeAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAPI;
-import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterVodPlayerApi;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.TXAndroid12BridgeService;
@@ -57,7 +54,6 @@ import java.util.Set;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
-import io.flutter.plugin.common.EventChannel;
 
 /**
  * SuperPlayerPlugin
@@ -68,15 +64,12 @@ import io.flutter.plugin.common.EventChannel;
  * </p>
  */
 public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
-        TXFlutterSuperPlayerPluginAPI, TXFlutterNativeAPI {
+        TXFlutterSuperPlayerPluginAPI, TXFlutterNativeAPI, FtxMessages.VoidResult {
 
     static final String TAG = "SuperPlayerPlugin";
     private static final String VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION";
     private static final String EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
 
-    private EventChannel mEventChannel;
-    private EventChannel mPipEventChannel;
-    private final FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     private VolumeBroadcastReceiver mVolumeBroadcastReceiver;
 
     private FlutterPluginBinding mFlutterPluginBinding;
@@ -90,6 +83,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
     private boolean mIsBrightnessObserverRegistered = false;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private FtxMessages.TXPluginFlutterAPI mPluginApi;
 
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
@@ -155,7 +149,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                     Bundle params = new Bundle();
                     params.putInt(FTXEvent.EVENT_RESULT, result);
                     params.putString(FTXEvent.EVENT_REASON, reason);
-                    mEventSink.success(getParams(FTXEvent.EVENT_ON_LICENCE_LOADED, params));
+                    mPluginApi.onSDKListener(getParams(FTXEvent.EVENT_ON_LICENCE_LOADED, params),
+                            SuperPlayerPlugin.this);
                 }
             });
         }
@@ -180,32 +175,13 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         LiteavLog.i(TAG, "onAttachedToEngine");
-        TXFlutterSuperPlayerPluginAPI.setup(flutterPluginBinding.getBinaryMessenger(), this);
-        TXFlutterNativeAPI.setup(flutterPluginBinding.getBinaryMessenger(), this);
-        TXFlutterVodPlayerApi.setup(flutterPluginBinding.getBinaryMessenger(), new FTXVodPlayerDispatcher(
-                () -> mPlayers));
-        TXFlutterLivePlayerApi.setup(flutterPluginBinding.getBinaryMessenger(), new FTXLivePlayerDispatcher(
-                () -> mPlayers));
+        TXFlutterSuperPlayerPluginAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
+        TXFlutterNativeAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
+        mPluginApi = new FtxMessages.TXPluginFlutterAPI(flutterPluginBinding.getBinaryMessenger());
         mFlutterPluginBinding = flutterPluginBinding;
-        initAudioManagerIfNeed();
         TXFlutterEngineHolder.getInstance().attachBindLife(flutterPluginBinding);
-        mPipEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
-                FTXEvent.PIP_CHANNEL_NAME);
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(),
-                "cloud.tencent.com/playerPlugin/event");
-        mEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object o, EventChannel.EventSink eventSink) {
-                mEventSink.setEventSinkProxy(eventSink);
-            }
-
-            @Override
-            public void onCancel(Object o) {
-                mEventSink.setEventSinkProxy(null);
-            }
-        });
-        mFTXDownloadManager = new FTXDownloadManager(flutterPluginBinding);
-        initPipManagerIfNeed();
+        // register download message channel
+        mFTXDownloadManager = new FTXDownloadManager(mFlutterPluginBinding);
         registerReceiver();
         TXLiveBase.setListener(mSDKEvent);
     }
@@ -223,7 +199,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createVodPlayer() {
-        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, mTxPipManager);
+        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, getPipManager());
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -234,7 +210,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public PlayerMsg createLivePlayer() {
-        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, mTxPipManager);
+        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, getPipManager());
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -371,7 +347,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                                 mCurrentOrientation = orientationEvent;
                                 Bundle bundle = new Bundle();
                                 bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
-                                mEventSink.success(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle));
+                                mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle)
+                                        , SuperPlayerPlugin.this);
                             }
                         }
                     }
@@ -426,7 +403,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                     }
                     window.setAttributes(params);
                     // 发送亮度变化通知
-                    mEventSink.success(getParams(FTXEvent.EVENT_BRIGHTNESS_CHANGED, null));
+                    mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_BRIGHTNESS_CHANGED, null), this);
                 }
             }
         }
@@ -465,18 +442,19 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         return screenBrightness;
     }
 
-
-    private void initAudioManagerIfNeed() {
+    private FTXAudioManager getAudioManager() {
         if (null == mTxAudioManager) {
             mTxAudioManager = new FTXAudioManager(mFlutterPluginBinding.getApplicationContext());
             mTxAudioManager.addAudioFocusChangedListener(audioFocusChangeListener);
         }
+        return mTxAudioManager;
     }
 
-    private void initPipManagerIfNeed() {
+    private FTXPIPManager getPipManager() {
         if (null == mTxPipManager) {
-            mTxPipManager = new FTXPIPManager(mPipEventChannel, mFlutterPluginBinding);
+            mTxPipManager = new FTXPIPManager(mFlutterPluginBinding);
         }
+        return mTxPipManager;
     }
 
     @Override
@@ -519,11 +497,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     void onHandleAudioFocusPause() {
-        mEventSink.success(getParams(FTXEvent.EVENT_AUDIO_FOCUS_PAUSE, null));
+        mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_AUDIO_FOCUS_PAUSE, null), this);
     }
 
     void onHandleAudioFocusPlay() {
-        mEventSink.success(getParams(FTXEvent.EVENT_AUDIO_FOCUS_PLAY, null));
+        mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_AUDIO_FOCUS_PLAY, null), this);
     }
 
     /**
@@ -548,9 +526,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
      *
      * 注册音量广播接收器
      */
+    @SuppressLint("WrongConstant")
     public void registerReceiver() {
         // volume receiver
-        mVolumeBroadcastReceiver = new VolumeBroadcastReceiver(mEventSink);
+        mVolumeBroadcastReceiver = new VolumeBroadcastReceiver(mPluginApi);
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
         ContextCompat.registerReceiver(mFlutterPluginBinding.getApplicationContext(), mVolumeBroadcastReceiver, filter,
@@ -582,11 +561,11 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
      */
     public void unregisterReceiver() {
         try {
-            mTxAudioManager.removeAudioFocusChangedListener(audioFocusChangeListener);
+            getAudioManager().removeAudioFocusChangedListener(audioFocusChangeListener);
             mFlutterPluginBinding.getApplicationContext().unregisterReceiver(mVolumeBroadcastReceiver);
             enableBrightnessObserver(false);
         } catch (Exception e) {
-            e.printStackTrace();
+            LiteavLog.e(TAG, "unregisterReceiver failed", e);
         }
     }
 
@@ -637,13 +616,13 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void setSystemVolume(@NonNull DoubleMsg volume) {
-        mTxAudioManager.setSystemVolume(volume.getValue());
+        getAudioManager().setSystemVolume(volume.getValue());
     }
 
     @NonNull
     @Override
     public DoubleMsg getSystemVolume() {
-        BigDecimal bigDecimal = BigDecimal.valueOf(mTxAudioManager.getSystemCurrentVolume());
+        BigDecimal bigDecimal = BigDecimal.valueOf(getAudioManager().getSystemCurrentVolume());
         DoubleMsg doubleMsg = new DoubleMsg();
         doubleMsg.setValue(bigDecimal.doubleValue());
         return doubleMsg;
@@ -651,19 +630,19 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void abandonAudioFocus() {
-        mTxAudioManager.abandonAudioFocus();
+        getAudioManager().abandonAudioFocus();
     }
 
     @Override
     public void requestAudioFocus() {
-        mTxAudioManager.requestAudioFocus();
+        getAudioManager().requestAudioFocus();
     }
 
     @NonNull
     @Override
     public IntMsg isDeviceSupportPip() {
         IntMsg intMsg = new IntMsg();
-        intMsg.setValue((long) mTxPipManager.isSupportDevice());
+        intMsg.setValue((long) getPipManager().isSupportDevice());
         return intMsg;
     }
 
@@ -674,20 +653,40 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         }
     }
 
-    private static class VolumeBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void success() {
 
-        private final FTXPlayerEventSink mEventSink;
+    }
 
-        private VolumeBroadcastReceiver(FTXPlayerEventSink eventSink) {
-            mEventSink = eventSink;
+    @Override
+    public void error(@NonNull Throwable error) {
+        LiteavLog.e(TAG, "callback message error:" + error);
+    }
+
+    private static class VolumeBroadcastReceiver extends BroadcastReceiver implements FtxMessages.VoidResult {
+
+        private final FtxMessages.TXPluginFlutterAPI mPluginApi;
+
+        private VolumeBroadcastReceiver(FtxMessages.TXPluginFlutterAPI api) {
+            mPluginApi = api;
         }
 
         public void onReceive(Context context, Intent intent) {
             // Notify only when the media volume changes
             if (VOLUME_CHANGED_ACTION.equals(intent.getAction())
                     && (intent.getIntExtra(EXTRA_VOLUME_STREAM_TYPE, -1) == AudioManager.STREAM_MUSIC)) {
-                mEventSink.success(getParams(FTXEvent.EVENT_VOLUME_CHANGED, null));
+                mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_VOLUME_CHANGED, null), this);
             }
+        }
+
+        @Override
+        public void success() {
+
+        }
+
+        @Override
+        public void error(@NonNull Throwable error) {
+            LiteavLog.e(TAG, "callback message error:" + error);
         }
     }
 }

@@ -39,7 +39,7 @@ Player_Premium 分支：Android & iOS 端集成TXLiteAVSDK_Player_Premium lastes
 - TXVodPlayerController has introduced a new setStringOption interface for configuring extensions.
 - The Flutter side's operation of the player can now affect the UI updates for playing and pausing in the picture-in-picture window.
 - Fixed potential memory leak issues.
-- Optimized the logic of superPlayer Widget 
+- Optimized the logic of superPlayer Widget
 - Fixed other known issues.
 
 #### Version: 12.0.0 2024.08.21
@@ -54,3 +54,15 @@ Player_Premium 分支：Android & iOS 端集成TXLiteAVSDK_Player_Premium lastes
 - When playing live streaming, there is no longer a need to pass the playType parameter, which has been deprecated.
 - The live streaming and on-demand demo pages have added logic to wait for the license to load successfully before playing.
 - Other known issues have been fixed.
+
+#### Version: 12.0.1 2024.09.14
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player_Premium to 12.0.0.14689，tag：release_premium_v12.0.1
+- set iOS TXLiteAVSDK_Player_Premium to 12.1.16597， tag：release_premium_v12.0.1
+- Fix the issue where textures are not refreshed in some cases
+- Fix the issue where updating Picture-in-Picture produces errors when Picture-in-Picture ends in some cases
+- Modify the plugin callback Flutter side message architecture
+- During SDK initialization, all modules are changed to lazy loading
+- The demo and player components no longer need to force set the language; if not set, it defaults to English

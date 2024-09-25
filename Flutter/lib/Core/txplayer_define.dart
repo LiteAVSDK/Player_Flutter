@@ -168,6 +168,9 @@ abstract class TXVodPlayEvent {
   // Playback device exception.
   // 播放设备异常
   static const PLAY_WARNING_SPEAKER_DEVICE_ABNORMAL = 1205;
+  // Receive the first frame data packet event, supported since version 12.0
+  // 收到首帧数据包事件, 12.0版本开始支持
+  static const VOD_PLAY_EVT_VOD_PLAY_FIRST_VIDEO_PACKET = 2017;
   // Seek completed.
   // Seek 完成
   static const VOD_PLAY_EVT_SEEK_COMPLETE = 2019;
