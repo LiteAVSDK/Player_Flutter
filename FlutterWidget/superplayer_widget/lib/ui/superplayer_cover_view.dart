@@ -57,7 +57,7 @@ class _SuperPlayerCoverViewState extends State<SuperPlayerCoverView> {
                 // 增加一个半透明背景，防止透明封面图的出现
                 color:Color(ColorResource.COLOR_TRANS_GRAY)
               ),
-              child: Image.network(coverUrl,fit: BoxFit.cover),
+              child: ImageWithGrayBackground(coverUrl,fit: BoxFit.cover),
             )
           )),
     );

@@ -158,7 +158,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         children: [
           Stack(
             children: [
-              Image.network(
+              ImageWithGrayBackground (
                 playModel.coverUrl.isEmpty ? DEFAULT_PLACE_HOLDER : playModel.coverUrl,
                 width: 100,
                 height: 60,

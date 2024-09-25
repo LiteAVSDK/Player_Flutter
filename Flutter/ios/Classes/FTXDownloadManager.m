@@ -270,6 +270,7 @@
 
 - (nullable BoolMsg *)deleteDownloadMediaInfoMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     TXVodDownloadMediaInfo *mediaInfo = [self parseMediaInfoFromInfo:msg.quality url:msg.url appId:msg.appId fileId:msg.fileId name:msg.userName];
+    [[TXVodDownloadManager shareInstance] stopDownload:mediaInfo];
     BOOL deleteResult = [[TXVodDownloadManager shareInstance] deleteDownloadMediaInfo:mediaInfo];
     return [TXCommonUtil boolMsgWith:deleteResult];
 }

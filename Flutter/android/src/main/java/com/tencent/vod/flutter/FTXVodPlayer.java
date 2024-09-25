@@ -247,7 +247,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
             mVodPlayer = new TXVodPlayer(mFlutterPluginBinding.getApplicationContext());
             mVodPlayer.setVodListener(this);
             // prevent config null exception
-            mVodPlayer.setConfig(new TXVodPlayConfig());
+            TXVodPlayConfig playConfig = new TXVodPlayConfig();
+            Map<String, Object> map = new HashMap<>();
+            map.put("450", 0);
+            playConfig.setExtInfo(map);
+            mVodPlayer.setConfig(playConfig);
             mVodPlayer.setVodSubtitleDataListener(new ITXVodPlayListener.ITXVodSubtitleDataListener() {
                 @Override
                 public void onSubtitleData(TXVodDef.TXVodSubtitleData sub) {
@@ -256,7 +260,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
                     bundle.putLong(FTXEvent.EXTRA_SUBTITLE_START_POSITION_MS, sub.startPositionMs);
                     bundle.putLong(FTXEvent.EXTRA_SUBTITLE_DURATION_MS, sub.durationMs);
                     bundle.putLong(FTXEvent.EXTRA_SUBTITLE_TRACK_INDEX, sub.trackIndex);
-                    mVodFlutterApi.onNetEvent(TXCommonUtil.getParams(FTXEvent.EVENT_SUBTITLE_DATA, bundle),
+                    mVodFlutterApi.onPlayerEvent(TXCommonUtil.getParams(FTXEvent.EVENT_SUBTITLE_DATA, bundle),
                             FTXVodPlayer.this);
                 }
             });

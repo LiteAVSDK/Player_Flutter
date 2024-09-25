@@ -66,14 +66,14 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
 
   Widget _getTXVodPlayerMainPage() {
     return Stack(
-      children: <Widget>[_getGestureDetectorView(), _getPreviewImg(), _getSeekBarView()],
+      children: [_getGestureDetectorView(), _getPreviewImg(), _getSeekBarView()],
     );
   }
 
   GestureDetector _getGestureDetectorView() {
     return GestureDetector(
         child: Stack(
-          children: <Widget>[
+          children: [
             Container(
               child: TXPlayerVideo(controller: _controller),
             ),

@@ -427,6 +427,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         TXVodDownloadMediaInfo mediaInfo = getDownloadInfoFromMsg(msg);
         boolean deleteResult = false;
         if (mediaInfo != null) {
+            TXVodDownloadManager.getInstance().stopDownload(mediaInfo);
             deleteResult = TXVodDownloadManager.getInstance().deleteDownloadMediaInfo(mediaInfo);
         }
         BoolMsg res = new BoolMsg();
