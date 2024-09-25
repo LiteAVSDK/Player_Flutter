@@ -1,7 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
 #import "FTXLivePlayer.h"
-#import "FTXPlayerEventSinkQueue.h"
 #import "FTXTransformation.h"
 #import "FTXLiteAVSDKHeader.h"
 #import <Flutter/Flutter.h>
@@ -15,21 +14,18 @@
 
 static const int uninitialized = -1;
 
-@interface FTXLivePlayer ()<FlutterStreamHandler, FlutterTexture, V2TXLivePlayerObserver, TXFlutterLivePlayerApi>
+@interface FTXLivePlayer ()<FlutterTexture, V2TXLivePlayerObserver, TXFlutterLivePlayerApi>
 
 @property (nonatomic, strong) V2TXLivePlayer *livePlayer;
 @property (nonatomic, assign) int lastPlayEvent;
 @property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) BOOL isOpenedPip;
 @property (nonatomic, assign) BOOL isPaused;
+@property (nonatomic, strong) TXLivePlayerFlutterAPI* liveFlutterApi;
 
 @end
 
 @implementation FTXLivePlayer {
-    FTXPlayerEventSinkQueue *_eventSink;
-    FTXPlayerEventSinkQueue *_netStatusSink;
-    FlutterEventChannel *_eventChannel;
-    FlutterEventChannel *_netStatusChannel;
     // The latest frame.
     CVPixelBufferRef _Atomic _latestPixelBuffer;
     // The old frame.
@@ -53,14 +49,8 @@ static const int uninitialized = -1;
         _textureId = -1;
         self.isOpenedPip = NO;
         self.lastPlayEvent = -1;
-        _eventSink = [FTXPlayerEventSinkQueue new];
-        _netStatusSink = [FTXPlayerEventSinkQueue new];
-        
-        _eventChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txliveplayer/event/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
-        [_eventChannel setStreamHandler:self];
-        
-        _netStatusChannel = [FlutterEventChannel eventChannelWithName:[@"cloud.tencent.com/txliveplayer/net/" stringByAppendingString:[self.playerId stringValue]] binaryMessenger:[registrar messenger]];
-        [_netStatusChannel setStreamHandler:self];
+        SetUpTXFlutterLivePlayerApiWithSuffix([registrar messenger], self, [self.playerId stringValue]);
+        self.liveFlutterApi = [[TXLivePlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
     }
     
     return self;
@@ -91,19 +81,6 @@ static const int uninitialized = -1;
     if (_lastBuffer) {
         CVPixelBufferRelease(_lastBuffer);
         _lastBuffer = nil;
-    }
-
-    if (nil != _eventSink) {
-        [_eventSink setDelegate:nil];
-        _eventSink = nil;
-    }
-    if (nil != _eventChannel) {
-        [_eventChannel setStreamHandler:nil];
-        _eventChannel = nil;
-    }
-    if (nil != _netStatusSink) {
-        [_netStatusSink setDelegate:nil];
-        _netStatusSink = nil;
     }
 }
 
@@ -355,35 +332,10 @@ static const int uninitialized = -1;
 
 - (void)notifyPlayerEvent:(int)evtID withParams:(NSDictionary *)params {
     self.lastPlayEvent = evtID;
-    [_eventSink success:[FTXLivePlayer getParamsWithEvent:evtID withParams:params]];
+    [self.liveFlutterApi onPlayerEventEvent:[FTXLivePlayer getParamsWithEvent:evtID withParams:params] completion:^(FlutterError * _Nullable error) {
+        FTXLOGE(@"callback message error:%@", error);
+    }];
     FTXLOGI(@"onLivePlayEvent:%i,%@", evtID, params[EVT_MSG])
-}
-
-#pragma mark - FlutterStreamHandler
-
-- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
-                                       eventSink:(FlutterEventSink)events
-{
-    if ([arguments isKindOfClass:NSString.class]) {
-        if ([arguments isEqualToString:EVT_KEY_PLAYER_EVENT]) {
-            [_eventSink setDelegate:events];
-        }else if ([arguments isEqualToString:EVT_KEY_PLAYER_NET]) {
-            [_netStatusSink setDelegate:events];
-        }
-    }
-    return nil;
-}
-
-- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments
-{
-    if ([arguments isKindOfClass:NSString.class]) {
-        if ([arguments isEqualToString:EVT_KEY_PLAYER_EVENT]) {
-            [_eventSink setDelegate:nil];
-        }else if ([arguments isEqualToString:EVT_KEY_PLAYER_NET]) {
-            [_netStatusSink setDelegate:nil];
-        }
-    }
-    return nil;
 }
 
 #pragma mark - FlutterTexture
@@ -686,7 +638,9 @@ static const int uninitialized = -1;
  */
 - (void)onStatisticsUpdate:(id<V2TXLivePlayer>)player statistics:(V2TXLivePlayerStatistics *)statistics {
     NSDictionary *param = [FTXV2LiveTools buildNetBundle:statistics];
-    [_netStatusSink success:param];
+    [self.liveFlutterApi onNetEventEvent:param completion:^(FlutterError * _Nullable error) {
+        FTXLOGE(@"callback message error:%@", error);
+    }];
 }
 
 /**

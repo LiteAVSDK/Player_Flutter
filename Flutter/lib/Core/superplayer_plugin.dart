@@ -4,7 +4,7 @@ part of SuperPlayer;
 final TXFlutterSuperPlayerPluginAPI _playerPluginApi = TXFlutterSuperPlayerPluginAPI();
 final TXFlutterNativeAPI _nativeAPI = TXFlutterNativeAPI();
 
-class SuperPlayerPlugin {
+class SuperPlayerPlugin implements TXPluginFlutterAPI, TXPipFlutterAPI {
   static const TAG = "SuperPlayerPlugin";
 
   static SuperPlayerPlugin? _instance;
@@ -31,39 +31,12 @@ class SuperPlayerPlugin {
   /// such as PIP events, activity/controller lifecycle changes.
   /// 原生交互，通用事件监听，来自原生容器的事件，例如 PIP事件、activity/controller 生命周期变化
   Stream<Map<dynamic, dynamic>> get onExtraEventBroadcast => _eventPipStreamController.stream;
-
   FTXLicenceLoadedListener? _licenseLoadedListener;
 
   SuperPlayerPlugin._internal() {
-    EventChannel eventChannel = EventChannel("cloud.tencent.com/playerPlugin/event");
-    eventChannel.receiveBroadcastStream("event").listen(_eventHandler, onError: _errorHandler);
-
-    EventChannel pipEventChanne = EventChannel("cloud.tencent.com/playerPlugin/componentEvent");
-    pipEventChanne.receiveBroadcastStream("pipEvent").listen(_pipEventHandler, onError: _errorHandler);
-    onEventBroadcast.listen((event) {
-      int evtCode = event["event"];
-      if (evtCode == TXVodPlayEvent.EVENT_ON_LICENCE_LOADED) {
-        _licenseLoadedListener?.call(event[TXVodPlayEvent.EVENT_RESULT], event[TXVodPlayEvent.EVENT_REASON]);
-      }
-    });
+    TXPluginFlutterAPI.setUp(this);
+    TXPipFlutterAPI.setUp(this);
   }
-
-  _pipEventHandler(event) {
-    if (null == event) {
-      return;
-    }
-    LogUtils.d(TAG, "[pipEventHandler], receive event =  $event ");
-    _eventPipStreamController.add(event);
-  }
-
-  _eventHandler(event) {
-    if (null == event) {
-      return;
-    }
-    _eventStreamController.add(event);
-  }
-
-  _errorHandler(error) {}
 
   static Future<String?> get platformVersion async {
     StringMsg stringMsg = await _playerPluginApi.getLiteAVSDKVersion();
@@ -325,4 +298,24 @@ class SuperPlayerPlugin {
   static Future<void> setLicenseFlexibleValid(bool enabled) async {
     await _playerPluginApi.setLicenseFlexibleValid(BoolMsg(value: enabled));
   }
+
+  @override
+  void onPipEvent(Map<dynamic, dynamic> event) {
+    LogUtils.d(TAG, "[pipEventHandler], receive event =  $event ");
+    _eventPipStreamController.add(event);
+  }
+
+  @override
+  void onSDKListener(Map<dynamic, dynamic> event) {
+    int evtCode = event["event"];
+    if (evtCode == TXVodPlayEvent.EVENT_ON_LICENCE_LOADED) {
+      _licenseLoadedListener?.call(event[TXVodPlayEvent.EVENT_RESULT], event[TXVodPlayEvent.EVENT_REASON]);
+    }
+  }
+
+  @override
+  void onNativeEvent(Map<String?, Object?> event) {
+    _eventStreamController.add(event);
+  }
+
 }
