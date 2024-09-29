@@ -225,9 +225,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     void setPlayerMute(boolean mute) {
         if (mLivePlayer != null) {
             if (mute) {
-                mLivePlayer.resumeAudio();
-            } else {
                 mLivePlayer.pauseAudio();
+            } else {
+                mLivePlayer.resumeAudio();
             }
         }
     }
