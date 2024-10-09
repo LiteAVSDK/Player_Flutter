@@ -489,7 +489,8 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     extInfoMap:(nullable NSDictionary<NSString *, id> *)extInfoMap
     enableRenderProcess:(nullable NSNumber *)enableRenderProcess
     preferredResolution:(nullable NSNumber *)preferredResolution
-    mediaType:(nullable NSNumber *)mediaType {
+    mediaType:(nullable NSNumber *)mediaType
+    encryptedMp4Level:(nullable NSNumber *)encryptedMp4Level {
   FTXVodPlayConfigPlayerMsg* pigeonResult = [[FTXVodPlayConfigPlayerMsg alloc] init];
   pigeonResult.playerId = playerId;
   pigeonResult.connectRetryCount = connectRetryCount;
@@ -512,6 +513,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.enableRenderProcess = enableRenderProcess;
   pigeonResult.preferredResolution = preferredResolution;
   pigeonResult.mediaType = mediaType;
+  pigeonResult.encryptedMp4Level = encryptedMp4Level;
   return pigeonResult;
 }
 + (FTXVodPlayConfigPlayerMsg *)fromList:(NSArray *)list {
@@ -537,6 +539,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.enableRenderProcess = GetNullableObjectAtIndex(list, 18);
   pigeonResult.preferredResolution = GetNullableObjectAtIndex(list, 19);
   pigeonResult.mediaType = GetNullableObjectAtIndex(list, 20);
+  pigeonResult.encryptedMp4Level = GetNullableObjectAtIndex(list, 21);
   return pigeonResult;
 }
 + (nullable FTXVodPlayConfigPlayerMsg *)nullableFromList:(NSArray *)list {
@@ -565,6 +568,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.enableRenderProcess ?: [NSNull null]),
     (self.preferredResolution ?: [NSNull null]),
     (self.mediaType ?: [NSNull null]),
+    (self.encryptedMp4Level ?: [NSNull null]),
   ];
 }
 @end

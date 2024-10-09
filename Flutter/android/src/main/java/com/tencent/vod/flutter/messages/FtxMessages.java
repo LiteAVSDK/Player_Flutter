@@ -1100,6 +1100,17 @@ public class FtxMessages {
       this.mediaType = setterArg;
     }
 
+    /** MP4 encryption playback:  Supported since version 12.2. */
+    private @Nullable Long encryptedMp4Level;
+
+    public @Nullable Long getEncryptedMp4Level() {
+      return encryptedMp4Level;
+    }
+
+    public void setEncryptedMp4Level(@Nullable Long setterArg) {
+      this.encryptedMp4Level = setterArg;
+    }
+
     public static final class Builder {
 
       private @Nullable Long playerId;
@@ -1249,6 +1260,13 @@ public class FtxMessages {
         return this;
       }
 
+      private @Nullable Long encryptedMp4Level;
+
+      public @NonNull Builder setEncryptedMp4Level(@Nullable Long setterArg) {
+        this.encryptedMp4Level = setterArg;
+        return this;
+      }
+
       public @NonNull FTXVodPlayConfigPlayerMsg build() {
         FTXVodPlayConfigPlayerMsg pigeonReturn = new FTXVodPlayConfigPlayerMsg();
         pigeonReturn.setPlayerId(playerId);
@@ -1272,13 +1290,14 @@ public class FtxMessages {
         pigeonReturn.setEnableRenderProcess(enableRenderProcess);
         pigeonReturn.setPreferredResolution(preferredResolution);
         pigeonReturn.setMediaType(mediaType);
+        pigeonReturn.setEncryptedMp4Level(encryptedMp4Level);
         return pigeonReturn;
       }
     }
 
     @NonNull
     ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<Object>(21);
+      ArrayList<Object> toListResult = new ArrayList<Object>(22);
       toListResult.add(playerId);
       toListResult.add(connectRetryCount);
       toListResult.add(connectRetryInterval);
@@ -1300,6 +1319,7 @@ public class FtxMessages {
       toListResult.add(enableRenderProcess);
       toListResult.add(preferredResolution);
       toListResult.add(mediaType);
+      toListResult.add(encryptedMp4Level);
       return toListResult;
     }
 
@@ -1347,6 +1367,8 @@ public class FtxMessages {
       pigeonResult.setPreferredResolution((preferredResolution == null) ? null : ((preferredResolution instanceof Integer) ? (Integer) preferredResolution : (Long) preferredResolution));
       Object mediaType = list.get(20);
       pigeonResult.setMediaType((mediaType == null) ? null : ((mediaType instanceof Integer) ? (Integer) mediaType : (Long) mediaType));
+      Object encryptedMp4Level = list.get(21);
+      pigeonResult.setEncryptedMp4Level((encryptedMp4Level == null) ? null : ((encryptedMp4Level instanceof Integer) ? (Integer) encryptedMp4Level : (Long) encryptedMp4Level));
       return pigeonResult;
     }
   }

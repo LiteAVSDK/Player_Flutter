@@ -154,7 +154,8 @@ NS_ASSUME_NONNULL_BEGIN
     extInfoMap:(nullable NSDictionary<NSString *, id> *)extInfoMap
     enableRenderProcess:(nullable NSNumber *)enableRenderProcess
     preferredResolution:(nullable NSNumber *)preferredResolution
-    mediaType:(nullable NSNumber *)mediaType;
+    mediaType:(nullable NSNumber *)mediaType
+    encryptedMp4Level:(nullable NSNumber *)encryptedMp4Level;
 @property(nonatomic, strong, nullable) NSNumber * playerId;
 @property(nonatomic, strong, nullable) NSNumber * connectRetryCount;
 @property(nonatomic, strong, nullable) NSNumber * connectRetryInterval;
@@ -178,6 +179,8 @@ NS_ASSUME_NONNULL_BEGIN
 /// Media asset type, default auto type, refer to value see[TXVodPlayEvent]
 /// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
 @property(nonatomic, strong, nullable) NSNumber * mediaType;
+/// MP4 encryption playback:  Supported since version 12.2.
+@property(nonatomic, strong, nullable) NSNumber * encryptedMp4Level;
 @end
 
 @interface FTXLivePlayConfigPlayerMsg : NSObject

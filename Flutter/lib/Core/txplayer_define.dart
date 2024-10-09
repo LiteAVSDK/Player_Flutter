@@ -426,6 +426,13 @@ abstract class TXVodPlayEvent {
   static const EXTRA_SUBTITLE_START_POSITION_MS = "startPositionMs";
   static const EXTRA_SUBTITLE_DURATION_MS = "durationMs";
   static const EXTRA_SUBTITLE_TRACK_INDEX = "trackIndex";
+
+  /// mp4加密播放：不加密。 12.2 版本开始支持。
+  /// MP4 encryption playback: No encryption. Supported since version 12.2.
+  static const MP4_ENCRYPTION_LEVEL_NONE = 0;
+  /// mp4加密播放： mp4本地加密播放。12.2 版本开始支持。
+  /// MP4 encrypted playback: MP4 local encrypted playback. Supported since version 12.2.
+  static const MP4_ENCRYPTION_LEVEL_L2 = 2;
 }
 
 abstract class TXVodNetEvent {

@@ -333,6 +333,7 @@ class FTXVodPlayConfigPlayerMsg {
     this.enableRenderProcess,
     this.preferredResolution,
     this.mediaType,
+    this.encryptedMp4Level,
   });
 
   int? playerId;
@@ -379,6 +380,9 @@ class FTXVodPlayConfigPlayerMsg {
   /// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
   int? mediaType;
 
+  /// MP4 encryption playback:  Supported since version 12.2.
+  int? encryptedMp4Level;
+
   Object encode() {
     return <Object?>[
       playerId,
@@ -402,6 +406,7 @@ class FTXVodPlayConfigPlayerMsg {
       enableRenderProcess,
       preferredResolution,
       mediaType,
+      encryptedMp4Level,
     ];
   }
 
@@ -429,6 +434,7 @@ class FTXVodPlayConfigPlayerMsg {
       enableRenderProcess: result[18] as bool?,
       preferredResolution: result[19] as int?,
       mediaType: result[20] as int?,
+      encryptedMp4Level: result[21] as int?,
     );
   }
 }
