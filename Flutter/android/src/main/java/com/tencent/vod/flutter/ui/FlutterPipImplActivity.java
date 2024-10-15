@@ -332,7 +332,8 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
             if (TextUtils.equals(action, FTXEvent.PIP_ACTION_START)) {
                 startPipVideo();
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_EXIT)) {
-                exitPip(true);
+                mIsNeedToStop = true;
+                handlePipExitEvent();
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_UPDATE)) {
                 Bundle data = intent.getBundleExtra("data");
                 if (null != data) {
