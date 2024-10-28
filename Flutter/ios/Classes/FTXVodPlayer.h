@@ -4,28 +4,11 @@
 
 #import <Foundation/Foundation.h>
 #import "FTXBasePlayer.h"
+#import "FTXVodPlayerDelegate.h"
 
 @protocol FlutterPluginRegistrar;
 
 NS_ASSUME_NONNULL_BEGIN
-
-@protocol FTXVodPlayerDelegate <NSObject>
-
-- (void)onPlayerPipRequestStart;
-
-- (void)onPlayerPipStateDidStart;
-
-- (void)onPlayerPipStateWillStop;
-
-- (void)onPlayerPipStateDidStop;
-
-- (void)onPlayerPipStateRestoreUI:(double)playTime;;
-
-- (void)onPlayerPipStateError:(NSInteger)errorId;
-
-- (void) releasePlayerInner:(NSNumber*)playerId;
-
-@end
 
 @interface FTXVodPlayer : FTXBasePlayer
 

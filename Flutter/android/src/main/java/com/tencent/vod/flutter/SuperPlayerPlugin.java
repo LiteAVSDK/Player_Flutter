@@ -204,6 +204,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
         playerMsg.setPlayerId((long) playerId);
+        LiteavLog.i(TAG, "createVodPlayer :" + playerId);
         return playerMsg;
     }
 
@@ -215,6 +216,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
         playerMsg.setPlayerId((long) playerId);
+        LiteavLog.i(TAG, "createLivePlayer :" + playerId);
         return playerMsg;
     }
 
@@ -229,8 +231,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     public void releasePlayer(@NonNull PlayerMsg playerId) {
         if (null != playerId.getPlayerId()) {
             int intPlayerId = playerId.getPlayerId().intValue();
+            LiteavLog.i(TAG, "releasePlayer :" + intPlayerId);
             FTXBasePlayer player = mPlayers.get(intPlayerId);
             if (player != null) {
+                LiteavLog.i(TAG, "releasePlayer start destroy player :" + intPlayerId);
                 player.destroy();
                 mPlayers.remove(intPlayerId);
             }
