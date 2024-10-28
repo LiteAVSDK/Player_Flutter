@@ -4,12 +4,15 @@
 
 #import <Foundation/Foundation.h>
 #import "FTXBasePlayer.h"
+#import "FTXVodPlayerDelegate.h"
 
 @protocol FlutterPluginRegistrar;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface FTXLivePlayer : FTXBasePlayer
+
+@property(nonatomic, weak) id<FTXVodPlayerDelegate> delegate;
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar;
 

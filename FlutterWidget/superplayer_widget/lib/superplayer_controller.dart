@@ -822,24 +822,11 @@ class SuperPlayerController {
   Future<int> enterPictureInPictureMode(
       {String? backIcon, String? playIcon, String? pauseIcon, String? forwardIcon}) async {
     if (_playerUIStatus == SuperPlayerUIStatus.WINDOW_MODE) {
-      if (playerType == SuperPlayerType.VOD) {
-        return TXPipController.instance.enterPip(_vodPlayerController, _context,
-            backIconForAndroid: backIcon,
-            playIconForAndroid: playIcon,
-            pauseIconForAndroid: pauseIcon,
-            forwardIconForAndroid: forwardIcon);
-      } else {
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          return TXPipController.instance.enterPip(_livePlayerController, _context,
-              backIconForAndroid: backIcon,
-              playIconForAndroid: playIcon,
-              pauseIconForAndroid: pauseIcon,
-              forwardIconForAndroid: forwardIcon);
-        } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-          TXPipController.instance.exitAndReleaseCurrentPip();
-          return _livePlayerController.enterPictureInPictureMode();
-        }
-      }
+      return TXPipController.instance.enterPip(getCurrentController(), _context,
+          backIconForAndroid: backIcon,
+          playIconForAndroid: playIcon,
+          pauseIconForAndroid: pauseIcon,
+          forwardIconForAndroid: forwardIcon);
     }
     return TXVodPlayEvent.ERROR_PIP_CAN_NOT_ENTER;
   }

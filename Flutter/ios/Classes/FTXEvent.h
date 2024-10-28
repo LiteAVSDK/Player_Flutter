@@ -45,6 +45,12 @@
 /// PIP function is not started.
 /// PIP功能没有启动
 #define ERROR_IOS_PIP_NOT_RUNNING            -111
+/// PIP  start time out
+/// PIP 启动超时
+#define ERROR_IOS_PIP_START_TIME_OUT            -112
+/// Insufficient permissions, currently only appears in Picture-in-Picture live streaming
+/// 权限不足，目前只出现在直播画中画
+#define ERROR_PIP_AUTH_DENIED                -201
 
 
 
