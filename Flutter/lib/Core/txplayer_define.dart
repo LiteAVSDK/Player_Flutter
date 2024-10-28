@@ -374,6 +374,12 @@ abstract class TXVodPlayEvent {
   // PIP error, PIP function is not started (only support iOS).
   // pip 错误，PIP功能没有启动 only support iOS
   static const ERROR_IOS_PIP_NOT_RUNNING = -111;
+  // PIP  start time out
+  // PIP 启动超时
+  static const ERROR_IOS_PIP_START_TIME_OUT = -112;
+  // Insufficient permissions, currently only appears in Picture-in-Picture live streaming
+  // 权限不足，目前只出现在直播画中画
+  static const ERROR_PIP_AUTH_DENIED = -201;
   // PIP error, currently unable to enter PIP mode, such as being in full screen mode.
   // pip 错误，当前不能进入pip模式，例如正处于全屏模式下
   static const ERROR_PIP_CAN_NOT_ENTER = -120;
