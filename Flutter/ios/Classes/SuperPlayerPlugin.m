@@ -116,6 +116,7 @@ SuperPlayerPlugin* instance;
     FTXLOGV(@"called releasePlayerInner,%@ is start release", playerId);
     FTXBasePlayer *player = [_players objectForKey:playerId];
     if (player != nil) {
+        FTXLOGI(@"releasePlayer start destroy player :%@", playerId);
         [player destory];
         [_players removeObjectForKey:playerId];
     }
@@ -234,8 +235,10 @@ SuperPlayerPlugin* instance;
 
 - (nullable PlayerMsg *)createLivePlayerWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     FTXLivePlayer* player = [[FTXLivePlayer alloc] initWithRegistrar:self.registrar];
+    player.delegate = self;
     NSNumber *playerId = player.playerId;
     _players[playerId] = player;
+    FTXLOGI(@"createLivePlayer :%@", playerId);
     return [TXCommonUtil playerMsgWith:playerId];
 }
 
@@ -244,6 +247,7 @@ SuperPlayerPlugin* instance;
     player.delegate = self;
     NSNumber *playerId = player.playerId;
     _players[playerId] = player;
+    FTXLOGI(@"createVodPlayer :%@", playerId);
     return [TXCommonUtil playerMsgWith:playerId];
 }
 

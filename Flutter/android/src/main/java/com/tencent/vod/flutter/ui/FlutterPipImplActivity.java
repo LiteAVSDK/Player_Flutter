@@ -498,7 +498,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
 
     private void bindAndroid12BugServiceIfNeed() {
         if (Build.VERSION.SDK_INT >= VERSION_CODES.Q) {
-            Intent serviceIntent = new Intent(this, TXAndroid12BridgeService.class);
+            Intent serviceIntent = new Intent(getApplicationContext(), TXAndroid12BridgeService.class);
             startService(serviceIntent);
             bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
         }

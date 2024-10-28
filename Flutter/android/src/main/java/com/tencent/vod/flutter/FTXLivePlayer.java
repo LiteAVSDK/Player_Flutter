@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.view.Surface;
+import android.view.TextureView;
 
 import androidx.annotation.NonNull;
 
@@ -65,7 +66,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     private final FTXV2LiveObserver mObserver;
     private int mLastPlayEvent = -1;
     private boolean mIsPaused = false;
-    private FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
+    private final FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
 
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
