@@ -238,3 +238,13 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - Modify the plugin callback Flutter side message architecture
 - During SDK initialization, all modules are changed to lazy loading
 - The demo and player components no longer need to force set the language; if not set, it defaults to English
+
+#### Version: 12.1.0 2024.11.20
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 12.0.0.14689，tag：release_player_v12.0.1
+- set iOS TXLiteAVSDK_Player to 12.0.16301， tag：release_player_v12.0.1
+- Fix the issue of reversed logic in the live streaming mute method.
+- iOS adds support for Picture-in-Picture for live streaming, which requires premium permission to use.
+- Fix other known issues.
