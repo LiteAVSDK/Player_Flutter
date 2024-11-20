@@ -21,6 +21,7 @@
     config.enableRenderProcess = msg.enableRenderProcess.boolValue;
     config.preferredResolution = msg.preferredResolution.longValue;
     config.mediaType = msg.mediaType.intValue;
+    config.encryptedMp4Level = msg.encryptedMp4Level.intValue;
     NSTimeInterval progressInerval = msg.progressInterval.intValue / 1000.0;
     if(progressInerval > 0) {
         config.progressInterval = progressInerval;

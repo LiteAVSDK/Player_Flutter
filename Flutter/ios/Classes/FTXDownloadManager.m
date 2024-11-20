@@ -63,9 +63,15 @@
     __block NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
     [dict setObject:@(taskID) forKey:@"taskId"];
-    [dict setObject:fileId forKey:@"fileId"];
-    [dict setObject:url forKey:@"url"];
-    [dict setObject:param forKey:@"param"];
+    if (fileId) {
+        [dict setObject:fileId forKey:@"fileId"];
+    }
+    if (url) {
+        [dict setObject:url forKey:@"url"];
+    }
+    if (param) {
+        [dict setObject:param forKey:@"param"];
+    }
     [self.downloadFlutterApi onPreDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_START withParams:dict] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
@@ -77,7 +83,9 @@
         [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
     }
     [dict setObject:@(taskID) forKey:@"taskId"];
-    [dict setObject:url forKey:@"url"];
+    if (url) {
+        [dict setObject:url forKey:@"url"];
+    }
     [dict setObject:@(error.code) forKey:@"code"];
     if (nil != error.userInfo.description) {
         [dict setObject:error.userInfo.description forKey:@"msg"];
@@ -359,6 +367,7 @@
         params.appId = (msg.appId != nil && [msg.appId isKindOfClass:[NSNumber class]]) ? [msg.appId intValue] : 0;
         params.fileId = fileId;
         params.sign = (msg.pSign != nil && [msg.pSign isKindOfClass:[NSString class]]) ? msg.pSign : @"";
+        params.headers = msg.httpHeader != nil ? msg.httpHeader : @{};
         __block TXPredownloadFileHelperDelegate *delegate = [[TXPredownloadFileHelperDelegate alloc] initWithBlock:tmpTaskId start:^(long tmpTaskId, int taskID, NSString * _Nonnull fileId, NSString * _Nonnull url, NSDictionary * _Nonnull param) {
             [self onPreLoadStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
         } complete:^(int taskID, NSString * _Nonnull url) {
