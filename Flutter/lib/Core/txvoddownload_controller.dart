@@ -82,7 +82,8 @@ class TXVodDownloadController implements TXDownloadFlutterAPI {
       ..appId = txPlayInfoParams.appId
       ..pSign = txPlayInfoParams.psign
       ..preloadSizeMB = preloadSizeMB
-      ..preferredResolution = preferredResolution);
+      ..preferredResolution = preferredResolution
+      ..httpHeader = txPlayInfoParams.httpHeader);
     _fileIdBeforeStartListeners[tmpPreloadTaskId] = _PreloadListener()
       ..onCompleteListener = onCompleteListener
       ..onErrorListener = onErrorListener
@@ -232,8 +233,8 @@ class TXVodDownloadController implements TXDownloadFlutterAPI {
   }
 
   @override
-  void onDownloadEvent(Map<dynamic, dynamic> event) {
-    LogUtils.d(TAG, 'onPreDownloadEvent _eventHandler, event= $event');
+  void onDownloadEvent(Map<String, Object> event) {
+    LogUtils.d(TAG, 'onDownloadEvent _eventHandler, event= $event');
     final Map<dynamic, dynamic> map = event;
     int eventCode = map["event"];
     switch (eventCode) {
@@ -255,9 +256,8 @@ class TXVodDownloadController implements TXDownloadFlutterAPI {
   }
 
   @override
-  void onPreDownloadEvent(Map<dynamic, dynamic> event) {
-
-    LogUtils.d(TAG, 'onDownloadEvent _eventHandler, event= $event');
+  void onPreDownloadEvent(Map<String, Object> event) {
+    LogUtils.d(TAG, 'onPreDownloadEvent _eventHandler, event= $event');
     final Map<dynamic, dynamic> map = event;
     int eventCode = map["event"];
     switch (eventCode) {

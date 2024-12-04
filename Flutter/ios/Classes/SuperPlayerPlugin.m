@@ -78,18 +78,9 @@ SuperPlayerPlugin* instance;
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
 {
-    [self.pluginFlutterApi onNativeEventEvent:[SuperPlayerPlugin getParamsWithEvent:EVENT_VOLUME_CHANGED withParams:@{}] completion:^(FlutterError * _Nullable error) {
+    [self.pluginFlutterApi onNativeEventEvent:[TXCommonUtil getParamsWithEvent:EVENT_VOLUME_CHANGED withParams:@{}] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
-}
-
-+ (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
-{
-    NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:@"event"];
-    if (params != nil && params.count != 0) {
-        [dict addEntriesFromDictionary:params];
-    }
-    return dict;
 }
 
 -(void) destory
@@ -134,7 +125,7 @@ SuperPlayerPlugin* instance;
  */
 - (void)brightnessDidChange:(NSNotification *)notification
 {
-    [self.pluginFlutterApi onNativeEventEvent:[SuperPlayerPlugin getParamsWithEvent:EVENT_BRIGHTNESS_CHANGED withParams:@{}] completion:^(FlutterError * _Nullable error) {
+    [self.pluginFlutterApi onNativeEventEvent:[TXCommonUtil getParamsWithEvent:EVENT_BRIGHTNESS_CHANGED withParams:@{}] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
 }
@@ -153,6 +144,8 @@ SuperPlayerPlugin* instance;
         [_fTXDownloadManager destroy];
     }
 }
+
+
 
 
 #pragma mark - FTXVodPlayerDelegate
@@ -417,7 +410,7 @@ SuperPlayerPlugin* instance;
         @(EVENT_RESULT) : @(blockResult),
         @(EVENT_REASON) : blockReason,
     };
-    [self.pluginFlutterApi onSDKListenerEvent:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:param] completion:^(FlutterError * _Nullable error) {
+    [self.pluginFlutterApi onSDKListenerEvent:[TXCommonUtil getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:param] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
 }

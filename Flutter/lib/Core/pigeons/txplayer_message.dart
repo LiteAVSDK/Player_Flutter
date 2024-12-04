@@ -149,6 +149,9 @@ class FTXVodPlayConfigPlayerMsg {
   /// Media asset type, default auto type, refer to value see[TXVodPlayEvent]
   /// 媒资类型，默认auto类型, 取值参考 see[TXVodPlayEvent]
   int? mediaType;
+
+  /// MP4 encryption playback:  Supported since version 12.2.
+  int? encryptedMp4Level;
 }
 
 class FTXLivePlayConfigPlayerMsg {
@@ -293,6 +296,7 @@ class PreLoadInfoMsg {
   double? preloadSizeMB;
   int? preferredResolution;
   int? tmpPreloadTaskId;
+  Map<String?, String?>? httpHeader;
 }
 
 class MapMsg {

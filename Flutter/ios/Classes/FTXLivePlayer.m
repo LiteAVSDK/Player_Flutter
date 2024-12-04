@@ -374,18 +374,14 @@ static const int uninitialized = -1;
     }
 }
 
-+ (NSDictionary *)getParamsWithEvent:(int)evtID withParams:(NSDictionary *)params
-{
-    NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(evtID) forKey:EVT_KEY_PLAYER_EVENT];
-    if (params != nil && params.count != 0) {
-        [dict addEntriesFromDictionary:params];
-    }
+- (NSDictionary *)getLiveParamsWithEvent:(int)evtID withParams:(NSDictionary *)params {
+    NSMutableDictionary<NSString*,NSObject*> *dict = [TXCommonUtil getParamsWithEvent:evtID withParams:params];
     long long timestamp = [self currentMillisecondTime];
     [dict setObject:@(timestamp) forKey:EVT_TIME];
     return dict;
 }
 
-+ (long long)currentMillisecondTime {
+- (long long)currentMillisecondTime {
     NSDate *now = [NSDate date]; // 获取当前日期时间
     NSTimeInterval timeInterval = [now timeIntervalSince1970]; // 获取距离1970年的秒数
     long long millisecondTime = (long long)(timeInterval * 1000); // 将秒数转换为毫秒数
@@ -394,7 +390,7 @@ static const int uninitialized = -1;
 
 - (void)notifyPlayerEvent:(int)evtID withParams:(NSDictionary *)params {
     self.lastPlayEvent = evtID;
-    [self.liveFlutterApi onPlayerEventEvent:[FTXLivePlayer getParamsWithEvent:evtID withParams:params] completion:^(FlutterError * _Nullable error) {
+    [self.liveFlutterApi onPlayerEventEvent:[self getLiveParamsWithEvent:evtID withParams:params] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
     FTXLOGI(@"onLivePlayEvent:%i,%@", evtID, params[EVT_MSG])
