@@ -86,4 +86,20 @@
     return msg;
 }
 
++ (NSMutableDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
+{
+    NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:EVT_KEY_PLAYER_EVENT];
+    if (params != nil && params.count != 0) {
+        // Iterate over each key-value pair in the original dictionary
+        [params enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
+            // Check if the value is NSNull
+            if (![value isKindOfClass:[NSNull class]] && value != nil) {
+                // If it is not NSNull, then add it to the new dictionary
+                [dict setObject:value forKey:key];
+            }
+        }];
+    }
+    return dict;
+}
+
 @end

@@ -99,7 +99,9 @@ public class TXCommonUtil {
             Set<String> keySet = bundle.keySet();
             for (String key : keySet) {
                 Object val = bundle.get(key);
-                param.put(key, val);
+                if (null != val) {
+                    param.put(key, val);
+                }
             }
         }
 

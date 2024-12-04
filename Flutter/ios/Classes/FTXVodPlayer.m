@@ -383,16 +383,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     return nil;
 }
 
-
-+ (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
-{
-    NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:@"event"];
-    if (params != nil && params.count != 0) {
-        [dict addEntriesFromDictionary:params];
-    }
-    return dict;
-}
-
 #pragma mark - FlutterTexture
 
 - (CVPixelBufferRef _Nullable)copyPixelBuffer
@@ -440,7 +430,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (evtID != PLAY_EVT_PLAY_PROGRESS) {
         FTXLOGI(@"onPlayEvent:%i,%@", evtID, param[EVT_PLAY_DESCRIPTION]);
     }
-    [self.vodFlutterApi onPlayerEventEvent:[FTXVodPlayer getParamsWithEvent:evtID withParams:param] completion:^(FlutterError * _Nullable error) {
+    [self.vodFlutterApi onPlayerEventEvent:[TXCommonUtil getParamsWithEvent:evtID withParams:param] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
 }
@@ -472,7 +462,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     mutableDic[EXTRA_SUBTITLE_START_POSITION_MS] = @(subtitleData.startPositionMs);
     mutableDic[EXTRA_SUBTITLE_DURATION_MS] = @(subtitleData.durationMs);
     mutableDic[EXTRA_SUBTITLE_TRACK_INDEX] = @(subtitleData.trackIndex);
-    [self.vodFlutterApi onPlayerEventEvent:[FTXVodPlayer getParamsWithEvent:EVENT_SUBTITLE_DATA withParams:mutableDic] completion:^(FlutterError * _Nullable error) {
+    [self.vodFlutterApi onPlayerEventEvent:[TXCommonUtil getParamsWithEvent:EVENT_SUBTITLE_DATA withParams:mutableDic] completion:^(FlutterError * _Nullable error) {
         FTXLOGE(@"callback message error:%@", error);
     }];
 }
@@ -1055,9 +1045,19 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (nil != _txVodPlayer) {
         if (playerMsg.value && [playerMsg.value count] != 0) {
             id value = playerMsg.value[0];
-            [_txVodPlayer setExtentOptionInfo:@{
-                playerMsg.key : value
-            }];
+            NSString *key = playerMsg.key;
+            // HEVC 降级播放参数进行特殊判断，保证 flutter 层接口一致
+            if ([key isEqualToString:VOD_KEY_VIDEO_CODEC_TYPE] && [value isKindOfClass:[NSString class]]) {
+                if ([(NSString *) value isEqualToString:@"video/hevc"]) {
+                    [_txVodPlayer setExtentOptionInfo:@{
+                            VOD_KEY_VIDEO_CODEC_TYPE : @(kCMVideoCodecType_HEVC)
+                    }];
+                }
+            } else {
+                [_txVodPlayer setExtentOptionInfo:@{
+                        key : value
+                }];
+            }
         }
     }
 }
