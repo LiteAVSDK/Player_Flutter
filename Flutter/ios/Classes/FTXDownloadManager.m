@@ -63,12 +63,16 @@
     __block NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
     [dict setObject:@(taskID) forKey:@"taskId"];
-    [dict setObject:fileId forKey:@"fileId"];
-    [dict setObject:url forKey:@"url"];
-    [dict setObject:param forKey:@"param"];
-    [self.downloadFlutterApi onPreDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_START withParams:dict] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    if (fileId) {
+        [dict setObject:fileId forKey:@"fileId"];
+    }
+    if (url) {
+        [dict setObject:url forKey:@"url"];
+    }
+    if (param) {
+        [dict setObject:param forKey:@"param"];
+    }
+    [self onPreloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_PREDOWNLOAD_ON_START withParams:dict]];
 }
 
 - (void)onPreLoadErrorEvent:(long)tmpTaskId taskId:(int)taskID url:(NSString *)url error:(NSError *)error {
@@ -77,15 +81,22 @@
         [dict setObject:@(tmpTaskId) forKey:@"tmpTaskId"];
     }
     [dict setObject:@(taskID) forKey:@"taskId"];
-    [dict setObject:url forKey:@"url"];
+    if (url) {
+        [dict setObject:url forKey:@"url"];
+    }
     [dict setObject:@(error.code) forKey:@"code"];
     if (nil != error.userInfo.description) {
         [dict setObject:error.userInfo.description forKey:@"msg"];
     }
-    
-    [self.downloadFlutterApi onPreDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_ERROR withParams:dict] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onPreloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_PREDOWNLOAD_ON_ERROR withParams:dict]];
+}
+
+- (void)onPreloadCallback:(NSDictionary<NSString *, id> *)arg_event {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.downloadFlutterApi onPreDownloadEventEvent:arg_event completion:^(FlutterError * _Nullable error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }];
+    });
 }
 
 - (void)removePreDelegate:(TXPredownloadFileHelperDelegate*)delegate {
@@ -102,15 +113,6 @@
     }
 }
 
-+ (NSDictionary *)getParamsWithEvent:(int)EvtID withParams:(NSDictionary *)params
-{
-    __block NSMutableDictionary<NSString*,NSObject*> *dict = [NSMutableDictionary dictionaryWithObject:@(EvtID) forKey:@"event"];
-    if (params != nil && params.count != 0) {
-        [dict addEntriesFromDictionary:params];
-    }
-    return dict;
-}
-
 #pragma mark - TXVodPreloadManager delegate
 
 - (void)onComplete:(int)taskID url:(NSString *)url
@@ -118,9 +120,7 @@
     __block NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     [dict setObject:@(taskID) forKey:@"taskId"];
     [dict setObject:url forKey:@"url"];
-    [self.downloadFlutterApi onPreDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_PREDOWNLOAD_ON_COMPLETE withParams:dict] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onPreloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_PREDOWNLOAD_ON_COMPLETE withParams:dict]];
 }
 
 - (void)onError:(int)taskID url:(NSString *)url error:(NSError *)error
@@ -214,30 +214,22 @@
 
 /// Download started.
 - (void)onDownloadStart:(TXVodDownloadMediaInfo *)mediaInfo {
-    [self.downloadFlutterApi onDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_START withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onDownloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_DOWNLOAD_START withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
 /// Download progress.
 - (void)onDownloadProgress:(TXVodDownloadMediaInfo *)mediaInfo {
-    [self.downloadFlutterApi onDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_PROGRESS withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onDownloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_DOWNLOAD_PROGRESS withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
 /// Download stopped.
 - (void)onDownloadStop:(TXVodDownloadMediaInfo *)mediaInfo {
-    [self.downloadFlutterApi onDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_STOP withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onDownloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_DOWNLOAD_STOP withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
 /// Download completed.
 - (void)onDownloadFinish:(TXVodDownloadMediaInfo *)mediaInfo {
-    [self.downloadFlutterApi onDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_FINISH withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onDownloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_DOWNLOAD_FINISH withParams:[self buildMapFromDownloadMediaInfo:mediaInfo]]];
 }
 
 /// Download error.
@@ -245,9 +237,7 @@
     NSMutableDictionary *dict = [self buildMapFromDownloadMediaInfo:mediaInfo];
     [dict setValue:@(code) forKey:@"errorCode"];
     [dict setValue:msg forKey:@"errorMsg"];
-    [self.downloadFlutterApi onDownloadEventEvent:[FTXDownloadManager getParamsWithEvent:EVENT_DOWNLOAD_ERROR withParams:dict] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
-    }];
+    [self onDownloadCallback:[TXCommonUtil getParamsWithEvent:EVENT_DOWNLOAD_ERROR withParams:dict]];
 }
 
 /**
@@ -264,6 +254,12 @@
  */
 - (int)hlsKeyVerify:(TXVodDownloadMediaInfo *)mediaInfo url:(NSString *)url data:(NSData *)data {
     return 0;
+}
+
+- (void)onDownloadCallback:(NSDictionary<NSString *, id> *)arg_event {
+    [self.downloadFlutterApi onDownloadEventEvent:arg_event completion:^(FlutterError * _Nullable error) {
+        FTXLOGE(@"callback message error:%@", error);
+    }];
 }
 
 #pragma mark TXFlutterDownloadApi
@@ -359,6 +355,7 @@
         params.appId = (msg.appId != nil && [msg.appId isKindOfClass:[NSNumber class]]) ? [msg.appId intValue] : 0;
         params.fileId = fileId;
         params.sign = (msg.pSign != nil && [msg.pSign isKindOfClass:[NSString class]]) ? msg.pSign : @"";
+        params.headers = msg.httpHeader != nil ? msg.httpHeader : @{};
         __block TXPredownloadFileHelperDelegate *delegate = [[TXPredownloadFileHelperDelegate alloc] initWithBlock:tmpTaskId start:^(long tmpTaskId, int taskID, NSString * _Nonnull fileId, NSString * _Nonnull url, NSDictionary * _Nonnull param) {
             [self onPreLoadStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
         } complete:^(int taskID, NSString * _Nonnull url) {

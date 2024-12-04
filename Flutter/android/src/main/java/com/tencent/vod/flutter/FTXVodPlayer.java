@@ -255,6 +255,12 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
             mVodPlayer.setVodSubtitleDataListener(new ITXVodPlayListener.ITXVodSubtitleDataListener() {
                 @Override
                 public void onSubtitleData(TXVodDef.TXVodSubtitleData sub) {
+                    LiteavLog.i(TAG, "callback subtitle"
+                            + " ,index:" + sub.trackIndex
+                            + " ,startMs:" + sub.startPositionMs
+                            + " ,durationMs:" + sub.durationMs
+                            + " ,content:" + sub.subtitleData
+                    );
                     Bundle bundle = new Bundle();
                     bundle.putString(FTXEvent.EXTRA_SUBTITLE_DATA, sub.subtitleData);
                     bundle.putLong(FTXEvent.EXTRA_SUBTITLE_START_POSITION_MS, sub.startPositionMs);

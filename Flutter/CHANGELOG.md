@@ -248,3 +248,14 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - Fix the issue of reversed logic in the live streaming mute method.
 - iOS adds support for Picture-in-Picture for live streaming, which requires premium permission to use.
 - Fix other known issues.
+
+#### Version: 12.2.0 2024.12.04
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 12.2.0.15065，tag：release_player_v12.2.0
+- set iOS TXLiteAVSDK_Player to 12.2.16945， tag：release_player_v12.2.0
+- Pre-download supports httpHeader
+- Supports encrypted playback of MP4
+- Added support for HEVC playback downgrade
+- Fix other known issues.

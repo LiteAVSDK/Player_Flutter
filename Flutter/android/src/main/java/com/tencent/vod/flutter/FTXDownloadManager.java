@@ -316,6 +316,9 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                     int appId = msg.getAppId() != null ? msg.getAppId().intValue() : 0;
                     txPlayInfoParams = new TXPlayInfoParams(appId, msg.getFileId(), msg.getPSign());
                 }
+                if (msg.getHttpHeader() != null) {
+                    txPlayInfoParams.setHeaders(msg.getHttpHeader());
+                }
                 final TXVodPreloadManager downloadManager =
                         TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
                 float preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().floatValue() : 0;
