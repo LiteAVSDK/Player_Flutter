@@ -382,6 +382,7 @@ class FTXVodPlayConfigPlayerMsg {
     this.preferredResolution,
     this.mediaType,
     this.encryptedMp4Level,
+    this.preferAudioTrack,
   });
 
   int? playerId;
@@ -431,6 +432,8 @@ class FTXVodPlayConfigPlayerMsg {
   /// MP4 encryption playback:  Supported since version 12.2.
   int? encryptedMp4Level;
 
+  String? preferAudioTrack;
+
   Object encode() {
     return <Object?>[
       playerId,
@@ -455,6 +458,7 @@ class FTXVodPlayConfigPlayerMsg {
       preferredResolution,
       mediaType,
       encryptedMp4Level,
+      preferAudioTrack,
     ];
   }
 
@@ -483,6 +487,7 @@ class FTXVodPlayConfigPlayerMsg {
       preferredResolution: result[19] as int?,
       mediaType: result[20] as int?,
       encryptedMp4Level: result[21] as int?,
+      preferAudioTrack: result[22] as String?,
     );
   }
 }

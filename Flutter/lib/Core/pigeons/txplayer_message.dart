@@ -152,6 +152,8 @@ class FTXVodPlayConfigPlayerMsg {
 
   /// MP4 encryption playback:  Supported since version 12.2.
   int? encryptedMp4Level;
+
+  String? preferAudioTrack;
 }
 
 class FTXLivePlayConfigPlayerMsg {
