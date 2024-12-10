@@ -631,14 +631,18 @@ class DownloadQuality {
 }
 
 class TXPlayInfoParams {
-  final int appId; // Tencent Cloud video appId, required
-  final String fileId; // Tencent Cloud video fileId, required
+  final int? appId; // Tencent Cloud video appId, required
+  final String? fileId; // Tencent Cloud video fileId, required
   final String? psign; // Tencent cloud video encryption signature, required for encrypted video
   // video url, only applicable for preloading. When using it, you only need to fill in either the url or fileId.
   // The priority of the url is higher than that of the fileId.
   final String? url;
   // Custom httpHeader
   final Map<String, String>? httpHeader;
+
+  const TXPlayInfoParams.useFileId({required this.appId, required this.fileId, this.psign = "", this.httpHeader}) : this.url = "";
+  const TXPlayInfoParams.useUrl({required this.url, this.httpHeader}) : this.appId = 0, this.fileId = "", this.psign = "";
+
   const TXPlayInfoParams({required this.appId, required this.fileId, this.psign = "", this.url = "", this.httpHeader});
 
   Map<String, dynamic> toJson() {
