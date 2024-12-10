@@ -110,7 +110,6 @@ class SuperPlayerController {
           break;
         case TXVodPlayEvent.PLAY_EVT_VOD_PLAY_PREPARED: // vodPrepared
           isPrepared = true;
-          addSubTitle();
           if (_isMultiBitrateStream) {
             List<dynamic>? bitrateListTemp = await _vodPlayerController.getSupportedBitrates();
             List<FTXBitrateItem> bitrateList = [];
@@ -291,7 +290,7 @@ class SuperPlayerController {
       }
     }
     _updateSubtitleTrackList(subtitleTrackList, selectedSubtitleTrack);
-
+    
     // audio track info
     List<TXTrackInfo> audioTrackList = await _vodPlayerController.getAudioTrackInfo();
     TXTrackInfo? selectedAudioTrack;
@@ -349,6 +348,7 @@ class SuperPlayerController {
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
     await stopPlay();
+    addSubTitle();
     if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       await _playWithModelInner(videoModel);
     }
