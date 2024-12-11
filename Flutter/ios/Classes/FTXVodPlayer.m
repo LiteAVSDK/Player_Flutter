@@ -190,6 +190,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         NSMutableDictionary<NSString *, id> *newExtInfoMap = [NSMutableDictionary dictionary];
         [newExtInfoMap setObject:@(0) forKey:@"450"];
         [vodConfig setExtInfoMap:newExtInfoMap];
+        [_txVodPlayer setConfig:vodConfig];
         [self setupPlayerWithBool:onlyAudio];
     }
     return [NSNumber numberWithLongLong:_textureId];
