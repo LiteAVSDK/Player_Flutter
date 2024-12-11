@@ -1,0 +1,43 @@
+package com.tencent.vod.flutter.ui.render;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.StandardMessageCodec;
+import io.flutter.plugin.platform.PlatformView;
+import io.flutter.plugin.platform.PlatformViewFactory;
+
+public class FTXRenderViewFactory extends PlatformViewFactory {
+
+    private final Map<Integer, WeakReference<FTXRenderView>> mRenderViewCache = new HashMap<>();
+    private final BinaryMessenger mBinaryMessenger;
+
+    public FTXRenderViewFactory(@Nullable BinaryMessenger messenger) {
+        super(StandardMessageCodec.INSTANCE);
+        mBinaryMessenger = messenger;
+    }
+
+    @NonNull
+    @Override
+    public PlatformView create(Context context, int viewId, @Nullable Object args) {
+        final Map<String, Object> creationParams = (Map<String, Object>) args;
+        FTXRenderView renderView = new FTXRenderView(context, viewId, creationParams, mBinaryMessenger);
+        mRenderViewCache.put(viewId, new WeakReference<>(renderView));
+        return renderView;
+    }
+
+    public FTXRenderView findViewById(int viewId) {
+        WeakReference<FTXRenderView> renderViewWeakReference = mRenderViewCache.get(viewId);
+        if (null == renderViewWeakReference) {
+            return null;
+        }
+        return renderViewWeakReference.get();
+    }
+}

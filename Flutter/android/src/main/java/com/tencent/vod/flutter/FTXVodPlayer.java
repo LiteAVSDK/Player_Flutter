@@ -3,10 +3,10 @@
 package com.tencent.vod.flutter;
 
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
-import android.view.Surface;
 
 import androidx.annotation.NonNull;
 
@@ -22,6 +22,7 @@ import com.tencent.rtmp.TXVodConstants;
 import com.tencent.rtmp.TXVodDef;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
+import com.tencent.rtmp.ui.TXCloudVideoView;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
@@ -41,6 +42,8 @@ import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
+import com.tencent.vod.flutter.ui.render.FTXRenderView;
+import com.tencent.vod.flutter.ui.render.FTXRenderViewFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
@@ -52,7 +55,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.view.TextureRegistry;
 
 /**
  * vodPlayer plugin processor
@@ -64,25 +66,25 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
 
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
-    private SurfaceTexture mSurfaceTexture;
-    private Surface mSurface;
-
     private TXVodPlayer mVodPlayer;
     private TXImageSprite mTxImageSprite;
 
     private static final int Uninitialized = -101;
-    private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
     private boolean mEnableHardwareDecode = true;
     private boolean mHardwareDecodeFail = false;
     private final FTXPIPManager mPipManager;
     private boolean mNeedPipResume = false;
     private final FtxMessages.TXVodPlayerFlutterAPI mVodFlutterApi;
+    private final FTXRenderViewFactory mRenderViewFactory;
+    private FTXRenderView mCurRenderView;
+    private final Handler mUIHandler = new Handler(Looper.getMainLooper());
     private final FTXPIPManager.PipCallback mPipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPipResult(TXPipResult result) {
             if (mVodPlayer != null) {
-                mSurface = new Surface(mSurfaceTexture);
-                mVodPlayer.setSurface(mSurface);
+                if (null != mCurRenderView) {
+                    mCurRenderView.setPlayer(FTXVodPlayer.this);
+                }
                 mVodPlayer.setVodListener(FTXVodPlayer.this);
             }
             // When starting PIP, the current player has been paused. After PIP exits,
@@ -120,43 +122,31 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
 
     /**
      * VOD player.
-     *
+     * <p>
      * 点播播放器
      */
-    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
+    public FTXVodPlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager,
+                        FTXRenderViewFactory renderViewFactory, boolean onlyAudio) {
         super();
         mPipManager = pipManager;
         mFlutterPluginBinding = flutterPluginBinding;
+        mRenderViewFactory = renderViewFactory;
         FtxMessages.TXFlutterVodPlayerApi.setUp(flutterPluginBinding.getBinaryMessenger(),
                 String.valueOf(getPlayerId()), this);
         mVodFlutterApi = new FtxMessages.TXVodPlayerFlutterAPI(flutterPluginBinding.getBinaryMessenger(),
                 String.valueOf(getPlayerId()));
         TXFlutterEngineHolder.getInstance().addAppLifeListener(mAppLifeListener);
+        init(onlyAudio);
     }
-
 
     @Override
     public void destroy() {
         if (mVodPlayer != null) {
-            mVodPlayer.stopPlay(true);
+            stopPlay(true);
+            mVodPlayer.setPlayerView((TXCloudVideoView) null);
             mVodPlayer = null;
         }
-
-        if (mSurfaceTextureEntry != null) {
-            mSurfaceTextureEntry.release();
-            mSurfaceTextureEntry = null;
-        }
-
-        if (mSurfaceTexture != null) {
-            mSurfaceTexture.release();
-            mSurfaceTexture = null;
-        }
-
-        if (mSurface != null) {
-            mSurface.release();
-            mSurface = null;
-        }
-
+        mCurRenderView = null;
         TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
         releaseTXImageSprite();
         if (null != mPipManager) {
@@ -187,38 +177,38 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
                     return;
                 }
             }
-
-            int width = bundle.getInt(TXLiveConstants.EVT_PARAM1, 0);
-            int height = bundle.getInt(TXLiveConstants.EVT_PARAM2, 0);
-            // Set the size of the surface to prevent some situations where the hardware decoding failure
-            // event is not received, resulting in only 1 pixel of content.
-            if (width != 0 && height != 0) {
-                setDefaultBufferSizeForSoftDecode(width, height);
-            }
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
             mHardwareDecodeFail = true;
         }
         if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
             LiteavLog.e(TAG, "onPlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
         }
-        mVodFlutterApi.onPlayerEvent(TXCommonUtil.getParams(event, bundle), this);
-    }
-
-    // The default size of the surface is 1x1. When hardware decoding fails or software decoding is used,
-    // software decoding will depend on the window rendering of the surface. Failure to update will result
-    // in only 1 pixel of content.
-    private void setDefaultBufferSizeForSoftDecode(int width, int height) {
-        if (null != mVodPlayer && mSurfaceTextureEntry != null) {
-            SurfaceTexture surfaceTexture = mSurfaceTextureEntry.surfaceTexture();
-            surfaceTexture.setDefaultBufferSize(width, height);
-            mSurface = new Surface(surfaceTexture);
-            mVodPlayer.setSurface(mSurface);
+        if (event == TXLiveConstants.PLAY_EVT_RCV_FIRST_I_FRAME) {
+            // delay fir
+            mUIHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mVodFlutterApi.onPlayerEvent(TXCommonUtil.getParams(event, bundle), FTXVodPlayer.this);
+                }
+            }, 60);
+        } else {
+            mUIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mVodFlutterApi.onPlayerEvent(TXCommonUtil.getParams(event, bundle), FTXVodPlayer.this);
+                }
+            });
         }
     }
 
     @Override
     public void onNetStatus(TXVodPlayer txVodPlayer, Bundle bundle) {
-        mVodFlutterApi.onNetEvent(TXCommonUtil.getParams(0, bundle), this);
+        mUIHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mVodFlutterApi.onNetEvent(TXCommonUtil.getParams(0, bundle), FTXVodPlayer.this);
+            }
+        });
     }
 
     private byte[] getPlayerImageSprite(final Double time) {
@@ -272,17 +262,13 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
             });
             setPlayer(onlyAudio);
         }
-        return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
+        return FTXEvent.NO_ERROR;
     }
 
     void setPlayer(boolean onlyAudio) {
         if (!onlyAudio) {
-            mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
-            mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
-            mSurface = new Surface(mSurfaceTexture);
-
-            if (mVodPlayer != null) {
-                mVodPlayer.setSurface(mSurface);
+            if (mVodPlayer != null && null != mCurRenderView) {
+                mCurRenderView.setPlayer(this);
             }
         }
     }
@@ -302,12 +288,13 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
-        if (mVodPlayer != null) {
-            return mVodPlayer.stopPlay(isNeedClearLastImg);
-        }
+        mUIHandler.removeCallbacksAndMessages(null);
         mPipManager.exitPip();
         releaseTXImageSprite();
         mHardwareDecodeFail = false;
+        if (mVodPlayer != null) {
+            return mVodPlayer.stopPlay(isNeedClearLastImg);
+        }
         return Uninitialized;
     }
 
@@ -836,6 +823,27 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
                 Object value = values.get(0);
                 mVodPlayer.setStringOption(playerMsg.getKey(), value);
             }
+        }
+    }
+
+    @Override
+    public void setPlayerView(@NonNull Long renderViewId) {
+        int viewId = renderViewId.intValue();
+        FTXRenderView renderView = mRenderViewFactory.findViewById(viewId);
+        if (null != renderView) {
+            mCurRenderView = renderView;
+            renderView.setPlayer(this);
+        } else {
+            LiteavLog.e(TAG, "setPlayerView can not find renderView by id:" + viewId + ", release player's renderView");
+            mCurRenderView = null;
+            setRenderView(null);
+        }
+    }
+
+    @Override
+    public void setRenderView(TXCloudVideoView cloudVideoView) {
+        if (null != mVodPlayer) {
+            mVodPlayer.setPlayerView(cloudVideoView);
         }
     }
 

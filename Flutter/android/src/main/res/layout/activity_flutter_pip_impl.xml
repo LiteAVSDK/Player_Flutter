@@ -9,7 +9,7 @@
     android:background="@android:color/transparent"
     tools:context="com.tencent.vod.flutter.ui.FlutterPipImplActivity">
 
-    <TextureView
+    <com.tencent.rtmp.ui.TXCloudVideoView
         android:id="@+id/tv_video_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -342,10 +342,10 @@ abstract class TXFlutterSuperPlayerPluginAPI {
   StringMsg getPlatformVersion();
 
   /// 创建点播播放器
-  PlayerMsg createVodPlayer();
+  PlayerMsg createVodPlayer(bool onlyAudio);
 
   /// 创建直播播放器
-  PlayerMsg createLivePlayer();
+  PlayerMsg createLivePlayer(bool onlyAudio);
 
   /// 开关log输出
   void setConsoleEnabled(BoolMsg enabled);
@@ -670,6 +670,8 @@ abstract class TXFlutterVodPlayerApi {
   void setSubtitleStyle(SubTitleRenderModelPlayerMsg playerMsg);
 
   void setStringOption(StringOptionPlayerMsg playerMsg);
+
+  void setPlayerView(int renderViewId);
 }
 
 @HostApi()
@@ -743,6 +745,8 @@ abstract class TXFlutterLivePlayerApi {
   int setCacheParams(PlayerMsg playerMsg, double minTime, double maxTime);
 
   int enablePictureInPicture(BoolPlayerMsg msg);
+
+  void setPlayerView(int renderViewId);
 }
 
 @HostApi()

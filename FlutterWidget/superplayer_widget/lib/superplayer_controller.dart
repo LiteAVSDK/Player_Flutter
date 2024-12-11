@@ -76,13 +76,11 @@ class SuperPlayerController {
 
   void _initVodPlayer() async {
     _vodPlayerController = TXVodPlayerController();
-    await _vodPlayerController.initialize();
     _setVodListener();
   }
 
   void _initLivePlayer() async {
     _livePlayerController = TXLivePlayerController();
-    await _livePlayerController.initialize();
     _setLiveListener();
   }
 

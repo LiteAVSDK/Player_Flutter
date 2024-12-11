@@ -413,11 +413,11 @@ NSObject<FlutterMessageCodec> *nullGetFtxMessagesCodec(void);
 /// 创建点播播放器
 ///
 /// @return `nil` only when `error != nil`.
-- (nullable PlayerMsg *)createVodPlayerWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (nullable PlayerMsg *)createVodPlayerOnlyAudio:(BOOL)onlyAudio error:(FlutterError *_Nullable *_Nonnull)error;
 /// 创建直播播放器
 ///
 /// @return `nil` only when `error != nil`.
-- (nullable PlayerMsg *)createLivePlayerWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (nullable PlayerMsg *)createLivePlayerOnlyAudio:(BOOL)onlyAudio error:(FlutterError *_Nullable *_Nonnull)error;
 /// 开关log输出
 - (void)setConsoleEnabledEnabled:(BoolMsg *)enabled error:(FlutterError *_Nullable *_Nonnull)error;
 /// 释放播放器资源
@@ -743,6 +743,7 @@ extern void SetUpTXFlutterNativeAPIWithSuffix(id<FlutterBinaryMessenger> binaryM
 - (void)deselectTrackPlayerMsg:(IntPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setSubtitleStylePlayerMsg:(SubTitleRenderModelPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setStringOptionPlayerMsg:(StringOptionPlayerMsg *)playerMsg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void SetUpTXFlutterVodPlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterVodPlayerApi> *_Nullable api);
@@ -819,6 +820,7 @@ extern void SetUpTXFlutterVodPlayerApiWithSuffix(id<FlutterBinaryMessenger> bina
 - (nullable NSNumber *)setCacheParamsPlayerMsg:(PlayerMsg *)playerMsg minTime:(double)minTime maxTime:(double)maxTime error:(FlutterError *_Nullable *_Nonnull)error;
 /// @return `nil` only when `error != nil`.
 - (nullable NSNumber *)enablePictureInPictureMsg:(BoolPlayerMsg *)msg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void SetUpTXFlutterLivePlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterLivePlayerApi> *_Nullable api);

@@ -10,6 +10,7 @@
 #import "FTXDownloadManager.h"
 #import "FtxMessages.h"
 #import "FTXLog.h"
+#import "FTXRenderViewFactory.h"
 
 @interface SuperPlayerPlugin ()<FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, FlutterPlugin, TXLiveBaseDelegate>
 
@@ -19,6 +20,7 @@
 @property (nonatomic, strong) FTXAudioManager* audioManager;
 @property (nonatomic, strong) TXPluginFlutterAPI* pluginFlutterApi;
 @property (nonatomic, strong) TXPipFlutterAPI* pipFlutterApi;
+@property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
 
 @end
 
@@ -72,6 +74,9 @@ SuperPlayerPlugin* instance;
                                                  selector:@selector(onDeviceOrientationChange:)
                                                      name:UIDeviceOrientationDidChangeNotification
                                                    object:nil];
+        // renderView
+        self.renderViewFactory = [[FTXRenderViewFactory alloc] initWithBinaryMessenger:registrar.messenger];
+        [registrar registerViewFactory:self.renderViewFactory withId:VIEW_TYPE_FTX_RENDER_VIEW];
     }
     return self;
 }
@@ -79,7 +84,9 @@ SuperPlayerPlugin* instance;
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
 {
     [self.pluginFlutterApi onNativeEventEvent:[TXCommonUtil getParamsWithEvent:EVENT_VOLUME_CHANGED withParams:@{}] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
@@ -126,7 +133,9 @@ SuperPlayerPlugin* instance;
 - (void)brightnessDidChange:(NSNotification *)notification
 {
     [self.pluginFlutterApi onNativeEventEvent:[TXCommonUtil getParamsWithEvent:EVENT_BRIGHTNESS_CHANGED withParams:@{}] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
@@ -152,37 +161,49 @@ SuperPlayerPlugin* instance;
 
 - (void)onPlayerPipRequestStart {
     [self.pipFlutterApi onPipEventEvent:@{@"event" : @(EVENT_PIP_MODE_REQUEST_START)} completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
 - (void)onPlayerPipStateDidStart {
     [self.pipFlutterApi onPipEventEvent:@{@"event" : @(EVENT_PIP_MODE_ALREADY_ENTER)} completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
 - (void)onPlayerPipStateWillStop {
     [self.pipFlutterApi onPipEventEvent:@{@"event" : @(EVENT_PIP_MODE_WILL_EXIT)} completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
 - (void)onPlayerPipStateDidStop {
     [self.pipFlutterApi onPipEventEvent:@{@"event" : @(EVENT_PIP_MODE_ALREADY_EXIT)} completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
 - (void)onPlayerPipStateError:(NSInteger)errorId {
     [self.pipFlutterApi onPipEventEvent:@{@"event" : @(errorId)} completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
 - (void)onPlayerPipStateRestoreUI:(double)playTime {
     [self.pipFlutterApi onPipEventEvent:@{@"event" : @(EVENT_PIP_MODE_RESTORE_UI), EVENT_PIP_PLAY_TIME : @(playTime)} completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
@@ -219,28 +240,33 @@ SuperPlayerPlugin* instance;
         [self.pluginFlutterApi onNativeEventEvent:@{
             @"event" : @(EVENT_ORIENTATION_CHANGED),
             EXTRA_NAME_ORIENTATION : @(tempOrientationCode)} completion:^(FlutterError * _Nullable error) {
-            FTXLOGE(@"callback message error:%@", error);
+            if (nil != error) {
+                FTXLOGE(@"callback message error:%@", error);
+            }
         }];
     }
 }
 
 #pragma mark - superPlayerPluginAPI
 
-- (nullable PlayerMsg *)createLivePlayerWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    FTXLivePlayer* player = [[FTXLivePlayer alloc] initWithRegistrar:self.registrar];
-    player.delegate = self;
-    NSNumber *playerId = player.playerId;
-    _players[playerId] = player;
-    FTXLOGI(@"createLivePlayer :%@", playerId);
-    return [TXCommonUtil playerMsgWith:playerId];
-}
-
-- (nullable PlayerMsg *)createVodPlayerWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    FTXVodPlayer* player = [[FTXVodPlayer alloc] initWithRegistrar:self.registrar];
+- (PlayerMsg *)createVodPlayerOnlyAudio:(BOOL)onlyAudio error:(FlutterError * _Nullable __autoreleasing *)error 
+{
+    
+    FTXVodPlayer* player = [[FTXVodPlayer alloc] initWithRegistrar:self.registrar renderViewFactory:self.renderViewFactory onlyAudio:onlyAudio];
     player.delegate = self;
     NSNumber *playerId = player.playerId;
     _players[playerId] = player;
     FTXLOGI(@"createVodPlayer :%@", playerId);
+    return [TXCommonUtil playerMsgWith:playerId];
+}
+
+
+- (PlayerMsg *)createLivePlayerOnlyAudio:(BOOL)onlyAudio error:(FlutterError * _Nullable __autoreleasing *)error {
+    FTXLivePlayer* player = [[FTXLivePlayer alloc] initWithRegistrar:self.registrar renderViewFactory:self.renderViewFactory onlyAudio:onlyAudio];
+    player.delegate = self;
+    NSNumber *playerId = player.playerId;
+    _players[playerId] = player;
+    FTXLOGI(@"createLivePlayer :%@", playerId);
     return [TXCommonUtil playerMsgWith:playerId];
 }
 
@@ -411,7 +437,9 @@ SuperPlayerPlugin* instance;
         @(EVENT_REASON) : blockReason,
     };
     [self.pluginFlutterApi onSDKListenerEvent:[TXCommonUtil getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:param] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 

@@ -4029,10 +4029,10 @@ public class FtxMessages {
     StringMsg getPlatformVersion();
     /** 创建点播播放器 */
     @NonNull 
-    PlayerMsg createVodPlayer();
+    PlayerMsg createVodPlayer(@NonNull Boolean onlyAudio);
     /** 创建直播播放器 */
     @NonNull 
-    PlayerMsg createLivePlayer();
+    PlayerMsg createLivePlayer(@NonNull Boolean onlyAudio);
     /** 开关log输出 */
     void setConsoleEnabled(@NonNull BoolMsg enabled);
     /** 释放播放器资源 */
@@ -4134,8 +4134,10 @@ public class FtxMessages {
           channel.setMessageHandler(
               (message, reply) -> {
                 ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Boolean onlyAudioArg = (Boolean) args.get(0);
                 try {
-                  PlayerMsg output = api.createVodPlayer();
+                  PlayerMsg output = api.createVodPlayer(onlyAudioArg);
                   wrapped.add(0, output);
                 }
  catch (Throwable exception) {
@@ -4155,8 +4157,10 @@ public class FtxMessages {
           channel.setMessageHandler(
               (message, reply) -> {
                 ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Boolean onlyAudioArg = (Boolean) args.get(0);
                 try {
-                  PlayerMsg output = api.createLivePlayer();
+                  PlayerMsg output = api.createLivePlayer(onlyAudioArg);
                   wrapped.add(0, output);
                 }
  catch (Throwable exception) {
@@ -4984,6 +4988,8 @@ public class FtxMessages {
     void setSubtitleStyle(@NonNull SubTitleRenderModelPlayerMsg playerMsg);
 
     void setStringOption(@NonNull StringOptionPlayerMsg playerMsg);
+
+    void setPlayerView(@NonNull Long renderViewId);
 
     /** The codec used by TXFlutterVodPlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
@@ -5938,6 +5944,29 @@ public class FtxMessages {
           channel.setMessageHandler(null);
         }
       }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.setPlayerView" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Long renderViewIdArg = (Long) args.get(0);
+                try {
+                  api.setPlayerView(renderViewIdArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
     }
   }
   /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
@@ -6019,6 +6048,8 @@ public class FtxMessages {
 
     @NonNull 
     Long enablePictureInPicture(@NonNull BoolPlayerMsg msg);
+
+    void setPlayerView(@NonNull Long renderViewId);
 
     /** The codec used by TXFlutterLivePlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
@@ -6510,6 +6541,29 @@ public class FtxMessages {
                 try {
                   Long output = api.enablePictureInPicture(msgArg);
                   wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.setPlayerView" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Long renderViewIdArg = (Long) args.get(0);
+                try {
+                  api.setPlayerView(renderViewIdArg);
+                  wrapped.add(0, null);
                 }
  catch (Throwable exception) {
                   wrapped = wrapError(exception);

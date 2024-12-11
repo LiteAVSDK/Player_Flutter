@@ -2,7 +2,6 @@
 part of SuperPlayer;
 
 abstract class TXPlayerController {
-  Future<int> get textureId;
   double? get resizeVideoWidth;
   double? get resizeVideoHeight;
   double? get videoLeft;
@@ -11,6 +10,7 @@ abstract class TXPlayerController {
   double? get videoBottom;
   TXPlayerValue? playerValue();
 
+  @Deprecated("this method call will no longer be effective")
   Future<void> initialize({bool? onlyAudio});
   Future<bool> stop({bool isNeedClear = false});
   Future<bool> isPlaying();
@@ -21,5 +21,6 @@ abstract class TXPlayerController {
   Future<int> enterPictureInPictureMode(
       {String? backIconForAndroid, String? playIconForAndroid, String? pauseIconForAndroid, String? forwardIconForAndroid});
   Future<void> exitPictureInPictureMode();
+  Future<void> setPlayerView(int renderViewId);
   Future<void> dispose();
 }

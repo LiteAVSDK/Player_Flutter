@@ -8,6 +8,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(atomic, readonly) NSNumber *playerId;
 
+- (void)setRenderView:(nullable UIView*)renderView;
+
 - (void)destory;
 
 @end

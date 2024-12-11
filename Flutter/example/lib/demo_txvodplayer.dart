@@ -41,7 +41,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   Future<void> init() async {
     if (!mounted) return;
     await SuperPlayerPlugin.setConsoleEnabled(true);
-    await _controller.initialize();
     _controller.onPlayerState.listen((val) {
       debugPrint("Playback status ${val?.name}");
     });

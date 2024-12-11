@@ -9,6 +9,10 @@ import com.tencent.rtmp.TXLiveConstants;
  */
 public class FTXEvent {
 
+    public interface ViewType {
+        String FTX_RENDER_VIEW = "FTXRenderViewType";
+    }
+
     /*
     Volume change.
     音量变化

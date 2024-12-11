@@ -18,11 +18,10 @@
 
 static const int uninitialized = -1;
 
-@interface FTXLivePlayer ()<FlutterTexture, V2TXLivePlayerObserver, TXFlutterLivePlayerApi, FTXLivePipDelegate, FTXPipPlayerDelegate>
+@interface FTXLivePlayer ()<V2TXLivePlayerObserver, TXFlutterLivePlayerApi, FTXLivePipDelegate, FTXPipPlayerDelegate>
 
 @property (nonatomic, strong) V2TXLivePlayer *livePlayer;
 @property (nonatomic, assign) int lastPlayEvent;
-@property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) BOOL isOpenedPip;
 @property (nonatomic, assign) BOOL isPaused;
 @property (nonatomic, strong) TXLivePlayerFlutterAPI* liveFlutterApi;
@@ -30,41 +29,37 @@ static const int uninitialized = -1;
 @property (nonatomic, assign) BOOL isStartEnterPipMode;
 @property (nonatomic, assign) BOOL restoreUI;
 @property (nonatomic, assign) CGSize liveSize;
+@property (nonatomic, assign) BOOL isMute;
+@property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
+@property (nonatomic, strong) FTXRenderView *curRenderView;
 
 @end
 
 @implementation FTXLivePlayer {
-    // The latest frame.
-    CVPixelBufferRef _Atomic _latestPixelBuffer;
-    // The old frame.
-    CVPixelBufferRef _lastBuffer;
-    int64_t _textureId;
-    
     id<FlutterPluginRegistrar> _registrar;
-    id<FlutterTextureRegistry> _textureRegistry;
     BOOL _isTerminate;
     BOOL _isStoped;
 }
 
-- (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
+- (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar renderViewFactory:(FTXRenderViewFactory*)renderViewFactory onlyAudio:(BOOL)onlyAudio
 {
     if (self = [self init]) {
         _registrar = registrar;
-        _lastBuffer = nil;
-        _latestPixelBuffer = nil;
         _isTerminate = NO;
         _isStoped = NO;
-        _textureId = -1;
+        self.curRenderView = nil;
+        self.renderViewFactory = renderViewFactory;
         self.isOpenedPip = NO;
         self.lastPlayEvent = -1;
         self.hasEnteredPipMode = NO;
         self.isStartEnterPipMode = NO;
         self.restoreUI = NO;
         self.liveSize = CGSizeZero;
+        self.isMute = NO;
         SetUpTXFlutterLivePlayerApiWithSuffix([registrar messenger], self, [self.playerId stringValue]);
         self.liveFlutterApi = [[TXLivePlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
+        [self createPlayer:onlyAudio];
     }
-    
     return self;
 }
 
@@ -73,27 +68,10 @@ static const int uninitialized = -1;
     FTXLOGV(@"livePlayer start called destory");
     [self stopPlay];
     if (nil != self.livePlayer) {
-        [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
+        [self setRenderView:nil];
         [self.livePlayer setObserver:nil];
     }
-    if (_textureId >= 0) {
-        [_textureRegistry unregisterTexture:_textureId];
-        _textureId = -1;
-        _textureRegistry = nil;
-    }
-
-    CVPixelBufferRef old = _latestPixelBuffer;
-    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, nil, memory_order_release, memory_order_relaxed)) {
-        old = _latestPixelBuffer;
-    }
-    if (old) {
-        CFRelease(old);
-    }
-
-    if (_lastBuffer) {
-        CVPixelBufferRelease(_lastBuffer);
-        _lastBuffer = nil;
-    }
+    self.curRenderView = nil;
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {
@@ -114,27 +92,23 @@ static const int uninitialized = -1;
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"livePlayer notifyPlayerTerminate");
     if (nil != self.livePlayer) {
-        [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
+        [self setRenderView:nil];
         [self.livePlayer setObserver:nil];
     }
+    self.curRenderView = nil;
     _isTerminate = YES;
-    _textureRegistry = nil;
     [self stopPlay];
-    _textureId = -1;
     self.livePlayer = nil;
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
 {
     if (!onlyAudio) {
-        if (_textureId < 0) {
-            _textureRegistry = [_registrar textures];
-            int64_t tId = [_textureRegistry registerTexture:self];
-            _textureId = tId;
-        }
         if (nil != self.livePlayer) {
-            [self.livePlayer enableObserveVideoFrame:YES pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
             [self.livePlayer setProperty:@"enableBackgroundDecoding" value:@(YES)];
+            if (nil != self.curRenderView) {
+                [self.curRenderView setPlayer:self];
+            }
         }
     }
 }
@@ -177,15 +151,7 @@ static const int uninitialized = -1;
         [self.livePlayer setObserver:self];
         [self setupPlayerWithBool:onlyAudio];
     }
-    return [NSNumber numberWithLongLong:_textureId];
-}
-
-- (UIView *)txPipView {
-    if (!_txPipView) {
-        // Set the size to 1 pixel to ensure proper display in PIP.
-        _txPipView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
-    }
-    return _txPipView;
+    return NO_ERROR;
 }
 
 - (UIViewController *)getFlutterViewController {
@@ -237,8 +203,10 @@ static const int uninitialized = -1;
 {
     if (self.livePlayer != nil) {
         _isStoped = NO;
-        [self.livePlayer resumeAudio];
         [self.livePlayer resumeVideo];
+        if (!self.isMute) {
+            [self.livePlayer resumeAudio];
+        }
         self.lastPlayEvent = -1;
         self.isPaused = NO;
         self.liveSize = CGSizeZero;
@@ -299,7 +267,9 @@ static const int uninitialized = -1;
 - (void)resumeImpl {
     if (self.livePlayer != nil) {
         [self.livePlayer resumeVideo];
-        [self.livePlayer resumeAudio];
+        if (!self.isMute) {
+            [self.livePlayer resumeAudio];
+        }
         self.isPaused = NO;
         int evtID = PLAY_EVT_PLAY_BEGIN;
         __block NSMutableDictionary *param = @{}.mutableCopy;
@@ -311,9 +281,10 @@ static const int uninitialized = -1;
 - (void)setMute:(BOOL)bEnable
 {
     if (self.livePlayer != nil) {
+        self.isMute = bEnable;
         if (bEnable) {
             [self.livePlayer pauseAudio];
-        } else {
+        } else if (!self.isPaused) {
             [self.livePlayer resumeAudio];
         }
     }
@@ -391,7 +362,9 @@ static const int uninitialized = -1;
 - (void)notifyPlayerEvent:(int)evtID withParams:(NSDictionary *)params {
     self.lastPlayEvent = evtID;
     [self.liveFlutterApi onPlayerEventEvent:[self getLiveParamsWithEvent:evtID withParams:params] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
     FTXLOGI(@"onLivePlayEvent:%i,%@", evtID, params[EVT_MSG])
 }
@@ -399,37 +372,12 @@ static const int uninitialized = -1;
 - (NSNumber*)enablePictureInPicture:(BOOL)isEnabled {
     if (self.livePlayer) {
         if (isEnabled != self.isOpenedPip) {
-            if (isEnabled) {
-                UIViewController* flutterVC = [self getFlutterViewController];
-                [flutterVC.view addSubview:self.txPipView];
-                [self.livePlayer setRenderView:self.txPipView];
-            } else if (nil != self->_txPipView) {
-                [self->_txPipView removeFromSuperview];
-                self->_txPipView = nil;
-            }
             self.isOpenedPip = isEnabled;
             int result = (int)[self.livePlayer enablePictureInPicture:isEnabled];
             return @(result);
         }
     }
     return @(uninitialized);
-}
-
-#pragma mark - FlutterTexture
-
-- (CVPixelBufferRef _Nullable)copyPixelBuffer
-{
-    if(_isTerminate || _isStoped){
-        return nil;
-    }
-    if (self.hasEnteredPipMode) {
-        return [self getPipImagePixelBuffer];
-    }
-    CVPixelBufferRef pixelBuffer = _latestPixelBuffer;
-    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &pixelBuffer, NULL, memory_order_release, memory_order_relaxed)) {
-        pixelBuffer = _latestPixelBuffer;
-    }
-    return pixelBuffer;
 }
 
 #pragma mark - TXFlutterLivePlayerApi
@@ -444,7 +392,11 @@ static const int uninitialized = -1;
         FTXLOGE(@"live pip opened failed, size is invalid");
         return [TXCommonUtil intMsgWith:@(ERROR_IOS_PIP_PLAYER_NOT_EXIST)];
     }
-    int retCode = [[FTXPipController shareInstance] startOpenPip:self.livePlayer withSize:self.liveSize];
+    UIView* renderView = nil;
+    if (nil != self.curRenderView) {
+        renderView = [self.curRenderView view];
+    }
+    int retCode = [[FTXPipController shareInstance] startOpenPip:self.livePlayer withView:renderView withSize:self.liveSize];
     if (retCode == NO_ERROR) {
         [FTXPipController shareInstance].pipDelegate = self;
         [FTXPipController shareInstance].playerDelegate = self;
@@ -513,9 +465,10 @@ static const int uninitialized = -1;
     return [self enablePictureInPicture:[msg.value boolValue]];
 }
 
-- (nullable NSNumber *)enableReceiveSeiMessagePlayerMsg:(nonnull PlayerMsg *)playerMsg isEnabled:(nonnull NSNumber *)isEnabled payloadType:(nonnull NSNumber *)payloadType error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+- (NSNumber *)enableReceiveSeiMessagePlayerMsg:(PlayerMsg *)playerMsg isEnabled:(BOOL)isEnabled payloadType:(NSInteger)payloadType error:(FlutterError * _Nullable __autoreleasing *)error {
+    
     if (self.livePlayer) {
-        int result = (int)[self.livePlayer enableReceiveSeiMessage:[isEnabled boolValue] payloadType:[payloadType intValue]];
+        int result = (int)[self.livePlayer enableReceiveSeiMessage:isEnabled payloadType:(int)payloadType];
         return @(result);
     }
     return @(uninitialized);
@@ -531,9 +484,9 @@ static const int uninitialized = -1;
 }
 
 
-- (nullable NSNumber *)setCacheParamsPlayerMsg:(nonnull PlayerMsg *)playerMsg minTime:(nonnull NSNumber *)minTime maxTime:(nonnull NSNumber *)maxTime error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+- (NSNumber *)setCacheParamsPlayerMsg:(PlayerMsg *)playerMsg minTime:(double)minTime maxTime:(double)maxTime error:(FlutterError * _Nullable __autoreleasing *)error {
     if (self.livePlayer) {
-        int result = (int)[self.livePlayer setCacheParams:[minTime floatValue] maxTime:[maxTime floatValue]];
+        int result = (int)[self.livePlayer setCacheParams:minTime maxTime:maxTime];
         return @(result);
     }
     return @(uninitialized);
@@ -549,16 +502,33 @@ static const int uninitialized = -1;
 }
 
 
-- (void)showDebugViewPlayerMsg:(nonnull PlayerMsg *)playerMsg isShow:(nonnull NSNumber *)isShow error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+- (void)showDebugViewPlayerMsg:(PlayerMsg *)playerMsg isShow:(BOOL)isShow error:(FlutterError * _Nullable __autoreleasing *)error {
     if (self.livePlayer) {
-        [self.livePlayer showDebugView:[isShow boolValue]];
+        [self.livePlayer showDebugView:isShow];
     }
 }
-
 
 - (nullable BoolMsg *)startLivePlayPlayerMsg:(nonnull StringPlayerMsg *)playerMsg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
     int r = [self startLivePlay:playerMsg.value];
     return [TXCommonUtil boolMsgWith:r];
+}
+
+- (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    FTXRenderView *renderView = [self.renderViewFactory findViewById:renderViewId];
+    if (nil != renderView) {
+        self.curRenderView = renderView;
+        [renderView setPlayer:self];
+    } else {
+        self.curRenderView = nil;
+        [self setRenderView:nil];
+        FTXLOGE(@"setPlayerView can not find renderView by id: %ld, release player's renderView", renderViewId);
+    }
+}
+
+- (void)setRenderView:(UIView *)renderView {
+    if (nil != self.livePlayer) {
+        [self.livePlayer setRenderView:renderView];
+    }
 }
 
 
@@ -714,7 +684,9 @@ static const int uninitialized = -1;
 - (void)onStatisticsUpdate:(id<V2TXLivePlayer>)player statistics:(V2TXLivePlayerStatistics *)statistics {
     NSDictionary *param = [FTXV2LiveTools buildNetBundle:statistics];
     [self.liveFlutterApi onNetEventEvent:param completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
@@ -740,36 +712,6 @@ static const int uninitialized = -1;
  * @note  需要您调用 {@link enableObserveVideoFrame} 开启回调开关。
  */
 - (void)onRenderVideoFrame:(id<V2TXLivePlayer>)player frame:(V2TXLiveVideoFrame *)videoFrame {
-    if(!_isTerminate && !_isStoped) {
-        CVPixelBufferRef pixelBuffer = videoFrame.pixelBuffer;
-        if (_lastBuffer == nil) {
-            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-            CFRetain(pixelBuffer);
-        } else if (_lastBuffer != pixelBuffer) {
-            CVPixelBufferRelease(_lastBuffer);
-            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-            CFRetain(pixelBuffer);
-        }
-
-        CVPixelBufferRef newBuffer = pixelBuffer;
-        CVPixelBufferRef old = _latestPixelBuffer;
-        while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, newBuffer, memory_order_release, memory_order_relaxed)) {
-            if (_isTerminate) {
-                break;
-            }
-            old = _latestPixelBuffer;
-        }
-        if (old && old != pixelBuffer) {
-            CFRelease(old);
-        }
-        if (_textureId >= 0 && _textureRegistry) {
-            [_textureRegistry textureFrameAvailable:_textureId];
-        }
-        if (self.isStartEnterPipMode) {
-            CVPixelBufferRef pipPixelBuffer = _latestPixelBuffer;
-            [[FTXPipController shareInstance] displayPixelBuffer:pipPixelBuffer];
-        }
-    }
 }
 
 /**

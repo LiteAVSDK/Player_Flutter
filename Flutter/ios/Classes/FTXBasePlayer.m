@@ -18,6 +18,9 @@ static atomic_int atomicId = 0;
     return self;
 }
 
+- (void)setRenderView:(UIView *)renderView {
+}
+
 - (void)destory
 {
     

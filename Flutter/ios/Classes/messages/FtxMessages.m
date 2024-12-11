@@ -1384,10 +1384,12 @@ void SetUpTXFlutterSuperPlayerPluginAPIWithSuffix(id<FlutterBinaryMessenger> bin
         binaryMessenger:binaryMessenger
         codec:nullGetFtxMessagesCodec()];
     if (api) {
-      NSCAssert([api respondsToSelector:@selector(createVodPlayerWithError:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(createVodPlayerWithError:)", api);
+      NSCAssert([api respondsToSelector:@selector(createVodPlayerOnlyAudio:error:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(createVodPlayerOnlyAudio:error:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        BOOL arg_onlyAudio = [GetNullableObjectAtIndex(args, 0) boolValue];
         FlutterError *error;
-        PlayerMsg *output = [api createVodPlayerWithError:&error];
+        PlayerMsg *output = [api createVodPlayerOnlyAudio:arg_onlyAudio error:&error];
         callback(wrapResult(output, error));
       }];
     } else {
@@ -1402,10 +1404,12 @@ void SetUpTXFlutterSuperPlayerPluginAPIWithSuffix(id<FlutterBinaryMessenger> bin
         binaryMessenger:binaryMessenger
         codec:nullGetFtxMessagesCodec()];
     if (api) {
-      NSCAssert([api respondsToSelector:@selector(createLivePlayerWithError:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(createLivePlayerWithError:)", api);
+      NSCAssert([api respondsToSelector:@selector(createLivePlayerOnlyAudio:error:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(createLivePlayerOnlyAudio:error:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        BOOL arg_onlyAudio = [GetNullableObjectAtIndex(args, 0) boolValue];
         FlutterError *error;
-        PlayerMsg *output = [api createLivePlayerWithError:&error];
+        PlayerMsg *output = [api createLivePlayerOnlyAudio:arg_onlyAudio error:&error];
         callback(wrapResult(output, error));
       }];
     } else {
@@ -2796,6 +2800,25 @@ void SetUpTXFlutterVodPlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMesse
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.setPlayerView", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setPlayerViewRenderViewId:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(setPlayerViewRenderViewId:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        NSInteger arg_renderViewId = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setPlayerViewRenderViewId:arg_renderViewId error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 void SetUpTXFlutterLivePlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterLivePlayerApi> *api) {
   SetUpTXFlutterLivePlayerApiWithSuffix(binaryMessenger, api, @"");
@@ -3232,6 +3255,25 @@ void SetUpTXFlutterLivePlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMess
         FlutterError *error;
         NSNumber *output = [api enablePictureInPictureMsg:arg_msg error:&error];
         callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.setPlayerView", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setPlayerViewRenderViewId:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(setPlayerViewRenderViewId:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        NSInteger arg_renderViewId = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setPlayerViewRenderViewId:arg_renderViewId error:&error];
+        callback(wrapResult(nil, error));
       }];
     } else {
       [channel setMessageHandler:nil];
