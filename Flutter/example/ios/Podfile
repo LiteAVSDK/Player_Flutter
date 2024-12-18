@@ -31,7 +31,7 @@ target 'Runner' do
   #  在此处可以更换需要的SDK版本，替换为专业版为 TXLiteAVSDK_Professional
   #  其中可在依赖后边指定需要的版本，例如 TXLiteAVSDK_Player','9.5.29016'，如果不写，则会使用最新版本
   # pod 'TXLiteAVSDK_Player'
-  pod 'TXLiteAVSDK_Player_Premium', :podspec => 'https://mediacloud-76607.gzc.vod.tencent-cloud.com/TXCTbPlayer/TXCTbPlayerSDK/Customer/starmaker/12.2.29005/TXLiteAVSDK_Player_Premium.podspec'
+  pod 'TXLiteAVSDK_Player_Premium', :podspec => 'https://mediacloud-76607.gzc.vod.tencent-cloud.com/TXCTbPlayer/TXCTbPlayerSDK/Customer/starmaker/12.2.29008/TXLiteAVSDK_Player_Premium.podspec'
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
