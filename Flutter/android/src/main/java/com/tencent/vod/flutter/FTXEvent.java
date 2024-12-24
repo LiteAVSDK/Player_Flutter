@@ -133,6 +133,7 @@ public class FTXEvent {
     // 画中画界面恢复，即点击放大按钮
     public static final int EVENT_PIP_MODE_RESTORE_UI = 5;
 
+    public static final String PIP_ACTION_DO_EXIT = "com.tencent.flutter.doExitPip";
     // Start PIP.
     // 启动画中画
     public static final String PIP_ACTION_START = "com.tencent.flutter.startPip";

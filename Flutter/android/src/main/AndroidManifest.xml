@@ -20,6 +20,7 @@
                 <action android:name="com.tencent.flutter.startPip"/>
                 <action android:name="com.tencent.flutter.exitPip"/>
                 <action android:name="com.tencent.flutter.updatePip"/>
+                <action android:name="com.tencent.flutter.doExitPip"/>
             </intent-filter>
         </activity>
         
