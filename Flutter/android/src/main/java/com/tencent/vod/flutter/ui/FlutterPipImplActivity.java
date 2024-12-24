@@ -340,6 +340,14 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                     PipParams pipParams = data.getParcelable(FTXEvent.EXTRA_NAME_PARAMS);
                     updatePip(pipParams);
                 }
+            } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_DO_EXIT)) {
+                overridePendingTransition(0, 0);
+                if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                    FlutterPipImplActivity.this.finishAndRemoveTask();
+                } else {
+                    FlutterPipImplActivity.this.finish();
+                }
+                mIsPipFinishing = false;
             } else {
                 LiteavLog.e(TAG, "unknown pip action:" + action);
             }
@@ -355,17 +363,17 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
         }
     }
 
+
     /**
      * move task to from。Prevent the issue of picture-in-picture windows failing to launch the app in certain cases.
      */
     public void movePreActToFront() {
-        if (VERSION.SDK_INT == VERSION_CODES.Q) {
-            Activity activity = TXFlutterEngineHolder.getInstance().getPreActivity();
-            if (null != activity) {
-                Intent intent = new Intent(FlutterPipImplActivity.this, activity.getClass());
-                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
-            }
+        Activity activity = TXFlutterEngineHolder.getInstance().getPreActivity();
+        if (null != activity) {
+            Intent intent = new Intent(FlutterPipImplActivity.this, activity.getClass());
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
         }
     }
 
@@ -373,15 +381,16 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
      * move task to from。Prevent the issue of picture-in-picture windows failing to launch the app in certain cases.
      */
     public void moveCurActToFront() {
-        mPipContainer.postDelayed(new Runnable() {
+        mPipContainer.post(new Runnable() {
             @Override
             public void run() {
                 Activity activity = FlutterPipImplActivity.this;
                 Intent intent = new Intent(FlutterPipImplActivity.this, activity.getClass());
                 intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                intent.setAction(FTXEvent.PIP_ACTION_DO_EXIT);
                 startActivity(intent);
             }
-        }, 2000);
+        });
     }
 
     /**
@@ -408,16 +417,23 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                 mMainHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        /*
+                        The PiP window can launch its own Activity. Therefore,
+                        we can initiate our own here. By executing the termination code during the launch,
+                         we can bring our own Activity back to the original AppTask and launch the original app.
+                         Subsequently, when we end the Picture-in-Picture page,
+                         it can display back to the original page.
+                         */
+                        moveCurActToFront();
                         overridePendingTransition(0, 0);
                         if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                            finishAndRemoveTask();
+                            FlutterPipImplActivity.this.finishAndRemoveTask();
                         } else {
-                            finish();
+                            FlutterPipImplActivity.this.finish();
                         }
                         mIsPipFinishing = false;
-                        movePreActToFront();
                     }
-                }, 600);
+                }, 800);
             } else {
                 overridePendingTransition(0, 0);
                 if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
