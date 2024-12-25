@@ -465,12 +465,12 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         LiteavLog.i(TAG, "onDetachedFromEngine");
         mFTXDownloadManager.destroy();
-        mFlutterPluginBinding = null;
         if (null != mOrientationManager) {
             mOrientationManager.disable();
         }
         if (null != mTxPipManager) {
             mTxPipManager.releaseActivityListener();
+            mTxPipManager.exitPip();
         }
         // Close the solution to the problem of the picture-in-picture click restore
         // failure on some versions of Android 12.
@@ -480,6 +480,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         unregisterReceiver();
         TXFlutterEngineHolder.getInstance().destroy(binding);
         TXLiveBase.setListener(null);
+        mFlutterPluginBinding = null;
     }
 
     @Override
