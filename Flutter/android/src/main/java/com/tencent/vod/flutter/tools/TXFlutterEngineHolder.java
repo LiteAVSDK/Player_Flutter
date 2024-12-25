@@ -36,7 +36,7 @@ public class TXFlutterEngineHolder {
 
     public void attachBindLife(FlutterPlugin.FlutterPluginBinding binding) {
         if (mLifeCallback != null) {
-            LiteavLog.w(TAG, "TXFlutterEngineHolder is already attach");
+            LiteavLog.w(TAG, "TXFlutterEngineHolder is already attached");
             return;
         }
         if (null == binding) {
@@ -52,6 +52,7 @@ public class TXFlutterEngineHolder {
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
                 mFrontContextCount++;
+                LiteavLog.i(TAG, "activity is started:" + activity);
                 if (mIsEnterBack && mFrontContextCount > 0) {
                     mIsEnterBack = false;
                     notifyResume();
@@ -61,6 +62,7 @@ public class TXFlutterEngineHolder {
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
                 synchronized (mActivityList) {
+                    LiteavLog.i(TAG, "activity is resumed:" + activity);
                     int index = findIndexByAct(activity);
                     if (index >= 0) {
                         // refresh index
@@ -78,6 +80,7 @@ public class TXFlutterEngineHolder {
             @Override
             public void onActivityStopped(@NonNull Activity activity) {
                 mFrontContextCount--;
+                LiteavLog.i(TAG, "activity is stopped:" + activity);
                 if (!mIsEnterBack && mFrontContextCount <= 0) {
                     mIsEnterBack = true;
                     notifyEnterBack();
@@ -92,6 +95,7 @@ public class TXFlutterEngineHolder {
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
                 synchronized (mActivityList) {
+                    LiteavLog.i(TAG, "activity is destroyed:" + activity);
                     int index = findIndexByAct(activity);
                     if (index >= 0) {
                         mActivityList.remove(index);
@@ -146,6 +150,7 @@ public class TXFlutterEngineHolder {
     }
 
     public void destroy(FlutterPlugin.FlutterPluginBinding binding) {
+        LiteavLog.i(TAG, "called engine holder destroy");
         if (null == mLifeCallback) {
             return;
         }
@@ -153,6 +158,7 @@ public class TXFlutterEngineHolder {
             return;
         }
         ((Application)binding.getApplicationContext()).unregisterActivityLifecycleCallbacks(mLifeCallback);
+        mLifeCallback = null;
     }
 
     public void addAppLifeListener(TXAppStatusListener listener) {
