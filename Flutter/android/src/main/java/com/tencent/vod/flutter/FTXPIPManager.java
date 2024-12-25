@@ -145,27 +145,32 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
     public int isSupportDevice() {
         int pipResult = FTXEvent.NO_ERROR;
         Activity activity = TXFlutterEngineHolder.getInstance().getCurActivity();
-        if (!activity.isDestroyed()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // check permission
-                boolean isSuccess =
-                        activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
-                if (!isSuccess) {
-                    pipResult = FTXEvent.ERROR_PIP_FEATURE_NOT_SUPPORT;
-                    LiteavLog.e(TAG, "enterPip failed,because PIP feature is disabled");
-                } else if (!hasPipPermission(activity)) {
-                    pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
-                    LiteavLog.e(TAG, "enterPip failed,because PIP has no permission");
+        if (null != activity) {
+            if (!activity.isDestroyed()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // check permission
+                    boolean isSuccess =
+                            activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
+                    if (!isSuccess) {
+                        pipResult = FTXEvent.ERROR_PIP_FEATURE_NOT_SUPPORT;
+                        LiteavLog.e(TAG, "enterPip failed,because PIP feature is disabled");
+                    } else if (!hasPipPermission(activity)) {
+                        pipResult = FTXEvent.ERROR_PIP_DENIED_PERMISSION;
+                        LiteavLog.e(TAG, "enterPip failed,because PIP has no permission");
+                    }
+                } else {
+                    pipResult = FTXEvent.ERROR_PIP_LOWER_VERSION;
+                    LiteavLog.e(TAG, "enterPip failed,because android version is too low,"
+                            + "Minimum supported version is android 24,but current is "
+                            + Build.VERSION.SDK_INT);
                 }
             } else {
-                pipResult = FTXEvent.ERROR_PIP_LOWER_VERSION;
-                LiteavLog.e(TAG, "enterPip failed,because android version is too low,"
-                        + "Minimum supported version is android 24,but current is "
-                        + Build.VERSION.SDK_INT);
+                pipResult = FTXEvent.ERROR_PIP_ACTIVITY_DESTROYED;
+                LiteavLog.e(TAG, "enterPip failed,because activity is destroyed");
             }
         } else {
             pipResult = FTXEvent.ERROR_PIP_ACTIVITY_DESTROYED;
-            LiteavLog.e(TAG, "enterPip failed,because activity is destroyed");
+            LiteavLog.e(TAG, "current activity is null, please check cur act status!");
         }
         return pipResult;
     }
