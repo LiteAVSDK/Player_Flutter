@@ -114,5 +114,17 @@ static FTXPipController *_shareInstance = nil;
     }
 }
 
+- (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    @synchronized (self.controlLock) {
+        if (!pixelBuffer || pixelBuffer == NULL) {
+            NSLog(@"Invalid CVPixelBufferRef");
+            return;
+        }
+        if (nil != self.pipImpl) {
+            [self.pipImpl displayPixelBuffer:pixelBuffer];
+        }
+    }
+}
+
 @end
 

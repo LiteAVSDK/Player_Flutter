@@ -6,6 +6,7 @@
 #import <Flutter/Flutter.h>
 #import "FTXLiteAVSDKHeader.h"
 #import "FTXBasePlayer.h"
+#import "FTXTextureView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,6 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
                     messenger:(id<FlutterBinaryMessenger>)binaryMessenger;
 
 - (void)setPlayer:(nullable FTXBasePlayer*)player;
+
+- (nonnull FTXTextureView*)getRenderView;
 
 @end
 

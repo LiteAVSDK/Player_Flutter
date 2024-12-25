@@ -1,8 +1,9 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
-package com.tencent.vod.flutter;
+package com.tencent.vod.flutter.player;
 
-import com.tencent.rtmp.ui.TXCloudVideoView;
+import com.tencent.liteav.base.util.LiteavLog;
+import com.tencent.vod.flutter.ui.render.FTXRenderView;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,8 +21,6 @@ public abstract class FTXBasePlayer {
     public FTXBasePlayer() {
         mPlayerId = mAtomicId.incrementAndGet();
     }
-
-    public abstract void setRenderView(TXCloudVideoView cloudVideoView);
 
     public void destroy() {
 

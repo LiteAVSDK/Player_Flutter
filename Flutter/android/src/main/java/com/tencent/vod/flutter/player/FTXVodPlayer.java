@@ -1,12 +1,13 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
-package com.tencent.vod.flutter;
+package com.tencent.vod.flutter.player;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 
@@ -23,6 +24,9 @@ import com.tencent.rtmp.TXVodDef;
 import com.tencent.rtmp.TXVodPlayConfig;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.rtmp.ui.TXCloudVideoView;
+import com.tencent.vod.flutter.FTXEvent;
+import com.tencent.vod.flutter.FTXPIPManager;
+import com.tencent.vod.flutter.FTXTransformation;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
@@ -40,6 +44,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXPlayInfoParamsPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
+import com.tencent.vod.flutter.player.render.FTXVodPlayerRenderHost;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.render.FTXRenderView;
@@ -59,7 +64,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 /**
  * vodPlayer plugin processor
  */
-public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
+public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayListener,
         FtxMessages.TXFlutterVodPlayerApi, FtxMessages.VoidResult {
 
     private static final String TAG = "FTXVodPlayer";
@@ -76,7 +81,6 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
     private boolean mNeedPipResume = false;
     private final FtxMessages.TXVodPlayerFlutterAPI mVodFlutterApi;
     private final FTXRenderViewFactory mRenderViewFactory;
-    private FTXRenderView mCurRenderView;
     private final Handler mUIHandler = new Handler(Looper.getMainLooper());
     private final FTXPIPManager.PipCallback mPipCallback = new FTXPIPManager.PipCallback() {
         @Override
@@ -190,7 +194,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
                 public void run() {
                     mVodFlutterApi.onPlayerEvent(TXCommonUtil.getParams(event, bundle), FTXVodPlayer.this);
                 }
-            }, 60);
+            }, 50);
         } else {
             mUIHandler.post(new Runnable() {
                 @Override
@@ -236,6 +240,7 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
         if (mVodPlayer == null) {
             mVodPlayer = new TXVodPlayer(mFlutterPluginBinding.getApplicationContext());
             mVodPlayer.setVodListener(this);
+            mVodPlayer.setRenderMode(TXLiveConstants.RENDER_MODE_ADJUST_RESOLUTION);
             // prevent config null exception
             TXVodPlayConfig playConfig = new TXVodPlayConfig();
             Map<String, Object> map = new HashMap<>();
@@ -288,14 +293,18 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
+        int result = Uninitialized;
+        if (mVodPlayer != null) {
+            result = mVodPlayer.stopPlay(isNeedClearLastImg);
+        }
         mUIHandler.removeCallbacksAndMessages(null);
         mPipManager.exitPip();
         releaseTXImageSprite();
         mHardwareDecodeFail = false;
-        if (mVodPlayer != null) {
-            return mVodPlayer.stopPlay(isNeedClearLastImg);
+        if (isNeedClearLastImg && null != mCurRenderView) {
+            mCurRenderView.getRenderView().clearLastImg();
         }
-        return Uninitialized;
+        return result;
     }
 
     boolean isPlayerPlaying() {
@@ -830,21 +839,11 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
     public void setPlayerView(@NonNull Long renderViewId) {
         int viewId = renderViewId.intValue();
         FTXRenderView renderView = mRenderViewFactory.findViewById(viewId);
-        if (null != renderView) {
-            mCurRenderView = renderView;
-            renderView.setPlayer(this);
-        } else {
-            LiteavLog.e(TAG, "setPlayerView can not find renderView by id:" + viewId + ", release player's renderView");
-            mCurRenderView = null;
-            setRenderView(null);
+        if (null == renderView) {
+            LiteavLog.e(TAG, "setPlayerView can not find renderView by id:"
+                    + viewId + ", release player's renderView");
         }
-    }
-
-    @Override
-    public void setRenderView(TXCloudVideoView cloudVideoView) {
-        if (null != mVodPlayer) {
-            mVodPlayer.setPlayerView(cloudVideoView);
-        }
+        setUpPlayerView(renderView);
     }
 
     @Override
@@ -855,5 +854,10 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
     @Override
     public void error(@NonNull Throwable error) {
         LiteavLog.e(TAG, "callback message error:" + error);
+    }
+
+    @Override
+    protected TXVodPlayer getVodPlayer() {
+        return mVodPlayer;
     }
 }

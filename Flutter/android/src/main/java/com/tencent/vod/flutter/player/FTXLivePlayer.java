@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
-package com.tencent.vod.flutter;
+package com.tencent.vod.flutter.player;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -18,7 +18,8 @@ import com.tencent.live2.impl.V2TXLiveProperty;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
-import com.tencent.rtmp.ui.TXCloudVideoView;
+import com.tencent.vod.flutter.FTXEvent;
+import com.tencent.vod.flutter.FTXPIPManager;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
@@ -31,6 +32,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
+import com.tencent.vod.flutter.player.render.FTXLivePlayerRenderHost;
 import com.tencent.vod.flutter.tools.FTXV2LiveTools;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
@@ -48,7 +50,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 /**
  * live player processor
  */
-public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerApi, FtxMessages.VoidResult {
+public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterLivePlayerApi, FtxMessages.VoidResult {
 
     private static final String TAG = "FTXLivePlayer";
     private final FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
@@ -146,6 +148,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         if (mLivePlayer == null) {
             mLivePlayer = new V2TXLivePlayerImpl(mFlutterPluginBinding.getApplicationContext());
             mLivePlayer.setObserver(mObserver);
+            mLivePlayer.setRenderFillMode(V2TXLiveDef.V2TXLiveFillMode.V2TXLiveFillModeScaleFill);
             if (!onlyAudio) {
                 if (null != mCurRenderView) {
                     mCurRenderView.setPlayer(this);
@@ -171,13 +174,17 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
-        mUIHandler.removeCallbacksAndMessages(null);
+        int result = Uninitialized;
         if (mLivePlayer != null) {
             mLastPlayEvent = -1;
             mIsPaused = false;
-            return mLivePlayer.stopPlay();
+            result =  mLivePlayer.stopPlay();
         }
-        return Uninitialized;
+        mUIHandler.removeCallbacksAndMessages(null);
+        if (isNeedClearLastImg && null != mCurRenderView) {
+            mCurRenderView.getRenderView().clearLastImg();
+        }
+        return result;
     }
 
     boolean isPlayerPlaying() {
@@ -455,13 +462,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         }
     }
 
-    @Override
-    public void setRenderView(TXCloudVideoView cloudVideoView) {
-        if (null != mLivePlayer) {
-            mLivePlayer.setRenderView(cloudVideoView);
-        }
-    }
-
     private void notifyPlayerEvent(int evtId, Bundle bundle) {
         mUIHandler.post(new Runnable() {
             @Override
@@ -482,6 +482,11 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     @Override
     public void error(@NonNull Throwable error) {
         LiteavLog.e(TAG, "callback message error:" + error);
+    }
+
+    @Override
+    protected V2TXLivePlayer getLivePlayer() {
+        return mLivePlayer;
     }
 
     private static class FTXV2LiveObserver extends V2TXLivePlayerObserver implements FtxMessages.VoidResult {

@@ -19,11 +19,11 @@
 @property (nonatomic, strong)UIView* backgroundPlayerView;
 /// 传入的videoView在移动view(coverVideoViewToPIPView)之前的父view
 @property (nonatomic, weak)UIView* superViewOfVideoView;
-@property (nonatomic, strong)UIView* videoView;
 @property (nonatomic, strong) NSArray *tempConstraintArray;
 @property (nonatomic, strong) FTXBackPlayer* backPlayer;
 @property (nonatomic, strong) UIView* orgVideoView;
 @property (nonatomic, strong) V2TXLivePlayer* livePlayer;
+@property (nonatomic, strong) FTXPipRenderView* videoView;
 
 @end
 
@@ -73,6 +73,10 @@ static NSString* kPipTag = @"FTXPipCaller";
     return NO_ERROR;
 }
 
+- (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    [self.videoView displayPixelBuffer:pixelBuffer];
+}
+
 - (void)exitPip {
     if (![TXPipAuth cpa]) {
         FTXLOGE(@"%@ pip auth is deined when closed", kPipTag);
@@ -119,7 +123,7 @@ static NSString* kPipTag = @"FTXPipCaller";
         FTXLOGI(@"%@ pictureInPictureControllerWillStartPictureInPicture", kPipTag);
         [self changeStatus:TX_VOD_PLAYER_PIP_STATE_WILL_START];
         UIView* pipView = self.pipView;
-        UIView* videoView = self.videoView;
+        FTXPipRenderView* videoView = self.videoView;
         if (!pipView) {
             FTXLOGE(@"[%@] coverVideoViewToPIPView, pipView is nil, videoView is: %p", kPipTag, videoView);
             return;
@@ -324,10 +328,10 @@ static NSString* kPipTag = @"FTXPipCaller";
             }
             self.orgVideoView = renderView;
             if (nil != self.orgVideoView) {
-                self.videoView = [[UIView alloc] initWithFrame:self.orgVideoView.frame];
+                self.videoView = [[FTXPipRenderView alloc] initWithFrame:self.orgVideoView.frame];
             } else {
                 CGRect rect = CGRectMake(0, 0, size.width, size.height);
-                self.videoView = [[UIView alloc] initWithFrame:rect];
+                self.videoView = [[FTXPipRenderView alloc] initWithFrame:rect];
             }
             [self.livePlayer setRenderView:self.videoView];
             self.backgroundPlayerView = [[UIView alloc] initWithFrame:CGRectZero];

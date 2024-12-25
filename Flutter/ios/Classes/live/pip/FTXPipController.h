@@ -23,6 +23,8 @@
 
 - (void)exitPip;
 
+- (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer;
+
 @end
 
 #endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_LIVE_PIP_FTXPIPCONTROLLER_H_

@@ -700,8 +700,8 @@ class SuperPlayerController {
     _vodNetEventListener?.cancel();
     _livePlayEventListener?.cancel();
     _liveNetEventListener?.cancel();
-    await _vodPlayerController.stop();
-    await _livePlayerController.stop();
+    await _vodPlayerController.stop(isNeedClear: true);
+    await _livePlayerController.stop(isNeedClear: true);
     await setMute(false);
 
     _updatePlayerState(SuperPlayerState.INIT);

@@ -243,7 +243,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _videoBottomKey.currentState?.setKeyFrame(list);
     }, () {
       // onResolutionChanged
-      // _calculateSize(_playController.videoWidth, _playController.videoHeight);
+      _calculateSize(_playController.videoWidth, _playController.videoHeight);
     }, () {
       // onSysBackPress
       _onControlFullScreen();
@@ -350,7 +350,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _updateState() {
     // Refresh the binding of the observer.
     _registerObserver();
-    // _calculateSize(_playController.videoWidth, _playController.videoHeight);
+    _calculateSize(_playController.videoWidth, _playController.videoHeight);
   }
 
   void _refreshDownloadStatus() async {

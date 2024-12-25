@@ -6,11 +6,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.tencent.liteav.txcvodplayer.renderer.TextureRenderView;
-import com.tencent.rtmp.ui.TXCloudVideoView;
-import com.tencent.vod.flutter.FTXBasePlayer;
-import com.tencent.vod.flutter.FTXLivePlayer;
-import com.tencent.vod.flutter.FTXVodPlayer;
+import com.tencent.vod.flutter.player.render.FTXPlayerRenderHost;
 
 import java.util.Map;
 
@@ -19,39 +15,37 @@ import io.flutter.plugin.platform.PlatformView;
 
 public class FTXRenderView implements PlatformView {
 
-    private final TXCloudVideoView mVideoView;
-    private FTXBasePlayer mBasePlayer;
+    private final FTXTextureView mTextureView;
+    private FTXPlayerRenderHost mBasePlayer;
 
     public FTXRenderView(@NonNull Context context, int id, @Nullable Map<String, Object> creationParams
             , BinaryMessenger messenger) {
-        mVideoView = new TXCloudVideoView(context);
+        mTextureView = new FTXTextureView(context);
     }
 
-    public TXCloudVideoView getRenderView() {
-        return mVideoView;
+    public FTXTextureView getRenderView() {
+        return mTextureView;
     }
 
-    public void setPlayer(FTXBasePlayer player) {
+    public void setPlayer(FTXPlayerRenderHost player) {
         if (mBasePlayer != player) {
             if (null != mBasePlayer) {
                 mBasePlayer.setRenderView(null);
+                mTextureView.clearLastImg();
             }
-            if (mBasePlayer instanceof FTXVodPlayer && player instanceof FTXLivePlayer) {
-                mVideoView.setVisibility(View.VISIBLE);
-            }
-            mVideoView.removeVideoView();
             mBasePlayer = player;
-            player.setRenderView(mVideoView);
+            mTextureView.setVisibility(View.VISIBLE);
+            player.setRenderView(mTextureView);
         } else {
-            mVideoView.setVisibility(View.VISIBLE);
-            player.setRenderView(mVideoView);
+            mTextureView.setVisibility(View.VISIBLE);
+            player.setRenderView(mTextureView);
         }
     }
 
     @Nullable
     @Override
     public View getView() {
-        return mVideoView;
+        return mTextureView;
     }
 
     @Override
