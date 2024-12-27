@@ -136,6 +136,14 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..psign = params.psign);
   }
 
+  Future<void> startPlayDrm(TXPlayerDrmBuilder drmBuilder) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    _changeState(TXPlayerState.buffering);
+    printVersionInfo();
+    await _vodPlayerApi.startPlayDrm(drmBuilder.toMsg());
+  }
+
   /// The shared texture ID is a unique integer value that is used to identify a texture,
   /// and it is passed back after the texture is prepared in the native layer.
   /// By listening to this value, the shared texture can be set where needed.
