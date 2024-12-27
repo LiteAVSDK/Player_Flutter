@@ -262,3 +262,16 @@ Professional 分支：Android & iOS 端集成TXLiteAVSDK_Professional lastest版
 - Supports encrypted playback of MP4
 - Added support for HEVC playback downgrade
 - Fix other known issues.
+
+#### Version: 12.2.1 2024.12.27
+
+##### Features：
+
+- set Android TXLiteAVSDK_Professional to 12.2.0.15072，tag：release_pro_v12.2.1
+- set iOS TXLiteAVSDK_Professional to 12.2.16956， tag：release_pro_v12.2.1
+- Fix the issue that picture-in-picture cannot be launched on some Android systems.
+- Fix the issue of abnormal use after cold startup on some Android systems.
+- Fix the issue that there is no subtitle callback without setting config on iOS.
+- Fix the issue that there is no callback in some cases of downloading and pre-downloading.
+- Add DRM playback API.
+- Fix other known issues.
