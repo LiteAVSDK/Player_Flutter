@@ -152,7 +152,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
         mVideoSurface.setSurfaceTextureListener(this);
         if (null == pipPlayerHolder) {
             LiteavLog.e(TAG, "lack pipPlayerHolder, please check the pip argument");
-            finish();
+            destroyPipAct();
             return;
         }
         mPlayerHolder = pipPlayerHolder;
@@ -162,7 +162,8 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
             setLivePlayerListener();
         } else {
             LiteavLog.e(TAG, "lack pipPlayerHolder player, please check the pip argument");
-            finish();
+            destroyPipAct();
+            return;
         }
         Intent intent = getIntent();
         Bundle data = intent.getBundleExtra("data");
@@ -170,7 +171,7 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
             PipParams params = data.getParcelable(FTXEvent.EXTRA_NAME_PARAMS);
             if (null == params) {
                 LiteavLog.e(TAG, "lack pip params,please check the argument");
-                finish();
+                destroyPipAct();
             } else {
                 mCurrentParams = params;
                 if (VERSION.SDK_INT >= VERSION_CODES.O) {
@@ -310,9 +311,11 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
         }
         if (null != mPlayerHolder.getVodPlayer()) {
             mPlayerHolder.getVodPlayer().setSurface(null);
+            mPlayerHolder.getVodPlayer().setVodListener(null);
         }
         if (null != mPlayerHolder.getLivePlayer()) {
             mPlayerHolder.getLivePlayer().setRenderView((TextureView) null);
+            mPlayerHolder.getLivePlayer().setObserver(null);
         }
         mPlayerHolder.pause();
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
@@ -341,17 +344,23 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                     updatePip(pipParams);
                 }
             } else if (TextUtils.equals(action, FTXEvent.PIP_ACTION_DO_EXIT)) {
-                overridePendingTransition(0, 0);
-                if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                    FlutterPipImplActivity.this.finishAndRemoveTask();
-                } else {
-                    FlutterPipImplActivity.this.finish();
-                }
-                mIsPipFinishing = false;
+                destroyPipAct();
             } else {
                 LiteavLog.e(TAG, "unknown pip action:" + action);
             }
         }
+    }
+
+    private void destroyPipAct() {
+        overridePendingTransition(0, 0);
+        if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+            FlutterPipImplActivity.this.finishAndRemoveTask();
+        } else {
+            FlutterPipImplActivity.this.finish();
+        }
+        mIsPipFinishing = false;
+        pipPlayerHolder = null;
+        isInPip = false;
     }
 
     private void updatePip(PipParams pipParams) {
@@ -425,23 +434,11 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
                          it can display back to the original page.
                          */
                         moveCurActToFront();
-                        overridePendingTransition(0, 0);
-                        if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                            FlutterPipImplActivity.this.finishAndRemoveTask();
-                        } else {
-                            FlutterPipImplActivity.this.finish();
-                        }
-                        mIsPipFinishing = false;
+                        destroyPipAct();
                     }
                 }, 800);
             } else {
-                overridePendingTransition(0, 0);
-                if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                    finishAndRemoveTask();
-                } else {
-                    finish();
-                }
-                mIsPipFinishing = false;
+                destroyPipAct();
             }
         }
     }
