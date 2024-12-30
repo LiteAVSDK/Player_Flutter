@@ -100,3 +100,9 @@ Player_Premium 分支：Android & iOS 端集成TXLiteAVSDK_Player_Premium lastes
 - Fix the issue that there is no callback in some cases of downloading and pre-downloading.
 - Add DRM playback API.
 - Fix other known issues.
+
+#### Version: 12.2.2 2024.12.30
+
+##### Features：
+
+- Fix the issue where Android crashes when restoring from PIP.
