@@ -833,8 +833,16 @@ public class FTXVodPlayer extends FTXBasePlayer implements ITXVodPlayListener,
         if (null != mVodPlayer) {
             List<Object> values = playerMsg.getValue();
             if (null != values && !values.isEmpty()) {
+                String key = playerMsg.getKey();
                 Object value = values.get(0);
-                mVodPlayer.setStringOption(playerMsg.getKey(), value);
+                // HEVC 降级播放参数进行特殊判断，保证 flutter 层接口一致
+                if (TextUtils.equals("VOD_KEY_BACKUP_URL", key)) {
+                    mVodPlayer.setStringOption(TXVodConstants.VOD_KEY_BACKUP_URL, value);
+                } else if (TextUtils.equals("VOD_KEY_VIDEO_CODEC_TYPE", key)) {
+                    mVodPlayer.setStringOption(TXVodConstants.VOD_KEY_MIMETYPE, value);
+                } else {
+                    mVodPlayer.setStringOption(key, value);
+                }
             }
         }
     }
