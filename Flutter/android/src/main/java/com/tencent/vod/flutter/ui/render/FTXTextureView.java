@@ -32,6 +32,7 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     }
 
     public void clearLastImg() {
+        LiteavLog.i(TAG, "start clearLastImg, view:" + hashCode());
         ViewParent viewParent = getParent();
         if (null != viewParent) {
             // remove view for targeting surface recycle
@@ -39,12 +40,15 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
             int viewIndex = viewGroup.indexOfChild(this);
             viewGroup.removeView(this);
             viewGroup.addView(this, viewIndex);
+        } else {
+            LiteavLog.i(TAG, "clearLastImg failed, parent is null, view:" + hashCode());
         }
     }
 
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
         mPlayer = surfaceHost;
         if (null != mSurface && null != surfaceHost) {
+            LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:" + hashCode());
             surfaceHost.setSurface(mSurface);
         }
     }

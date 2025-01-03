@@ -182,6 +182,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         }
         mUIHandler.removeCallbacksAndMessages(null);
         if (isNeedClearLastImg && null != mCurRenderView) {
+            LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
             mCurRenderView.getRenderView().clearLastImg();
         }
         return result;

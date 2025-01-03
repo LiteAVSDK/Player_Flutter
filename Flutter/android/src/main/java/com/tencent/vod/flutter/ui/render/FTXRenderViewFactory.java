@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.tencent.liteav.base.util.LiteavLog;
+
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,8 @@ import io.flutter.plugin.platform.PlatformView;
 import io.flutter.plugin.platform.PlatformViewFactory;
 
 public class FTXRenderViewFactory extends PlatformViewFactory {
+
+    private static final String TAG = "FTXRenderViewFactory";
 
     private final Map<Integer, WeakReference<FTXRenderView>> mRenderViewCache = new HashMap<>();
     private final BinaryMessenger mBinaryMessenger;
@@ -30,6 +34,7 @@ public class FTXRenderViewFactory extends PlatformViewFactory {
         final Map<String, Object> creationParams = (Map<String, Object>) args;
         FTXRenderView renderView = new FTXRenderView(context, viewId, creationParams, mBinaryMessenger);
         mRenderViewCache.put(viewId, new WeakReference<>(renderView));
+        LiteavLog.i(TAG, "create renderView: " + viewId);
         return renderView;
     }
 
