@@ -15,6 +15,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import "FTXPipController.h"
 #import "FTXImgTools.h"
+#import "FTXTextureView.h"
 
 static const int uninitialized = -1;
 
@@ -68,6 +69,7 @@ static const int uninitialized = -1;
     FTXLOGV(@"livePlayer start called destory");
     [self stopPlay];
     if (nil != self.livePlayer) {
+        [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
         [self setRenderView:nil];
         [self.livePlayer setObserver:nil];
     }
@@ -92,6 +94,7 @@ static const int uninitialized = -1;
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"livePlayer notifyPlayerTerminate");
     if (nil != self.livePlayer) {
+        [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
         [self setRenderView:nil];
         [self.livePlayer setObserver:nil];
     }
@@ -105,6 +108,7 @@ static const int uninitialized = -1;
 {
     if (!onlyAudio) {
         if (nil != self.livePlayer) {
+            [self.livePlayer enableObserveVideoFrame:YES pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
             [self.livePlayer setProperty:@"enableBackgroundDecoding" value:@(YES)];
             if (nil != self.curRenderView) {
                 [self.curRenderView setPlayer:self];
@@ -149,6 +153,7 @@ static const int uninitialized = -1;
     if (nil == self.livePlayer) {
         self.livePlayer = [V2TXLivePlayer new];
         [self.livePlayer setObserver:self];
+        [self.livePlayer setRenderFillMode:V2TXLiveFillModeScaleFill];
         [self setupPlayerWithBool:onlyAudio];
     }
     return NO_ERROR;
@@ -453,7 +458,13 @@ static const int uninitialized = -1;
 }
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    return [TXCommonUtil boolMsgWith:[self stopPlay]];
+    BOOL r = [self stopPlay];
+    if ([isNeedClear.value boolValue] == YES) {
+        if (self.renderControl != nil) {
+            [self.renderControl clearLastImg];
+        }
+    }
+    return [TXCommonUtil boolMsgWith:r];
 }
 
 - (nullable IntMsg *)switchStreamUrl:(nonnull StringPlayerMsg *)url error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
@@ -525,9 +536,13 @@ static const int uninitialized = -1;
     }
 }
 
-- (void)setRenderView:(UIView *)renderView {
+- (void)setRenderView:(FTXTextureView *)renderView {
     if (nil != self.livePlayer) {
-        [self.livePlayer setRenderView:renderView];
+        if (nil != renderView) {
+            [renderView bindPlayer:self];
+        } else {
+            self.renderControl = nil;
+        }
     }
 }
 
@@ -712,6 +727,13 @@ static const int uninitialized = -1;
  * @note  需要您调用 {@link enableObserveVideoFrame} 开启回调开关。
  */
 - (void)onRenderVideoFrame:(id<V2TXLivePlayer>)player frame:(V2TXLiveVideoFrame *)videoFrame {
+    if (nil != self.renderControl) {
+        [self.renderControl onRenderFrame:videoFrame.pixelBuffer];
+    }
+
+    if (self.isStartEnterPipMode) {
+        [[FTXPipController shareInstance] displayPixelBuffer:videoFrame.pixelBuffer];
+    }
 }
 
 /**

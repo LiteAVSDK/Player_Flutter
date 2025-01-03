@@ -14,16 +14,15 @@ static atomic_int atomicId = 0;
         int pid = atomic_fetch_add(&atomicId, 1);
         _playerId = @(pid);
     }
-    
+
     return self;
 }
 
-- (void)setRenderView:(UIView *)renderView {
+- (void)setRenderView:(FTXTextureView *)renderView {
 }
 
 - (void)destory
 {
-    
-}
 
+}
 @end

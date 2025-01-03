@@ -13,11 +13,11 @@
 #import "FTXLog.h"
 #import <stdatomic.h>
 #import "FTXImgTools.h"
+#import "FTXTextureView.h"
 
 static const int uninitialized = -1;
-static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
-@interface FTXVodPlayer ()<TXVodPlayListener, TXFlutterVodPlayerApi>
+@interface FTXVodPlayer ()<TXVodPlayListener, TXFlutterVodPlayerApi, TXVideoCustomProcessDelegate>
 
 @property (nonatomic, assign) BOOL hasEnteredPipMode;
 @property (nonatomic, assign) BOOL restoreUI;
@@ -26,6 +26,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 @property (nonatomic, strong) TXVodPlayerFlutterAPI* vodFlutterApi;
 @property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
 @property (nonatomic, strong) FTXRenderView *curRenderView;
+@property (nonatomic, strong) UIView *txPipView;
 
 @end
 /**
@@ -112,8 +113,11 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     [self stopPlay];
     if (nil != _txVodPlayer) {
         [self setRenderView:nil];
+        [_txVodPlayer removeVideoWidget];
         _txVodPlayer = nil;
     }
+
+    self.txPipView = nil;
     self.curRenderView = nil;
     
     _hasEnteredPipMode = NO;
@@ -125,6 +129,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 {
     if (!onlyAudio) {
         if (_txVodPlayer != nil) {
+            [_txVodPlayer setVideoProcessDelegate:self];
             if (nil != self.curRenderView) {
                 [self.curRenderView setPlayer:self];
             }
@@ -359,7 +364,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (void)onPlayEvent:(TXVodPlayer *)player event:(int)evtID withParam:(NSDictionary*)param
 {
     // Hand over the first frame event timing to Flutter for shared texture processing.
-    if (evtID == CODE_ON_RECEIVE_FIRST_FRAME) {
+    if (evtID == PLAY_EVT_RCV_FIRST_I_FRAME) {
         currentPlayTime = 0;
         NSMutableDictionary *mutableDic = param.mutableCopy;
         self->videoWidth = param[@"EVT_WIDTH"];
@@ -418,6 +423,22 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
             FTXLOGE(@"callback message error:%@", error);
         }
     }];
+}
+
+/**
+ * Video rendering object callback.
+ * @param pixelBuffer   Render image.
+ *                    渲染图像
+ * @return Return YES to prevent the SDK from displaying; return NO to continue rendering in the SDK rendering module.
+ *         返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
+ * Note: The data type of the rendered image is renderPixelFormatType set in the config.
+ * 说明：渲染图像的数据类型为config中设置的renderPixelFormatType
+ */
+- (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    if (nil != self.renderControl) {
+        [self.renderControl onRenderFrame:pixelBuffer];
+    }
+    return NO;
 }
 
 /**
@@ -483,7 +504,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         }
         [newExtInfoMap setObject:@(0) forKey:@"450"];
         [vodConfig setExtInfoMap:newExtInfoMap];
-        
         _txVodPlayer.config = vodConfig;
     }
 }
@@ -590,11 +610,23 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipRequestStart)]) {
         [self.delegate onPlayerPipRequestStart];
     }
+
+    UIViewController* flutterVC = [self getFlutterViewController];
+    [flutterVC.view addSubview:self.txPipView];
+    [_txVodPlayer setupVideoWidget:self.txPipView insertIndex:0];
     [_txVodPlayer enterPictureInPicture];
     
     return NO_ERROR;
 }
 
+- (UIView *)txPipView {
+    if (!_txPipView) {
+        // Set the size to 1 pixel to ensure proper display in PIP.
+        _txPipView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1, 1)];
+        _txPipView.hidden = YES;
+    }
+    return _txPipView;
+}
 
 - (UIViewController *)getFlutterViewController {
     UIWindow *window = nil;
@@ -649,7 +681,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
                 if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
                     [player exitPictureInPicture];
                 }
-                
+                [self->_txPipView removeFromSuperview];
+                self->_txPipView = nil;
+
                 if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
                     [self.delegate onPlayerPipStateDidStop];
                 }
@@ -870,6 +904,11 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     BOOL r = [self stopPlay];
+    if ([isNeedClear.value boolValue] == YES) {
+        if (self.renderControl != nil) {
+            [self.renderControl clearLastImg];
+        }
+    }
     return [TXCommonUtil boolMsgWith:r];
 }
 
@@ -989,13 +1028,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     }
 }
 
-- (void)setRenderView:(UIView *)renderView {
-    if (nil != _txVodPlayer) {
-        if (renderView != nil) {
-            [_txVodPlayer setupVideoWidget:renderView insertIndex:0];
-        }
+- (void)setRenderView:(FTXTextureView*)renderView {
+    if (renderView != nil) {
+        [renderView bindPlayer:self];
+    } else {
+        self.renderControl = nil;
     }
 }
-
 
 @end
