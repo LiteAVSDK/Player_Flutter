@@ -648,11 +648,13 @@ public class FlutterPipImplActivity extends Activity implements TextureView.Surf
     }
 
     private void sendPlayerEvent(int eventCode, Bundle data) {
-        Bundle params = new Bundle();
-        params.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
-        params.putInt(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_ID, eventCode);
-        params.putBundle(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_PARAMS, data);
-        TXSimpleEventBus.getInstance().post(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, params);
+        if (null != mCurrentParams) {
+            Bundle params = new Bundle();
+            params.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, mCurrentParams.getCurrentPlayerId());
+            params.putInt(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_ID, eventCode);
+            params.putBundle(FTXEvent.EXTRA_NAME_PIP_PLAYER_EVENT_PARAMS, data);
+            TXSimpleEventBus.getInstance().post(FTXEvent.EVENT_PIP_PLAYER_EVENT_ACTION, params);
+        }
     }
 
     @Override
