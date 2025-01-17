@@ -1,6 +1,6 @@
 ## 腾讯云播放器SDK Flutter插件
 
-简体中文| [English](./README-EN.md)
+简体中文| [English](https://www.tencentcloud.com/document/product/266/51192?lang=en&pg=)
 
 ## 阅读对象
 
@@ -30,7 +30,22 @@
     └── lib                        // 点播播放、直播播放、播放器组件使用例子
 ```
 
-## 分支说明
+## 播放器分支说明
+
+pub 依赖默认为 Professional 版本的播放器，**如果需要依赖其他版本**，可以直接依赖我们的开源 [Github 仓库](https://github.com/LiteAVSDK/Player_Flutter)。
+
+**依赖方式如下**
+
+```yaml
+super_player:
+  git:
+    url: https://github.com/LiteAVSDK/Player_Flutter
+    path: Flutter
+    ref: Player_Premium 
+# 可通过 ref 来指定需要的版本分支、提交和 release 版本
+```
+
+### 分支说明
 
 Flutter 播放器依赖 TXLiteAVSDK，此工程提供 3 个分支，请根据业务需要进行集成：
 
@@ -44,20 +59,20 @@ Flutter 播放器依赖 TXLiteAVSDK，此工程提供 3 个分支，请根据业
 
 腾讯云视立方·播放器 SDK 是音视频终端 SDK（腾讯云视立方）的子产品 SDK 之一，基于腾讯云强大的后台能力与 AI 技术，提供视频点播和直播播放能力的强大播放载体。结合腾讯云点播或云直播使用，可以快速体验流畅稳定的播放性能。充分覆盖多类应用场景，满足客户多样需求，让客户轻松聚焦于业务发展本身，畅享极速高清播放新体验。
 
-- [集成指引](./docs/集成指引.md)：腾讯云视立方 Flutter 播放器是基于点播和直播播放SDK的一个 Flutter 插件，同时支持 Android 和 iOS 两个平台。
+- [集成指引](https://cloud.tencent.com/document/product/881/81252)：腾讯云视立方 Flutter 播放器是基于点播和直播播放SDK的一个 Flutter 插件，同时支持 Android 和 iOS 两个平台。
 
 此项目提供了点播播放和直播播放，您可以基于播放器搭建自己的播放业务：
 
-- [点播播放](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%82%B9%E6%92%AD%E6%92%AD%E6%94%BE.md)：`TXVodPlayerController`对Android和iOS两个平台的点播播放器SDK进行接口封装， 你可以通过集成`TXVodPlayerController`进行点播播放业务开发。详细使用例子可以参考`DemoTXVodPlayer`。
-- [直播播放](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%9B%B4%E6%92%AD%E6%92%AD%E6%94%BE.md)：`TXLivePlayerController`对Android和iOS两个平台的直播播放器SDK进行接口封装， 你可以通过集成`TXLivePlayerController`进行直播播放业务开发。详细使用例子可以参考`DemoTXLivePlayer`。
-- [播放器API文档](./docs/API文档.md)：包含播放器配置、点播播放和直播播放等API使用说明。
+- [点播播放](https://cloud.tencent.com/document/product/881/81253)：`TXVodPlayerController`对Android和iOS两个平台的点播播放器SDK进行接口封装， 你可以通过集成`TXVodPlayerController`进行点播播放业务开发。详细使用例子可以参考`DemoTXVodPlayer`。
+- [直播播放](https://cloud.tencent.com/document/product/881/81254)：`TXLivePlayerController`对Android和iOS两个平台的直播播放器SDK进行接口封装， 你可以通过集成`TXLivePlayerController`进行直播播放业务开发。详细使用例子可以参考`DemoTXLivePlayer`。
+- [播放器API文档](https://cloud.tencent.com/document/product/881/81255)：包含播放器配置、点播播放和直播播放等API使用说明。
 
 为了减少接入成本， 在example里提供了播放器组件（带UI的播放器），基于播放器组件简单的几行代码就可以搭建视频播放业务。您可以根据自己项目的需求， 把播放组件的相关代码应用到项目中去，根据需求进行调整UI和交互细节。
 
-- [播放器组件](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E6%92%AD%E6%94%BE%E5%99%A8%E7%BB%84%E4%BB%B6.md)：`SuperPlayerController` 播放器组件，对点播和直播进行了二次封装，可以方便你快速简单集成。目前是Beta版本，功能还在完善中。详细使用例子可以参考`DemoSuperplayer`。
+- [播放器组件](https://cloud.tencent.com/document/product/881/81250)：`SuperPlayerController` 播放器组件，对点播和直播进行了二次封装，可以方便你快速简单集成。详细使用例子可以参考`DemoSuperplayer`。
 
 
-## 深度定制开发指引 
+## 深度定制开发指引
 
 腾讯云播放器SDK Flutter插件对原生播放器能力进行了封装， 如果您要进行深度定制开发，建议采用如下方法：
 
