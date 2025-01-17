@@ -62,12 +62,6 @@ class BoolPlayerMsg {
   bool? value;
 }
 
-class StringIntPlayerMsg {
-  int? playerId;
-  String? strValue;
-  int? intValue;
-}
-
 class StringPlayerMsg {
   int? playerId;
   String? value;

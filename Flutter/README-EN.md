@@ -1,78 +1,86 @@
-## Player SDK for Flutter Plugin
+## Tencent Cloud Player SDK Flutter Plugin
 
-English| [简体中文](./README.md)
+[Simplified Chinese](https://cloud.tencent.com/document/product/881/81252)| English
 
-## Directory Structure
+## Audience
 
-This directory contains the demo source code of the Player SDK for Flutter plugin, which shows you how to call the APIs to implement basic features.
+Some content in this document pertains to exclusive capabilities of Tencent Cloud. Please activate the relevant services on [Tencent Cloud](https://cloud.tencent.com/) before use. Unregistered users can register for a [free trial](https://cloud.tencent.com/login).
+
+## **Upgrade Notes**
+
+Starting from version 10.1 of the Player SDK for mobile (Android & iOS & Flutter), the version is built using the same playback core as "Tencent Video," resulting in a comprehensive optimization and upgrade of video playback capabilities.
+
+Additionally, from this version onward, authorization verification for the "video playback" functional module will be added. **If your app already has a live streaming license or a short video license, you can continue to use it normally after upgrading to version 10.1,** and will not be affected by this change. You can log in to the [Tencent Cloud Vcube Console](https://console.cloud.tencent.com/vcube) to check your current license authorization information.
+
+If you have never obtained the aforementioned license authorization **and need to use the live playback or on-demand playback features in the new version SDK (10.1 and above), you will need to purchase a specified license for authorization.** For details, please refer to the [Authorization Instructions](https://cloud.tencent.com/document/product/881/74199#.E6.8E.88.E6.9D.83.E8.AF.B4.E6.98.8E); if you do not need to use the related features or have not upgraded to the latest version of the SDK, you will not be affected by this change.
+
+## Project Directory Structure
+
+This directory contains the Tencent Cloud Player SDK Flutter plugin and demo source code, mainly demonstrating how to call interfaces and the most basic functionalities.
 
 ```
-├── android                        // Demo source code of the Player for Android plugin
-├── ios                            // Demo source code of the Player for iOS plugin
-├── lib                            // Demo source code of the Player for Dart plugin
+├── android                        // Player plugin Android source code
+├── ios                            // Player plugin iOS source code
+├── lib                            // Player plugin Dart source code
 ├── docs                           // Help documentation
-├── superplayer_widget             // Superplayer component
-└── example                        // Demo code related to player
-    ├── android                    // Demo source code for Android
-    ├── ios                        // Demo source code for iOS
-    └── lib                        // Code samples for VOD and live players as well as Superplayer
+├── superplayer_widget             // Player component
+└── example                        // Player-related demo code
+    ├── android                    // Android demo source code
+    ├── ios                        // iOS demo source code
+    └── lib                        // Examples of on-demand playback, live playback, and player component usage
 ```
 
-## Branch Description
+## Player Branch Explanation
 
-The Flutter player relies on the TXLiteAVSDK. This project provides 3 branches for integration based on business needs:
+The default pub dependency is the Professional version of the player. **If you need to depend on other versions,** you can directly rely on our open-source [GitHub repository](https://github.com/LiteAVSDK/Player_Flutter).
 
-[main](https://github.com/LiteAVSDK/Player_Flutter/tree/main): relies on the TXLiteAVSDK_Player SDK, which is the default branch.
+**Dependency method is as follows:**
 
-[Professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional): relies on the TXLiteAVSDK_Professional SDK. If the TXLiteAVSDK_Professional SDK has already been integrated into the project, this branch needs to be integrated.
+```yaml
+super_player:
+  git:
+    url: https://github.com/LiteAVSDK/Player_Flutter
+    path: Flutter
+    ref: Player_Premium 
+# You can specify the required version branch, commit, and release version through ref
+```
 
-[Player_Premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium): relies on the TXLiteAVSDK_Player_Premium SDK, which includes value-added features such as external subtitles and multiple audio tracks, and is supported starting from version 11.7.
+### Branch Explanation
 
-## Project Overview
+The Flutter player depends on TXLiteAVSDK. This project provides 3 branches; please integrate according to your business needs:
 
-The Player SDK is a subproduct of RT-Cube, which provides VOD and live players based on Tencent Cloud's powerful backend capabilities and AI technologies. It can be used together with VOD or CSS to quickly implement smooth and stable playback for various use cases. It allows you to focus on your business while delivering an ultra fast HD playback experience.
+[main](https://github.com/LiteAVSDK/Player_Flutter/tree/main): Depends on TXLiteAVSDK_Player SDK, the default branch.
 
-This project provides the VOD and live player SDKs which you can use to set up your own playback services.
+[Professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional): Depends on TXLiteAVSDK_Professional SDK. If your project has already integrated TXLiteAVSDK_Professional SDK, you need to integrate this branch.
 
-- [VOD player SDK](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%82%B9%E6%92%AD%E6%92%AD%E6%94%BE-EN.md): `TXVodPlayerController` encapsulates the APIs of the VOD player SDKs for Android and iOS. You can integrate it to develop your VOD service. For the detailed code sample, see `DemoTXVodPlayer`.
+[Player_Premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium): Depends on TXLiteAVSDK_Player_Premium SDK, which includes value-added features such as external subtitles and multiple audio tracks, supported from version 11.7 onwards.
 
-- [Live player SDK](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E7%9B%B4%E6%92%AD%E6%92%AD%E6%94%BE-EN.md): `TXLivePlayerController` encapsulates the APIs of the live player SDKs for Android and iOS. You can integrate it to develop your live playback service. For the detailed code sample, see `DemoTXLivePlayer`.
+## Introduction to Flutter Player
 
-To reduce the connection costs, the Superplayer component (player with UIs) is provided in `example`. You can set up your own video playback service based on a few lines of simple code. You can apply the Superplayer code to your project and adjust UI and interaction details based on your project requirements.
+The Tencent Cloud Video Player SDK is one of the sub-product SDKs of the audio and video terminal SDK (Tencent Cloud Video). Leveraging Tencent Cloud's powerful backend capabilities and AI technology, it provides a robust platform for video on-demand and live streaming playback. When combined with Tencent Cloud's on-demand or live streaming services, users can quickly experience smooth and stable playback performance. It covers a wide range of application scenarios to meet diverse customer needs, allowing clients to focus easily on their business development while enjoying a new experience of ultra-fast and high-definition playback.
 
-- [Superplayer component](https://github.com/LiteAVSDK/Player_Flutter/blob/main/Flutter/docs/%E6%92%AD%E6%94%BE%E5%99%A8%E7%BB%84%E4%BB%B6-EN.md): `SuperPlayerController` is the Superplayer component, which combines the VOD and live player SDKs. It is currently in beta testing, and its features are being optimized. For the detailed code sample, see `DemoSuperplayer`.
+- [Integration Guide](https://www.tencentcloud.com/document/product/266/51192): The Tencent Cloud Video Player Flutter plugin is based on the on-demand and live streaming playback SDK, supporting both Android and iOS platforms.
 
-## Intended Audience
+This project provides both on-demand and live streaming playback, allowing you to build your own playback services based on the player:
 
-This document describes some of the capabilities of Tencent Cloud. Make sure that you have activated relevant [Tencent Cloud](https://cloud.tencent.com/) services before using them. If you haven't registered an account, please [sign up for free](https://cloud.tencent.com/login) first.
+- [On-Demand Playback](https://www.tencentcloud.com/document/product/266/51748): `TXVodPlayerController` encapsulates the interface of the on-demand player SDK for both Android and iOS platforms. You can develop on-demand playback services by integrating `TXVodPlayerController`. For detailed usage examples, refer to `DemoTXVodPlayer`.
+- [Live Streaming Playback](https://www.tencentcloud.com/document/product/266/64320): `TXLivePlayerController` encapsulates the interface of the live streaming player SDK for both Android and iOS platforms. You can develop live streaming services by integrating `TXLivePlayerController`. For detailed usage examples, refer to `DemoTXLivePlayer`.
+- [Player API Documentation](https://www.tencentcloud.com/document/product/266/51191): This includes API usage instructions for player configuration, on-demand playback, and live streaming playback.
 
-## Upgrade Notes
+To reduce integration costs, a player component (UI-enabled player) is provided in the example, allowing you to set up video playback services with just a few lines of code. You can apply the relevant code of the playback component to your project based on your needs and adjust the UI and interaction details as required.
 
-Player SDKs for Android, iOS, and Flutter 10.1 or later are developed based on the same playback kernel of Tencent Video with fully optimized and upgraded video playback capabilities.
+- [Player Component](https://www.tencentcloud.com/document/product/266/51193): The `SuperPlayerController` player component encapsulates both on-demand and live streaming functionalities, making it easy for you to integrate quickly and simply. For detailed usage examples, refer to `DemoSuperplayer`.
 
-In addition, those SDKs require license verification for the video playback feature module. **If your app has already been granted the live push or UGSV license, you can still use the license after upgrading the SDK to 10.1 or later.** The license won't be affected by the upgrade. You can log in to the [RT-Cube console](https://console.cloud.tencent.com/vcube) to view the current license information.
+## Deep Customization Development Guide
 
-If you don't have the necessary license and **need to use the live playback or VOD playback feature in the Player SDK 10.1 or later, you need to purchase the license.** For more information, see [here](https://cloud.tencent.com/document/product/881/74199#.E6.8E.88.E6.9D.83.E8.AF.B4.E6.98.8E). If you don't need to use those features or haven't upgraded the SDK to the latest version, you won't be affected by this change.
+The Tencent Cloud Player SDK Flutter plugin encapsulates the capabilities of the native player. If you wish to conduct deep customization development, it is recommended to use the following methods:
 
-## Custom Development Guide 
+- For on-demand playback, use the interface class `TXVodPlayerController`, or for live streaming playback, use the interface class `TXLivePlayerController` for customization development. The project provides demo examples for customization development, which can be referenced in the example project’s `DemoTXVodPlayer` and `DemoTXLivePlayer`.
 
-The Player SDK for Flutter plugin encapsulates native player capabilities. We recommend you use the following methods for deep custom development:
+- The player component `SuperPlayerController` encapsulates both on-demand and live streaming functionalities while providing simple UI interactions. Since this part of the code is in the example directory, if you have customization needs for the player component, you can do the following:
 
-- Perform custom development based on the VOD player SDK (the API class is `TXVodPlayerController`) or live player SDK (the API class is `TXLivePlayerController`). The project provides custom development demos in `DemoTXVodPlayer` and `DemoTXLivePlayer` in the `example` project.
+  Import the relevant code of the player component, located in the directory: `Flutter/superplayer_widget`, into your project for customization development.
 
-- The Superplayer component `SuperPlayerController` encapsulates the Player SDK and provides simple UI interaction. The code is in the `example` directory. You can customize the Superplayer component as follows:
+## Documentation Links
 
-  Copy the Superplayer component code in `example/lib/superplayer` to your project for custom development.
-
-## References
-
-- [Player SDK](https://www.tencentcloud.com/zh/document/product/266/7836)
-
-## Contact Us
-
-- Communication & Feedback   
-  Welcome to join our Telegram Group to communicate with our professional engineers! We are more than happy to hear from you~
-  Click to join: [https://t.me/+EPk6TMZEZMM5OGY1](https://t.me/+EPk6TMZEZMM5OGY1)   
-  Or scan the QR code   
-  <img src="https://qcloudimg.tencent-cloud.cn/raw/79cbfd13877704ff6e17f30de09002dd.jpg" width="300px">    
-
+- [Player SDK Official Website](https://www.tencentcloud.com/document/product/266/7836)
