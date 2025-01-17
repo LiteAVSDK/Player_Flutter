@@ -4,20 +4,20 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version          = '12.2.1'
+  s.version          = '12.2.2'
   s.summary          = 'player plugin.'
   s.description      = <<-DESC
 player plugin.
                        DESC
   s.homepage         = 'http://example.com'
-  s.license          = { :file => '../LICENSE' }
+  s.license          = { :file => './LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.ios.framework = ['MobileCoreServices']
-  s.platform = :ios, '9.0'
+  s.platform = :ios, '12.0'
   s.static_framework = true
   s.resources = ['Classes/TXResource/**/*']
 
