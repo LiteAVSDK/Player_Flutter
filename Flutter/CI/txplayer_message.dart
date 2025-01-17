@@ -9,13 +9,13 @@
 /// 生成命令如下，使用生成命令的时候，需要实现注释掉以上两个import导入
 /*
     dart run pigeon \
-    --input lib/Core/pigeons/txplayer_message.dart \
-    --dart_out lib/Core/txplayer_messages.dart \
-    --objc_header_out ios/Classes/messages/FtxMessages.h \
-    --objc_source_out ios/Classes/messages/FtxMessages.m \
-    --java_out ./android/src/main/java/com/tencent/vod/flutter/messages/FtxMessages.java \
+    --input ../lib/Core/pigeons/txplayer_message.dart \
+    --dart_out ../lib/Core/txplayer_messages.dart \
+    --objc_header_out ../ios/Classes/messages/FtxMessages.h \
+    --objc_source_out ../ios/Classes/messages/FtxMessages.m \
+    --java_out ../android/src/main/java/com/tencent/vod/flutter/messages/FtxMessages.java \
     --java_package "com.tencent.vod.flutter.messages" \
-    --copyright_header lib/Core/pigeons/txplayer_copy_right.txt
+    --copyright_header ../lib/Core/pigeons/txplayer_copy_right.txt
  */
 
 class PlayerMsg {
