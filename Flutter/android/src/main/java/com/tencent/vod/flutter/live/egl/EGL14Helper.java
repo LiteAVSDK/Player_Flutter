@@ -72,7 +72,8 @@ public class EGL14Helper implements EGLHelper<EGLContext> {
             LiteavLog.d(TAG, "NOTE: makeCurrent w/o display");
         }
         if (!EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext)) {
-            throw new RuntimeException("eglMakeCurrent failed");
+            LiteavLog.e(TAG, " eglMakeCurrent failed");
+            checkEGLError();
         }
     }
 
@@ -104,13 +105,15 @@ public class EGL14Helper implements EGLHelper<EGLContext> {
     private boolean initialize(EGLConfig config, EGLContext context, Surface surface) {
         mEGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
         if (mEGLDisplay == EGL14.EGL_NO_DISPLAY) {
-            throw new RuntimeException("unable to get EGL14 display");
+            LiteavLog.e(TAG, "unable to get EGL14 display");
+            checkEGLError();
         }
 
         int[] version = new int[2];
         if (!EGL14.eglInitialize(mEGLDisplay, version, 0, version, 1)) {
             mEGLDisplay = null;
-            throw new RuntimeException("unable to initialize EGL14");
+            LiteavLog.e(TAG, "unable to initialize EGL14");
+            checkEGLError();
         }
 
         if (config != null) {
@@ -184,7 +187,6 @@ public class EGL14Helper implements EGLHelper<EGLContext> {
         int ec = EGL14.eglGetError();
         if (ec != EGL14.EGL_SUCCESS) {
             LiteavLog.e(TAG, "EGL error:" + ec);
-            throw new RuntimeException(": EGL error: 0x" + Integer.toHexString(ec));
         }
     }
 }
