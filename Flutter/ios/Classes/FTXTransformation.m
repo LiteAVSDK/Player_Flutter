@@ -30,6 +30,7 @@
     config.overlayIv = msg.overlayIv;
     config.headers = msg.headers;
     config.extInfoMap = msg.extInfoMap;
+    config.preferAudioTrack = msg.preferAudioTrack;
     return config;
 }
 

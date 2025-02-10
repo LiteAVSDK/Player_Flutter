@@ -94,7 +94,9 @@
 - (void)onPreloadCallback:(NSDictionary<NSString *, id> *)arg_event {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.downloadFlutterApi onPreDownloadEventEvent:arg_event completion:^(FlutterError * _Nullable error) {
-            FTXLOGE(@"callback message error:%@", error);
+            if (nil != error) {
+                FTXLOGE(@"callback message error:%@", error);
+            }
         }];
     });
 }
@@ -258,7 +260,9 @@
 
 - (void)onDownloadCallback:(NSDictionary<NSString *, id> *)arg_event {
     [self.downloadFlutterApi onDownloadEventEvent:arg_event completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 

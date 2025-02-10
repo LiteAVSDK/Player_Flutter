@@ -40,7 +40,7 @@ static FTXPipController *_shareInstance = nil;
     return self;
 }
 
-- (int)startOpenPip:(V2TXLivePlayer *)livePlayer withSize:(CGSize)size{
+- (int)startOpenPip:(V2TXLivePlayer *)livePlayer withView:(UIView*)renderView withSize:(CGSize)size{
     if (![TXPipAuth cpa]) {
         FTXLOGE(@"%@ pip auth is deined when enter", kPipTag);
         if (nil != self.pipDelegate) {
@@ -73,7 +73,7 @@ static FTXPipController *_shareInstance = nil;
     if (self.playerDelegate != nil) {
         self.pipImpl.playerDelegate = self.playerDelegate;
     }
-    int retCode = [self.pipImpl handleStartPip:size];
+    int retCode = [self.pipImpl handleStartPip:renderView withSize:size player:livePlayer];
     return retCode;
 }
 

@@ -1,6 +1,9 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
+const _kFTXPlayerRenderViewType = "FTXRenderViewType";
+const _kFTXAndroidRenderTypeKey = "renderViewType";
+
 class TXPlayerValue {
   final TXPlayerState state;
 
@@ -925,6 +928,16 @@ class FSteamInfo {
 abstract class TXPlayerType {
   static const VOD_PLAY = 0;
   static const LIVE_PLAY = 1;
+}
+
+/// render view type for android
+/// If it is DRM playback, you may need to switch to SurfaceView mode. The default mode is TextureView.
+///
+/// 安卓纹理渲染类型
+/// 如果是drm 播放，可能需要切换为 SurfaceView 模式，默认为 TextureView
+enum FTXAndroidRenderViewType {
+  TEXTURE_VIEW,
+  SURFACE_VIEW
 }
 
 // Video pre-download event callback listener.

@@ -15,7 +15,7 @@
 
 + (instancetype)shareInstance;
 
-- (int)startOpenPip:(V2TXLivePlayer*)livePlayer withSize:(CGSize)size;
+- (int)startOpenPip:(V2TXLivePlayer*)livePlayer withView:(UIView*)renderView withSize:(CGSize)size;
 
 - (void)pausePipVideo;
 

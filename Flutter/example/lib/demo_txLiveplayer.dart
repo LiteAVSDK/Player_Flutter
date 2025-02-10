@@ -14,10 +14,10 @@ import 'common/demo_config.dart';
 
 class DemoTXLivePlayer extends StatefulWidget {
   @override
-  _DemoTXLivelayerState createState() => _DemoTXLivelayerState();
+  _DemoTXLivePlayerState createState() => _DemoTXLivePlayerState();
 }
 
-class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver {
+class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver {
   late TXLivePlayerController _controller;
   double _aspectRatio = 16.0 / 9.0;
   int _volume = 100;
@@ -69,7 +69,6 @@ class _DemoTXLivelayerState extends State<DemoTXLivePlayer> with WidgetsBindingO
     });
 
     await SuperPlayerPlugin.setConsoleEnabled(true);
-    await _controller.initialize();
 
     if (!isLicenseSuc.isCompleted) {
       SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);

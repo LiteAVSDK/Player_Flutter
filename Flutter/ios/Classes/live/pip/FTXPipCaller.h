@@ -12,11 +12,9 @@
 @property(nonatomic, strong)id<FTXLivePipDelegate> pipDelegate;
 @property(nonatomic, strong)id<FTXPipPlayerDelegate> playerDelegate;
 
-- (int)handleStartPip:(CGSize)size;
+- (int)handleStartPip:(UIView*)renderView withSize:(CGSize)size player:(V2TXLivePlayer *)livePlayer;
 
 - (void)exitPip;
-
-- (FTXPipRenderView*)getVideoView;
 
 - (TX_VOD_PLAYER_PIP_STATE)getStatus;
 
@@ -25,6 +23,7 @@
 - (void)resumePipVideo;
 
 - (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer;
+
 
 @end
 

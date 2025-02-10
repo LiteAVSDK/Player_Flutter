@@ -62,6 +62,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   final GlobalKey<_SuperPlayerMoreViewState> _moreViewKey = GlobalKey();
   final GlobalKey<AudioListState> _audioListViewKey = GlobalKey();
   final GlobalKey<_SubtitleListState> _subtitleListViewKey = GlobalKey();
+  final GlobalKey<TXPlayerVideoState> _videoKey = GlobalKey();
 
   Uint8List? _currentSprite;
   bool _isShowSprite = false;
@@ -75,7 +76,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     super.initState();
     TXPipController.instance.exitAndReleaseCurrentPip();
     _playController = widget._controller;
-    _superPlayerFullUIController = SuperPlayerFullScreenController(_updateState);
+    _superPlayerFullUIController = SuperPlayerFullScreenController(_refreshUI);
     _titleViewController = _VideoTitleController(
         // onTapBack
         _onTapBack,
@@ -171,7 +172,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _playController = widget._controller;
   }
 
-  void _registerObserver() {
+  void _registerObserver() async {
     _playController._observer = _SuperPlayerObserver(() {
       // preparePlayVideo
       setState(() {
@@ -267,10 +268,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onDispose
       _playController._observer = null; // close observer
     });
-    _fullScreenController.setListener(() {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-        return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
-      }));
+    _fullScreenController.setListener(() async {
+      // enter full screen
       if (null != downloadListener) {
         DownloadHelper.instance.removeDownloadListener(downloadListener!);
       }
@@ -280,7 +279,12 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
 
       hideControlView();
-    }, () {
+      await Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
+      }));
+    }, () async {
+      // exit full screen
+      // refresh render view
       Navigator.of(context).pop();
       _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
@@ -340,6 +344,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _refreshDownloadStatus();
   }
 
+  void _refreshUI() async {
+    _updateState();
+    _videoKey.currentState?.resetController();
+  }
+
   void _updateState() {
     // Refresh the binding of the observer.
     _registerObserver();
@@ -349,9 +358,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   void _refreshDownloadStatus() async {
     _isDownloaded = await _playController.isDownloaded();
   }
-
-
-
+  
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_isPlaying && !_isFloatingMode) {
@@ -589,10 +596,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         child:  widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
         AspectRatio(
             aspectRatio: _aspectRatio,
-            child: TXPlayerVideo(controller: _playController.getCurrentController()))
+            child: TXPlayerVideo(controller: _playController.getCurrentController(), viewKey: _videoKey))
         : SizedBox(
           child: TXPlayerVideo(
-              controller: _playController.getCurrentController()),
+              controller: _playController.getCurrentController(), viewKey: _videoKey),
         )
       ),
     );
