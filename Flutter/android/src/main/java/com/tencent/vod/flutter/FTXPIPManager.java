@@ -522,7 +522,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
      * PIP control callback.
      * 画中画控制回调
      */
-    interface PipCallback {
+    public interface PipCallback {
 
         /**
          * Close PIP.

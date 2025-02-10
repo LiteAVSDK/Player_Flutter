@@ -19,6 +19,9 @@
 
 #define EVENT_PIP_PLAY_TIME             @"playTime"
 
+
+#define VIEW_TYPE_FTX_RENDER_VIEW  @"FTXRenderViewType"
+
 // PIP error event code.
 #define NO_ERROR                             0     ///<   No error. 无错误
 /// Device or system version is not supported (PIP is only supported on iPad iOS9+).
@@ -134,6 +137,10 @@
 #define EVT_KEY_PLAYER_NET @"net"
 #define EVT_KEY_PLAYER_WIDTH @"EVT_WIDTH"
 #define EVT_KEY_PLAYER_HEIGHT @"EVT_HEIGHT"
+#define EVT_FLUTTER_PLAYABLE_DURATION @"EVT_PLAYABLE_DURATION"
+#define EVT_FLUTTER_PLAYABLE_DURATION_MS @"EVT_PLAYABLE_DURATION_MS"
+#define EVT_FLUTTER_PROGRESS_MS @"EVT_PLAY_PROGRESS_MS"
+#define EVT_FLUTTER_DURATION_MS @"EVT_PLAY_DURATION_MS"
 
 
 // net event

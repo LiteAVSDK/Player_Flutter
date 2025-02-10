@@ -13,18 +13,20 @@
 #import "FTXLog.h"
 #import <stdatomic.h>
 #import "FTXImgTools.h"
+#import "FTXTextureView.h"
 
 static const int uninitialized = -1;
-static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
-@interface FTXVodPlayer ()<FlutterTexture, TXVodPlayListener, TXVideoCustomProcessDelegate, TXFlutterVodPlayerApi>
+@interface FTXVodPlayer ()<TXVodPlayListener, TXFlutterVodPlayerApi, TXVideoCustomProcessDelegate>
 
-@property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) BOOL hasEnteredPipMode;
 @property (nonatomic, assign) BOOL restoreUI;
 @property (atomic, assign) BOOL isStoped;
 @property (atomic) BOOL isTerminate;
 @property (nonatomic, strong) TXVodPlayerFlutterAPI* vodFlutterApi;
+@property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
+@property (nonatomic, strong) FTXRenderView *curRenderView;
+@property (nonatomic, strong) UIView *txPipView;
 
 @end
 /**
@@ -33,14 +35,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 @implementation FTXVodPlayer {
     TXVodPlayer *_txVodPlayer;
     TXImageSprite *_txImageSprite;
-    // The latest frame.
-    CVPixelBufferRef _Atomic _latestPixelBuffer;
-    // The old frame.
-    CVPixelBufferRef _lastBuffer;
-    int64_t _textureId;
     
     id<FlutterPluginRegistrar> _registrar;
-    id<FlutterTextureRegistry> _textureRegistry;
     
     float currentPlayTime;
     BOOL volatile isVideoFirstFrameReceived;
@@ -50,25 +46,24 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     dispatch_queue_t playerMainqueue;
 }
 
-- (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
+- (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar  renderViewFactory:(FTXRenderViewFactory*)renderViewFactory onlyAudio:(BOOL)onlyAudio
 {
     if (self = [self init]) {
         _registrar = registrar;
-        _lastBuffer = nil;
-        _latestPixelBuffer = nil;
-        _textureId = -1;
         isVideoFirstFrameReceived = false;
         videoWidth = 0;
         videoHeight = 0;
         _isStoped = NO;
         _isTerminate = NO;
         playerMainqueue = dispatch_get_main_queue();
+        self.curRenderView = nil;
         self.hasEnteredPipMode = NO;
         self.restoreUI = NO;
+        self.renderViewFactory = renderViewFactory;
         SetUpTXFlutterVodPlayerApiWithSuffix([registrar messenger], self, [self.playerId stringValue]);
         self.vodFlutterApi = [[TXVodPlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
-        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onApplicationTerminateClick) name:UIApplicationWillTerminateNotification object:nil];
+        [self createPlayer:onlyAudio];
     }
     
     return self;
@@ -76,14 +71,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (void)onApplicationTerminateClick {
     _isTerminate = YES;
-    _textureRegistry = nil;
     [self stopPlay];
     if (nil != _txVodPlayer) {
-        [_txVodPlayer removeVideoWidget];
+        [self setRenderView:nil];
         _txVodPlayer = nil;
         _txVodPlayer.videoProcessDelegate = nil;
     }
-    _textureId = -1;
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {
@@ -104,13 +97,13 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"vodPlayer notifyPlayerTerminate");
     if (nil != _txVodPlayer) {
-        _txVodPlayer.videoProcessDelegate = nil;
         [_txVodPlayer removeVideoWidget];
+        [self setRenderView:nil];
+        _txVodPlayer.vodDelegate = nil;
     }
+    self.curRenderView = nil;
     _isTerminate = YES;
-    _textureRegistry = nil;
     [self stopPlay];
-    _textureId = -1;
     _txVodPlayer = nil;
 }
 
@@ -119,45 +112,27 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     FTXLOGV(@"vodPlayer start called destory");
     [self stopPlay];
     if (nil != _txVodPlayer) {
+        [self setRenderView:nil];
         [_txVodPlayer removeVideoWidget];
         _txVodPlayer = nil;
     }
-    
+
     self.txPipView = nil;
+    self.curRenderView = nil;
+    
     _hasEnteredPipMode = NO;
     _restoreUI = NO;
-    
-    if (_textureId >= 0 && _textureRegistry) {
-        [_textureRegistry unregisterTexture:_textureId];
-        _textureId = -1;
-        _textureRegistry = nil;
-    }
-    CVPixelBufferRef old = _latestPixelBuffer;
-    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, nil, memory_order_release, memory_order_relaxed)) {
-        old = _latestPixelBuffer;
-    }
-    if (old) {
-        CFRelease(old);
-    }
-    
-    if (_lastBuffer) {
-        CVPixelBufferRelease(_lastBuffer);
-        _lastBuffer = nil;
-    }
     [self releaseImageSprite];
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
 {
     if (!onlyAudio) {
-        if (_textureId < 0) {
-            _textureRegistry = [_registrar textures];
-            int64_t tId = [_textureRegistry registerTexture:self];
-            _textureId = tId;
-        }
-        
         if (_txVodPlayer != nil) {
             [_txVodPlayer setVideoProcessDelegate:self];
+            if (nil != self.curRenderView) {
+                [self.curRenderView setPlayer:self];
+            }
         }
         NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
         [dic setObject:@(0xFFFFFFFF) forKey:@"fontColor"];
@@ -193,7 +168,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         [_txVodPlayer setConfig:vodConfig];
         [self setupPlayerWithBool:onlyAudio];
     }
-    return [NSNumber numberWithLongLong:_textureId];
+    return [NSNumber numberWithLongLong:NO_ERROR];
 }
 
 - (void)setIsAutoPlay:(BOOL)b
@@ -384,29 +359,12 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     return nil;
 }
 
-#pragma mark - FlutterTexture
-
-- (CVPixelBufferRef _Nullable)copyPixelBuffer
-{
-    if(_isTerminate || _isStoped){
-        return nil;
-    }
-    if (self.hasEnteredPipMode) {
-        return [self getPipImagePixelBuffer];
-    }
-    CVPixelBufferRef pixelBuffer = _latestPixelBuffer;
-    while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &pixelBuffer, NULL, memory_order_release, memory_order_relaxed)) {
-        pixelBuffer = _latestPixelBuffer;
-    }
-    return pixelBuffer;
-}
-
 #pragma mark - TXVodPlayListener
 
 - (void)onPlayEvent:(TXVodPlayer *)player event:(int)evtID withParam:(NSDictionary*)param
 {
     // Hand over the first frame event timing to Flutter for shared texture processing.
-    if (evtID == CODE_ON_RECEIVE_FIRST_FRAME) {
+    if (evtID == PLAY_EVT_RCV_FIRST_I_FRAME) {
         currentPlayTime = 0;
         NSMutableDictionary *mutableDic = param.mutableCopy;
         self->videoWidth = param[@"EVT_WIDTH"];
@@ -420,7 +378,20 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
             self->videoHeight = param[@"EVT_PARAM2"];
         });
     } else if(evtID == PLAY_EVT_PLAY_PROGRESS) {
-        currentPlayTime = [param[EVT_PLAY_PROGRESS] floatValue];
+        float progressSec = [param[EVT_PLAY_PROGRESS] floatValue];
+        float durationSec = [param[EVT_PLAY_DURATION] floatValue];
+        float playableDurationSec = [param[EVT_PLAYABLE_DURATION] floatValue];
+        NSMutableDictionary *dic = param.mutableCopy;
+        // 将秒转换为毫秒
+        NSInteger playableDurationMillisec = (NSInteger)(playableDurationSec * 1000);
+        NSInteger durationMillisec = (NSInteger)(durationSec * 1000);
+        NSInteger progressMillisec = (NSInteger)(progressSec * 1000);
+        dic[EVT_FLUTTER_PLAYABLE_DURATION] = @(playableDurationSec);
+        dic[EVT_FLUTTER_PLAYABLE_DURATION_MS] = @(playableDurationMillisec);
+        dic[EVT_FLUTTER_DURATION_MS] = @(durationMillisec);
+        dic[EVT_FLUTTER_PROGRESS_MS] = @(progressMillisec);
+        currentPlayTime = progressSec;
+        param = dic;
     } else if(evtID == PLAY_EVT_PLAY_BEGIN) {
         currentPlayTime = 0;
     } else if(evtID == PLAY_EVT_START_VIDEO_DECODER) {
@@ -432,7 +403,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         FTXLOGI(@"onPlayEvent:%i,%@", evtID, param[EVT_PLAY_DESCRIPTION]);
     }
     [self.vodFlutterApi onPlayerEventEvent:[TXCommonUtil getParamsWithEvent:evtID withParams:param] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
 }
 
@@ -446,8 +419,26 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (void)onNetStatus:(TXVodPlayer *)player withParam:(NSDictionary*)param
 {
     [self.vodFlutterApi onNetEventEvent:param completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
+}
+
+/**
+ * Video rendering object callback.
+ * @param pixelBuffer   Render image.
+ *                    渲染图像
+ * @return Return YES to prevent the SDK from displaying; return NO to continue rendering in the SDK rendering module.
+ *         返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
+ * Note: The data type of the rendered image is renderPixelFormatType set in the config.
+ * 说明：渲染图像的数据类型为config中设置的renderPixelFormatType
+ */
+- (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    if (nil != self.renderControl) {
+        [self.renderControl onRenderFrame:pixelBuffer];
+    }
+    return NO;
 }
 
 /**
@@ -464,52 +455,10 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     mutableDic[EXTRA_SUBTITLE_DURATION_MS] = @(subtitleData.durationMs);
     mutableDic[EXTRA_SUBTITLE_TRACK_INDEX] = @(subtitleData.trackIndex);
     [self.vodFlutterApi onPlayerEventEvent:[TXCommonUtil getParamsWithEvent:EVENT_SUBTITLE_DATA withParams:mutableDic] completion:^(FlutterError * _Nullable error) {
-        FTXLOGE(@"callback message error:%@", error);
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
     }];
-}
-
-
-#pragma mark - TXVideoCustomProcessDelegate
-
-/**
- * Video rendering object callback.
- * @param pixelBuffer   Render image.
- *                    渲染图像
- * @return Return YES to prevent the SDK from displaying; return NO to continue rendering in the SDK rendering module.
- *         返回YES则SDK不再显示；返回NO则SDK渲染模块继续渲染
- * Note: The data type of the rendered image is renderPixelFormatType set in the config.
- * 说明：渲染图像的数据类型为config中设置的renderPixelFormatType
- */
-- (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer
-{
-    if(!_isTerminate && !_isStoped) {
-        if (_lastBuffer == nil) {
-            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-            CFRetain(pixelBuffer);
-        } else if (_lastBuffer != pixelBuffer) {
-            CVPixelBufferRelease(_lastBuffer);
-            _lastBuffer = CVPixelBufferRetain(pixelBuffer);
-            CFRetain(pixelBuffer);
-        }
-
-        CVPixelBufferRef newBuffer = pixelBuffer;
-        CVPixelBufferRef old = _latestPixelBuffer;
-        while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, newBuffer, memory_order_release, memory_order_relaxed)) {
-            if (_isTerminate) {
-                break;
-            }
-            old = _latestPixelBuffer;
-        }
-
-        if (old && old != pixelBuffer) {
-            CFRelease(old);
-        }
-        if (!_isTerminate && !_isStoped && _textureRegistry && _textureId >= 0) {
-            [_textureRegistry textureFrameAvailable:_textureId];
-        }
-    }
-    
-    return NO;
 }
 
 #pragma mark - Private Method
@@ -555,7 +504,6 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         }
         [newExtInfoMap setObject:@(0) forKey:@"450"];
         [vodConfig setExtInfoMap:newExtInfoMap];
-        
         _txVodPlayer.config = vodConfig;
     }
 }
@@ -662,7 +610,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipRequestStart)]) {
         [self.delegate onPlayerPipRequestStart];
     }
-    
+
     UIViewController* flutterVC = [self getFlutterViewController];
     [flutterVC.view addSubview:self.txPipView];
     [_txVodPlayer setupVideoWidget:self.txPipView insertIndex:0];
@@ -735,7 +683,7 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
                 }
                 [self->_txPipView removeFromSuperview];
                 self->_txPipView = nil;
-                
+
                 if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
                     [self.delegate onPlayerPipStateDidStop];
                 }
@@ -956,6 +904,11 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     BOOL r = [self stopPlay];
+    if ([isNeedClear.value boolValue] == YES) {
+        if (self.renderControl != nil) {
+            [self.renderControl clearLastImg];
+        }
+    }
     return [TXCommonUtil boolMsgWith:r];
 }
 
@@ -1060,6 +1013,26 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
                 }];
             }
         }
+    }
+}
+
+- (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+    FTXRenderView *renderView = [self.renderViewFactory findViewById:renderViewId];
+    if (nil != renderView) {
+        self.curRenderView = renderView;
+        [renderView setPlayer:self];
+    } else {
+        self.curRenderView = nil;
+        [self setRenderView:nil];
+        FTXLOGE(@"setPlayerView can not find renderView by id: %ld, release player's renderView", renderViewId);
+    }
+}
+
+- (void)setRenderView:(FTXTextureView*)renderView {
+    if (renderView != nil) {
+        [renderView bindPlayer:self];
+    } else {
+        self.renderControl = nil;
     }
 }
 

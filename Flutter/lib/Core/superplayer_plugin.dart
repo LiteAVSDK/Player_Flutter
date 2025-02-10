@@ -45,15 +45,15 @@ class SuperPlayerPlugin implements TXPluginFlutterAPI, TXPipFlutterAPI {
 
   /// Creating a live streaming player
   /// 创建直播播放器
-  static Future<int?> createLivePlayer() async {
-    PlayerMsg playerMsg = await _playerPluginApi.createLivePlayer();
+  static Future<int?> createLivePlayer({bool? onlyAudio}) async {
+    PlayerMsg playerMsg = await _playerPluginApi.createLivePlayer(onlyAudio ?? false);
     return playerMsg.playerId;
   }
 
   /// Creating a VOD player
   /// 创建点播播放器
-  static Future<int?> createVodPlayer() async {
-    PlayerMsg playerMsg = await _playerPluginApi.createVodPlayer();
+  static Future<int?> createVodPlayer({bool? onlyAudio}) async {
+    PlayerMsg playerMsg = await _playerPluginApi.createVodPlayer(onlyAudio ?? false);
     return playerMsg.playerId;
   }
 

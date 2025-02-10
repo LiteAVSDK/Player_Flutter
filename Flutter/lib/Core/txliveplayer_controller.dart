@@ -8,7 +8,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
 
   late TXFlutterLivePlayerApi _livePlayerApi;
   final Completer<int> _initPlayer;
-  final Completer<int> _createTexture;
   bool _isDisposed = false;
   bool _isNeedDisposed = false;
   TXPlayerValue? _value;
@@ -23,11 +22,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     if (_value == val) return;
     _value = val;
     notifyListeners();
-  }
-
-  @override
-  Future<int> get textureId async {
-    return _createTexture.future;
   }
 
   double? resizeVideoWidth = 0;
@@ -48,16 +42,15 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   @Deprecated("playerNetEvent will no longer return any events.")
   Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _netStatusStreamController.stream;
 
-  TXLivePlayerController()
-      : _initPlayer = Completer(),
-        _createTexture = Completer() {
+  TXLivePlayerController({bool? onlyAudio})
+      : _initPlayer = Completer() {
     _value = TXPlayerValue.uninitialized();
     _state = _value!.state;
-    _create();
+    _create(onlyAudio: onlyAudio);
   }
 
-  Future<void> _create() async {
-    _playerId = await SuperPlayerPlugin.createLivePlayer();
+  Future<void> _create({bool? onlyAudio}) async {
+    _playerId = await SuperPlayerPlugin.createLivePlayer(onlyAudio: onlyAudio);
     _livePlayerApi = TXFlutterLivePlayerApi(messageChannelSuffix: _playerId.toString());
     TXLivePlayerFlutterAPI.setUp(this, messageChannelSuffix: _playerId.toString());
     _initPlayer.complete(_playerId);
@@ -108,7 +101,6 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Future<bool> startLivePlay(String url, {@deprecated int? playType}) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    await _createTexture.future;
     _changeState(TXPlayerState.buffering);
     printVersionInfo();
     BoolMsg boolMsg = await _livePlayerApi.startLivePlay(StringPlayerMsg()
@@ -123,13 +115,13 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// 播放器初始化，创建共享纹理、初始化播放器
   /// @param onlyAudio 是否是纯音频模式
   @override
+  @Deprecated("this method call will no longer be effective")
   Future<void> initialize({bool? onlyAudio}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    IntMsg intMsg = await _livePlayerApi.initialize(BoolPlayerMsg()
-      ..value = onlyAudio ?? false
-      ..playerId = _playerId);
-    _createTexture.complete(intMsg.value);
+    // IntMsg intMsg = await _livePlayerApi.initialize(BoolPlayerMsg()
+    //   ..value = onlyAudio ?? false
+    //   ..playerId = _playerId);
     _state = TXPlayerState.paused;
   }
 
@@ -410,6 +402,13 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await SuperPlayerPlugin.releasePlayer(_playerId);
   }
 
+  @override
+  Future<void> setPlayerView(int renderViewId) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _livePlayerApi.setPlayerView(renderViewId);
+  }
+
   /// Release `controller`.
   ///
   /// 释放controller
@@ -503,4 +502,5 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     }
     _eventStreamController.add(map);
   }
+
 }

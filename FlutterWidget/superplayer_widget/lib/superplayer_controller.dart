@@ -76,13 +76,11 @@ class SuperPlayerController {
 
   void _initVodPlayer() async {
     _vodPlayerController = TXVodPlayerController();
-    await _vodPlayerController.initialize();
     _setVodListener();
   }
 
   void _initLivePlayer() async {
     _livePlayerController = TXLivePlayerController();
-    await _livePlayerController.initialize();
     _setLiveListener();
   }
 
@@ -145,6 +143,7 @@ class SuperPlayerController {
           }
           videoDuration = await _vodPlayerController.getDuration();
           currentDuration = await _vodPlayerController.getCurrentPlaybackTime();
+          List<TXTrackInfo> aaa = await _vodPlayerController.getAudioTrackInfo();
           _onSelectTrackInfoWhenPrepare();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
@@ -701,8 +700,8 @@ class SuperPlayerController {
     _vodNetEventListener?.cancel();
     _livePlayEventListener?.cancel();
     _liveNetEventListener?.cancel();
-    await _vodPlayerController.stop();
-    await _livePlayerController.stop();
+    await _vodPlayerController.stop(isNeedClear: true);
+    await _livePlayerController.stop(isNeedClear: true);
     await setMute(false);
 
     _updatePlayerState(SuperPlayerState.INIT);

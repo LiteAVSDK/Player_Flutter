@@ -94,6 +94,8 @@ class FTXVodPlayConfig {
 
   int encryptedMp4Level = TXVodPlayEvent.MP4_ENCRYPTION_LEVEL_NONE;
 
+  String? preferAudioTrack;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
     json["connectRetryCount"] = connectRetryCount;
@@ -117,6 +119,7 @@ class FTXVodPlayConfig {
     json["preferredResolution"] = preferredResolution.toString();
     json["mediaType"] = mediaType.toString();
     json["encryptedMp4Level"] = encryptedMp4Level.toString();
+    json["preferAudioTrack"] = preferAudioTrack?.toString();
     return json;
   }
 
@@ -143,6 +146,7 @@ class FTXVodPlayConfig {
       preferredResolution: preferredResolution,
       mediaType: mediaType,
       encryptedMp4Level: encryptedMp4Level,
+      preferAudioTrack: preferAudioTrack,
     );
   }
 }

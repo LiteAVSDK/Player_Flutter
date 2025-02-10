@@ -8,7 +8,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
 
   late TXFlutterVodPlayerApi _vodPlayerApi;
   final Completer<int> _initPlayer;
-  final Completer<int> _createTexture;
   bool _isDisposed = false;
   bool _isNeedDisposed = false;
   TXPlayerValue? _value;
@@ -53,16 +52,15 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   /// see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
   Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _netStatusStreamController.stream;
 
-  TXVodPlayerController()
-      : _initPlayer = Completer(),
-        _createTexture = Completer() {
+  TXVodPlayerController({bool? onlyAudio})
+      : _initPlayer = Completer() {
     _value = TXPlayerValue.uninitialized();
     _state = _value!.state;
-    _create();
+    _create(onlyAudio: onlyAudio);
   }
 
-  Future<void> _create() async {
-    _playerId = await SuperPlayerPlugin.createVodPlayer();
+  Future<void> _create({bool? onlyAudio}) async {
+    _playerId = await SuperPlayerPlugin.createVodPlayer(onlyAudio: onlyAudio);
     _vodPlayerApi = TXFlutterVodPlayerApi(messageChannelSuffix: _playerId.toString());
     TXVodPlayerFlutterAPI.setUp(this, messageChannelSuffix: _playerId.toString());
     _initPlayer.complete(_playerId);
@@ -99,7 +97,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<bool> startVodPlay(String url) async {
     if (_isNeedDisposed) return false;
     await _initPlayer.future;
-    await _createTexture.future;
     _changeState(TXPlayerState.buffering);
     printVersionInfo();
     BoolMsg boolMsg = await _vodPlayerApi.startVodPlay(StringPlayerMsg()
@@ -126,7 +123,6 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   Future<void> startVodPlayWithParams(TXPlayInfoParams params) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _createTexture.future;
     _changeState(TXPlayerState.buffering);
     printVersionInfo();
     await _vodPlayerApi.startVodPlayWithParams(TXPlayInfoParamsPlayerMsg()
@@ -144,28 +140,18 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _vodPlayerApi.startPlayDrm(drmBuilder.toMsg());
   }
 
-  /// The shared texture ID is a unique integer value that is used to identify a texture,
-  /// and it is passed back after the texture is prepared in the native layer.
-  /// By listening to this value, the shared texture can be set where needed.
-  ///
-  /// 共享纹理id，原生层的纹理准备好之后，会将纹理id传递回来。
-  /// 可通过监听该值，来将共享纹理设置在需要的地方
-  Future<int> get textureId async {
-    return _createTexture.future;
-  }
-
   /// To initialize the player, you would need to create a shared texture and initialize the player.
   /// @param onlyAudio 是否是纯音频模式 if pure audio mode
   ///
   /// 播放器初始化，创建共享纹理、初始化播放器
   @override
+  @Deprecated("this method call will no longer be effective")
   Future<void> initialize({bool? onlyAudio}) async {
     if (_isNeedDisposed) return;
     await _initPlayer.future;
-    final textureId = await _vodPlayerApi.initialize(BoolPlayerMsg()
-      ..value = onlyAudio ?? false
-      ..playerId = _playerId);
-    _createTexture.complete(textureId.value);
+    // final textureId = await _vodPlayerApi.initialize(BoolPlayerMsg()
+    //   ..value = onlyAudio ?? false
+    //   ..playerId = _playerId);
     _changeState(TXPlayerState.paused);
   }
 
@@ -642,6 +628,12 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
       ..playerId = _playerId
       ..key = key
       ..value = [value]);
+  }
+
+  Future<void>setPlayerView(int renderViewId) async{
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.setPlayerView(renderViewId);
   }
 
   /// release controller
