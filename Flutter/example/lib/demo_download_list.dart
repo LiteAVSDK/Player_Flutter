@@ -203,7 +203,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         children: [
           Expanded(
               child: Text(
-            playModel.title,
+            playModel.title.isEmpty ? "test video" : playModel.title,
             maxLines: 1,
             softWrap: true,
             overflow: TextOverflow.ellipsis,

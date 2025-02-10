@@ -41,7 +41,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   Future<void> init() async {
     if (!mounted) return;
     await SuperPlayerPlugin.setConsoleEnabled(true);
-    await _controller.initialize();
     _controller.onPlayerState.listen((val) {
       debugPrint("Playback status ${val?.name}");
     });
@@ -95,6 +94,10 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     } else {
       await _controller.startVodPlay(_url);
     }
+    
+    TXPlayerDrmBuilder builder = TXPlayerDrmBuilder("https://widevine.drm.vod-qcloud.com/widevine/getlicense/v2?drmToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9~eyJ0eXBlIjoiRHJtVG9rZW4iLCJhcHBJZCI6MTUwMDAzMzc4NiwiZmlsZUlkIjoiMTM5Nzc1Nzg5MTA1OTU0NzE3NiIsImN1cnJlbnRUaW1lU3RhbXAiOjAsImV4cGlyZVRpbWVTdGFtcCI6MTczNTgzMDAwMCwicmFuZG9tIjowLCJvdmVybGF5S2V5IjoiIiwib3ZlcmxheUl2IjoiIiwiY2lwaGVyZWRPdmVybGF5S2V5IjoiIiwiY2lwaGVyZWRPdmVybGF5SXYiOiIiLCJrZXlJZCI6MSwic3RyaWN0TW9kZSI6MCwicGVyc2lzdGVudCI6IiIsInJlbnRhbER1cmF0aW9uIjowLCJmb3JjZUwxVHJhY2tUeXBlcyI6bnVsbH0~PKD-JRK2W8RfFJFqEpEq7pr3a8O9xQBWfysRiBHDYgE"
+        , "https://1500033786.vod-qcloud.com/184dff4avodtranshk1500033786/c4c7fcda1397757891059547176/adp.13.m3u8?t=6776a9f0&rlimit=10&us=ghaoreutqarlk&sign=979492f2bd330520e8ebb2225ff4e472");
+    // _controller.start
   }
 
   void _resizeVideo(Map<dynamic, dynamic> event) {

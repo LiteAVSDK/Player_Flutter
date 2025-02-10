@@ -39,9 +39,13 @@ import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterNativeAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAPI;
+import com.tencent.vod.flutter.player.FTXBasePlayer;
+import com.tencent.vod.flutter.player.FTXLivePlayer;
+import com.tencent.vod.flutter.player.FTXVodPlayer;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.TXAndroid12BridgeService;
+import com.tencent.vod.flutter.ui.render.FTXRenderViewFactory;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -84,6 +88,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private boolean mIsBrightnessObserverRegistered = false;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private FtxMessages.TXPluginFlutterAPI mPluginApi;
+    private FTXRenderViewFactory mRenderViewFactory;
 
     private final FTXAudioManager.AudioFocusChangeListener audioFocusChangeListener =
             new FTXAudioManager.AudioFocusChangeListener() {
@@ -175,6 +180,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         LiteavLog.i(TAG, "onAttachedToEngine");
+        mRenderViewFactory = new FTXRenderViewFactory(flutterPluginBinding.getBinaryMessenger());
+        flutterPluginBinding
+                .getPlatformViewRegistry()
+                .registerViewFactory(FTXEvent.FTX_RENDER_VIEW, mRenderViewFactory);
         TXFlutterSuperPlayerPluginAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
         TXFlutterNativeAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
         mPluginApi = new FtxMessages.TXPluginFlutterAPI(flutterPluginBinding.getBinaryMessenger());
@@ -198,8 +207,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @NonNull
     @Override
-    public PlayerMsg createVodPlayer() {
-        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, getPipManager());
+    public PlayerMsg createVodPlayer(@NonNull Boolean onlyAudio) {
+        FTXVodPlayer player = new FTXVodPlayer(mFlutterPluginBinding, getPipManager(), mRenderViewFactory, onlyAudio);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();
@@ -210,8 +219,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @NonNull
     @Override
-    public PlayerMsg createLivePlayer() {
-        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, getPipManager());
+    public PlayerMsg createLivePlayer(@NonNull Boolean onlyAudio) {
+        FTXLivePlayer player = new FTXLivePlayer(mFlutterPluginBinding, getPipManager(), mRenderViewFactory, onlyAudio);
         int playerId = player.getPlayerId();
         mPlayers.append(playerId, player);
         PlayerMsg playerMsg = new PlayerMsg();

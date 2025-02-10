@@ -133,6 +133,9 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     }
     dynamic result = await Navigator.push(context, MaterialPageRoute(builder: (context) => DemoDownloadList()));
     if (result is SuperPlayerModel) {
+      if (result.title == "") {
+        result.title = "test video";
+      }
       playVideo(result);
     } else if (needResume) {
       _controller.resume();
@@ -242,6 +245,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             "",
             (String url, int appId, String fileId, String pSign, bool enableDownload) {
               SuperPlayerModel model = new SuperPlayerModel();
+              model.title = "test video";
               model.appId = appId;
               model.isEnableDownload = enableDownload;
               if (url.isNotEmpty) {

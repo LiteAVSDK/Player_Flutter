@@ -8,6 +8,9 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -29,3 +32,4 @@ part 'Core/provider/txplayer_holder.dart';
 part 'Core/txplayer_messages.dart';
 part 'Core/common/common_config.dart';
 part 'Core/common/tx_extension.dart';
+part 'Core/render/txplayer_view_controller.dart';

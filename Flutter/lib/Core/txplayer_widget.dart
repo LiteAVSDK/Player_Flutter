@@ -3,8 +3,10 @@ part of SuperPlayer;
 
 class TXPlayerVideo extends StatefulWidget {
   final TXPlayerController controller;
+  final FTXAndroidRenderViewType renderViewType;
 
-  TXPlayerVideo({required this.controller});
+  TXPlayerVideo({required this.controller, FTXAndroidRenderViewType? androidRenderType, Key? viewKey})
+      : renderViewType = androidRenderType ?? FTXAndroidRenderViewType.TEXTURE_VIEW, super(key: viewKey);
 
   @override
   TXPlayerVideoState createState() => TXPlayerVideoState();
@@ -12,87 +14,119 @@ class TXPlayerVideo extends StatefulWidget {
 
 class TXPlayerVideoState extends State<TXPlayerVideo> {
   static const TAG = "TXPlayerVideo";
-  int _textureId = -1;
-  double _iosOffset = -1;
 
-  StreamSubscription? streamSubscription;
+  int _viewId = -1;
+  Completer<int> _viewIdCompleter = Completer();
 
   @override
   void initState() {
     super.initState();
-    _obtainTextureId();
+    if (_viewIdCompleter.isCompleted) {
+      _setPlayerView(_viewId);
+    }
   }
 
   @override
   void didUpdateWidget(covariant TXPlayerVideo oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _obtainTextureId();
+    if (oldWidget.controller != widget.controller) {
+      if (_viewIdCompleter.isCompleted) {
+        setState(() {
+          _setPlayerView(_viewId);
+        });
+      } else {
+        _waitViewId();
+      }
+    } else {
+      LogUtils.i(TAG, "met a unchanged widget refresh");
+      _waitViewId();
+    }
   }
 
-  void _obtainTextureId() async {
-    int remainTextureId = await widget.controller.textureId;
-    if (_textureId != remainTextureId) {
-      setState(() {
-        _textureId = remainTextureId;
-      });
-    }
+  Future<void> _waitViewId() async {
+    await _viewIdCompleter.future;
+    setState(() {
+      _setPlayerView(_viewId);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    TXPlayerController controller = widget.controller;
-    if ((defaultTargetPlatform == TargetPlatform.android) &&
-        (controller.resizeVideoHeight! > 0 && controller.resizeVideoWidth! > 0)) {
-      return _textureId == -1
-          ? Container()
-          : LayoutBuilder(builder: (context, constrains) {
-        var viewWidth = constrains.maxWidth;
-        var viewHeight = constrains.maxHeight;
-        var videoWidth = controller.resizeVideoWidth!;
-        var videoHeight = controller.resizeVideoHeight!;
-
-        double left = controller.videoLeft! * viewWidth / videoWidth;
-        double top = controller.videoTop! * viewHeight / videoHeight;
-        double right = controller.videoRight! * viewWidth / videoWidth;
-        double bottom = controller.videoBottom! * viewHeight / videoHeight;
-        return Stack(
-          children: [
-            Positioned(
-                top: top, left: left, right: right, bottom: bottom, child: Texture(textureId: _textureId))
-          ],
-        );
-      });
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return IgnorePointer(
+        ignoring: true,
+        child: PlatformViewLink(
+            surfaceFactory: (context, controller) {
+              return AndroidViewSurface(
+                controller: controller as AndroidViewController,
+                gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
+                hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+              );
+            },
+            onCreatePlatformView: _onCreateAndroidView,
+            viewType: _kFTXPlayerRenderViewType),
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return IgnorePointer(
+        ignoring: true,
+        child: UiKitView(
+            viewType: _kFTXPlayerRenderViewType,
+            layoutDirection: TextDirection.ltr,
+            creationParams: const {},
+            creationParamsCodec: const StandardMessageCodec(),
+            onPlatformViewCreated: _onCreateIOSView
+        ),
+      );
     } else {
-      return _textureId == -1 ? Container() : _buildIOSRotate();
+      throw ArgumentError("platform not support: $defaultTargetPlatform");
     }
   }
 
-  Widget _buildIOSRotate() {
-    var degree = widget.controller.playerValue()?.degree;
-    var quarterTurns = ( degree! / 90).floor();
-    if (quarterTurns == 0) {
-      return _buildIOSTexture(_textureId);
-    } else {
-      return RotatedBox(quarterTurns: quarterTurns, child: _buildIOSTexture(_textureId));
+  PlatformViewController _onCreateAndroidView(PlatformViewCreationParams params) {
+    if (_viewIdCompleter.isCompleted) {
+      _viewIdCompleter = Completer();
     }
+    _viewId = params.id;
+    _viewIdCompleter.complete(params.id);
+    _setPlayerView(params.id);
+    return PlatformViewsService.initSurfaceAndroidView(
+      id: params.id,
+      viewType: _kFTXPlayerRenderViewType,
+      layoutDirection: TextDirection.ltr,
+      creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
+      creationParamsCodec: const StandardMessageCodec(),
+      onFocus: () {
+        params.onFocusChanged(true);
+      },
+    )
+      ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+      ..create();
   }
 
-  Widget _buildIOSTexture(int textureId) {
-    return Stack(
-      children: [
-        Positioned(
-            top: _iosOffset,
-            left: _iosOffset,
-            right: _iosOffset,
-            bottom: _iosOffset,
-            child: Texture(textureId: textureId))
-      ],
-    );
+  Future<void> _setPlayerView(int viewId) async {
+    await widget.controller.setPlayerView(viewId);
+  }
+
+  void _onCreateIOSView(int id) {
+    if (_viewIdCompleter.isCompleted) {
+      _viewIdCompleter = Completer();
+    }
+    _viewId = id;
+    _viewIdCompleter.complete(id);
+    _setPlayerView(id);
+  }
+
+  Future<int> getViewId() async {
+    await _viewIdCompleter.future;
+    return _viewId;
+  }
+
+  void resetController() {
+    _waitViewId();
   }
 
   @override
   void dispose() {
-    streamSubscription?.cancel();
     super.dispose();
   }
 }

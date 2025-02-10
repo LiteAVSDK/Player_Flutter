@@ -278,4 +278,3 @@
 - iOS端新增画中画（PIP) 功能
 - set Android TXLiteAVSDK_Player to 10.3.0.11144，tag：release_player_v1.0.3
 - set iOS TXLiteAVSDK_Player to 10.3.11513， tag：release_pro_v1.0.3
-

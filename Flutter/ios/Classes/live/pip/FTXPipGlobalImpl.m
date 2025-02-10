@@ -19,9 +19,11 @@
 @property (nonatomic, strong)UIView* backgroundPlayerView;
 /// 传入的videoView在移动view(coverVideoViewToPIPView)之前的父view
 @property (nonatomic, weak)UIView* superViewOfVideoView;
-@property (nonatomic, strong)FTXPipRenderView* videoView;
 @property (nonatomic, strong) NSArray *tempConstraintArray;
 @property (nonatomic, strong) FTXBackPlayer* backPlayer;
+@property (nonatomic, strong) UIView* orgVideoView;
+@property (nonatomic, strong) V2TXLivePlayer* livePlayer;
+@property (nonatomic, strong) FTXPipRenderView* videoView;
 
 @end
 
@@ -39,12 +41,14 @@ static NSString* kPipTag = @"FTXPipCaller";
         self.pipStatus = TX_VOD_PLAYER_PIP_STATE_UNDEFINED;
         self.pipError = FTX_VOD_PLAYER_PIP_ERROR_TYPE_NONE;
         self.constraintArray = [[NSMutableArray alloc] init];
-        self.videoView = [self createVideoView];
+        self.videoView = nil;
+        self.orgVideoView = nil;
+        self.livePlayer = nil;
     }
     return self;
 }
 
-- (int)handleStartPip:(CGSize)size {
+- (int)handleStartPip:(UIView*)renderView withSize:(CGSize)size player:(V2TXLivePlayer *)livePlayer{
     if (![TXPipAuth cpa]) {
         FTXLOGE(@"%@ pip auth is deined when handle", kPipTag);
         [self changeStatus:TX_VOD_PLAYER_PIP_STATE_UNDEFINED];
@@ -58,14 +62,19 @@ static NSString* kPipTag = @"FTXPipCaller";
     // 判断资源是否存在
     BOOL resourceExists = [fileManager fileExistsAtPath:resourcePath];
     if (resourceExists) {
+        self.livePlayer = livePlayer;
         FTXLOGI(@"%@ Resource exists at path: %@", kPipTag, resourcePath);
-        [self prepareWithURL:[NSURL fileURLWithPath:resourcePath] withSize:size withDurationSec:100
+        [self prepareWithURL:[NSURL fileURLWithPath:resourcePath] withView:renderView withSize:size withDurationSec:100
                    isReplace:NO];
     } else {
         FTXLOGE(@"%@ Resource does not exist at path: %@", kPipTag, resourcePath);
         [self onPipError:FTX_VOD_PLAYER_PIP_ERROR_TYPE_PIP_MISS_RESOURCE];
     }
     return NO_ERROR;
+}
+
+- (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    [self.videoView displayPixelBuffer:pixelBuffer];
 }
 
 - (void)exitPip {
@@ -86,10 +95,9 @@ static NSString* kPipTag = @"FTXPipCaller";
         // 停止播放并释放资源
         [self.backPlayer stop];
     }
-}
-
-- (FTXPipRenderView *)getVideoView {
-    return self.videoView;
+    if (nil != self.orgVideoView && nil != self.livePlayer) {
+        [self.livePlayer setRenderView:self.orgVideoView];
+    }
 }
 
 - (TX_VOD_PLAYER_PIP_STATE)getStatus {
@@ -106,10 +114,6 @@ static NSString* kPipTag = @"FTXPipCaller";
     if (nil != self.backPlayer) {
         [self.backPlayer play];
     }
-}
-
-- (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer {
-    [self.videoView displayPixelBuffer:pixelBuffer];
 }
 
 #pragma mark - AVPictureInPictureControllerDelegate
@@ -213,14 +217,6 @@ static NSString* kPipTag = @"FTXPipCaller";
 
 #pragma mark - private method
 
-- (FTXPipRenderView *)createVideoView {
-    if (!_videoView) {
-        // Set the size to 1 pixel to ensure proper display in PIP.
-        _videoView = [[FTXPipRenderView alloc] initWithFrame:CGRectMake(0, 0, 300, 300)];
-    }
-    return _videoView;
-}
-
 - (void)changeStatus:(TX_VOD_PLAYER_PIP_STATE)status{
     self.pipStatus = status;
     FTXLOGE(@"%@ pip met status changed %ld", kPipTag, status);
@@ -276,7 +272,7 @@ static NSString* kPipTag = @"FTXPipCaller";
 /// @param size 指定视频尺寸
 /// @param durationSec 指定视频时长
 /// @param isReplace 是否是换源 换源的话只换播放资源 不重新创建播放器
-- (void)prepareWithURL:(NSURL *)inputURL withSize:(CGSize)size withDurationSec:(NSTimeInterval)durationSec isReplace:(BOOL)isReplace {
+- (void)prepareWithURL:(NSURL *)inputURL withView:(UIView*)renderView withSize:(CGSize)size withDurationSec:(NSTimeInterval)durationSec isReplace:(BOOL)isReplace{
     if (!inputURL) {
         return;
     }
@@ -330,7 +326,14 @@ static NSString* kPipTag = @"FTXPipCaller";
                 [self.backgroundPlayerView removeFromSuperview];
                 self.backgroundPlayerView = nil;
             }
-            
+            self.orgVideoView = renderView;
+            if (nil != self.orgVideoView) {
+                self.videoView = [[FTXPipRenderView alloc] initWithFrame:self.orgVideoView.frame];
+            } else {
+                CGRect rect = CGRectMake(0, 0, size.width, size.height);
+                self.videoView = [[FTXPipRenderView alloc] initWithFrame:rect];
+            }
+            [self.livePlayer setRenderView:self.videoView];
             self.backgroundPlayerView = [[UIView alloc] initWithFrame:CGRectZero];
             self.backgroundPlayerView.backgroundColor = [UIColor clearColor];
             self.backgroundPlayerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;

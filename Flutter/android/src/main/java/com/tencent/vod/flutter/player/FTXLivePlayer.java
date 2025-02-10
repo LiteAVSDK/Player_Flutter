@@ -1,12 +1,11 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 
-package com.tencent.vod.flutter;
+package com.tencent.vod.flutter.player;
 
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
 import android.os.Bundle;
-import android.view.Surface;
-import android.view.TextureView;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
@@ -19,7 +18,8 @@ import com.tencent.live2.impl.V2TXLiveProperty;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
-import com.tencent.vod.flutter.live.render.FTXV2LiveRender;
+import com.tencent.vod.flutter.FTXEvent;
+import com.tencent.vod.flutter.FTXPIPManager;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
@@ -32,9 +32,12 @@ import com.tencent.vod.flutter.messages.FtxMessages.StringPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterLivePlayerApi;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
+import com.tencent.vod.flutter.player.render.FTXLivePlayerRenderHost;
 import com.tencent.vod.flutter.tools.FTXV2LiveTools;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
+import com.tencent.vod.flutter.ui.render.FTXRenderView;
+import com.tencent.vod.flutter.ui.render.FTXRenderViewFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,38 +46,35 @@ import java.util.Locale;
 import java.util.Map;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.view.TextureRegistry;
 
 /**
  * live player processor
  */
-public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerApi, FtxMessages.VoidResult {
+public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterLivePlayerApi, FtxMessages.VoidResult {
 
     private static final String TAG = "FTXLivePlayer";
     private final FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
 
-    private SurfaceTexture mSurfaceTexture;
-    private Surface mSurface;
-
     private V2TXLivePlayer mLivePlayer;
     private static final int Uninitialized = -101;
-    private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
 
     private final FTXPIPManager mPipManager;
     private boolean mNeedPipResume = false;
-    private FTXV2LiveRender mRender;
     private final FTXV2LiveObserver mObserver;
     private int mLastPlayEvent = -1;
     private boolean mIsPaused = false;
     private final FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
+    private final FTXRenderViewFactory mRenderViewFactory;
+    private FTXRenderView mCurRenderView;
+    private final Handler mUIHandler = new Handler(Looper.getMainLooper());
+    private boolean mIsMute = false;
 
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPipResult(TXPipResult result) {
             if (mLivePlayer != null) {
-                mLivePlayer.enableObserveVideoFrame(true, V2TXLiveDef.V2TXLivePixelFormat.V2TXLivePixelFormatTexture2D,
-                        V2TXLiveDef.V2TXLiveBufferType.V2TXLiveBufferTypeTexture);
                 mLivePlayer.setObserver(mObserver);
+                setRenderView(mCurRenderView.getRenderView());
             }
             // When starting PIP, the current player has been paused. After PIP exits,
             // if PIP is still in playing state, the current player will also be set to playing state.
@@ -114,49 +114,30 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
      * <p>
      * 直播播放器
      */
-    public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager) {
+    public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, FTXPIPManager pipManager,
+                         FTXRenderViewFactory renderViewFactory, boolean onlyAudio) {
         super();
         mFlutterPluginBinding = flutterPluginBinding;
         mPipManager = pipManager;
+        mRenderViewFactory = renderViewFactory;
         FtxMessages.TXFlutterLivePlayerApi.setUp(flutterPluginBinding.getBinaryMessenger(),
                 String.valueOf(getPlayerId()), this);
         mLiveFlutterApi = new FtxMessages.TXLivePlayerFlutterAPI(flutterPluginBinding.getBinaryMessenger(),
                 String.valueOf(getPlayerId()));
         TXFlutterEngineHolder.getInstance().addAppLifeListener(mAppLifeListener);
-
-        mSurfaceTextureEntry = mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
-        mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
-        mSurface = new Surface(mSurfaceTexture);
-        mRender = new FTXV2LiveRender(mSurfaceTexture);
         mObserver = new FTXV2LiveObserver(this);
+        init(onlyAudio);
     }
 
     @Override
     public void destroy() {
         if (mLivePlayer != null) {
-            mLivePlayer.stopPlay();
+            stopPlay(true);
+            setRenderView(null);
             mLivePlayer = null;
         }
-
-        if (mSurfaceTextureEntry != null) {
-            mSurfaceTextureEntry.release();
-            mSurfaceTextureEntry = null;
-        }
-
-        if (mSurfaceTexture != null) {
-            mSurfaceTexture.release();
-            mSurfaceTexture = null;
-        }
-
-        if (mSurface != null) {
-            mSurface.release();
-            mSurface = null;
-        }
-
-        if (mRender != null) {
-            mRender.destroy();
-            mRender = null;
-        }
+        mCurRenderView = null;
+        mUIHandler.removeCallbacksAndMessages(null);
 
         TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
     }
@@ -164,34 +145,45 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     protected long init(boolean onlyAudio) {
         if (mLivePlayer == null) {
             mLivePlayer = new V2TXLivePlayerImpl(mFlutterPluginBinding.getApplicationContext());
-            mLivePlayer.enableObserveVideoFrame(true, V2TXLiveDef.V2TXLivePixelFormat.V2TXLivePixelFormatTexture2D,
-                    V2TXLiveDef.V2TXLiveBufferType.V2TXLiveBufferTypeTexture);
             mLivePlayer.setObserver(mObserver);
+            mLivePlayer.setRenderFillMode(V2TXLiveDef.V2TXLiveFillMode.V2TXLiveFillModeScaleFill);
+            if (!onlyAudio) {
+                if (null != mCurRenderView) {
+                    mCurRenderView.setPlayer(this);
+                }
+            }
         }
-        LiteavLog.d(TAG, "textureId :" + mSurfaceTextureEntry.id());
-        return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
+        return FTXEvent.NO_ERROR;
     }
 
     int startPlayerLivePlay(String url) {
         LiteavLog.d(TAG, "startLivePlay:");
         if (null != mLivePlayer) {
             mLivePlayer.resumeVideo();
-            mLivePlayer.resumeAudio();
+            if (!mIsMute) {
+                mLivePlayer.resumeAudio();
+            }
             mLastPlayEvent = -1;
             mIsPaused = false;
-            return mLivePlayer.startLivePlay(url);
+            mLivePlayer.startLivePlay(url);
+            return 0;
         }
         return Uninitialized;
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
+        int result = Uninitialized;
         if (mLivePlayer != null) {
             mLastPlayEvent = -1;
             mIsPaused = false;
-            mRender.stopRender();
-            return mLivePlayer.stopPlay();
+            result =  mLivePlayer.stopPlay();
         }
-        return Uninitialized;
+        mUIHandler.removeCallbacksAndMessages(null);
+        if (isNeedClearLastImg && null != mCurRenderView) {
+            LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
+            mCurRenderView.getRenderView().clearLastImg();
+        }
+        return result;
     }
 
     boolean isPlayerPlaying() {
@@ -215,7 +207,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     void resumePlayer() {
         if (mLivePlayer != null) {
             mLivePlayer.resumeVideo();
-            mLivePlayer.resumeAudio();
+            if (!mIsMute) {
+                mLivePlayer.resumeAudio();
+            }
             mIsPaused = false;
             int evtID = TXLiveConstants.PLAY_EVT_PLAY_BEGIN;
             Bundle bundle = new Bundle();
@@ -225,9 +219,10 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
 
     void setPlayerMute(boolean mute) {
         if (mLivePlayer != null) {
+            mIsMute = mute;
             if (mute) {
                 mLivePlayer.pauseAudio();
-            } else {
+            } else if (!mIsPaused) {
                 mLivePlayer.resumeAudio();
             }
         }
@@ -337,6 +332,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
     @Override
     public void setMute(@NonNull BoolPlayerMsg mute) {
         if (null != mute.getValue()) {
+            LiteavLog.i(TAG, "set player mute:" + mute + ",player:" + hashCode());
             setPlayerMute(mute.getValue());
         }
     }
@@ -380,8 +376,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         int pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(mLivePlayer, mIsPaused));
         // After the startup is successful, pause the video on the current interface.
         if (pipResult == FTXEvent.NO_ERROR) {
-            mLivePlayer.enableObserveVideoFrame(false, V2TXLiveDef.V2TXLivePixelFormat.V2TXLivePixelFormatTexture2D,
-                    V2TXLiveDef.V2TXLiveBufferType.V2TXLiveBufferTypeTexture);
             pausePlayer();
         }
         return TXCommonUtil.intMsgWith((long) pipResult);
@@ -453,11 +447,30 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         return -1L;
     }
 
+    @Override
+    public void setPlayerView(@NonNull Long renderViewId) {
+        int viewId = renderViewId.intValue();
+        FTXRenderView renderView = mRenderViewFactory.findViewById(viewId);
+        if (null != renderView) {
+            mCurRenderView = renderView;
+            renderView.setPlayer(this);
+        } else {
+            LiteavLog.e(TAG, "setPlayerView can not find renderView by id:" + viewId + ", release player's renderView");
+            mCurRenderView = null;
+            setRenderView(null);
+        }
+    }
+
     private void notifyPlayerEvent(int evtId, Bundle bundle) {
-        mLastPlayEvent = evtId;
-        mLiveFlutterApi.onPlayerEvent(TXCommonUtil.getParams(evtId, bundle), this);
-        LiteavLog.e(TAG, "onLivePlayEvent:" + evtId
-                + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
+        mUIHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mLastPlayEvent = evtId;
+                mLiveFlutterApi.onPlayerEvent(TXCommonUtil.getParams(evtId, bundle), FTXLivePlayer.this);
+                LiteavLog.e(TAG, "onLivePlayEvent:" + evtId
+                        + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
+            }
+        });
     }
 
     @Override
@@ -470,26 +483,26 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         LiteavLog.e(TAG, "callback message error:" + error);
     }
 
+    @Override
+    protected V2TXLivePlayer getLivePlayer() {
+        return mLivePlayer;
+    }
+
     private static class FTXV2LiveObserver extends V2TXLivePlayerObserver implements FtxMessages.VoidResult {
 
         private static final String TAG = "FTXV2LiveObserver";
 
-        private final FTXV2LiveRender mRender;
         private final FTXLivePlayer mLivePlayer;
         private final FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
 
         public FTXV2LiveObserver(FTXLivePlayer livePlayer) {
             mLivePlayer = livePlayer;
-            mRender = livePlayer.mRender;
             mLiveFlutterApi = livePlayer.mLiveFlutterApi;
         }
 
         @Override
         public void onRenderVideoFrame(V2TXLivePlayer player, V2TXLiveDef.V2TXLiveVideoFrame videoFrame) {
             super.onRenderVideoFrame(player, videoFrame);
-            if (null != mRender) {
-                mRender.updateFrame(videoFrame);
-            }
         }
 
         @Override
@@ -521,8 +534,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
                     width, height));
             int code = TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION;
             mLivePlayer.notifyPlayerEvent(code, bundle);
-            mRender.stopRender();
-            mRender.startDraw();
         }
 
         @Override
@@ -553,9 +564,6 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
                 int evtID = TXLiveConstants.PLAY_EVT_RCV_FIRST_I_FRAME;
                 Bundle bundle = new Bundle(extraInfo);
                 mLivePlayer.notifyPlayerEvent(evtID, bundle);
-                if (!mRender.isDrawing()) {
-                    mRender.startDraw();
-                }
             }
         }
 
@@ -591,8 +599,13 @@ public class FTXLivePlayer extends FTXBasePlayer implements TXFlutterLivePlayerA
         @Override
         public void onStatisticsUpdate(V2TXLivePlayer player, V2TXLiveDef.V2TXLivePlayerStatistics statistics) {
             super.onStatisticsUpdate(player, statistics);
-            Bundle bundle = FTXV2LiveTools.buildNetBundle(statistics);
-            mLiveFlutterApi.onNetEvent(TXCommonUtil.getParams(0, bundle), this);
+            mLivePlayer.mUIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Bundle bundle = FTXV2LiveTools.buildNetBundle(statistics);
+                    mLiveFlutterApi.onNetEvent(TXCommonUtil.getParams(0, bundle), FTXV2LiveObserver.this);
+                }
+            });
         }
 
         @Override

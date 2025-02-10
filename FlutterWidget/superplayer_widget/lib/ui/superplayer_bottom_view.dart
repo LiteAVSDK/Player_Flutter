@@ -92,7 +92,6 @@ class _VideoBottomViewState extends State<VideoBottomView> {
               children: [
                 _getPlayImage(),
                 SizedBox(
-                  width: 35,
                   child: Text(
                     _buildTextString(_currentDuration),
                     style: const TextStyle(fontSize: 12, color: Colors.white),
