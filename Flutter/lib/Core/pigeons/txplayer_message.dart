@@ -299,6 +299,8 @@ class PreLoadInfoMsg {
   int? preferredResolution;
   int? tmpPreloadTaskId;
   Map<String?, String?>? httpHeader;
+  int? encryptedMp4Level;
+  String? preferAudioTrack;
 }
 
 class MapMsg {

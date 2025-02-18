@@ -83,7 +83,9 @@ class TXVodDownloadController implements TXDownloadFlutterAPI {
       ..pSign = txPlayInfoParams.psign
       ..preloadSizeMB = preloadSizeMB
       ..preferredResolution = preferredResolution
-      ..httpHeader = txPlayInfoParams.httpHeader);
+      ..httpHeader = txPlayInfoParams.httpHeader
+      ..encryptedMp4Level = txPlayInfoParams.encryptedMp4Level
+      ..preferAudioTrack = txPlayInfoParams.preferAudioTrack);
     _fileIdBeforeStartListeners[tmpPreloadTaskId] = _PreloadListener()
       ..onCompleteListener = onCompleteListener
       ..onErrorListener = onErrorListener

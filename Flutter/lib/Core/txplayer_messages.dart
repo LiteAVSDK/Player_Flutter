@@ -897,6 +897,8 @@ class PreLoadInfoMsg {
     this.preferredResolution,
     this.tmpPreloadTaskId,
     this.httpHeader,
+    this.encryptedMp4Level,
+    this.preferAudioTrack,
   });
 
   int? appId;
@@ -915,6 +917,10 @@ class PreLoadInfoMsg {
 
   Map<String?, String?>? httpHeader;
 
+  int? encryptedMp4Level;
+
+  String? preferAudioTrack;
+
   Object encode() {
     return <Object?>[
       appId,
@@ -925,6 +931,8 @@ class PreLoadInfoMsg {
       preferredResolution,
       tmpPreloadTaskId,
       httpHeader,
+      encryptedMp4Level,
+      preferAudioTrack,
     ];
   }
 
@@ -939,6 +947,8 @@ class PreLoadInfoMsg {
       preferredResolution: result[5] as int?,
       tmpPreloadTaskId: result[6] as int?,
       httpHeader: (result[7] as Map<Object?, Object?>?)?.cast<String?, String?>(),
+      encryptedMp4Level: result[8] as int?,
+      preferAudioTrack: result[9] as String?,
     );
   }
 }
