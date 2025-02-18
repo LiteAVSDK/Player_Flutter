@@ -34,13 +34,6 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
     @Override
     public void setRenderView(FTXRenderCarrier textureView) {
         if (null != textureView) {
-//            if (mTextureView != textureView) {
-//                removeRenderView();
-//                mTextureView = textureView;
-//                textureView.bindPlayer(this);
-//            } else {
-//                textureView.bindPlayer(this);
-//            }
             LiteavLog.i(TAG, "start bind Player:" + textureView + ", player:" + hashCode());
             mTextureView = textureView;
             textureView.bindPlayer(this);
