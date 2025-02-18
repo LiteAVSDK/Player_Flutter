@@ -641,11 +641,15 @@ class TXPlayInfoParams {
   final String? url;
   // Custom httpHeader
   final Map<String, String>? httpHeader;
+  // Set mp4 encryption level
+  final int? encryptedMp4Level;
+  // Pre-downloaded audio track name
+  final String? preferAudioTrack;
 
-  const TXPlayInfoParams.useFileId({required this.appId, required this.fileId, this.psign = "", this.httpHeader}) : this.url = "";
-  const TXPlayInfoParams.useUrl({required this.url, this.httpHeader}) : this.appId = 0, this.fileId = "", this.psign = "";
+  const TXPlayInfoParams.useFileId({required this.appId, required this.fileId, this.psign = "", this.httpHeader}) : this.url = "", this.encryptedMp4Level = 0, this.preferAudioTrack = "";
+  const TXPlayInfoParams.useUrl({required this.url, this.httpHeader}) : this.appId = 0, this.fileId = "", this.psign = "", this.encryptedMp4Level = 0, this.preferAudioTrack = "";
 
-  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign = "", this.url = "", this.httpHeader});
+  const TXPlayInfoParams({required this.appId, required this.fileId, this.psign = "", this.url = "", this.httpHeader, this.encryptedMp4Level, this.preferAudioTrack});
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};

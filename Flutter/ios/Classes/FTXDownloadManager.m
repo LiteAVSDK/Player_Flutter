@@ -360,6 +360,14 @@
         params.fileId = fileId;
         params.sign = (msg.pSign != nil && [msg.pSign isKindOfClass:[NSString class]]) ? msg.pSign : @"";
         params.headers = msg.httpHeader != nil ? msg.httpHeader : @{};
+        if (msg.encryptedMp4Level != nil && [msg.encryptedMp4Level isKindOfClass:[NSNumber class]]
+            && [msg.encryptedMp4Level intValue] >= 0) {
+            params.encryptedMp4Level = (TX_Enum_MP4EncryptionLevel)[msg.encryptedMp4Level intValue];
+        }
+        if (msg.preferAudioTrack != nil && [msg.preferAudioTrack isKindOfClass:[NSString class]]
+            && [msg.preferAudioTrack length] >= 0) {
+            params.preferAudioTrack = msg.preferAudioTrack;
+        }
         __block TXPredownloadFileHelperDelegate *delegate = [[TXPredownloadFileHelperDelegate alloc] initWithBlock:tmpTaskId start:^(long tmpTaskId, int taskID, NSString * _Nonnull fileId, NSString * _Nonnull url, NSDictionary * _Nonnull param) {
             [self onPreLoadStartEvent:tmpTaskId taskID:taskID fileId:fileId url:url param:param];
         } complete:^(int taskID, NSString * _Nonnull url) {
