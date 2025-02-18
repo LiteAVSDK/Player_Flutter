@@ -71,17 +71,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
       }
     });
 
-    playNetEventSubscription = _controller.onPlayerNetStatusBroadcast.listen((event) async {
-      // Subscribe to status changes
-      double w = (event[TXVodNetEvent.NET_STATUS_VIDEO_WIDTH]).toDouble();
-      double h = (event[TXVodNetEvent.NET_STATUS_VIDEO_HEIGHT]).toDouble();
-
-      if (w > 0 && h > 0) {
-        setState(() {
-          _aspectRatio = 1.0 * w / h;
-        });
-      }
-    });
     await _controller.setLoop(true);
     await _controller.enableHardwareDecode(enableHardware);
     await _controller.setConfig(FTXVodPlayConfig());
@@ -94,10 +83,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     } else {
       await _controller.startVodPlay(_url);
     }
-    
-    TXPlayerDrmBuilder builder = TXPlayerDrmBuilder("https://widevine.drm.vod-qcloud.com/widevine/getlicense/v2?drmToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9~eyJ0eXBlIjoiRHJtVG9rZW4iLCJhcHBJZCI6MTUwMDAzMzc4NiwiZmlsZUlkIjoiMTM5Nzc1Nzg5MTA1OTU0NzE3NiIsImN1cnJlbnRUaW1lU3RhbXAiOjAsImV4cGlyZVRpbWVTdGFtcCI6MTczNTgzMDAwMCwicmFuZG9tIjowLCJvdmVybGF5S2V5IjoiIiwib3ZlcmxheUl2IjoiIiwiY2lwaGVyZWRPdmVybGF5S2V5IjoiIiwiY2lwaGVyZWRPdmVybGF5SXYiOiIiLCJrZXlJZCI6MSwic3RyaWN0TW9kZSI6MCwicGVyc2lzdGVudCI6IiIsInJlbnRhbER1cmF0aW9uIjowLCJmb3JjZUwxVHJhY2tUeXBlcyI6bnVsbH0~PKD-JRK2W8RfFJFqEpEq7pr3a8O9xQBWfysRiBHDYgE"
-        , "https://1500033786.vod-qcloud.com/184dff4avodtranshk1500033786/c4c7fcda1397757891059547176/adp.13.m3u8?t=6776a9f0&rlimit=10&us=ghaoreutqarlk&sign=979492f2bd330520e8ebb2225ff4e472");
-    // _controller.start
   }
 
   void _resizeVideo(Map<dynamic, dynamic> event) {
@@ -155,7 +140,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
         ),
         body: SafeArea(
             child: Container(
-          //color: Colors.blueGrey,
           child: Column(
             children: [
               Container(

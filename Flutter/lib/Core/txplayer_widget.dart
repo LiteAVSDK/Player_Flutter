@@ -55,16 +55,14 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return IgnorePointer(
         ignoring: true,
-        child: PlatformViewLink(
-            surfaceFactory: (context, controller) {
-              return AndroidViewSurface(
-                controller: controller as AndroidViewController,
-                gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
-                hitTestBehavior: PlatformViewHitTestBehavior.opaque,
-              );
-            },
-            onCreatePlatformView: _onCreateAndroidView,
-            viewType: _kFTXPlayerRenderViewType),
+        child: AndroidView(
+          viewType: _kFTXPlayerRenderViewType,
+          layoutDirection: TextDirection.ltr,
+          creationParams: {_kFTXAndroidRenderTypeKey: widget.renderViewType.index},
+          creationParamsCodec: const StandardMessageCodec(),
+          onPlatformViewCreated: _onCreateAndroidView,
+          gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
+        ),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return IgnorePointer(
@@ -82,25 +80,13 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     }
   }
 
-  PlatformViewController _onCreateAndroidView(PlatformViewCreationParams params) {
+  void _onCreateAndroidView(int id) {
     if (_viewIdCompleter.isCompleted) {
       _viewIdCompleter = Completer();
     }
-    _viewId = params.id;
-    _viewIdCompleter.complete(params.id);
-    _setPlayerView(params.id);
-    return PlatformViewsService.initSurfaceAndroidView(
-      id: params.id,
-      viewType: _kFTXPlayerRenderViewType,
-      layoutDirection: TextDirection.ltr,
-      creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
-      creationParamsCodec: const StandardMessageCodec(),
-      onFocus: () {
-        params.onFocusChanged(true);
-      },
-    )
-      ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
-      ..create();
+    _viewId = id;
+    _viewIdCompleter.complete(id);
+    _setPlayerView(id);
   }
 
   Future<void> _setPlayerView(int viewId) async {
