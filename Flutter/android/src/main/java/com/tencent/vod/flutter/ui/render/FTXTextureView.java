@@ -1,10 +1,11 @@
 package com.tencent.vod.flutter.ui.render;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
+import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
@@ -49,10 +50,15 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
 
     @Override
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
-        mPlayer = surfaceHost;
-        if (null != mSurface && null != surfaceHost) {
-            LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:" + hashCode());
-            surfaceHost.setSurface(mSurface);
+        if (surfaceHost != mPlayer) {
+            mPlayer = surfaceHost;
+            if (null != mSurface && null != surfaceHost) {
+                LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:" + hashCode());
+                surfaceHost.setSurface(mSurface);
+            }
+        } else {
+            LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
+                    + hashCode());
         }
     }
 
@@ -83,7 +89,7 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     }
 
     private void updateSurfaceTexture(SurfaceTexture surfaceTexture) {
-        if (mSurfaceTexture != surfaceTexture || null != surfaceTexture) {
+        if (mSurfaceTexture != surfaceTexture && null != surfaceTexture) {
             LiteavLog.v(TAG, "surfaceTexture is updated:" + surfaceTexture);
             mSurfaceTexture = surfaceTexture;
             mSurface = new Surface(surfaceTexture);
@@ -124,11 +130,10 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
         }
         mSurfaceTexture = null;
         mSurface = null;
-        return false;
+        return true;
     }
 
     @Override
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
-
     }
 }
