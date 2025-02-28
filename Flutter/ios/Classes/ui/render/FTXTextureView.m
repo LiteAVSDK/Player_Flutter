@@ -7,8 +7,9 @@
 
 @interface FTXTextureView()
 
-@property (nonatomic, strong) CALayer *videoLayer;
+@property (nonatomic, strong) AVSampleBufferDisplayLayer *videoLayer;
 @property (nonatomic, strong) FTXBasePlayer *curRenderPlayer;
+@property (nonatomic, strong) CIContext *ciContext;
 
 @end
 
@@ -18,8 +19,11 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.videoLayer = [CALayer layer];
-        self.videoLayer.frame = self.bounds;
+        self.videoLayer = [AVSampleBufferDisplayLayer layer];
+        self.videoLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+        self.videoLayer.backgroundColor = [UIColor blackColor].CGColor;
+        [self.layer addSublayer:self.videoLayer];
+        self.ciContext = [CIContext contextWithOptions:nil];
         [self.layer addSublayer:self.videoLayer];
     }
     return self;
@@ -46,23 +50,67 @@
     }
 }
 
+- (CMSampleBufferRef)createSampleBufferWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
+                                           formatDesc:(CMVideoFormatDescriptionRef)formatDesc
+                                               timing:(CMSampleTimingInfo)timing {
+    CMSampleBufferRef sampleBuffer = NULL;
+    OSStatus status;
+    
+    // 创建 CMSampleBuffer
+    status = CMSampleBufferCreateForImageBuffer(
+        NULL,
+        pixelBuffer,
+        YES,
+        NULL,
+        NULL,
+        formatDesc,
+        &timing,
+        &sampleBuffer
+    );
+    
+    if (status != noErr || !sampleBuffer) {
+        NSLog(@"Failed to create CMSampleBuffer: %d", (int)status);
+        return NULL;
+    }
+    
+    // 关键设置：标记为未压缩数据
+    CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, YES);
+    if (attachments) {
+        CFMutableDictionaryRef dict = (CFMutableDictionaryRef)CFArrayGetValueAtIndex(attachments, 0);
+        CFDictionarySetValue(dict, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue);
+    }
+    
+    return sampleBuffer;
+}
+
 - (void)renderFrameByPixel:(nonnull CVPixelBufferRef)pixelBuffer {
-    CIImage *ciImage = [FTXImgTools ciImageFromPixelBuffer:pixelBuffer];
-    
-    // 创建一个CIContext
-    CIContext *context = [CIContext contextWithOptions:nil];
-    
-    // 将CIImage渲染到CGImage
-    CGImageRef cgImage = [context createCGImage:ciImage fromRect:ciImage.extent];
-    
-    // 在主线程中更新 UI
-    dispatch_async(dispatch_get_main_queue(), ^{
-        // 更新CALayer的内容
-        self.videoLayer.contents = (__bridge id _Nullable)(cgImage);
-        
-        // 释放CGImage
-        CGImageRelease(cgImage);
-    });
+    @synchronized (self) {
+        CVPixelBufferRetain(pixelBuffer);
+        @try {
+            // 创建 CMVideoFormatDescription
+            CMVideoFormatDescriptionRef formatDesc = NULL;
+            CMVideoFormatDescriptionCreateForImageBuffer(NULL, pixelBuffer, &formatDesc);
+            
+            // 封装为 CMSampleBuffer
+            CMSampleTimingInfo timing = { CMTimeMake(1, 30), kCMTimeInvalid, kCMTimeInvalid };
+            CMSampleBufferRef sampleBuffer = [self createSampleBufferWithPixelBuffer:pixelBuffer
+                                                                          formatDesc:formatDesc
+                                                                              timing:timing];
+            
+            // 提交到 AVSampleBufferDisplayLayer
+            if (sampleBuffer && [self.videoLayer isReadyForMoreMediaData]) {
+                [self.videoLayer enqueueSampleBuffer:sampleBuffer];
+            }
+            
+            // 释放资源
+            if (formatDesc) CFRelease(formatDesc);
+            if (sampleBuffer) CFRelease(sampleBuffer);
+        } @catch (NSException *exception) {
+            FTXLOGE(@"renderFrameByPixel failed, error:%@", exception);
+        } @finally {
+            // do nothing
+        }
+    }
 }
 
 - (void)layoutSubviews {
