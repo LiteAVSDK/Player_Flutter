@@ -30,6 +30,8 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     private void init() {
         getHolder().addCallback(this);
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     @Override
@@ -71,29 +73,16 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
-    private void layoutTextureRenderMode() {
-        if (getParent() != null) {
-            final int viewWidth = ((ViewGroup) getParent()).getWidth();
-            final int viewHeight = ((ViewGroup) getParent()).getHeight();
-            ViewGroup.LayoutParams layoutParams = getLayoutParams();
-            layoutParams.width = viewWidth;
-            layoutParams.height = viewHeight;
-            setLayoutParams(layoutParams);
-        }
-    }
-
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         LiteavLog.v(TAG, "surfaceCreated");
         applySurfaceConfig(holder.getSurface(), 0, 0);
-        layoutTextureRenderMode();
     }
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
         LiteavLog.v(TAG, "surfaceChanged");
         applySurfaceConfig(holder.getSurface(), width, height);
-        layoutTextureRenderMode();
     }
 
     @Override

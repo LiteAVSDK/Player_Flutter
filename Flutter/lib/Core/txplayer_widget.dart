@@ -1,11 +1,15 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
 part of SuperPlayer;
 
-class TXPlayerVideo extends StatefulWidget {
-  final TXPlayerController controller;
-  final FTXAndroidRenderViewType renderViewType;
+typedef FTXOnRenderViewCreatedListener = void Function(int viewId);
 
-  TXPlayerVideo({required this.controller, FTXAndroidRenderViewType? androidRenderType, Key? viewKey})
+class TXPlayerVideo extends StatefulWidget {
+  final TXPlayerController? controller;
+  final FTXAndroidRenderViewType renderViewType;
+  final FTXOnRenderViewCreatedListener? onRenderViewCreatedListener;
+
+  TXPlayerVideo({this.controller, this.onRenderViewCreatedListener,
+    FTXAndroidRenderViewType? androidRenderType, Key? viewKey})
       : renderViewType = androidRenderType ?? FTXAndroidRenderViewType.TEXTURE_VIEW, super(key: viewKey);
 
   @override
@@ -55,14 +59,17 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return IgnorePointer(
         ignoring: true,
-        child: AndroidView(
-          viewType: _kFTXPlayerRenderViewType,
-          layoutDirection: TextDirection.ltr,
-          creationParams: {_kFTXAndroidRenderTypeKey: widget.renderViewType.index},
-          creationParamsCodec: const StandardMessageCodec(),
-          onPlatformViewCreated: _onCreateAndroidView,
-          gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
-        ),
+        child:
+        PlatformViewLink(
+            surfaceFactory: (context, controller) {
+              return AndroidViewSurface(
+                controller: controller as AndroidViewController,
+                gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
+                hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+              );
+            },
+            onCreatePlatformView: _onCreatePlatformAndroidView,
+            viewType: _kFTXPlayerRenderViewType),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return IgnorePointer(
@@ -80,17 +87,45 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     }
   }
 
-  void _onCreateAndroidView(int id) {
+  PlatformViewController _onCreatePlatformAndroidView(PlatformViewCreationParams params) {
     if (_viewIdCompleter.isCompleted) {
       _viewIdCompleter = Completer();
     }
-    _viewId = id;
-    _viewIdCompleter.complete(id);
-    _setPlayerView(id);
+    _viewId = params.id;
+    _viewIdCompleter.complete(params.id);
+    widget.onRenderViewCreatedListener?.call(params.id);
+    _setPlayerView(params.id);
+    if (widget.renderViewType == FTXAndroidRenderViewType.DRM_SURFACE_VIEW) {
+      return PlatformViewsService.initSurfaceAndroidView(
+        id: params.id,
+        viewType: _kFTXPlayerRenderViewType,
+        layoutDirection: TextDirection.ltr,
+        creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
+        creationParamsCodec: const StandardMessageCodec(),
+        onFocus: () {
+          params.onFocusChanged(true);
+        },
+      )
+        ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+        ..create();
+    } else {
+      return PlatformViewsService.initAndroidView(
+        id: params.id,
+        viewType: _kFTXPlayerRenderViewType,
+        layoutDirection: TextDirection.ltr,
+        creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
+        creationParamsCodec: const StandardMessageCodec(),
+        onFocus: () {
+          params.onFocusChanged(true);
+        },
+      )
+        ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+        ..create();
+    }
   }
 
   Future<void> _setPlayerView(int viewId) async {
-    await widget.controller.setPlayerView(viewId);
+    await widget.controller?.setPlayerView(viewId);
   }
 
   void _onCreateIOSView(int id) {
@@ -99,6 +134,7 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     }
     _viewId = id;
     _viewIdCompleter.complete(id);
+    widget.onRenderViewCreatedListener?.call(id);
     _setPlayerView(id);
   }
 
