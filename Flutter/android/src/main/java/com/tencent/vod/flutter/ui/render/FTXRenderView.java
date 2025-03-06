@@ -42,7 +42,7 @@ public class FTXRenderView implements PlatformView {
         mContainer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         resetRenderView();
-        LiteavLog.i(TAG, "view " + id + " is created");
+        LiteavLog.i(TAG, "view " + id + " is created， renderType:" + mRenderType);
         mViewId = id;
     }
 

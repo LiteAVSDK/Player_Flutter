@@ -44,10 +44,22 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
-        mPlayer = surfaceHost;
-        if (null != mSurface && null != surfaceHost) {
-            LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:" + hashCode());
-            surfaceHost.setSurface(mSurface);
+        LiteavLog.i(TAG, "called bindPlayer " + surfaceHost + ", view:" + FTXSurfaceView.this.hashCode());
+        if (surfaceHost != mPlayer || (null != mPlayer && mPlayer.getCurCarrier() != FTXSurfaceView.this)) {
+            mPlayer = surfaceHost;
+            if (null != mSurface && null != surfaceHost) {
+                LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:"
+                        + FTXSurfaceView.this.hashCode());
+                if (mSurface.isValid()) {
+                    surfaceHost.setSurface(mSurface);
+                } else {
+                    LiteavLog.w(TAG, "bindPlayer interrupt ,mSurface: " + mSurface + " is inVaild, view:"
+                            + FTXSurfaceView.this.hashCode());
+                }
+            }
+        } else {
+            LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
+                    + FTXSurfaceView.this.hashCode());
         }
     }
 
