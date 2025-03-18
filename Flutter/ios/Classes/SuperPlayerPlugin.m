@@ -11,6 +11,7 @@
 #import "FtxMessages.h"
 #import "FTXLog.h"
 #import "FTXRenderViewFactory.h"
+#import "FTXPiPKit/FTXPipConstants.h"
 
 @interface SuperPlayerPlugin ()<FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, FlutterPlugin, TXLiveBaseDelegate>
 

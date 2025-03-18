@@ -32,7 +32,7 @@ public class FTXRenderViewFactory extends PlatformViewFactory {
     @Override
     public PlatformView create(Context context, int viewId, @Nullable Object args) {
         final Map<String, Object> creationParams = (Map<String, Object>) args;
-        FTXRenderView renderView = new FTXRenderView(context, viewId, creationParams, mBinaryMessenger);
+        FTXRenderView renderView = new FTXRenderView(context, viewId, creationParams);
         mRenderViewCache.put(viewId, new WeakReference<>(renderView));
         LiteavLog.i(TAG, "create renderView: " + viewId);
         return renderView;

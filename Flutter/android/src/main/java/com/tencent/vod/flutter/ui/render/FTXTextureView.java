@@ -1,9 +1,7 @@
 package com.tencent.vod.flutter.ui.render;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
-import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.ViewGroup;
@@ -31,34 +29,48 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
 
     private void initTextureView() {
         setSurfaceTextureListener(this);
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     @Override
     public void clearLastImg() {
-        LiteavLog.i(TAG, "start clearLastImg, view:" + hashCode());
+        LiteavLog.i(TAG, "start clearLastImg, view:" + FTXTextureView.this.hashCode());
         ViewParent viewParent = getParent();
         if (null != viewParent) {
             // remove view for targeting surface recycle
             ViewGroup viewGroup = (ViewGroup) viewParent;
-            int viewIndex = viewGroup.indexOfChild(this);
-            viewGroup.removeView(this);
-            viewGroup.addView(this, viewIndex);
+            final int viewIndex = viewGroup.indexOfChild(FTXTextureView.this);
+            if (null != mSurfaceTexture) {
+                mSurfaceTexture.release();
+            }
+            mSurfaceTexture = null;
+            mSurface = null;
+            viewGroup.removeView(FTXTextureView.this);
+            viewGroup.addView(FTXTextureView.this, viewIndex);
         } else {
-            LiteavLog.i(TAG, "clearLastImg failed, parent is null, view:" + hashCode());
+            LiteavLog.i(TAG, "clearLastImg failed, parent is null, view:" + FTXTextureView.this.hashCode());
         }
     }
 
     @Override
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
-        if (surfaceHost != mPlayer) {
+        LiteavLog.i(TAG, "called bindPlayer " + surfaceHost + ", view:" + FTXTextureView.this.hashCode());
+        if (surfaceHost != mPlayer || (null != mPlayer && mPlayer.getCurCarrier() != FTXTextureView.this)) {
             mPlayer = surfaceHost;
-            if (null != mSurface && null != surfaceHost) {
-                LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:" + hashCode());
-                surfaceHost.setSurface(mSurface);
+            if (null != mSurfaceTexture && null != surfaceHost) {
+                LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:"
+                        + FTXTextureView.this.hashCode());
+                if (mSurface.isValid()) {
+                    surfaceHost.setSurface(mSurface);
+                } else {
+                    LiteavLog.w(TAG, "bindPlayer interrupt ,mSurface: " + mSurface + " is inVaild, view:"
+                            + FTXTextureView.this.hashCode());
+                }
             }
         } else {
             LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
-                    + hashCode());
+                    + FTXTextureView.this.hashCode());
         }
     }
 
@@ -97,29 +109,16 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
         }
     }
 
-    private void layoutTextureRenderMode() {
-        if (getParent() != null) {
-            final int viewWidth = ((ViewGroup) getParent()).getWidth();
-            final int viewHeight = ((ViewGroup) getParent()).getHeight();
-            ViewGroup.LayoutParams layoutParams = getLayoutParams();
-            layoutParams.width = viewWidth;
-            layoutParams.height = viewHeight;
-            setLayoutParams(layoutParams);
-        }
-    }
-
     @Override
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
         LiteavLog.v(TAG, "onSurfaceTextureAvailable");
         applySurfaceConfig(surface, width, height);
-        layoutTextureRenderMode();
     }
 
     @Override
     public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
         LiteavLog.v(TAG, "onSurfaceTextureSizeChanged");
         applySurfaceConfig(surface, width, height);
-        layoutTextureRenderMode();
     }
 
     @Override
@@ -130,10 +129,11 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
         }
         mSurfaceTexture = null;
         mSurface = null;
-        return true;
+        return false;
     }
 
     @Override
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+
     }
 }

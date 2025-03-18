@@ -1,0 +1,6 @@
+framework module FTXPiPKit {
+  umbrella header "FTXPiPKit-umbrella.h"
+
+  export *
+  module * { export * }
+}

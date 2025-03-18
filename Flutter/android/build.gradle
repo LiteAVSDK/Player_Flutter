@@ -1,20 +1,9 @@
 plugins {
-    id "com.android.library"     // ✅ 声明式插件语法
+    id "com.android.library"
 }
 apply from:'config.gradle'
 group 'com.tencent.vod.flutter'
 version rootProject.ext.playerVersion
-//
-//buildscript {
-//    repositories {
-//        google()
-//        mavenCentral()
-//    }
-//
-//    dependencies {
-//        classpath 'com.android.tools.build:gradle:4.1.0'
-//    }
-//}
 
 rootProject.allprojects {
     repositories {

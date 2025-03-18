@@ -24,38 +24,6 @@
 
 // PIP error event code.
 #define NO_ERROR                             0     ///<   No error. 无错误
-/// Device or system version is not supported (PIP is only supported on iPad iOS9+).
-/// 设备或系统版本不支持（iPad iOS9+ 才支持PIP）
-#define ERROR_IOS_PIP_DEVICE_NOT_SUPPORT     -104
-/// Player not supported.
-/// 播放器不支持
-#define ERROR_IOS_PIP_PLAYER_NOT_SUPPORT     -105
-/// Video not supported.
-/// 视频不支持
-#define ERROR_IOS_PIP_VIDEO_NOT_SUPPORT      -106
-/// PIP controller not available
-/// PIP控制器不可用
-#define ERROR_IOS_PIP_IS_NOT_POSSIBLE        -107
-/// PIP controller error.
-/// PIP控制器报错
-#define ERROR_IOS_PIP_FROM_SYSTEM            -108
-/// Player object does not exist.
-/// 播放器对象不存在
-#define ERROR_IOS_PIP_PLAYER_NOT_EXIST       -109
-/// PIP function is already running.
-/// PIP功能已经运行
-#define ERROR_IOS_PIP_IS_RUNNING             -110
-/// PIP function is not started.
-/// PIP功能没有启动
-#define ERROR_IOS_PIP_NOT_RUNNING            -111
-/// PIP  start time out
-/// PIP 启动超时
-#define ERROR_IOS_PIP_START_TIME_OUT            -112
-/// Insufficient permissions, currently only appears in Picture-in-Picture live streaming
-/// 权限不足，目前只出现在直播画中画
-#define ERROR_PIP_AUTH_DENIED                -201
-
-
 
 // Video pre-download completed.
 // 视频预下载完成

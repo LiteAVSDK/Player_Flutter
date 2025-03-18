@@ -937,7 +937,8 @@ abstract class TXPlayerType {
 /// 如果是drm 播放，可能需要切换为 SurfaceView 模式，默认为 TextureView
 enum FTXAndroidRenderViewType {
   TEXTURE_VIEW,
-  SURFACE_VIEW
+  SURFACE_VIEW,
+  DRM_SURFACE_VIEW
 }
 
 // Video pre-download event callback listener.

@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 
@@ -303,7 +302,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         mHardwareDecodeFail = false;
         if (isNeedClearLastImg && null != mCurRenderView) {
             LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
-            mCurRenderView.getRenderView().clearLastImg();
+            mCurRenderView.clearTexture();
         }
         return result;
     }

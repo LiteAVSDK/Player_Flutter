@@ -7,10 +7,6 @@
 
 @protocol FTXRenderControl <NSObject>
 
-- (void)onRenderFrame:(CVPixelBufferRef)pixelBuffer;
-
-- (void)clearLastImg;
-
 @end
 
 #endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_PLAYER_RENDER_FTXRENDERCONTROL_H_

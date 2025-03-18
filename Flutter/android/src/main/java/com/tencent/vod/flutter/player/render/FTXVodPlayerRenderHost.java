@@ -35,8 +35,8 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
     public void setRenderView(FTXRenderCarrier textureView) {
         if (null != textureView) {
             LiteavLog.i(TAG, "start bind Player:" + textureView + ", player:" + hashCode());
-            mTextureView = textureView;
             textureView.bindPlayer(this);
+            mTextureView = textureView;
         } else {
             LiteavLog.i(TAG, "setRenderView met a null textureView, player:" + hashCode());
             removeRenderView();
@@ -64,6 +64,11 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
             vodPlayer.setSurface(null);
         }
         mTextureView = null;
+    }
+
+    @Override
+    public FTXRenderCarrier getCurCarrier() {
+        return mTextureView;
     }
 
     protected abstract TXVodPlayer getVodPlayer();

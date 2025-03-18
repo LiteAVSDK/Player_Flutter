@@ -13,7 +13,7 @@
 #import "FTXV2LiveTools.h"
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
-#import "FTXPipController.h"
+#import <FTXPiPKit/FTXPipController.h>
 #import "FTXImgTools.h"
 #import "FTXTextureView.h"
 
@@ -458,12 +458,10 @@ static const int uninitialized = -1;
 }
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
-    BOOL r = [self stopPlay];
-    if ([isNeedClear.value boolValue] == YES) {
-        if (self.renderControl != nil) {
-            [self.renderControl clearLastImg];
-        }
+    if (self.livePlayer) {
+        [self.livePlayer setProperty:kV2ClearLastImage value:@(isNeedClear.value.boolValue)];
     }
+    BOOL r = [self stopPlay];
     return [TXCommonUtil boolMsgWith:r];
 }
 
@@ -539,7 +537,7 @@ static const int uninitialized = -1;
 - (void)setRenderView:(FTXTextureView *)renderView {
     if (nil != self.livePlayer) {
         if (nil != renderView) {
-            [renderView bindPlayer:self];
+            [self.livePlayer setRenderView:renderView];
         } else {
             self.renderControl = nil;
         }
@@ -727,13 +725,7 @@ static const int uninitialized = -1;
  * @note  需要您调用 {@link enableObserveVideoFrame} 开启回调开关。
  */
 - (void)onRenderVideoFrame:(id<V2TXLivePlayer>)player frame:(V2TXLiveVideoFrame *)videoFrame {
-    if (nil != self.renderControl) {
-        [self.renderControl onRenderFrame:videoFrame.pixelBuffer];
-    }
-
-    if (self.isStartEnterPipMode) {
-        [[FTXPipController shareInstance] displayPixelBuffer:videoFrame.pixelBuffer];
-    }
+    
 }
 
 /**
@@ -924,6 +916,9 @@ static const int uninitialized = -1;
         self.restoreUI = YES;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self resume];
+            if (self.curRenderView) {
+                [self setRenderView:[self.curRenderView getRenderView]];
+            }
         });
         if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateRestoreUI:)]) {
             [self.delegate onPlayerPipStateRestoreUI:0];
@@ -935,10 +930,7 @@ static const int uninitialized = -1;
 - (void)playerStateDidChange:(FTXAVPlayerState)playerState {
     if (playerState == FTXAVPlayerStatePlaying) {
         [self resumeImpl];
-    } 
-//    else if (playerState == FTXAVPlayerStatePaused) {
-//        [self pauseImpl];
-//    }
+    }
 }
 
 @end

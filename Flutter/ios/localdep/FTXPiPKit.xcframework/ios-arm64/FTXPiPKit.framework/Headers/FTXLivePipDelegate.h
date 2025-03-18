@@ -2,8 +2,8 @@
 #ifndef SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_FTXLIVEPIPDELEGATE_H_
 #define SUPERPLAYER_FLUTTER_IOS_CLASSES_HELPER_FTXLIVEPIPDELEGATE_H_
 
-#import "FTXLiteAVSDKHeader.h"
-#import "FTXPlayerConstants.h"
+#import "FTXPipLiteAVSDKHeader.h"
+#import "FTXPipConstants.h"
 
 @protocol FTXLivePipDelegate <NSObject>
 
