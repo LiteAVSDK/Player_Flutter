@@ -187,7 +187,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                   }),
                   _createItem(AppLocals.current.playerStopPlay, () {
                     _isStop = true;
-                    _controller.stop();
+                    _controller.stop(isNeedClear: true);
                   }),
                   _createItem(AppLocals.current.playerReplay,
                       () => _controller.startLivePlay(_url, playType: TXPlayType.LIVE_FLV)),
@@ -266,7 +266,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign, bool enableDownload) {
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign, bool enableDownload, _) {
             _url = url;
             _controller.stop();
             if (url.isNotEmpty) {

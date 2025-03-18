@@ -68,6 +68,7 @@ class SuperPlayerController {
   double videoWidth = 0;
   double videoHeight = 0;
   double currentPlayRate = 1.0;
+  int _curViewId = -1;
 
   SuperPlayerController(this._context) {
     _initVodPlayer();
@@ -350,6 +351,7 @@ class SuperPlayerController {
     if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY || _playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       await _playWithModelInner(videoModel);
     }
+    _updatePlayerState(SuperPlayerState.START);
     _observer?.onPreparePlayVideo();
   }
 
@@ -369,9 +371,12 @@ class SuperPlayerController {
   Future<void> _playWithField(SuperPlayerModel model) async {
     _setVodListener();
     await _vodPlayerController.setToken(null);
+    _updatePlayerType(SuperPlayerType.VOD);
+    if (_curViewId >=0) {
+      setPlayerView(_curViewId);
+    }
     _vodPlayerController.startVodPlayWithParams(TXPlayInfoParams(appId: model.appId,
         fileId: model.videoId!.fileId, psign: model.videoId!.psign));
-    _updatePlayerType(SuperPlayerType.VOD);
     _observer?.onPlayProgress(0, model.duration.toDouble(), await getPlayableDuration());
     _updateImageSpriteAndKeyFrame(null, null);
   }
@@ -427,21 +432,6 @@ class SuperPlayerController {
     return await _vodPlayerController.getPlayableDuration();
   }
 
-  void _playUrlVideo(SuperPlayerModel? model) {
-    if (model != null) {
-      if (model.multiVideoURLs != null && model.multiVideoURLs.isNotEmpty) {
-        // 多码率URL播放
-        for (int i = 0; i < model.multiVideoURLs.length; i++) {
-          if (i == model.defaultPlayIndex) {
-            _playVodUrl(model.multiVideoURLs[i].url);
-          }
-        }
-      } else if (model.videoURL != null && model.videoURL.isNotEmpty) {
-        _playVodUrl(model.videoURL);
-      }
-    }
-  }
-
   void _playWithUrl(SuperPlayerModel model) {
     List<VideoQuality> videoQualities = [];
     VideoQuality? defaultVideoQuality;
@@ -462,14 +452,14 @@ class SuperPlayerController {
       _observer?.onError(SuperPlayerCode.PLAY_URL_EMPTY, FSPLocal.current.txSpwErrEmptyUrl);
       return;
     }
-    if (_isRTMPPlay(videoUrl) || _isWebRtcPlay(videoUrl) || _isFLVPlay(videoUrl)) {
+    bool isLivePlay = (_isRTMPPlay(videoUrl) || _isFLVPlay(videoUrl) || _isWebRtcPlay(videoUrl));
+    _updatePlayerType(isLivePlay ? SuperPlayerType.LIVE : SuperPlayerType.VOD);
+    if (isLivePlay) {
       _playLiveURL(videoUrl);
     } else {
       _playVodUrl(videoUrl);
     }
-    bool isLivePlay = (_isRTMPPlay(videoUrl) || _isFLVPlay(videoUrl) || _isWebRtcPlay(videoUrl));
     _observer?.onPlayProgress(0, model.duration.toDouble(), 0);
-    _updatePlayerType(isLivePlay ? SuperPlayerType.LIVE : SuperPlayerType.VOD);
     _updateVideoQualityList(videoQualities, defaultVideoQuality);
     _updateImageSpriteAndKeyFrame(null, null);
   }
@@ -489,6 +479,9 @@ class SuperPlayerController {
       await _vodPlayerController.setAutoPlay(isAutoPlay: true);
     }
     _setVodListener();
+    if (_curViewId >= 0) {
+      setPlayerView(_curViewId);
+    }
     await _vodPlayerController.setToken(null);
     LogUtils.d(TAG, "playVodURL url:$url");
     await _vodPlayerController.startVodPlay(url);
@@ -534,7 +527,7 @@ class SuperPlayerController {
       }
     } else {
       if (null != videoModel) {
-        await _playWithModelInner(videoModel!);
+        await playWithModelNeedLicence(videoModel!);
       }
     }
   }
@@ -544,6 +537,9 @@ class SuperPlayerController {
   void _playLiveURL(String url) async {
     _currentPlayUrl = url;
     _setLiveListener();
+    if (_curViewId >= 0) {
+      setPlayerView(_curViewId);
+    }
     bool result = await _livePlayerController.startLivePlay(url);
     if (result) {
       _updatePlayerState(SuperPlayerState.PLAYING);
@@ -575,6 +571,7 @@ class SuperPlayerController {
 
   void _updatePlayerState(SuperPlayerState state) {
     playerState = state;
+    print("_updatePlayerState:$state");
     switch (state) {
       case SuperPlayerState.INIT:
         _observer?.onPlayPrepare();
@@ -871,6 +868,17 @@ class SuperPlayerController {
     if (playerType == SuperPlayerType.VOD) {
       isLoop = loop;
       return await _vodPlayerController.setLoop(loop);
+    }
+  }
+
+  /// set renderView
+  /// 设置渲染 view
+  Future<void> setPlayerView(int viewId) async {
+    _curViewId = viewId;
+    if (playerType == SuperPlayerType.VOD) {
+      await _vodPlayerController.setPlayerView(viewId);
+    } else {
+      await _livePlayerController.setPlayerView(viewId);
     }
   }
 

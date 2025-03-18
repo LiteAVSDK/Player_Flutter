@@ -4,8 +4,12 @@ package com.tencent.vod.flutter.player.render;
 
 import android.view.Surface;
 
+import com.tencent.vod.flutter.ui.render.FTXRenderCarrier;
+
 public interface FTXPlayerRenderSurfaceHost {
 
     void setSurface(Surface surface);
+
+    FTXRenderCarrier getCurCarrier();
 
 }

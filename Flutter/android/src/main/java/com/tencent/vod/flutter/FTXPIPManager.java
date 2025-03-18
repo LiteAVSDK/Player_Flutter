@@ -354,6 +354,8 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
             mIsNeedPlayControl = in.readByte() != 0;
             mIsPlaying = in.readByte() != 0;
             mCurrentPlayTime = in.readFloat();
+            mViewWith = in.readInt();
+            mViewHeight = in.readInt();
         }
 
         public static final Creator<PipParams> CREATOR = new Creator<PipParams>() {
@@ -504,7 +506,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
         }
 
         @Override
-        public void writeToParcel(Parcel dest, int flags) {
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
             dest.writeString(mPlayBackAssetPath);
             dest.writeString(mPlayResumeAssetPath);
             dest.writeString(mPlayPauseAssetPath);
@@ -515,7 +517,10 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
             dest.writeByte((byte) (mIsNeedPlayControl ? 1 : 0));
             dest.writeByte((byte) (mIsPlaying ? 1 : 0));
             dest.writeFloat(mCurrentPlayTime);
+            dest.writeInt(mViewWith);
+            dest.writeInt(mViewHeight);
         }
+
     }
 
     /**

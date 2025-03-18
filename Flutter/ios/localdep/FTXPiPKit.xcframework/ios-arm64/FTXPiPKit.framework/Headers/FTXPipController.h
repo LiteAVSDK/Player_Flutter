@@ -4,7 +4,7 @@
 
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
-#import "FTXLiteAVSDKHeader.h"
+#import "FTXPipLiteAVSDKHeader.h"
 #import "FTXLivePipDelegate.h"
 #import "FTXPipPlayerDelegate.h"
 
@@ -22,8 +22,6 @@
 - (void)resumePipVideo;
 
 - (void)exitPip;
-
-- (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
 @end
 

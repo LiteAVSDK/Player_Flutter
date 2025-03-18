@@ -47,6 +47,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   late MoreViewController _moreViewController;
   late AudioTrackController _audioTrackController;
   late SubtitleTrackController _subtitleTrackController;
+  Completer<int> _playerViewIdCompleter = Completer();
 
   StreamSubscription? _volumeSubscription;
   StreamSubscription? _pipSubscription;
@@ -164,6 +165,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       }
     });
     _initPlayerState();
+    connectPlayerView();
   }
 
   @override
@@ -277,7 +279,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _playController._updatePlayerUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.FULLSCREEN_MODE);
-
       hideControlView();
       await Navigator.of(context).push(MaterialPageRoute(builder: (context) {
         return SuperPlayerFullScreenView(_playController, _superPlayerFullUIController);
@@ -290,6 +291,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       hideControlView();
+      _videoKey.currentState?.resetController();
     });
     WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.addObserver(this);
@@ -318,6 +320,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _isLoading = true;
         _coverViewKey.currentState?.hideCover();
         break;
+      case SuperPlayerState.START:
+        _isPlaying = false;
+        _isShowCover = true;
+        _isLoading = true;
+        break;
       case SuperPlayerState.INIT:
         _isPlaying = false;
         _isLoading = false;
@@ -344,14 +351,32 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _refreshDownloadStatus();
   }
 
+  Future<void> connectPlayerView() async {
+    int viewId = await _playerViewIdCompleter.future;
+    _playController.setPlayerView(viewId);
+  }
+
+  void _onPlayerViewCreated(int viewId) {
+    if (_playerViewIdCompleter.isCompleted) {
+      _playerViewIdCompleter = Completer();
+      _playerViewIdCompleter.complete(viewId);
+      connectPlayerView();
+    } else {
+      _playerViewIdCompleter.complete(viewId);
+    }
+  }
+
   void _refreshUI() async {
-    _updateState();
-    _videoKey.currentState?.resetController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateState();
+      connectPlayerView();
+    });
   }
 
   void _updateState() {
     // Refresh the binding of the observer.
     _registerObserver();
+    _initPlayerState();
     _calculateSize(_playController.videoWidth, _playController.videoHeight);
   }
 
@@ -593,14 +618,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       highlightColor: Colors.transparent,
       splashColor: Colors.transparent,
       child: Center(
-        child:  widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
-        AspectRatio(
-            aspectRatio: _aspectRatio,
-            child: TXPlayerVideo(controller: _playController.getCurrentController(), viewKey: _videoKey))
-        : SizedBox(
-          child: TXPlayerVideo(
-              controller: _playController.getCurrentController(), viewKey: _videoKey),
-        )
+          child:  widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
+          AspectRatio(
+              aspectRatio: _aspectRatio,
+              child: TXPlayerVideo(viewKey: _videoKey, onRenderViewCreatedListener: _onPlayerViewCreated,))
+              : SizedBox(
+            child: TXPlayerVideo(viewKey: _videoKey, onRenderViewCreatedListener: _onPlayerViewCreated,),
+          )
       ),
     );
   }
@@ -911,9 +935,11 @@ class FullScreenController {
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       enterFullScreen();
+      Future.delayed(Duration(milliseconds: 500), (){
+        SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      });
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
       SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);

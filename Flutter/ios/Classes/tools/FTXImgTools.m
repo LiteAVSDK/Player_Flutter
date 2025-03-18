@@ -58,6 +58,55 @@ static uint32_t bitmapInfoWithPixelFormatType(OSType inputPixelFormat, bool hasA
     }
 }
 
+// 生成黑色帧的工具函数
++ (CMSampleBufferRef)createBlankSampleBufferWithWidth:(int)width height:(int)height {
+    // 1. 创建 CVPixelBuffer
+    CVPixelBufferRef pixelBuffer = NULL;
+    NSDictionary *pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey: @{}};
+    CVReturn status = CVPixelBufferCreate(
+        kCFAllocatorDefault,
+        width,
+        height,
+        kCVPixelFormatType_32BGRA, // 格式必须与图层配置一致
+        (__bridge CFDictionaryRef)pixelAttributes,
+        &pixelBuffer
+    );
+    
+    if (status != kCVReturnSuccess || !pixelBuffer) {
+        return NULL;
+    }
+    
+    // 2. 锁定并填充黑色数据
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+    void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
+    size_t bufferSize = CVPixelBufferGetDataSize(pixelBuffer);
+    memset(baseAddress, 0, bufferSize); // 填充黑色（全0）
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    
+    // 3. 转换为 CMSampleBuffer
+    CMSampleBufferRef sampleBuffer = NULL;
+    CMVideoFormatDescriptionRef formatDesc = NULL;
+    CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, pixelBuffer, &formatDesc);
+    
+    CMSampleTimingInfo timing = { CMTimeMake(1, 30), kCMTimeZero, kCMTimeInvalid }; // 时间戳信息
+    CMSampleBufferCreateForImageBuffer(
+        kCFAllocatorDefault,
+        pixelBuffer,
+        YES,
+        NULL,
+        NULL,
+        formatDesc,
+        &timing,
+        &sampleBuffer
+    );
+    
+    // 4. 释放资源
+    CFRelease(pixelBuffer);
+    if (formatDesc) CFRelease(formatDesc);
+    
+    return sampleBuffer;
+}
+
 // Check alpha value
 BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     if (!imageRef) {

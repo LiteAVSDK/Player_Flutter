@@ -69,8 +69,8 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
     );
   }
 
-  GestureDetector _getGestureDetectorView() {
-    return GestureDetector(
+  Widget _getGestureDetectorView() {
+    return InkWell(
         child: Stack(
           children: [
             Container(
@@ -190,9 +190,13 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
       if (event.eventType == BaseEvent.PLAY_AND_STOP) {
         _stopLastAndPlayCurrent(event.playerIndex);
       } else if (event.eventType == BaseEvent.PAUSE) {
+        // for from front to back
         _pause();
       } else if(event.eventType == BaseEvent.RESUME) {
-        _resume();
+        // for from back to front
+        if (_isVideoPlaying) {
+          _controller.resume();
+        }
       } else {
         LogUtils.e(TAG, "receive unknown eventType${event.eventType}");
       }

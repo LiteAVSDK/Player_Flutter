@@ -1,4 +1,16 @@
 
+#### Version: 12.3.1 2025.03.18
+
+##### Features：
+
+- set Android TXLiteAVSDK_Professional to 12.3.0.17122，tag：release_pro_v12.3.1
+- TXPlayerVideo has added a new onRenderViewCreatedListener callback. After obtaining the viewId of TXPlayerVideo, you can set the viewId to the player when needed.
+- Fix an issue that the picture-in-picture on iOS does not display correctly in the window in some cases.
+- Fix an issue that the aspect ratio of the picture-in-picture window is incorrect on Android.
+- Fix an issue that there is no picture after the player component returns from full screen.
+- Fix an issue that long-term video playback causes memory overflow on iOS.
+- Fix an issue that high-security-level DRM videos cannot be played on iOS.
+
 ### Version: 12.3.0 2025.01.21
 
 #### Features：
@@ -288,4 +300,5 @@
 
 - set Android TXLiteAVSDK_Professional to 10.2.0.11131，tag：release_player_v1.0.2
 - set iOS TXLiteAVSDK_Professional to 10.2.11418， tag：release_pro_v1.0.2
+
 
