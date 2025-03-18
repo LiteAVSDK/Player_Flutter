@@ -2,7 +2,8 @@
 #ifndef SUPERPLAYER_FLUTTER_IOS_CLASSES_LIVE_PIP_FTXPIPPLAYERDELEGATE_H_
 #define SUPERPLAYER_FLUTTER_IOS_CLASSES_LIVE_PIP_FTXPIPPLAYERDELEGATE_H_
 
-#import "FTXPlayerConstants.h"
+#import "FTXPipLiteAVSDKHeader.h"
+#import "FTXPipConstants.h"
 
 @protocol FTXPipPlayerDelegate <NSObject>
 

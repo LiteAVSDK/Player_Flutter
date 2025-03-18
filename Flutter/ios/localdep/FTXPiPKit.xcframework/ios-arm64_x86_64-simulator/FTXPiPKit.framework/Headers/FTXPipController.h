@@ -1,0 +1,28 @@
+// Copyright (c) 2024 Tencent. All rights reserved.
+#ifndef SUPERPLAYER_FLUTTER_IOS_CLASSES_LIVE_PIP_FTXPIPCONTROLLER_H_
+#define SUPERPLAYER_FLUTTER_IOS_CLASSES_LIVE_PIP_FTXPIPCONTROLLER_H_
+
+#import <UIKit/UIKit.h>
+#import <AVFoundation/AVFoundation.h>
+#import "FTXPipLiteAVSDKHeader.h"
+#import "FTXLivePipDelegate.h"
+#import "FTXPipPlayerDelegate.h"
+
+@interface FTXPipController : NSObject
+
+@property(nonatomic, strong)id<FTXLivePipDelegate> pipDelegate;
+@property(nonatomic, strong)id<FTXPipPlayerDelegate> playerDelegate;
+
++ (instancetype)shareInstance;
+
+- (int)startOpenPip:(V2TXLivePlayer*)livePlayer withView:(UIView*)renderView withSize:(CGSize)size;
+
+- (void)pausePipVideo;
+
+- (void)resumePipVideo;
+
+- (void)exitPip;
+
+@end
+
+#endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_LIVE_PIP_FTXPIPCONTROLLER_H_

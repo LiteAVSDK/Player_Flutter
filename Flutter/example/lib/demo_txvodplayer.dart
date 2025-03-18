@@ -27,14 +27,16 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   List _supportedBitrates = [];
   int _curBitrateIndex = 0;
   String _url = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/48d0f1f9387702299774251236/adp.10.m3u8";
+  TXPlayInfoParams? _videoParams;
   int _appId = 0;
   String _fileId = "";
   double _rate = 1.0;
-  bool enableHardware = true;
+  bool enableHardware = false;
   int volume = 80;
   bool _isPlaying = false;
   StreamSubscription? playEventSubscription;
   StreamSubscription? playNetEventSubscription;
+  FTXAndroidRenderViewType _renderType = FTXAndroidRenderViewType.TEXTURE_VIEW;
 
   GlobalKey<VideoSliderViewState> progressSliderKey = GlobalKey();
 
@@ -49,11 +51,12 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
 
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
       // Subscribe to event distribution
-      if (event["event"] == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
+      final int code = event["event"];
+      if (code == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
         _supportedBitrates = (await _controller.getSupportedBitrates())!;
         _resizeVideo(event);
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
+      } else if (code== TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _isPlaying = true;
         _currentProgress = event[TXVodPlayEvent.EVT_PLAY_PROGRESS].toDouble();
         double videoDuration = event[TXVodPlayEvent.EVT_PLAY_DURATION].toDouble(); // Total playback time, converted unit in seconds
@@ -62,12 +65,14 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
         } else {
           progressSliderKey.currentState?.updateProgress(_currentProgress / videoDuration, videoDuration);
         }
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
+      } else if (code == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
         _resizeVideo(event);
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_LOADING) {
+      } else if (code == TXVodPlayEvent.PLAY_EVT_PLAY_LOADING) {
         EasyLoading.show(status: "loading");
-      } else if (event["event"] == TXVodPlayEvent.PLAY_EVT_VOD_LOADING_END || event["event"] == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN) {
+      } else if (code == TXVodPlayEvent.PLAY_EVT_VOD_LOADING_END || code == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN) {
         EasyLoading.dismiss();
+      } else if (code != -100 && code < 0) {
+        EasyLoading.showToast("playError:$event");
       }
     });
 
@@ -149,7 +154,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
                   child: _aspectRatio > 0
                       ? AspectRatio(
                           aspectRatio: _aspectRatio,
-                          child: TXPlayerVideo(controller: _controller),
+                          child: TXPlayerVideo(controller: _controller, androidRenderType: _renderType,),
                         )
                       : Container(),
                 ),
@@ -191,8 +196,10 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
       }),
       _createItem(AppLocals.current.playerVariableSpeedPlay, () {onClickSetRate();}),
       _createItem(_isMute ? AppLocals.current.playerCancelMute : AppLocals.current.playerSetMute, () {
-        _isMute = !_isMute;
-        _controller.setMute(_isMute);
+        setState(() {
+          _isMute = !_isMute;
+          _controller.setMute(_isMute);
+        });
       }),
       _createItem(AppLocals.current.playerAdjustVolume, () {onClickVolume();}),
       _createItem(AppLocals.current.playerSwitchBitrate, () {
@@ -222,7 +229,13 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
           bool enableSuccess = await _controller.enableHardwareDecode(enableHardware);
           double startTime = await _controller.getCurrentPlaybackTime();
           await _controller.setStartTime(startTime);
-          await _controller.startVodPlay(_url);
+          if (_url.isNotEmpty) {
+            await _controller.startVodPlay(_url);
+          } else if (null != _videoParams) {
+            await _controller.startVodPlayWithParams(_videoParams!);
+          } else {
+            EasyLoading.showError("video source is not exists");
+          }
           String wareMode = enableHardware ? AppLocals.current.playerHardEncode : AppLocals.current.playerSoftEncode;
           if (enableSuccess) {
             EasyLoading.showToast(AppLocals.current.playerSwitchSucTo.txFormat([wareMode]));
@@ -276,18 +289,30 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     showDialog(
         context: context,
         builder: (context) {
-          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign, bool enableDownload) {
+          return DemoInputDialog("", 0, "", (String url, int appId, String fileId, String pSign, bool enableDownload, bool isDrm) {
             _url = url;
             _appId = appId;
             _fileId = fileId;
             _controller.setStartTime(0);
             if (url.isNotEmpty) {
+              _videoParams = null;
               _controller.startVodPlay(url);
             } else if (appId != 0 && fileId.isNotEmpty) {
+              FTXAndroidRenderViewType dstRenderType = FTXAndroidRenderViewType.TEXTURE_VIEW;
+              if (isDrm) {
+                dstRenderType = FTXAndroidRenderViewType.DRM_SURFACE_VIEW;
+              }
+              if (dstRenderType != _renderType) {
+                setState(() {
+                  _renderType = dstRenderType;
+                });
+              }
+              _controller.stop(isNeedClear: true);
               TXPlayInfoParams params = TXPlayInfoParams(appId: _appId, fileId: _fileId, psign: pSign != null ? pSign : "");
+              _videoParams = params;
               _controller.startVodPlayWithParams(params);
             }
-          }, needPisgn: true);
+          }, needPisgn: true, needDrm: true,);
         });
   }
 

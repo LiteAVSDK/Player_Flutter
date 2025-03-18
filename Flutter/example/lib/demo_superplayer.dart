@@ -172,8 +172,17 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   Widget getBody() {
-    return Column(
-      children: [_getPlayArea(), Expanded(flex: 1, child: _getListArea()), _getAddArea()],
+    return SingleChildScrollView(
+      child: LayoutBuilder(builder: (context, constrains) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height
+          ),
+          child: Column(
+            children: [_getPlayArea(), Expanded(flex: 1, child: _getListArea()), _getAddArea()],
+          ),
+        );
+      }),
     );
   }
 
@@ -195,6 +204,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             Expanded(
                 child: ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: videoModels.length,
               itemBuilder: (context, i) => _buildVideoItem(videoModels[i]),
             ))
@@ -243,7 +253,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
             "",
             0,
             "",
-            (String url, int appId, String fileId, String pSign, bool enableDownload) {
+            (String url, int appId, String fileId, String pSign, bool enableDownload, _) {
               SuperPlayerModel model = new SuperPlayerModel();
               model.title = "test video";
               model.appId = appId;

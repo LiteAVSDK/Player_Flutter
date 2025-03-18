@@ -14,6 +14,7 @@
 #import <stdatomic.h>
 #import "FTXImgTools.h"
 #import "FTXTextureView.h"
+#import "FTXPiPKit/FTXPipConstants.h"
 
 static const int uninitialized = -1;
 
@@ -129,7 +130,6 @@ static const int uninitialized = -1;
 {
     if (!onlyAudio) {
         if (_txVodPlayer != nil) {
-            [_txVodPlayer setVideoProcessDelegate:self];
             if (nil != self.curRenderView) {
                 [self.curRenderView setPlayer:self];
             }
@@ -435,9 +435,6 @@ static const int uninitialized = -1;
  * 说明：渲染图像的数据类型为config中设置的renderPixelFormatType
  */
 - (BOOL)onPlayerPixelBuffer:(CVPixelBufferRef)pixelBuffer {
-    if (nil != self.renderControl) {
-        [self.renderControl onRenderFrame:pixelBuffer];
-    }
     return NO;
 }
 
@@ -903,12 +900,10 @@ static const int uninitialized = -1;
 }
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    TXVodPlayConfig *config = _txVodPlayer.config;
+    config.keepLastFrameWhenStop = !isNeedClear.value.boolValue;
+    [_txVodPlayer setConfig:config];
     BOOL r = [self stopPlay];
-    if ([isNeedClear.value boolValue] == YES) {
-        if (self.renderControl != nil) {
-            [self.renderControl clearLastImg];
-        }
-    }
     return [TXCommonUtil boolMsgWith:r];
 }
 
@@ -1029,10 +1024,12 @@ static const int uninitialized = -1;
 }
 
 - (void)setRenderView:(FTXTextureView*)renderView {
-    if (renderView != nil) {
-        [renderView bindPlayer:self];
-    } else {
-        self.renderControl = nil;
+    if (nil != _txVodPlayer) {
+        if (renderView != nil) {
+            [_txVodPlayer setupVideoWidget:renderView insertIndex:0];
+        } else {
+            self.renderControl = nil;
+        }
     }
 }
 

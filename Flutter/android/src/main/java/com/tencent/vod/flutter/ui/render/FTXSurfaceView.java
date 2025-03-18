@@ -30,6 +30,8 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     private void init() {
         getHolder().addCallback(this);
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     @Override
@@ -42,10 +44,22 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
-        mPlayer = surfaceHost;
-        if (null != mSurface && null != surfaceHost) {
-            LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:" + hashCode());
-            surfaceHost.setSurface(mSurface);
+        LiteavLog.i(TAG, "called bindPlayer " + surfaceHost + ", view:" + FTXSurfaceView.this.hashCode());
+        if (surfaceHost != mPlayer || (null != mPlayer && mPlayer.getCurCarrier() != FTXSurfaceView.this)) {
+            mPlayer = surfaceHost;
+            if (null != mSurface && null != surfaceHost) {
+                LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:"
+                        + FTXSurfaceView.this.hashCode());
+                if (mSurface.isValid()) {
+                    surfaceHost.setSurface(mSurface);
+                } else {
+                    LiteavLog.w(TAG, "bindPlayer interrupt ,mSurface: " + mSurface + " is inVaild, view:"
+                            + FTXSurfaceView.this.hashCode());
+                }
+            }
+        } else {
+            LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
+                    + FTXSurfaceView.this.hashCode());
         }
     }
 
@@ -71,29 +85,16 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
-    private void layoutTextureRenderMode() {
-        if (getParent() != null) {
-            final int viewWidth = ((ViewGroup) getParent()).getWidth();
-            final int viewHeight = ((ViewGroup) getParent()).getHeight();
-            ViewGroup.LayoutParams layoutParams = getLayoutParams();
-            layoutParams.width = viewWidth;
-            layoutParams.height = viewHeight;
-            setLayoutParams(layoutParams);
-        }
-    }
-
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         LiteavLog.v(TAG, "surfaceCreated");
         applySurfaceConfig(holder.getSurface(), 0, 0);
-        layoutTextureRenderMode();
     }
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
         LiteavLog.v(TAG, "surfaceChanged");
         applySurfaceConfig(holder.getSurface(), width, height);
-        layoutTextureRenderMode();
     }
 
     @Override

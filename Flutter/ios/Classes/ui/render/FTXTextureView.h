@@ -10,8 +10,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface FTXTextureView : UIView<FTXRenderControl>
 
-- (void)renderFrameByPixel:(CVPixelBufferRef)pixelBuffer;
-
 - (void)bindPlayer:(nullable FTXBasePlayer*)player;
 
 @end

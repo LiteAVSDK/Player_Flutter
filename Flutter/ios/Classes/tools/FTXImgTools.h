@@ -3,6 +3,7 @@
 #define SUPERPLAYER_FLUTTER_IOS_CLASSES_TOOLS_FTXIMGTOOLS_H_
 
 #import <Foundation/Foundation.h>
+#import <CoreMedia/CoreMedia.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -11,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (CVPixelBufferRef)CVPixelBufferRefFromUiImage:(UIImage *)img;
 
 + (CIImage *)ciImageFromPixelBuffer:(CVPixelBufferRef)pixelBuffer;
+
++ (CMSampleBufferRef)createBlankSampleBufferWithWidth:(int)width height:(int)height;
 
 @end
 

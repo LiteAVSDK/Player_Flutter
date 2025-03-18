@@ -42,28 +42,29 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
       ));
     }
 
-    return Stack(
-      children: [
-        PageView(
-          scrollDirection: Axis.vertical,
-          onPageChanged: (int index) {
-            LogUtils.i(TAG, "[onPageEndChanged] outside ${_currentIndex.toString()} ——》 ${index.toString()}");
-            _stopAndPlay(index);
-          },
-          children: widgetList,
-        ),
-        SafeArea(
-            child: Container(
-          child: InkWell(
-            onTap: _onBackTap,
-            child: const Image(
-              width: 40,
-              height: 40,
-              image: AssetImage("images/superplayer_btn_back_play.png", package: PlayerConstants.PKG_NAME),
-            ),
-          ),
-        )),
-      ],
+    return Container(
+      decoration: BoxDecoration(color: Colors.black),
+      child: SafeArea(
+          child: Stack(
+            children: [
+              PageView(
+                scrollDirection: Axis.vertical,
+                onPageChanged: (int index) {
+                  LogUtils.i(TAG, "[onPageEndChanged] outside ${_currentIndex.toString()} ——》 ${index.toString()}");
+                  _stopAndPlay(index);
+                },
+                children: widgetList,
+              ),
+              InkWell(
+                onTap: _onBackTap,
+                child: const Image(
+                  width: 40,
+                  height: 40,
+                  image: AssetImage("images/superplayer_btn_back_play.png", package: PlayerConstants.PKG_NAME),
+                ),
+              )
+            ],
+          )),
     );
   }
 

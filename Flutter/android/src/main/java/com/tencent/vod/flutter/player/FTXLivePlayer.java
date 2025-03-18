@@ -17,7 +17,6 @@ import com.tencent.live2.impl.V2TXLivePlayerImpl;
 import com.tencent.live2.impl.V2TXLiveProperty;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
-import com.tencent.rtmp.TXLivePlayConfig;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager;
 import com.tencent.vod.flutter.messages.FtxMessages;
@@ -181,7 +180,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         mUIHandler.removeCallbacksAndMessages(null);
         if (isNeedClearLastImg && null != mCurRenderView) {
             LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
-            mCurRenderView.getRenderView().clearLastImg();
+            mCurRenderView.clearTexture();
         }
         return result;
     }
@@ -236,7 +235,6 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
 
     void setPlayerLiveMode(int type) {
         if (mLivePlayer != null) {
-            TXLivePlayConfig config = new TXLivePlayConfig();
             if (type == 0) {
                 // Auto mode
                 mLivePlayer.setCacheParams(1.0f, 5.0f);
