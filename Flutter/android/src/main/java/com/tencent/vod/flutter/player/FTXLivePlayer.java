@@ -67,6 +67,8 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     private FTXRenderView mCurRenderView;
     private final Handler mUIHandler = new Handler(Looper.getMainLooper());
     private boolean mIsMute = false;
+    private int mCurrentVideoWidth = 0;
+    private int mCurrentVideoHeight = 0;
 
     private final FTXPIPManager.PipCallback pipCallback = new FTXPIPManager.PipCallback() {
         @Override
@@ -178,6 +180,8 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
             result =  mLivePlayer.stopPlay();
         }
         mUIHandler.removeCallbacksAndMessages(null);
+        mCurrentVideoWidth = 0;
+        mCurrentVideoHeight = 0;
         if (isNeedClearLastImg && null != mCurRenderView) {
             LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
             mCurRenderView.clearTexture();
@@ -370,11 +374,19 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
                 mPipManager.toAndroidPath(pipParamsMsg.getPauseIconForAndroid()),
                 mPipManager.toAndroidPath(pipParamsMsg.getForwardIconForAndroid()),
                 getPlayerId(), false, false, true);
-        pipParams.setIsPlaying(isPlayerPlaying());
-        int pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(mLivePlayer, mIsPaused));
-        // After the startup is successful, pause the video on the current interface.
-        if (pipResult == FTXEvent.NO_ERROR) {
-            pausePlayer();
+        int pipResult = FTXEvent.ERROR_PIP_MISS_PLAYER;
+        if (null != mLivePlayer) {
+            pipParams.setIsPlaying(isPlayerPlaying());
+            if (mCurrentVideoWidth > 0 && mCurrentVideoHeight > 0) {
+                pipParams.setRadio(mCurrentVideoWidth, mCurrentVideoHeight);
+            } else {
+                LiteavLog.e(TAG, "miss video size when enter PIP");
+            }
+            pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(mLivePlayer, mIsPaused));
+            // After the startup is successful, pause the video on the current interface.
+            if (pipResult == FTXEvent.NO_ERROR) {
+                pausePlayer();
+            }
         }
         return TXCommonUtil.intMsgWith((long) pipResult);
     }
@@ -532,6 +544,8 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
                     width, height));
             int code = TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION;
             mLivePlayer.notifyPlayerEvent(code, bundle);
+            mLivePlayer.mCurrentVideoWidth = width;
+            mLivePlayer.mCurrentVideoHeight = height;
         }
 
         @Override
