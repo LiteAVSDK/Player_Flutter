@@ -4,11 +4,16 @@ part of SuperPlayer;
 typedef FTXOnRenderViewCreatedListener = void Function(int viewId);
 
 class TXPlayerVideo extends StatefulWidget {
+
+  @Deprecated("recommended to use onRenderViewCreatedListener and controller.setPlayerView to bind the video surface.")
   final TXPlayerController? controller;
   final FTXAndroidRenderViewType renderViewType;
   final FTXOnRenderViewCreatedListener? onRenderViewCreatedListener;
 
-  TXPlayerVideo({this.controller, this.onRenderViewCreatedListener,
+  TXPlayerVideo({
+    @Deprecated("recommended to use onRenderViewCreatedListener and controller.setPlayerView to bind the video surface.")
+    this.controller,
+    this.onRenderViewCreatedListener,
     FTXAndroidRenderViewType? androidRenderType, Key? viewKey})
       : renderViewType = androidRenderType ?? FTXAndroidRenderViewType.TEXTURE_VIEW, super(key: viewKey);
 

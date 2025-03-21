@@ -156,7 +156,11 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                   child: _aspectRatio > 0
                       ? AspectRatio(
                           aspectRatio: _aspectRatio,
-                          child: TXPlayerVideo(controller: _controller),
+                          child: TXPlayerVideo(
+                            onRenderViewCreatedListener: (viewId) {
+                              _controller.setPlayerView(viewId);
+                            },
+                          ),
                         )
                       : Container(),
                 ),

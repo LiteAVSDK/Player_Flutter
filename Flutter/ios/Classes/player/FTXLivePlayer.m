@@ -108,6 +108,7 @@ static const int uninitialized = -1;
 {
     if (!onlyAudio) {
         if (nil != self.livePlayer) {
+            // 只有自定义渲染才能让直播画中画在后台输出画面
             [self.livePlayer enableObserveVideoFrame:YES pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
             [self.livePlayer setProperty:@"enableBackgroundDecoding" value:@(YES)];
             if (nil != self.curRenderView) {
@@ -725,7 +726,9 @@ static const int uninitialized = -1;
  * @note  需要您调用 {@link enableObserveVideoFrame} 开启回调开关。
  */
 - (void)onRenderVideoFrame:(id<V2TXLivePlayer>)player frame:(V2TXLiveVideoFrame *)videoFrame {
-    
+    if (self.isStartEnterPipMode) {
+        [[FTXPipController shareInstance] displayPixelBuffer:videoFrame.pixelBuffer];
+    }
 }
 
 /**
