@@ -154,7 +154,12 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
                   child: _aspectRatio > 0
                       ? AspectRatio(
                           aspectRatio: _aspectRatio,
-                          child: TXPlayerVideo(controller: _controller, androidRenderType: _renderType,),
+                          child: TXPlayerVideo(
+                            androidRenderType: _renderType,
+                            onRenderViewCreatedListener: (viewId) {
+                              _controller.setPlayerView(viewId);
+                            },
+                          ),
                         )
                       : Container(),
                 ),
