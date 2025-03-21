@@ -14,6 +14,7 @@
 #import <stdatomic.h>
 #import "FTXImgTools.h"
 #import "FTXTextureView.h"
+#import "FTXPlayerConstants.h"
 #import "FTXPiPKit/FTXPipConstants.h"
 
 static const int uninitialized = -1;
