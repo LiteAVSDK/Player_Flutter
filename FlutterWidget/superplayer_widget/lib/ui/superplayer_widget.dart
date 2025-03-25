@@ -3,7 +3,6 @@ part of demo_super_player_lib;
 
 const topBottomOffset = 0.0;
 int manualOrientationDirection = TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT;
-FullScreenController _fullScreenController = FullScreenController();
 
 /// superPlayer view widget
 class SuperPlayerView extends StatefulWidget {
@@ -161,9 +160,10 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // Do not rotate the screen in picture-in-picture mode.
       if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && !_isFloatingMode) {
         int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
-        _fullScreenController.switchToOrientation(orientation);
+        _playController.fullScreenController.switchToOrientation(orientation);
       }
     });
+    _registerObserver();
     _initPlayerState();
     connectPlayerView();
   }
@@ -270,7 +270,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // onDispose
       _playController._observer = null; // close observer
     });
-    _fullScreenController.setListener(() async {
+    _playController.fullScreenController.setListener(() async {
       // enter full screen
       if (null != downloadListener) {
         DownloadHelper.instance.removeDownloadListener(downloadListener!);
@@ -287,11 +287,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       // exit full screen
       // refresh render view
       Navigator.of(context).pop();
-      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-      _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-      _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-      hideControlView();
-      _videoKey.currentState?.resetController();
     });
     WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.addObserver(this);
@@ -368,16 +363,21 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _refreshUI() async {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateState();
-      connectPlayerView();
+      _restoreToWindowMode();
+      _registerObserver();
+      setState(() {
+        connectPlayerView();
+        _initPlayerState();
+      });
     });
   }
 
-  void _updateState() {
-    // Refresh the binding of the observer.
-    _registerObserver();
-    _initPlayerState();
-    _calculateSize(_playController.videoWidth, _playController.videoHeight);
+  void _restoreToWindowMode() {
+    _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+    _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+    _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+    hideControlView();
+    _videoKey.currentState?.resetController();
   }
 
   void _refreshDownloadStatus() async {
@@ -397,7 +397,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           Orientation currentOrientation = MediaQuery.of(context).orientation;
           bool isLandscape = currentOrientation == Orientation.landscape;
           if (!isLandscape) {
-            _fullScreenController.forceSwitchOrientation(manualOrientationDirection);
+            _playController.fullScreenController.forceSwitchOrientation(manualOrientationDirection);
           }
         }
       } else if (state == AppLifecycleState.inactive) {
@@ -468,7 +468,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   @override
   Widget build(BuildContext context) {
-    _updateState();
+    _calculateSize(_playController.videoWidth, _playController.videoHeight);
     return Center(
         child: widget.renderMode == SuperPlayerRenderMode.ADJUST_RESOLUTION ?
         IntrinsicHeight(
@@ -738,9 +738,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   void _handleFullScreen(bool toSwitchFullScreen) {
     if (toSwitchFullScreen) {
-      _fullScreenController.switchToOrientation(manualOrientationDirection);
+      _playController.fullScreenController.switchToOrientation(manualOrientationDirection);
     } else {
-      _fullScreenController.switchToOrientation(TXVodPlayEvent.ORIENTATION_PORTRAIT_UP);
+      _playController.fullScreenController.switchToOrientation(TXVodPlayEvent.ORIENTATION_PORTRAIT_UP);
     }
   }
 
@@ -903,6 +903,7 @@ class SuperPlayerFullScreenState extends State<SuperPlayerFullScreenView> {
 
   @override
   void dispose() {
+    widget._playController.fullScreenController._isInFullScreenUI = false;
     widget.controller.onExitFullScreen();
     super.dispose();
   }
@@ -912,56 +913,4 @@ class SuperPlayerFullScreenController {
   Function onExitFullScreen;
 
   SuperPlayerFullScreenController(this.onExitFullScreen);
-}
-
-class FullScreenController {
-  bool _isInFullScreenUI = false;
-  int currentOrientation = TXVodPlayEvent.ORIENTATION_PORTRAIT_UP;
-  Function? onEnterFullScreenUI;
-  Function? onExitFullScreenUI;
-
-  FullScreenController();
-
-  void switchToOrientation(int orientationDirection) {
-    if (currentOrientation != orientationDirection) {
-      forceSwitchOrientation(orientationDirection);
-    }
-  }
-
-  void forceSwitchOrientation(int orientationDirection) {
-    currentOrientation = orientationDirection;
-    if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_UP) {
-      exitFullScreen();
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
-    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
-      enterFullScreen();
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
-    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      enterFullScreen();
-    }
-  }
-
-  void enterFullScreen() {
-    if (!_isInFullScreenUI) {
-      _isInFullScreenUI = true;
-      onEnterFullScreenUI?.call();
-    }
-  }
-
-  void exitFullScreen() {
-    if (_isInFullScreenUI) {
-      _isInFullScreenUI = false;
-      onExitFullScreenUI?.call();
-    }
-  }
-
-  void setListener(Function enterFullScreen, Function exitFullScreen) {
-    onExitFullScreenUI = exitFullScreen;
-    onEnterFullScreenUI = enterFullScreen;
-  }
 }
