@@ -167,4 +167,11 @@ public class TXCommonUtil {
         msg.setValue(value);
         return msg;
     }
+
+    public static boolean isBlankStr(String value) {
+        if (null == value) {
+            return false;
+        }
+        return value.trim().isEmpty();
+    }
 }
