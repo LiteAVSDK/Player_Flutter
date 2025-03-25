@@ -30,8 +30,8 @@ class SuperPlayerController {
   TXSubtitleRenderModel? _currentSubtitleRenderModel;
   SuperPlayerState playerState = SuperPlayerState.INIT;
   SuperPlayerType playerType = SuperPlayerType.VOD;
-  FTXVodPlayConfig _vodConfig = FTXVodPlayConfig();
-  FTXLivePlayConfig _liveConfig = FTXLivePlayConfig();
+  FTXVodPlayConfig vodConfig = FTXVodPlayConfig();
+  FTXLivePlayConfig liveConfig = FTXLivePlayConfig();
   StreamSubscription? _vodPlayEventListener;
   StreamSubscription? _vodNetEventListener;
   StreamSubscription? _livePlayEventListener;
@@ -53,6 +53,7 @@ class SuperPlayerController {
   bool _isOpenHWAcceleration = true;
   int _playerUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
   final BuildContext _context;
+  FullScreenController fullScreenController = FullScreenController();
 
   double currentDuration = 0;
   double videoDuration = 0;
@@ -345,6 +346,7 @@ class SuperPlayerController {
   /// 正式版 License 需[购买]
   /// (https://cloud.tencent.com/document/product/881/74588#.E8.B4.AD.E4.B9.B0.E5.B9.B6.E6.96.B0.E5.BB.BA.E6.AD.A3.E5.BC.8F.E7.89.88-license)。
   Future<void> playWithModelNeedLicence(SuperPlayerModel videoModel) async {
+    LogUtils.i(TAG, "widget version:${PlayerConstants.PLAYER_WIDGET_VERSION}");
     this.videoModel = videoModel;
     _playAction = videoModel.playAction;
     await stopPlay();
@@ -790,14 +792,14 @@ class SuperPlayerController {
   /// Configure the VOD player.
   /// 配置点播播放器
   Future<void> setPlayConfig(FTXVodPlayConfig config) async {
-    _vodConfig = config;
+    vodConfig = config;
     await _vodPlayerController.setConfig(config);
   }
 
   /// Configure the Live player.
   /// 配置直播播放器
   Future<void> setLiveConfig(FTXLivePlayConfig config) async {
-    _liveConfig = config;
+    liveConfig = config;
     await _livePlayerController.setConfig(config);
   }
 
@@ -902,3 +904,56 @@ class SuperPlayerController {
     return playerState;
   }
 }
+
+class FullScreenController {
+  bool _isInFullScreenUI = false;
+  int currentOrientation = TXVodPlayEvent.ORIENTATION_PORTRAIT_UP;
+  Function? onEnterFullScreenUI;
+  Function? onExitFullScreenUI;
+
+  FullScreenController();
+
+  void switchToOrientation(int orientationDirection) {
+    if (currentOrientation != orientationDirection) {
+      forceSwitchOrientation(orientationDirection);
+    }
+  }
+
+  void forceSwitchOrientation(int orientationDirection) {
+    currentOrientation = orientationDirection;
+    if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_UP) {
+      exitFullScreen();
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
+      enterFullScreen();
+      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
+    } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
+      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      enterFullScreen();
+    }
+  }
+
+  void enterFullScreen() {
+    if (!_isInFullScreenUI) {
+      _isInFullScreenUI = true;
+      onEnterFullScreenUI?.call();
+    }
+  }
+
+  void exitFullScreen() {
+    if (_isInFullScreenUI) {
+      _isInFullScreenUI = false;
+      onExitFullScreenUI?.call();
+    }
+  }
+
+  void setListener(Function enterFullScreen, Function exitFullScreen) {
+    onExitFullScreenUI = exitFullScreen;
+    onEnterFullScreenUI = enterFullScreen;
+  }
+}
+

@@ -325,9 +325,12 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
          *                         播放器id
          */
         public PipParams(String mPlayBackAssetPath, String mPlayResumeAssetPath, String mPlayPauseAssetPath,
-                String mPlayForwardAssetPath, int mCurrentPlayerId) {
+                         String mPlayForwardAssetPath, int mCurrentPlayerId) {
             this(mPlayBackAssetPath, mPlayResumeAssetPath, mPlayPauseAssetPath, mPlayForwardAssetPath,
-                    mCurrentPlayerId, true, true, true);
+                    mCurrentPlayerId, !TXCommonUtil.isBlankStr(mPlayBackAssetPath),
+                    !TXCommonUtil.isBlankStr(mPlayForwardAssetPath)
+                    , !TXCommonUtil.isBlankStr(mPlayResumeAssetPath)
+                            && !TXCommonUtil.isBlankStr(mPlayPauseAssetPath));
         }
 
         public PipParams(String mPlayBackAssetPath, String mPlayResumeAssetPath, String mPlayPauseAssetPath,
@@ -403,7 +406,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
             return mViewHeight;
         }
 
-        private AtomicInteger a = new AtomicInteger();
+        private final AtomicInteger mActionIdGenerator = new AtomicInteger();
 
         /**
          * Construct PIP parameters.
@@ -435,7 +438,7 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
                         .putExtras(playOrPauseData)
                         .setPackage(activity.getPackageName());
                 Icon playIcon = mIsPlaying ? getPauseIcon(activity) : getPlayIcon(activity);
-                PendingIntent playIntent = PendingIntent.getBroadcast(activity, a.incrementAndGet(),
+                PendingIntent playIntent = PendingIntent.getBroadcast(activity, mActionIdGenerator.incrementAndGet(),
                         playOrPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
                 RemoteAction playOrPauseAction = new RemoteAction(playIcon, "playOrPause", "play Or Pause", playIntent);
                 actions.add(playOrPauseAction);

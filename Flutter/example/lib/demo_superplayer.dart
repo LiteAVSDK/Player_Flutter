@@ -172,17 +172,18 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   Widget getBody() {
-    return SingleChildScrollView(
-      child: LayoutBuilder(builder: (context, constrains) {
-        return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height
-          ),
-          child: Column(
-            children: [_getPlayArea(), Expanded(flex: 1, child: _getListArea()), _getAddArea()],
-          ),
-        );
-      }),
+    return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
+      child: Column(
+        children: [
+          _getPlayArea(),
+          Expanded(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [getTabRow(), _getListArea(), _getAddArea()],
+          ))
+        ],
+      ),
     );
   }
 
@@ -195,21 +196,14 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   }
 
   Widget _getListArea() {
-    return Container(
-        margin: EdgeInsets.only(top: 10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            getTabRow(),
-            Expanded(
-                child: ListView.builder(
+    return Expanded(
+        child: Container(
+            margin: EdgeInsets.only(top: 10),
+            child: ListView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
               itemCount: videoModels.length,
               itemBuilder: (context, i) => _buildVideoItem(videoModels[i]),
-            ))
-          ],
-        ));
+            )));
   }
 
   Widget _buildVideoItem(SuperPlayerModel playModel) {
