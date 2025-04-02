@@ -1,4 +1,11 @@
 
+#### Version: 12.4.1 2025.04.02
+
+##### Features：
+
+- Remove the method of binding texture via the controller of TXPlayerVideo
+
+
 #### Version: 12.4.0 2025.03.31
 
 ##### Features：
