@@ -158,6 +158,14 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                           aspectRatio: _aspectRatio,
                           child: TXPlayerVideo(
                             onRenderViewCreatedListener: (viewId) {
+                              /// 此处只展示了最基础的纹理和播放器的配置方式。 这里可记录下来 viewId，在多纹理之间进行切换，比如横竖屏切换场景，竖屏的画面，
+                              /// 要切换到横屏的画面，可以在切换到横屏之后，拿到横屏的viewId 设置上去。回到竖屏的时候，再通过 viewId 切换回来。
+                              /// Only the most basic configuration methods for textures and the player are shown here.
+                              /// The `viewId` can be recorded here to switch between multiple textures. For example, in the scenario
+                              /// of switching between portrait and landscape orientations:
+                              /// To switch from the portrait view to the landscape view, obtain the `viewId` of the landscape view
+                              /// after switching to landscape orientation and set it.  When switching back to portrait orientation,
+                              /// switch back using the recorded `viewId`.
                               _controller.setPlayerView(viewId);
                             },
                           ),

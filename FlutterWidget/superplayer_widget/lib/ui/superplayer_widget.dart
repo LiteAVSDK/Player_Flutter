@@ -377,7 +377,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
     _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
     hideControlView();
-    _videoKey.currentState?.resetController();
   }
 
   void _refreshDownloadStatus() async {
