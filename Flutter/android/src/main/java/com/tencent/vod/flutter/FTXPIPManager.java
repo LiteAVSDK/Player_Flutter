@@ -125,15 +125,18 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
      *
      * 通知退出当前pip
      */
-    public void exitPip() {
-        if (mIsInPipMode) {
-            final Activity curActivity = TXFlutterEngineHolder.getInstance().getCurActivity();
-            if (null != curActivity) {
-                Intent intent = new Intent(curActivity, FlutterPipImplActivity.class);
-                intent.setAction(FTXEvent.PIP_ACTION_EXIT);
-                curActivity.startActivity(intent);
-                mIsInPipMode = false;
-            }
+    public void exitCurrentPip() {
+        exitPipByPlayerId(-1);
+    }
+
+    /**
+     * @param playerId -1 is close anyway
+     */
+    public void exitPipByPlayerId(int playerId) {
+        if (isInPipMode()) {
+            Bundle params = new Bundle();
+            params.putInt(FTXEvent.EXTRA_NAME_PLAYER_ID, playerId);
+            TXSimpleEventBus.getInstance().post(FTXEvent.PIP_ACTION_EXIT, params);
         }
     }
 
@@ -238,14 +241,10 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
      * 更新PIP悬浮框按钮
      */
     public void updatePipActions(PipParams params) {
-        final Activity mAct = TXFlutterEngineHolder.getInstance().getCurActivity();
-        if (null != mAct) {
-            Intent intent = new Intent(mAct, FlutterPipImplActivity.class);
+        if (isInPipMode()) {
             Bundle bundle = new Bundle();
             bundle.putParcelable(FTXEvent.EXTRA_NAME_PARAMS, params);
-            intent.setAction(FTXEvent.PIP_ACTION_UPDATE);
-            intent.putExtra("data", bundle);
-            mAct.startActivity(intent);
+            TXSimpleEventBus.getInstance().post(FTXEvent.PIP_ACTION_UPDATE, bundle);
         }
     }
 

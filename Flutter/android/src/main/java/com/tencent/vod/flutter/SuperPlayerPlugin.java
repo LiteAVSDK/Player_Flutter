@@ -479,7 +479,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         }
         if (null != mTxPipManager) {
             mTxPipManager.releaseActivityListener();
-            mTxPipManager.exitPip();
+            mTxPipManager.exitCurrentPip();
         }
         // Close the solution to the problem of the picture-in-picture click restore
         // failure on some versions of Android 12.
