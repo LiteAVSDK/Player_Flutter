@@ -297,7 +297,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             result = mVodPlayer.stopPlay(isNeedClearLastImg);
         }
         mUIHandler.removeCallbacksAndMessages(null);
-        mPipManager.exitPip();
+        mPipManager.exitPipByPlayerId(getPlayerId());
         releaseTXImageSprite();
         mHardwareDecodeFail = false;
         if (isNeedClearLastImg && null != mCurRenderView) {
@@ -723,7 +723,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
 
     @Override
     public void exitPictureInPictureMode(@NonNull PlayerMsg playerMsg) {
-        mPipManager.exitPip();
+        mPipManager.exitPipByPlayerId(getPlayerId());
     }
 
     @Override
