@@ -393,7 +393,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
 
     @Override
     public void exitPictureInPictureMode(@NonNull PlayerMsg playerMsg) {
-        mPipManager.exitPip();
+        mPipManager.exitPipByPlayerId(getPlayerId());
     }
 
     @NonNull

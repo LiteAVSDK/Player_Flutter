@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * use to communicate with Activities frequently
@@ -36,6 +37,16 @@ public class TXSimpleEventBus {
         List<EventSubscriber> subscriberList = subscribers.get(eventType);
         if (subscriberList != null) {
             subscriberList.remove(subscriber);
+        }
+    }
+
+    public void unregisterAllType(EventSubscriber subscriber) {
+        Set<String> keySets = subscribers.keySet();
+        for (String key : keySets) {
+            List<EventSubscriber> subscriberList = subscribers.get(key);
+            if (subscriberList != null) {
+                subscriberList.remove(subscriber);
+            }
         }
     }
 
