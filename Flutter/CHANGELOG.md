@@ -1,4 +1,11 @@
 
+#### Version: 12.4.2 2025.04.30
+
+##### Features：
+
+- Fix an issue where releasing the player would close the global Picture-in-Picture mode.
+
+
 #### Version: 12.4.1 2025.04.02
 
 ##### Features：
