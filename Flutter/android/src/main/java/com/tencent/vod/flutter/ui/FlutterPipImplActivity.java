@@ -497,7 +497,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
         if (Build.VERSION.SDK_INT >= VERSION_CODES.Q) {
             unbindService(this);
         }
-        TXSimpleEventBus.getInstance().unregister(FTXEvent.PIP_ACTION_EXIT, this);
+        TXSimpleEventBus.getInstance().unregisterAllType(this);
         mPlayerHolder = null;
         pipPlayerHolder = null;
         isInPip = false;
