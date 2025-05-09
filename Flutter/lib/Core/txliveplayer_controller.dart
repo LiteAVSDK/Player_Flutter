@@ -288,6 +288,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   @override
   Future<void> exitPictureInPictureMode() async {
     if (_isNeedDisposed) return;
+    await _initPlayer.future;
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()
         ..playerId = _playerId);
@@ -311,6 +312,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   Future<int> enableReceiveSeiMessage(bool isEnabled, int payloadType) async {
     if (_isNeedDisposed) return -1;
+    await _initPlayer.future;
     return await _livePlayerApi.enableReceiveSeiMessage(PlayerMsg(playerId: _playerId),
         isEnabled, payloadType);
   }
@@ -324,6 +326,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   Future<void> showDebugView(bool isShow) async {
     if (_isNeedDisposed) return;
+    await _initPlayer.future;
     await _livePlayerApi.showDebugView(PlayerMsg(playerId: _playerId), isShow);
   }
 
@@ -348,6 +351,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   Future<int> setProperty(String key, Object value) async {
     if (_isNeedDisposed) return -1;
+    await _initPlayer.future;
     return await _livePlayerApi.setProperty(PlayerMsg(playerId: _playerId), key, value);
   }
 
@@ -358,6 +362,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   Future<List<FSteamInfo>> getSupportedBitrate() async {
     if (_isNeedDisposed) return [];
+    await _initPlayer.future;
     ListMsg listMsg = await _livePlayerApi.getSupportedBitrate(PlayerMsg(playerId: _playerId));
     List<FSteamInfo> steamList = [];
     if (null != listMsg.value) {
@@ -391,6 +396,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   ///
   Future<int> setCacheParams(double minTime, double maxTime) async {
     if (_isNeedDisposed) return -1;
+    await _initPlayer.future;
     return await _livePlayerApi.setCacheParams(PlayerMsg(playerId: _playerId), minTime, maxTime);
   }
 
