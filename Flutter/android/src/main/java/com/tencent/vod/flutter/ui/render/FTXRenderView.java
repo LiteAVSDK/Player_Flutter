@@ -3,7 +3,6 @@ package com.tencent.vod.flutter.ui.render;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,10 +22,12 @@ public class FTXRenderView implements PlatformView {
     private FTXPlayerRenderHost mBasePlayer;
     private final int mViewId;
     private final Context mContext;
-    private final FrameLayout mContainer;
+    private final FTXTextureContainer mContainer;
     private final int mRenderType;
+    private FTXRenderViewFactory mFactory;
 
-    public FTXRenderView(@NonNull Context context, int id, @Nullable Map<String, Object> creationParams) {
+    public FTXRenderView(@NonNull Context context, int id, @Nullable Map<String, Object> creationParams,
+                         FTXRenderViewFactory factory) {
         if (null != creationParams) {
             Object renderTypeObj = creationParams.get(FTXEvent.RENDER_TYPE_KEY);
             if (renderTypeObj instanceof Integer) {
@@ -37,8 +38,9 @@ public class FTXRenderView implements PlatformView {
         } else {
             mRenderType = FTXEvent.ViewType.TEXTURE_TYPE;
         }
+        mFactory = factory;
         mContext = context;
-        mContainer = new FrameLayout(context);
+        mContainer = new FTXTextureContainer(context);
         mContainer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         resetRenderView();
@@ -60,7 +62,7 @@ public class FTXRenderView implements PlatformView {
             LiteavLog.e(TAG, "unknown view type :" + mRenderType + ", use default type TEXTURE_TYPE");
             mTextureView = new FTXTextureView(mContext);
         }
-        mContainer.addView((View) mTextureView);
+        mContainer.setCarrier(mTextureView);
     }
 
     public void setPlayer(FTXPlayerRenderHost player) {
@@ -77,13 +79,10 @@ public class FTXRenderView implements PlatformView {
             LiteavLog.i(TAG, "setPlayer, player is same, player:" + player
                     + " refresh it, view:" + hashCode());
         }
-        mTextureView.setVisibility(View.VISIBLE);
         player.setRenderView(mTextureView);
     }
 
     public void clearTexture() {
-        final View oldView = (View) mTextureView;
-        mContainer.removeView(oldView);
         resetRenderView();
     }
 
@@ -99,6 +98,7 @@ public class FTXRenderView implements PlatformView {
 
     @Override
     public void dispose() {
+        mFactory.removeByViewId(mViewId);
         LiteavLog.i(TAG, "render view is dispose, id:" + mViewId + ", view:" + hashCode());
     }
 }

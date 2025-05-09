@@ -496,6 +496,8 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
         unRegisterPipBroadcast();
         if (Build.VERSION.SDK_INT >= VERSION_CODES.Q) {
             unbindService(this);
+            Intent serviceIntent = new Intent(getApplicationContext(), TXAndroid12BridgeService.class);
+            stopService(serviceIntent);
         }
         TXSimpleEventBus.getInstance().unregisterAllType(this);
         mPlayerHolder = null;

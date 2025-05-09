@@ -7,7 +7,7 @@
    <application
         android:label="super_player_example"
         android:icon="@mipmap/ic_launcher"
-       android:requestLegacyExternalStorage="true"
+        android:requestLegacyExternalStorage="true"
         tools:replace="android:label">
         <activity
             android:name="com.example.player.MainActivity"

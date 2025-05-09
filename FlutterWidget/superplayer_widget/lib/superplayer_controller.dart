@@ -575,6 +575,8 @@ class SuperPlayerController {
     playerState = state;
     print("_updatePlayerState:$state");
     switch (state) {
+      case SuperPlayerState.START:
+        break;
       case SuperPlayerState.INIT:
         _observer?.onPlayPrepare();
         break;
@@ -919,20 +921,20 @@ class FullScreenController {
     }
   }
 
-  void forceSwitchOrientation(int orientationDirection) {
+  void forceSwitchOrientation(int orientationDirection) async {
     currentOrientation = orientationDirection;
     if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_UP) {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+      await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       exitFullScreen();
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+      await SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
       enterFullScreen();
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
-      SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+      await SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
       enterFullScreen();
     }
   }

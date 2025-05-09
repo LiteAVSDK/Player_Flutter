@@ -260,7 +260,7 @@ class _DemoDownloadListState extends State<StatefulWidget> {
             Container(
               margin: EdgeInsets.only(right: 4),
               child: Text(
-                "${AppLocals.of(context).playerCacheSize}:${(mediaInfo.size != null ? mediaInfo.size! / 1024 ~/ 1024 : 0)}MB",
+                "${AppLocals.of(context).playerCacheSize}:${(mediaInfo.size != null ? formatVideoSize(mediaInfo.size!) : 0)}MB",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.start,
@@ -292,6 +292,11 @@ class _DemoDownloadListState extends State<StatefulWidget> {
         )
       ],
     );
+  }
+
+  String formatVideoSize(int bytes) {
+    double mb = bytes / (1024 * 1024);
+    return '${mb.toStringAsFixed(2)}';
   }
 
   void onTapCacheVideo(DownloadModel downloadModel) {

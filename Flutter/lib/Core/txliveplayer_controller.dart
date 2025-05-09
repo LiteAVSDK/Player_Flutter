@@ -409,6 +409,13 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _livePlayerApi.setPlayerView(renderViewId);
   }
 
+  @override
+  Future<void> setRenderMode(FTXPlayerRenderMode renderMode) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _livePlayerApi.setRenderMode(renderMode.index);
+  }
+
   /// Release `controller`.
   ///
   /// 释放controller
@@ -502,5 +509,4 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     }
     _eventStreamController.add(map);
   }
-
 }

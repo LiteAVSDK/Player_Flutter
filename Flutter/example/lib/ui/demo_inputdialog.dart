@@ -40,16 +40,9 @@ class _DemoInputDialogState extends State<DemoInputDialog> {
   void initState() {
     super.initState();
     _urlController = TextEditingController(text: widget.url);
-    // _appIdController = TextEditingController(text: widget.appId > 0 ? widget.appId.toString() : null);
-    // _fileIdController = TextEditingController(text: widget.fileId);
-    // _pSignController = TextEditingController(text: "");
-    _appIdController = TextEditingController(text: "1500014561");
-    _fileIdController = TextEditingController(text: "387702304941991610");
-    _pSignController = TextEditingController(text: "eyJhbGciOiJIUzI1NiJ9.eyJhcHBJZCI6MTUwMDAxNDU2MSwiZmlsZUlkIjoiMzg3NzAyMzA0OTQxOTkxNjEwIiwiY3VycmVudFRpbWVTdGFtcCI6MTY2MTE2MzM3MywiZXhwaXJlVGltZVN0YW1wIjoyNjQ4NTU3OTE5LCJwY2ZnIjoic2RtY3BsYXkiLCJEcm1MaWNlbnNlSW5mbyI6eyJFeHBpcmVUaW1lU3RhbXAiOjE5NjA5OTUxNzB9fQ.GGoDBMy-aaN3TmjgOMBGGlI_ujY8b-UXpP9qAoiPnI4");
-
-    // _appIdController = TextEditingController(text: "1500033786");
-    // _fileIdController = TextEditingController(text: "1397757895139814378");
-    // _pSignController = TextEditingController(text: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTUwMDAzMzc4NiwiZmlsZUlkIjoiMTM5Nzc1Nzg5NTEzOTgxNDM3OCIsImNvbnRlbnRJbmZvIjp7ImF1ZGlvVmlkZW9UeXBlIjoiUHJvdGVjdGVkQWRhcHRpdmUiLCJkcm1BZGFwdGl2ZUluZm8iOnsicHJpdmF0ZUVuY3J5cHRpb25EZWZpbml0aW9uIjoxMiwid2lkZXZpbmVEZWZpbml0aW9uIjoxMywiZmFpclBsYXlEZWZpbml0aW9uIjoxMX0sImltYWdlU3ByaXRlRGVmaW5pdGlvbiI6MTB9LCJjdXJyZW50VGltZVN0YW1wIjoxNzQxNzcwNzI3LCJleHBpcmVUaW1lU3RhbXAiOjE3NDE3OTIzMjcsInVybEFjY2Vzc0luZm8iOnsidCI6IjY3ZDFhNDQ3IiwicmxpbWl0IjozLCJ1cyI6ImN2OGt2cG9uam5wMjBtNGQxMGxnIiwiZG9tYWluIjoiMTUwMDAzMzc4Ni52b2QtcWNsb3VkLmNvbSIsInNjaGVtZSI6IkhUVFBTIn0sImRybUxpY2Vuc2VJbmZvIjp7InBlcnNpc3RlbnQiOiJPRkYiLCJyZW50YWxEdXJhdGlvbiI6NjAwLCJmb3JjZUwxVHJhY2tUeXBlcyI6WyJIRCIsIlVIRDEiLCJVSEQyIl0sImV4cGlyZVRpbWVTdGFtcCI6MTc0MTc5MjMyN319.IgQFAYFaxgOXcSQQo8h3TVxlQ9UaInYvn68jagMI3uk");
+    _appIdController = TextEditingController(text: widget.appId > 0 ? widget.appId.toString() : null);
+    _fileIdController = TextEditingController(text: widget.fileId);
+    _pSignController = TextEditingController(text: "");
   }
 
   _buildActionWidget(BuildContext context) {
