@@ -9,7 +9,7 @@
 /// 生成命令如下，使用生成命令的时候，需要实现注释掉以上两个import导入
 /*
     dart run pigeon \
-    --input lib/Core/pigeons/txplayer_message.dart \
+    --input lib/Core/pigeons/txplayer_message.txt \
     --dart_out lib/Core/txplayer_messages.dart \
     --objc_header_out ios/Classes/messages/FtxMessages.h \
     --objc_source_out ios/Classes/messages/FtxMessages.m \
@@ -666,6 +666,8 @@ abstract class TXFlutterVodPlayerApi {
   void setStringOption(StringOptionPlayerMsg playerMsg);
 
   void setPlayerView(int renderViewId);
+
+  void setRenderMode(int renderMode);
 }
 
 @HostApi()
@@ -741,6 +743,8 @@ abstract class TXFlutterLivePlayerApi {
   int enablePictureInPicture(BoolPlayerMsg msg);
 
   void setPlayerView(int renderViewId);
+
+  void setRenderMode(int renderMode);
 }
 
 @HostApi()

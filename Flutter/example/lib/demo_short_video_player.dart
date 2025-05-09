@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:super_player/super_player.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
+import 'common/demo_config.dart';
 import 'shortvideo/demo_short_video_lib.dart';
 
 class DemoShortVideoPlayer extends StatefulWidget {
@@ -22,13 +23,28 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
     super.initState();
     // stop pip window if exists
     TXPipController.instance.exitAndReleaseCurrentPip();
-    ShortVideoDataLoader loader = ShortVideoDataLoader();
-    loader.getPageListDataOneByOneFunction((dataModels) {
-      setState(() {
-        superPlayerModelList = dataModels;
-      });
-    });
+    _loadData();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _loadData() async {
+    // check license
+    final ShortVideoDataLoader loader = ShortVideoDataLoader();
+    if (!isLicenseSuc.isCompleted) {
+      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
+      await isLicenseSuc.future;
+      loader.getPageListDataOneByOneFunction((dataModels) {
+        setState(() {
+          superPlayerModelList = dataModels;
+        });
+      });
+    } else {
+      loader.getPageListDataOneByOneFunction((dataModels) {
+        setState(() {
+          superPlayerModelList = dataModels;
+        });
+      });
+    }
   }
 
   @override

@@ -15,7 +15,7 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
 
     private static final String TAG = "FTXVodPlayerRenderHost";
 
-    protected FTXRenderCarrier mTextureView;
+    protected FTXRenderCarrier mRenderCarrier;
     protected FTXRenderView mCurRenderView;
 
     @Override
@@ -36,7 +36,7 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
         if (null != textureView) {
             LiteavLog.i(TAG, "start bind Player:" + textureView + ", player:" + hashCode());
             textureView.bindPlayer(this);
-            mTextureView = textureView;
+            mRenderCarrier = textureView;
         } else {
             LiteavLog.i(TAG, "setRenderView met a null textureView, player:" + hashCode());
             removeRenderView();
@@ -56,19 +56,31 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
 
     private void removeRenderView() {
         LiteavLog.i(TAG, "start removeRenderView, player:" + hashCode());
-        if (null != mTextureView) {
-            mTextureView.bindPlayer(null);
+        if (null != mRenderCarrier) {
+            mRenderCarrier.bindPlayer(null);
         }
         final TXVodPlayer vodPlayer = getVodPlayer();
         if (null != vodPlayer) {
             vodPlayer.setSurface(null);
         }
-        mTextureView = null;
+        mRenderCarrier = null;
+    }
+
+    protected void updateTextureRenderMode(long renderMode) {
+        if (null != mRenderCarrier) {
+            mRenderCarrier.updateRenderMode(renderMode);
+        }
+    }
+
+    protected void notifyTextureResolution(int videoWidth, int videoHeight) {
+        if (null != mRenderCarrier) {
+            mRenderCarrier.notifyVideoResolutionChanged(videoWidth, videoHeight);
+        }
     }
 
     @Override
     public FTXRenderCarrier getCurCarrier() {
-        return mTextureView;
+        return mRenderCarrier;
     }
 
     protected abstract TXVodPlayer getVodPlayer();

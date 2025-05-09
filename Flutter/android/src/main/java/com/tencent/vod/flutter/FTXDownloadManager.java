@@ -409,8 +409,12 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
     public TXDownloadListMsg getDownloadList() {
         List<TXVodDownloadMediaInfo> medias = TXVodDownloadManager.getInstance().getDownloadMediaInfoList();
         List<TXVodDownloadMediaMsg> mediaResults = new ArrayList<>();
-        for (TXVodDownloadMediaInfo mediaInfo : medias) {
-            mediaResults.add(buildMsgFromDownloadInfo(mediaInfo));
+        if (null != medias) {
+            for (TXVodDownloadMediaInfo mediaInfo : medias) {
+                if (null != mediaInfo) {
+                    mediaResults.add(buildMsgFromDownloadInfo(mediaInfo));
+                }
+            }
         }
         TXDownloadListMsg res = new TXDownloadListMsg();
         res.setInfoList(mediaResults);

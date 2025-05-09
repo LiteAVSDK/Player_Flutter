@@ -22,5 +22,6 @@ abstract class TXPlayerController {
       {String? backIconForAndroid, String? playIconForAndroid, String? pauseIconForAndroid, String? forwardIconForAndroid});
   Future<void> exitPictureInPictureMode();
   Future<void> setPlayerView(int renderViewId);
+  Future<void> setRenderMode(FTXPlayerRenderMode renderMode);
   Future<void> dispose();
 }

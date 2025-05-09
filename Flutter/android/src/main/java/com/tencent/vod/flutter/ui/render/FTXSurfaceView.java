@@ -4,13 +4,14 @@ import android.content.Context;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
 import com.tencent.liteav.base.util.LiteavLog;
+import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
+import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
 public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callback, FTXRenderCarrier {
@@ -19,9 +20,15 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     private FTXPlayerRenderSurfaceHost mPlayer;
     private Surface mSurface;
-    private int mSurfaceWidth;
-    private int mSurfaceHeight;
     private  final GLSurfaceTools mGlSurfaceTools = new GLSurfaceTools();
+    private long mRenderMode = FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER;
+
+    private int mVideoWidth = 0;
+    private int mVideoHeight = 0;
+    private int mViewWidth = 0;
+    private int mViewHeight = 0;
+    private final Object mLayoutLock = new Object();
+    private FTXEGLRender mRender;
 
     public FTXSurfaceView(Context context) {
         super(context);
@@ -32,6 +39,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         getHolder().addCallback(this);
         setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
+        mRender = new FTXEGLRender(1, 1);
     }
 
     @Override
@@ -43,35 +51,111 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     @Override
+    public void notifyVideoResolutionChanged(int videoWidth, int videoHeight) {
+        synchronized (mLayoutLock) {
+            if (mVideoWidth != videoWidth || mVideoHeight != videoHeight) {
+                if (videoWidth >= 0) {
+                    mVideoWidth = videoWidth;
+                }
+                if (videoHeight >= 0) {
+                    mVideoHeight = videoHeight;
+                }
+                mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
+                LiteavLog.i(TAG, "notifyVideoResolutionChanged updateSize, mVideoWidth:"
+                        + mVideoWidth + ",mVideoHeight:" + mVideoHeight);
+            }
+        }
+    }
+
+    @Override
+    public void updateRenderMode(long renderMode) {
+        if (mRenderMode != renderMode) {
+            mRenderMode = renderMode;
+            layoutTextureRenderMode();
+        }
+    }
+
+    @Override
+    public void requestLayoutSizeByContainerSize(int viewWidth, int viewHeight) {
+        updateRenderSizeIfNeed(viewWidth, viewHeight);
+    }
+
+    public void layoutTextureRenderMode() {
+        if (mRender != null) {
+            mRender.updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
+        }
+    }
+
+    @Override
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
         LiteavLog.i(TAG, "called bindPlayer " + surfaceHost + ", view:" + FTXSurfaceView.this.hashCode());
-        if (surfaceHost != mPlayer || (null != mPlayer && mPlayer.getCurCarrier() != FTXSurfaceView.this)) {
-            mPlayer = surfaceHost;
-            if (null != mSurface && null != surfaceHost) {
-                LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:"
-                        + FTXSurfaceView.this.hashCode());
-                if (mSurface.isValid()) {
-                    surfaceHost.setSurface(mSurface);
-                } else {
-                    LiteavLog.w(TAG, "bindPlayer interrupt ,mSurface: " + mSurface + " is inVaild, view:"
-                            + FTXSurfaceView.this.hashCode());
-                }
+        if (mPlayer == surfaceHost) {
+            if (null != mPlayer) {
+                surfaceHost.setSurface(mRender.getInputSurface());
+                updateRenderSizeIfCan();
+                LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
+                        + hashCode());
+            } else {
+                mRender.stopRender();
             }
         } else {
-            LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
-                    + FTXSurfaceView.this.hashCode());
+            mPlayer = surfaceHost;
+            connectPlayer(surfaceHost);
+        }
+        if (null != surfaceHost) {
+            final int videoWidth = surfaceHost.getVideoWidth();
+            final int videoHeight = surfaceHost.getVideoHeight();
+            mRenderMode = surfaceHost.getPlayerRenderMode();
+            mVideoWidth = surfaceHost.getVideoWidth();
+            mVideoHeight = surfaceHost.getVideoHeight();
+            mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
+            LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
+                    + mVideoHeight + ",renderMode:" + mRenderMode);
+        }
+    }
+
+    private void connectPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
+        if (null != mSurface && null != surfaceHost) {
+            LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:"
+                    + hashCode());
+            if (mSurface.isValid()) {
+                updateHostSurface(mSurface);
+                updateRenderSizeIfCan();
+            } else {
+                LiteavLog.w(TAG, "bindPlayer interrupt ,mSurface: " + mSurface + " is inValid, view:"
+                        + this.hashCode());
+            }
+        }
+    }
+
+    private void updateRenderSizeIfCan() {
+        if (null != mRender && null != getParent()) {
+            ViewGroup viewGroup = (ViewGroup) getParent();
+            int width = viewGroup.getWidth();
+            int height = viewGroup.getHeight();
+            updateRenderSizeIfNeed(width, height);
+        }
+    }
+
+    private void updateRenderSizeIfNeed(int width, int height) {
+        if (mViewWidth != width || mViewHeight != height) {
+            mViewWidth = width;
+            mViewHeight = height;
+            LiteavLog.i(TAG, "updateRenderSizeIfNeed, width:" + width + ",height:" + height);
+            mRender.setViewPortSize(width, height);
         }
     }
 
     private void updateHostSurface(Surface surface) {
         if (null != mPlayer) {
-            mPlayer.setSurface(surface);
+            mRender.initOpengl(surface);
+            mPlayer.setSurface(mRender.getInputSurface());
+            mRender.startRender();
+            mPlayer.setSurface(mRender.getInputSurface());
         }
     }
 
     private void applySurfaceConfig(Surface surface, int width, int height) {
-        mSurfaceWidth = width;
-        mSurfaceHeight = height;
         updateSurfaceTexture(surface);
     }
 
@@ -86,9 +170,15 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     @Override
+    public void destroyRender() {
+        mRender.stopRender();
+    }
+
+    @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         LiteavLog.v(TAG, "surfaceCreated");
         applySurfaceConfig(holder.getSurface(), 0, 0);
+        updateRenderSizeIfCan();
     }
 
     @Override
