@@ -127,6 +127,8 @@ class AppLocals {
   String get playerCacheTime => _localStrings["player_cache_time"] ?? "";
   String get playerSwitchSuc => _localStrings["player_switch_suc"] ?? "";
   String get playerSecond => _localStrings["player_second"] ?? "";
+  String get playerRenderModeAdjust => _localStrings["player_render_mode_adjust"] ?? "";
+  String get playerRenderModeFill => _localStrings["player_render_mode_fill"] ?? "";
   // player component
   String get playerBitrate => _localStrings["player_bitrate"] ?? "";
   String get playerInputAppId => _localStrings["player_input_appId"] ?? "";

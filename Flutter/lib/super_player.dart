@@ -31,4 +31,3 @@ part 'Core/provider/txplayer_holder.dart';
 part 'Core/txplayer_messages.dart';
 part 'Core/common/common_config.dart';
 part 'Core/common/tx_extension.dart';
-part 'Core/render/txplayer_view_controller.dart';

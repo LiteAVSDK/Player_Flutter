@@ -26,6 +26,7 @@ import com.tencent.rtmp.ui.TXCloudVideoView;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager;
 import com.tencent.vod.flutter.FTXTransformation;
+import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolPlayerMsg;
@@ -81,6 +82,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     private final FtxMessages.TXVodPlayerFlutterAPI mVodFlutterApi;
     private final FTXRenderViewFactory mRenderViewFactory;
     private final Handler mUIHandler = new Handler(Looper.getMainLooper());
+    private long mCurrentRenderMode = FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER;
     private final FTXPIPManager.PipCallback mPipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPipResult(TXPipResult result) {
@@ -182,6 +184,11 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             }
         } else if (event == TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL) {
             mHardwareDecodeFail = true;
+        }
+        if (event == TXVodConstants.VOD_PLAY_EVT_CHANGE_RESOLUTION) {
+            int resolutionWidth = bundle.getInt(TXLiveConstants.EVT_PARAM1);
+            int resolutionHeight = bundle.getInt(TXLiveConstants.EVT_PARAM2);
+            notifyTextureResolution(resolutionWidth, resolutionHeight);
         }
         if (event != TXVodConstants.VOD_PLAY_EVT_PLAY_PROGRESS) {
             LiteavLog.e(TAG, "onPlayEvent:" + event + "," + bundle.getString(TXLiveConstants.EVT_DESCRIPTION));
@@ -303,6 +310,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (isNeedClearLastImg && null != mCurRenderView) {
             LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
             mCurRenderView.clearTexture();
+            mCurRenderView.setPlayer(this);
         }
         return result;
     }
@@ -844,6 +852,35 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
                     + viewId + ", release player's renderView");
         }
         setUpPlayerView(renderView);
+    }
+
+    @Override
+    public void setRenderMode(@NonNull Long renderMode) {
+        if (mCurrentRenderMode != renderMode) {
+            mCurrentRenderMode = renderMode;
+            updateTextureRenderMode(renderMode);
+        }
+    }
+
+    @Override
+    public long getPlayerRenderMode() {
+        return mCurrentRenderMode;
+    }
+
+    @Override
+    public int getVideoWidth() {
+        if (null != mVodPlayer) {
+            return mVodPlayer.getWidth();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getVideoHeight() {
+        if (null != mVodPlayer) {
+            return mVodPlayer.getHeight();
+        }
+        return 0;
     }
 
     @Override

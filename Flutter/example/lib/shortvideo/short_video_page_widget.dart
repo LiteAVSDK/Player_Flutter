@@ -131,10 +131,9 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
         offstage: _isVideoPrepared,
         child: Container(
             decoration: BoxDecoration(
-                color: Colors.black,
                 image: DecorationImage(
                   image: NetworkImage(widget.model.coverUrl),
-                  fit: BoxFit.fill,
+                  fit: BoxFit.cover,
                 )),
             child: Scaffold(
               backgroundColor: Colors.transparent, //把scaffold的背景色改成透明

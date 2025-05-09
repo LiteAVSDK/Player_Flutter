@@ -10,6 +10,8 @@ import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'package:super_player_example/res/app_localizations.dart';
 import 'dart:ui';
 
+import 'common/demo_config.dart';
+
 /// flutter superplayer demo
 class DemoSuperPlayer extends StatefulWidget {
   Map? initParams = {};
@@ -39,6 +41,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   TextStyle _textStyleSelected = new TextStyle(fontSize: 16, color: Colors.white);
   TextStyle _textStyleUnSelected = new TextStyle(fontSize: 16, color: Colors.grey);
   double playerHeight = 220;
+  SuperPlayerRenderMode renderMode = SuperPlayerRenderMode.ADJUST_RESOLUTION;
 
   @override
   void initState() {
@@ -57,8 +60,14 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
       String evtName = event["event"];
       if (evtName == SuperPlayerViewEvent.onStartFullScreenPlay) {
         // enter fullscreen
+        setState(() {
+          _isFullScreen = true;
+        });
       } else if (evtName == SuperPlayerViewEvent.onStopFullScreenPlay) {
         // exit fullscreen
+        setState(() {
+          _isFullScreen = false;
+        });
       } else {
         print(evtName);
       }
@@ -112,6 +121,10 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                     ],
                   ),
             body: SafeArea(
+              left: !_isFullScreen,
+              top: !_isFullScreen,
+              right: !_isFullScreen,
+              bottom: !_isFullScreen,
               child: Builder(
                 builder: (context) => getBody(),
               ),
@@ -173,15 +186,16 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
 
   Widget getBody() {
     return Container(
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
       child: Column(
         children: [
           _getPlayArea(),
-          Expanded(
-              child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [getTabRow(), _getListArea(), _getAddArea()],
-          ))
+          _isFullScreen
+              ? Container()
+              : Expanded(
+                  child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [getTabRow(), _getListArea(), _getAddArea()],
+                ))
         ],
       ),
     );
@@ -191,7 +205,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     return Container(
       decoration: BoxDecoration(color: Colors.black),
       height: playerHeight,
-      child: SuperPlayerView(_controller),
+      child: SuperPlayerView(_controller, renderMode: renderMode,),
     );
   }
 
@@ -282,10 +296,17 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
     });
   }
 
-  void playCurrentModel(SuperPlayerModel model, double startTime) {
+  void playCurrentModel(SuperPlayerModel model, double startTime) async {
     currentVideoModel = model;
-    _controller.setStartTime(startTime);
-    _controller.playWithModelNeedLicence(model);
+    await _controller.setStartTime(startTime);
+    // check license
+    if (!isLicenseSuc.isCompleted) {
+      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
+      await isLicenseSuc.future;
+      await _controller.playWithModelNeedLicence(model);
+    } else {
+      await _controller.playWithModelNeedLicence(model);
+    }
   }
 
   void playVideo(SuperPlayerModel model) {

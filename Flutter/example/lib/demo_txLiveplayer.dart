@@ -19,7 +19,6 @@ class DemoTXLivePlayer extends StatefulWidget {
 
 class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBindingObserver {
   late TXLivePlayerController _controller;
-  double _aspectRatio = 16.0 / 9.0;
   int _volume = 100;
   bool _isMute = false;
   String _url = "http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv";
@@ -31,6 +30,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
   StreamSubscription? playerStateEventSubscription;
 
   GlobalKey<VideoSliderViewState> progressSliderKey = GlobalKey();
+  FTXPlayerRenderMode _renderMode = FTXPlayerRenderMode.ADJUST_RESOLUTION;
 
   Future<void> init() async {
     if (!mounted) return;
@@ -45,7 +45,6 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
         _isStop = false;
         _isPlaying = true;
         EasyLoading.dismiss();
-        _resizeVideo(event);
       } else if (evtCode == TXVodPlayEvent.PLAY_EVT_PLAY_BEGIN) {
         _isPlaying = true;
       } else if (evtCode== TXVodPlayEvent.PLAY_EVT_STREAM_SWITCH_SUCC) {
@@ -55,9 +54,6 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
       } else if (evtCode == TXVodPlayEvent.PLAY_ERR_STREAM_SWITCH_FAIL) {
         EasyLoading.dismiss();
         EasyLoading.showError(AppLocals.current.playerLiveSwitchFailed);
-      } else if (evtCode == TXVodPlayEvent.PLAY_EVT_CHANGE_RESOLUTION) {
-        LogUtils.w("PLAY_EVT_CHANGE_RESOLUTION", event);
-        _resizeVideo(event);
       } else if(evtCode < 0 && evtCode != -100) {
         EasyLoading.showError("play failed, code:$evtCode,event:$event");
       }
@@ -68,7 +64,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
       debugPrint("Playback status ${event!.name}");
     });
 
-    await SuperPlayerPlugin.setConsoleEnabled(true);
+    _controller.setRenderMode(FTXPlayerRenderMode.ADJUST_RESOLUTION);
 
     if (!isLicenseSuc.isCompleted) {
       SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
@@ -76,16 +72,6 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
       await _controller.startLivePlay(_url);
     } else {
       await _controller.startLivePlay(_url);
-    }
-  }
-
-  void _resizeVideo(Map<dynamic, dynamic> event) {
-    int? videoWidth = event[TXVodPlayEvent.EVT_PARAM1];
-    int? videoHeight = event[TXVodPlayEvent.EVT_PARAM2];
-    if ((videoWidth != null && videoWidth != 0) && (videoHeight != null && videoHeight != 0)) {
-      setState(() {
-        _aspectRatio = 1.0 * videoWidth / videoHeight;
-      });
     }
   }
 
@@ -153,24 +139,19 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                 height: 220,
                 color: Colors.black,
                 child: Center(
-                  child: _aspectRatio > 0
-                      ? AspectRatio(
-                          aspectRatio: _aspectRatio,
-                          child: TXPlayerVideo(
-                            onRenderViewCreatedListener: (viewId) {
-                              /// 此处只展示了最基础的纹理和播放器的配置方式。 这里可记录下来 viewId，在多纹理之间进行切换，比如横竖屏切换场景，竖屏的画面，
-                              /// 要切换到横屏的画面，可以在切换到横屏之后，拿到横屏的viewId 设置上去。回到竖屏的时候，再通过 viewId 切换回来。
-                              /// Only the most basic configuration methods for textures and the player are shown here.
-                              /// The `viewId` can be recorded here to switch between multiple textures. For example, in the scenario
-                              /// of switching between portrait and landscape orientations:
-                              /// To switch from the portrait view to the landscape view, obtain the `viewId` of the landscape view
-                              /// after switching to landscape orientation and set it.  When switching back to portrait orientation,
-                              /// switch back using the recorded `viewId`.
-                              _controller.setPlayerView(viewId);
-                            },
-                          ),
-                        )
-                      : Container(),
+                  child: TXPlayerVideo(
+                    onRenderViewCreatedListener: (viewId) {
+                      /// 此处只展示了最基础的纹理和播放器的配置方式。 这里可记录下来 viewId，在多纹理之间进行切换，比如横竖屏切换场景，竖屏的画面，
+                      /// 要切换到横屏的画面，可以在切换到横屏之后，拿到横屏的viewId 设置上去。回到竖屏的时候，再通过 viewId 切换回来。
+                      /// Only the most basic configuration methods for textures and the player are shown here.
+                      /// The `viewId` can be recorded here to switch between multiple textures. For example, in the scenario
+                      /// of switching between portrait and landscape orientations:
+                      /// To switch from the portrait view to the landscape view, obtain the `viewId` of the landscape view
+                      /// after switching to landscape orientation and set it.  When switching back to portrait orientation,
+                      /// switch back using the recorded `viewId`.
+                      _controller.setPlayerView(viewId);
+                    },
+                  )
                 ),
               ),
               VideoSliderView(_controller, progressSliderKey),
@@ -179,7 +160,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                 crossAxisSpacing: 10.0,
                 mainAxisSpacing: 30.0,
                 padding: EdgeInsets.all(10.0),
-                crossAxisCount: 4,
+                crossAxisCount: 5,
                 childAspectRatio: 1.5,
                 children: [
                   _createItem(AppLocals.current.playerResumePlay, () async {
@@ -232,6 +213,17 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                   }),
                   _createItem(AppLocals.current.playerAdjustVolume, () {
                     onClickVolume();
+                  }),
+                  _createItem(_renderMode == FTXPlayerRenderMode.ADJUST_RESOLUTION
+                      ? AppLocals.current.playerRenderModeAdjust
+                      : AppLocals.current.playerRenderModeFill, () async {
+                    if (_renderMode == FTXPlayerRenderMode.ADJUST_RESOLUTION) {
+                      _renderMode = FTXPlayerRenderMode.FULL_FILL_CONTAINER;
+                    } else {
+                      _renderMode = FTXPlayerRenderMode.ADJUST_RESOLUTION;
+                    }
+                    _controller.setRenderMode(_renderMode);
+                    setState(() {});
                   }),
                 ],
               )),

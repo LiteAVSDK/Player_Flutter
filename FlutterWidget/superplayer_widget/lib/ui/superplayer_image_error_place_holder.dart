@@ -20,6 +20,8 @@ class ImageWithGrayBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: this.width,
+      height: this.height,
       decoration: BoxDecoration(color: Color.fromRGBO(211, 211, 211, 0.5)), // 灰色背景
       child: Image.network(
         imageUrl,
@@ -31,6 +33,7 @@ class ImageWithGrayBackground extends StatelessWidget {
           return Center(
             child: Text(
                 'image load failed',
+              softWrap: true,
               style: TextStyle(color: Colors.grey[500]),
             ),
           );

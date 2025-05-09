@@ -1,9 +1,27 @@
 
+#### Version: 12.5.0 2025.05.08
+
+##### Features：
+
+- set Android TXLiteAVSDK_Professional to 12.5.0.17567，tag：release_pro_v12.5.0
+- set iOS TXLiteAVSDK_Professional to 12.5.18359， tag：release_pro_v12.5.0
+- Added the `setRenderMode` method to the player, allowing configuration of the tiling mode for video rendering.
+- Fixed an issue on Android where the player screen would turn black after pausing, moving to the background, and then returning to the foreground.
+- Optimized the delay of the first frame rendering in the Flutter player compared to event triggers.
+- Improved the screen orientation switching logic of the `super_player_widget` component by unifying texture sharing between portrait and landscape modes, enhancing the user experience during orientation changes.
+- On iOS, Picture-in-Picture (PiP) for live streaming will automatically switch to a layer-based playback mode for iOS 15.0 and above. [Inspired by live streaming practices, this uses `contentSource` to implement custom PiP rendering, avoiding playback glitches caused by PiP window resizing.]
+- Added a simple license polling mechanism on the demo side to prevent playback failures due to prolonged network disconnections during the first launch.
+- Fixed a memory leak issue in the Android Picture-in-Picture service under certain conditions.
+- Resolved the issue where Android Picture-in-Picture resizing animations displayed a semi-transparent black shadow effect.
+- On iOS, after calling `stopPlay`, the `startTime` is no longer cleared, aligning the behavior with the Android implementation.
+
+
 #### Version: 12.4.2 2025.04.30
 
 ##### Features：
 
 - Fix an issue where releasing the player would close the global Picture-in-Picture mode.
+
 
 
 #### Version: 12.4.1 2025.04.02

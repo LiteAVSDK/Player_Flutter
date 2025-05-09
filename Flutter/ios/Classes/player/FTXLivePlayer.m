@@ -16,6 +16,7 @@
 #import <FTXPiPKit/FTXPipController.h>
 #import "FTXImgTools.h"
 #import "FTXTextureView.h"
+#import "FTXPlayerConstants.h"
 
 static const int uninitialized = -1;
 
@@ -33,6 +34,7 @@ static const int uninitialized = -1;
 @property (nonatomic, assign) BOOL isMute;
 @property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
 @property (nonatomic, strong) FTXRenderView *curRenderView;
+@property (nonatomic, assign) NSUInteger renderMode;
 
 @end
 
@@ -57,10 +59,12 @@ static const int uninitialized = -1;
         self.restoreUI = NO;
         self.liveSize = CGSizeZero;
         self.isMute = NO;
+        self.renderMode = FULL_FILL_CONTAINER;
         SetUpTXFlutterLivePlayerApiWithSuffix([registrar messenger], self, [self.playerId stringValue]);
         self.liveFlutterApi = [[TXLivePlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
         [self createPlayer:onlyAudio];
     }
+    [self.livePlayer setProperty:kV2SetHeaders value:@"" ];
     return self;
 }
 
@@ -111,6 +115,7 @@ static const int uninitialized = -1;
             // 只有自定义渲染才能让直播画中画在后台输出画面
             [self.livePlayer enableObserveVideoFrame:YES pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
             [self.livePlayer setProperty:@"enableBackgroundDecoding" value:@(YES)];
+            [self.livePlayer setRenderFillMode:V2TXLiveFillModeFill];
             if (nil != self.curRenderView) {
                 [self.curRenderView setPlayer:self];
             }
@@ -322,9 +327,16 @@ static const int uninitialized = -1;
     [TXLiveBase setAppID:appId];
 }
 
-- (void)setRenderMode:(int)renderMode {
+- (void)setRenderMode:(NSUInteger)renderMode {
+    self->_renderMode = renderMode;
     if (self.livePlayer != nil) {
-        [self.livePlayer setRenderFillMode:renderMode];
+        if (renderMode == ADJUST_RESOLUTION) {
+            [self.livePlayer setRenderFillMode:V2TXLiveFillModeFit];
+        } else if (renderMode == FULL_FILL_CONTAINER) {
+            [self.livePlayer setRenderFillMode:V2TXLiveFillModeFill];
+        } else if (renderMode == SCALE_FULL_FILL_CONTAINER) {
+            [self.livePlayer setRenderFillMode:V2TXLiveFillModeScaleFill];
+        }
     }
 }
 
@@ -542,6 +554,12 @@ static const int uninitialized = -1;
         } else {
             self.renderControl = nil;
         }
+    }
+}
+
+- (void)setRenderModeRenderMode:(NSInteger)renderMode error:(FlutterError * _Nullable __autoreleasing *)error {
+    if (self.renderMode != renderMode) {
+        [self setRenderMode:renderMode];
     }
 }
 
