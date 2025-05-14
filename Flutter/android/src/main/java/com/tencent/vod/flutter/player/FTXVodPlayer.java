@@ -303,6 +303,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (isNeedClearLastImg && null != mCurRenderView) {
             LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
             mCurRenderView.clearTexture();
+            mCurRenderView.setPlayer(this);
         }
         return result;
     }
