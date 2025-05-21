@@ -291,6 +291,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     @Override
     public void setGlobalLicense(@NonNull LicenseMsg licenseMsg) {
+        TXPlayerGlobalSetting.setDrmProvisionEnv(TXPlayerGlobalSetting.DrmProvisionEnv.DRM_PROVISION_ENV_CN);
         TXLiveBase.getInstance().setLicence(mFlutterPluginBinding.getApplicationContext(), licenseMsg.getLicenseUrl(),
                 licenseMsg.getLicenseKey());
     }
