@@ -14,6 +14,11 @@ import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
 import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callback, FTXRenderCarrier {
 
     private static final String TAG = "FTXSurfaceView";
@@ -29,6 +34,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private int mViewHeight = 0;
     private final Object mLayoutLock = new Object();
     private FTXEGLRender mRender;
+    private final List<WeakReference<CarrierViewObserver>> mViewObservers = new ArrayList<>();
 
     public FTXSurfaceView(Context context) {
         super(context);
@@ -63,6 +69,29 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
                 LiteavLog.i(TAG, "notifyVideoResolutionChanged updateSize, mVideoWidth:"
                         + mVideoWidth + ",mVideoHeight:" + mVideoHeight);
+            }
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        LiteavLog.i(TAG, "target onDetachedFromWindow,view:" + hashCode());
+        mRender.stopRender();
+        for (WeakReference<CarrierViewObserver> observer : mViewObservers) {
+            if (observer.get() != null) {
+                observer.get().onDetachWindow(this);
+            }
+        }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        LiteavLog.i(TAG, "target onAttachedToWindow,view:" + hashCode());
+        for (WeakReference<CarrierViewObserver> observer : mViewObservers) {
+            if (observer.get() != null) {
+                observer.get().onAttachWindow(this);
             }
         }
     }
@@ -172,6 +201,39 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void destroyRender() {
         mRender.stopRender();
+        removeAllViewObserver();
+    }
+
+    @Override
+    public void addViewObserver(CarrierViewObserver observer) {
+        if (null != observer) {
+            mViewObservers.add(new WeakReference<>(observer));
+        }
+    }
+
+    @Override
+    public void removeViewObserver(CarrierViewObserver observer) {
+        int removeIndex = -1;
+        for (int i = 0; i < mViewObservers.size(); i++) {
+            WeakReference<CarrierViewObserver> observerWeakReference = mViewObservers.get(i);
+            if (observerWeakReference.get() == observer) {
+                removeIndex = i;
+                break;
+            }
+        }
+        if (removeIndex >= 0) {
+            mViewObservers.remove(removeIndex);
+        }
+    }
+
+    @Override
+    public void removeAllViewObserver() {
+        mViewObservers.clear();
+    }
+
+    @Override
+    public List<WeakReference<CarrierViewObserver>> getViewObservers() {
+        return mViewObservers;
     }
 
     @Override

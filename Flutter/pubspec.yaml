@@ -1,6 +1,6 @@
 name: super_player
 description: The super_player Flutter plugin is one of the sub-product SDKs of the audio/video terminal SDK (Tencent Cloud Video on Demand).
-version: 12.5.0
+version: 12.5.1
 homepage: https://github.com/LiteAVSDK/Player_Flutter
 
 environment:
@@ -11,12 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   synchronized: ^3.0.0+3
-  flutter_localizations:
-    sdk: flutter
 dev_dependencies:
   flutter_test:
     sdk: flutter
-#  pigeon: ^22.6.0
+  pigeon: ^22.6.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

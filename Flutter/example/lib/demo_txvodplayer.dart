@@ -48,7 +48,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     });
     LogUtils.logOpen = true;
 
-
     playEventSubscription = _controller.onPlayerEventBroadcast.listen((event) async {
       // Subscribe to event distribution
       final int code = event["event"];

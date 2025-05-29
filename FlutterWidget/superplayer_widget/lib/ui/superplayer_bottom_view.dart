@@ -87,7 +87,7 @@ class _VideoBottomViewState extends State<VideoBottomView> {
                     fit: BoxFit.fill)),
             padding: _showFullScreenBtn
                 ? const EdgeInsets.only(left: 6, right: 6, bottom: 3)
-                : const EdgeInsets.only(left: 20, right: 20, bottom: 13),
+                : const EdgeInsets.only(left: 30, right: 30, bottom: 20),
             child: Row(
               children: [
                 _getPlayImage(),
@@ -130,17 +130,17 @@ class _VideoBottomViewState extends State<VideoBottomView> {
   }
 
   Widget _getPlayImage() {
-    return InkWell(
+    return GestureDetector(
       onTap: onTapStartOrPause,
       child: _isPlayMode
           ? const Image(
-              width: 30,
-              height: 30,
+              width: 35,
+              height: 35,
               image: AssetImage("images/superplayer_ic_vod_pause_normal.png", package: PlayerConstants.PKG_NAME),
             )
           : const Image(
-              width: 30,
-              height: 30,
+              width: 35,
+              height: 35,
               image: AssetImage("images/superplayer_ic_vod_play_normal.png", package: PlayerConstants.PKG_NAME),
             ),
     );

@@ -1,4 +1,14 @@
 
+#### Version: 12.5.1 2025.05.29
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 12.5.0.17576，tag：release_player_v12.5.1
+- set iOS TXLiteAVSDK_Player to 12.5.18393， tag：release_player_v12.5.1
+- The `SuperPlayerPlugin` has added the `setDrmProvisionEnv` method for switching the DRM playback environment.
+- Fixed an issue where the video screen could not be restored when returning to the foreground from the background while using SurfaceView on the Android side.
+- Fix the issue where the UI component's fullscreen operation behaves unexpectedly on some older Android devices.
+
 #### Version: 12.5.0 2025.05.08
 
 ##### Features：

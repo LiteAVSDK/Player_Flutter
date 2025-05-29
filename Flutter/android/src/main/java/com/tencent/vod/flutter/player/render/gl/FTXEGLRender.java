@@ -23,7 +23,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = "FTXEGLRender";
 
     private static final long FRAME_WAIT_TIME = 5000;
-    private static final int FPS_DEFAULT = 60;
+    private static final int FPS_DEFAULT = 30;
 
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
