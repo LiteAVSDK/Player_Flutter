@@ -292,26 +292,15 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       setState(() {
         _currentUIStatus = SuperPlayerUIStatus.FULLSCREEN_MODE;
       });
-      if (_playController.playerType != SuperPlayerType.VOD) {
-        WidgetsBinding.instance.addPostFrameCallback((a) async {
-          // reset render mode for live
-          await _playController.setPlayerView(-1);
-          await connectPlayerView();
-        });
-      }
     }, () async {
+      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      hideControlView();
       // exit full screen
       setState(() {
         _currentUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
       });
-      _restoreToWindowMode();
-      if (_playController.playerType != SuperPlayerType.VOD) {
-        WidgetsBinding.instance.addPostFrameCallback((a) async {
-          // reset render mode for live
-          await _playController.setPlayerView(-1);
-          await connectPlayerView();
-        });
-      }
     });
     WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.addObserver(this);
@@ -384,13 +373,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     } else {
       _playerViewIdCompleter.complete(viewId);
     }
-  }
-
-  void _restoreToWindowMode() {
-    _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-    _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-    _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-    hideControlView();
   }
 
   void _refreshDownloadStatus() async {
