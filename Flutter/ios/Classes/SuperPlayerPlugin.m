@@ -404,6 +404,10 @@ SuperPlayerPlugin* instance;
     // only for android
 }
 
+- (void)setDrmProvisionEnvEnv:(NSInteger)env error:(FlutterError * _Nullable __autoreleasing *)error {
+    // only for android
+}
+
 #pragma mark DataBridge
 
 - (NSMutableDictionary *)getPlayers {

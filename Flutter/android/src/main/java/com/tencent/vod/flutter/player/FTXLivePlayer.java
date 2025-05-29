@@ -65,7 +65,6 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     private boolean mIsPaused = false;
     private final FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
     private final FTXRenderViewFactory mRenderViewFactory;
-    private FTXRenderView mCurRenderView;
     private final Handler mUIHandler = new Handler(Looper.getMainLooper());
     private boolean mIsMute = false;
     private int mCurrentVideoWidth = 0;
@@ -464,14 +463,11 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     public void setPlayerView(@NonNull Long renderViewId) {
         int viewId = renderViewId.intValue();
         FTXRenderView renderView = mRenderViewFactory.findViewById(viewId);
-        if (null != renderView) {
-            mCurRenderView = renderView;
-            renderView.setPlayer(this);
-        } else {
-            LiteavLog.e(TAG, "setPlayerView can not find renderView by id:" + viewId + ", release player's renderView");
-            mCurRenderView = null;
-            setRenderView(null);
+        if (null == renderView) {
+            LiteavLog.e(TAG, "setPlayerView can not find renderView by id:"
+                    + viewId + ", release player's renderView");
         }
+        setUpPlayerView(renderView);
     }
 
     @Override

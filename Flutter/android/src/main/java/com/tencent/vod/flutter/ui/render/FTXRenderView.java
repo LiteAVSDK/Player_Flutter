@@ -72,6 +72,7 @@ public class FTXRenderView implements PlatformView {
                     + ",new:" + player + ", view:" + hashCode());
             if (null != mBasePlayer) {
                 mBasePlayer.setRenderView(null);
+                mTextureView.removeAllViewObserver();
                 clearTexture();
             }
             mBasePlayer = player;
@@ -99,6 +100,7 @@ public class FTXRenderView implements PlatformView {
     @Override
     public void dispose() {
         mFactory.removeByViewId(mViewId);
+        mContainer.setCarrier(null);
         LiteavLog.i(TAG, "render view is dispose, id:" + mViewId + ", view:" + hashCode());
     }
 }

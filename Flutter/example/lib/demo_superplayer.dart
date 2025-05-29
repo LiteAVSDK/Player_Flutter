@@ -119,7 +119,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
                                     package: PlayerConstants.PKG_NAME)),
                           ))
                     ],
-                  ),
+                    ),
             body: SafeArea(
               left: !_isFullScreen,
               top: !_isFullScreen,
@@ -204,7 +204,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   Widget _getPlayArea() {
     return Container(
       decoration: BoxDecoration(color: Colors.black),
-      height: playerHeight,
+      height: _isFullScreen ? MediaQuery.of(context).size.height : playerHeight,
       child: SuperPlayerView(_controller, renderMode: renderMode,),
     );
   }

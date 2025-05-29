@@ -45,6 +45,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
 import com.tencent.vod.flutter.player.render.FTXVodPlayerRenderHost;
+import com.tencent.vod.flutter.tools.FTXVersionAdapter;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.render.FTXRenderView;
@@ -249,9 +250,8 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             mVodPlayer.setRenderMode(TXLiveConstants.RENDER_MODE_ADJUST_RESOLUTION);
             // prevent config null exception
             TXVodPlayConfig playConfig = new TXVodPlayConfig();
-            Map<String, Object> map = new HashMap<>();
-            map.put("450", 0);
-            playConfig.setExtInfo(map);
+            FTXVersionAdapter.enableCustomSubtitle(playConfig, 0);
+            FTXVersionAdapter.enableDrmLevel3(playConfig, true);
             mVodPlayer.setConfig(playConfig);
             mVodPlayer.setVodSubtitleDataListener(new ITXVodPlayListener.ITXVodSubtitleDataListener() {
                 @Override
@@ -406,13 +406,8 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     void setPlayConfig(FTXVodPlayConfigPlayerMsg config) {
         if (mVodPlayer != null) {
             TXVodPlayConfig playConfig = FTXTransformation.transformToVodConfig(config);
-            Map<String, Object> map = new HashMap<>();
-            Map<String, Object> extInfoMap = playConfig.getExtInfoMap();
-            if (extInfoMap != null && !extInfoMap.isEmpty()) {
-                map.putAll(extInfoMap);
-            }
-            map.put("450", 0);
-            playConfig.setExtInfo(map);
+            FTXVersionAdapter.enableCustomSubtitle(playConfig, 0);
+            FTXVersionAdapter.enableDrmLevel3(playConfig, true);
             mVodPlayer.setConfig(playConfig);
         }
     }

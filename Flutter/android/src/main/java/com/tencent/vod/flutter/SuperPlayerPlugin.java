@@ -30,6 +30,7 @@ import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
+import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.messages.FtxMessages;
 import com.tencent.vod.flutter.messages.FtxMessages.BoolMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.DoubleMsg;
@@ -184,6 +185,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         flutterPluginBinding
                 .getPlatformViewRegistry()
                 .registerViewFactory(FTXEvent.FTX_RENDER_VIEW, mRenderViewFactory);
+        LiteavLog.i(TAG, "plugin version is:" + BuildConfig.FLUTTER_PLAYER_VERSION);
         TXFlutterSuperPlayerPluginAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
         TXFlutterNativeAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
         mPluginApi = new FtxMessages.TXPluginFlutterAPI(flutterPluginBinding.getBinaryMessenger());
@@ -337,6 +339,15 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     public void setLicenseFlexibleValid(@NonNull BoolMsg msg) {
         if (null != msg.getValue()) {
             TXPlayerGlobalSetting.setLicenseFlexibleValid(msg.getValue());
+        }
+    }
+
+    @Override
+    public void setDrmProvisionEnv(@NonNull Long env) {
+        if (env == FTXPlayerConstants.FTXDrmProvisionEnvInt.DRM_PROVISION_ENV_CN) {
+            TXPlayerGlobalSetting.setDrmProvisionEnv(TXPlayerGlobalSetting.DrmProvisionEnv.DRM_PROVISION_ENV_CN);
+        } else {
+            TXPlayerGlobalSetting.setDrmProvisionEnv(TXPlayerGlobalSetting.DrmProvisionEnv.DRM_PROVISION_ENV_COM);
         }
     }
 

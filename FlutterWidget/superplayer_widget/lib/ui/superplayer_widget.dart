@@ -67,7 +67,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   void initState() {
     super.initState();
-    // TXPipController.instance.exitAndReleaseCurrentPip();
+    TXPipController.instance.exitAndReleaseCurrentPip();
     _playController = widget._controller;
     _currentUIStatus = _playController._playerUIStatus;
     _applyRenderMode();
@@ -150,9 +150,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _onResume();
         }
       }
-
       // Do not rotate the screen in picture-in-picture mode.
-      if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && _currentUIStatus != SuperPlayerUIStatus.PIP_MODE) {
+      else if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && _currentUIStatus != SuperPlayerUIStatus.PIP_MODE) {
         int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
         _playController.fullScreenController.switchToOrientation(orientation);
       }
@@ -293,20 +292,23 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
         _currentUIStatus = SuperPlayerUIStatus.FULLSCREEN_MODE;
       });
       if (_playController.playerType != SuperPlayerType.VOD) {
-        WidgetsBinding.instance.addPostFrameCallback((a) async {
+        Future.delayed(Duration(milliseconds: 180), () async {
           // reset render mode for live
           await _playController.setPlayerView(-1);
           await connectPlayerView();
         });
       }
     }, () async {
+      _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
+      hideControlView();
       // exit full screen
       setState(() {
         _currentUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
       });
-      _restoreToWindowMode();
       if (_playController.playerType != SuperPlayerType.VOD) {
-        WidgetsBinding.instance.addPostFrameCallback((a) async {
+        Future.delayed(Duration(milliseconds: 180), () async {
           // reset render mode for live
           await _playController.setPlayerView(-1);
           await connectPlayerView();
@@ -384,13 +386,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     } else {
       _playerViewIdCompleter.complete(viewId);
     }
-  }
-
-  void _restoreToWindowMode() {
-    _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-    _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-    _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-    hideControlView();
   }
 
   void _refreshDownloadStatus() async {
@@ -588,11 +583,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   }
 
   Widget _getPlayer() {
-    return InkWell(
+    return GestureDetector(
         onDoubleTap: _onDoubleTapVideo,
         onTap: _onSingleTapVideo,
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
         child: Container(
           decoration: BoxDecoration(color: Colors.black),
           child: TXPlayerVideo(viewKey: _videoKey, onRenderViewCreatedListener: _onPlayerViewCreated,),
@@ -784,7 +777,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     }
 
     if (_currentUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
     // Hide moreView
     if (needHideMenuView) {
