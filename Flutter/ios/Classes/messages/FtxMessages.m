@@ -1634,6 +1634,25 @@ void SetUpTXFlutterSuperPlayerPluginAPIWithSuffix(id<FlutterBinaryMessenger> bin
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterSuperPlayerPluginAPI.setDrmProvisionEnv", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setDrmProvisionEnvEnv:error:)], @"TXFlutterSuperPlayerPluginAPI api (%@) doesn't respond to @selector(setDrmProvisionEnvEnv:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        NSInteger arg_env = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setDrmProvisionEnvEnv:arg_env error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 void SetUpTXFlutterNativeAPI(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterNativeAPI> *api) {
   SetUpTXFlutterNativeAPIWithSuffix(binaryMessenger, api, @"");

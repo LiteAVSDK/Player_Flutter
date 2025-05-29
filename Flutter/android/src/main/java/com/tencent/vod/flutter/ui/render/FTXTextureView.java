@@ -154,6 +154,18 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        LiteavLog.i(TAG, "target onDetachedFromWindow,view:" + hashCode());
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        LiteavLog.i(TAG, "target onAttachedToWindow,view:" + hashCode());
+    }
+
+    @Override
     public void setSurfaceTexture(@NonNull SurfaceTexture surfaceTexture) {
         super.setSurfaceTexture(surfaceTexture);
         updateSurfaceTexture(surfaceTexture);

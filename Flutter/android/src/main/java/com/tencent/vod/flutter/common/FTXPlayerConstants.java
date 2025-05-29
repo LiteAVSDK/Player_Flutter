@@ -6,7 +6,7 @@ public class FTXPlayerConstants {
 
         /**
          * 根据视频比例，完整展示出视频画面
-         *  Display the video content fully according to the video aspect ratio.
+         * Display the video content fully according to the video aspect ratio.
          */
         long ADJUST_RESOLUTION = 0;
 
@@ -21,6 +21,13 @@ public class FTXPlayerConstants {
          * Fill the container completely according to the video aspect ratio, and deform to fill the container.
          */
         long SCALE_FULL_FILL_CONTAINER = 2;
+    }
+
+    public interface FTXDrmProvisionEnvInt {
+
+        long DRM_PROVISION_ENV_COM = 0;
+
+        long DRM_PROVISION_ENV_CN = 1;
     }
 
 }

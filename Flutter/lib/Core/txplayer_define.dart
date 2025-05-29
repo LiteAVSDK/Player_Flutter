@@ -544,6 +544,15 @@ enum TXPlayerLiveMode {
   Smooth
 }
 
+enum TXDrmProvisionEnv {
+  // 代表使用 google COM 域名证书提供商
+  // using the Google COM domain certificate provider
+  DRM_PROVISION_ENV_COM,
+  // 代表使用 google CN 域名证书提供商
+  // using the Google CN domain certificate provider
+  DRM_PROVISION_ENV_CN
+}
+
 enum TXPlayerState {
   // Playback paused.
   // 暂停播放

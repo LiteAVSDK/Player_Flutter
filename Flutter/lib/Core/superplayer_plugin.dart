@@ -299,6 +299,15 @@ class SuperPlayerPlugin implements TXPluginFlutterAPI, TXPipFlutterAPI {
     await _playerPluginApi.setLicenseFlexibleValid(BoolMsg(value: enabled));
   }
 
+  ///
+  /// 设置 Drm 证书提供商环境,参考 [TXDrmProvisionEnv]
+  ///
+  /// Set the DRM certificate provider environment. See [TXDrmProvisionEnv].
+  ///
+  static Future<void> setDrmProvisionEnv(TXDrmProvisionEnv env) async {
+    await _playerPluginApi.setDrmProvisionEnv(env.index);
+  }
+
   @override
   void onPipEvent(Map<dynamic, dynamic> event) {
     LogUtils.d(TAG, "[pipEventHandler], receive event =  $event ");

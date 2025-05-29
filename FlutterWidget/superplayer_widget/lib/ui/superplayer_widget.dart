@@ -150,9 +150,8 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           _onResume();
         }
       }
-
       // Do not rotate the screen in picture-in-picture mode.
-      if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && _currentUIStatus != SuperPlayerUIStatus.PIP_MODE) {
+      else if (eventCode == TXVodPlayEvent.EVENT_ORIENTATION_CHANGED && _currentUIStatus != SuperPlayerUIStatus.PIP_MODE) {
         int orientation = event[TXVodPlayEvent.EXTRA_NAME_ORIENTATION];
         _playController.fullScreenController.switchToOrientation(orientation);
       }

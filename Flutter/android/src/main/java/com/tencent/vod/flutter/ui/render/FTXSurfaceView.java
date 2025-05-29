@@ -68,6 +68,19 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        LiteavLog.i(TAG, "target onDetachedFromWindow,view:" + hashCode());
+        mRender.stopRender();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        LiteavLog.i(TAG, "target onAttachedToWindow,view:" + hashCode());
+    }
+
+    @Override
     public void updateRenderMode(long renderMode) {
         if (mRenderMode != renderMode) {
             mRenderMode = renderMode;

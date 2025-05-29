@@ -6,7 +6,11 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.liteav.base.util.LiteavLog;
+
 public class FTXTextureContainer extends FrameLayout {
+
+    private static final String TAG = "FTXTextureContainer";
 
     private FTXRenderCarrier mTextureHolder;
 
@@ -15,8 +19,10 @@ public class FTXTextureContainer extends FrameLayout {
     }
 
     public synchronized void setCarrier(FTXRenderCarrier carrier) {
+        LiteavLog.i(TAG, "called setUp new carrier:" + carrier + ",view:" + hashCode());
         if (mTextureHolder != carrier) {
             if (null == carrier) {
+                LiteavLog.i(TAG, "start remove old carrier:" + mTextureHolder + ",view:" + hashCode());
                 removeView((View) mTextureHolder);
                 mTextureHolder.destroyRender();
             } else {
@@ -24,10 +30,23 @@ public class FTXTextureContainer extends FrameLayout {
                     removeView((View) mTextureHolder);
                     mTextureHolder.destroyRender();
                 }
+                LiteavLog.i(TAG, "start add new carrier:" + carrier + ",view:" + hashCode());
                 addView((View) carrier);
             }
             mTextureHolder = carrier;
         }
+    }
+
+    @Override
+    public void removeAllViews() {
+        super.removeAllViews();
+        LiteavLog.i(TAG, "target removeAllViews,view:" + hashCode());
+    }
+
+    @Override
+    public void removeView(View view) {
+        super.removeView(view);
+        LiteavLog.i(TAG, "target removeView, child:" + view + ",view:" + hashCode());
     }
 
     @Override

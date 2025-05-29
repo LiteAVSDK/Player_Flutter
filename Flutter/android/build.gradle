@@ -17,12 +17,8 @@ android {
     namespace="com.tencent.vod.flutter"
 
     defaultConfig {
+        buildConfigField("String", "FLUTTER_PLAYER_VERSION", "\"${rootProject.ext.playerVersion}\"")
         minSdkVersion rootProject.ext.minSdkVersion
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
