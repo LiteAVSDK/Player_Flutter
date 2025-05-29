@@ -915,25 +915,25 @@ class FullScreenController {
 
   FullScreenController();
 
-  void switchToOrientation(int orientationDirection) {
+  Future<void> switchToOrientation(int orientationDirection) async {
     if (currentOrientation != orientationDirection) {
       forceSwitchOrientation(orientationDirection);
     }
   }
 
-  void forceSwitchOrientation(int orientationDirection) async {
+  Future<void> forceSwitchOrientation(int orientationDirection) async {
     currentOrientation = orientationDirection;
     if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_UP) {
       await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
       await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       exitFullScreen();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       await SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeRight] : [DeviceOrientation.landscapeLeft]);
       enterFullScreen();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_DOWN) {
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_LEFT) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       await SystemChrome.setPreferredOrientations(Platform.isIOS ? [DeviceOrientation.landscapeLeft] : [DeviceOrientation.landscapeRight]);
       enterFullScreen();
     }

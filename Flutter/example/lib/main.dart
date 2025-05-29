@@ -34,8 +34,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
     initPlayerLicense();
+    initPlatformState();
     _getFlutterSdkVersion();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     LogUtils.logOpen = true;
@@ -49,6 +49,7 @@ class _MyAppState extends State<MyApp> {
         isLicenseSuc.complete(true);
       }
     });
+    await SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
     retryConfigLicense();
     // enable flexible license valid
     SuperPlayerPlugin.setLicenseFlexibleValid(true);
