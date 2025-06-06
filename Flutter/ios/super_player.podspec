@@ -26,7 +26,7 @@ player plugin.
   # Player_Premium SDK: s.dependency 'TXLiteAVSDK_Player_Premium'
   # Professional SDK:  s.dependency 'TXLiteAVSDK_Professional'
   # If you want to specify the SDK version（eg 11.6.15041), use:  s.dependency 'TXLiteAVSDK_Player','11.6.15041'
-  s.dependency 'TXLiteAVSDK_Professional_Player_Premium','12.4.17856'
+  s.dependency 'TXLiteAVSDK_Player_Premium','12.4.17856'
   # s.dependency 'FTXPiPKit'
   s.vendored_frameworks = [
     'localdep/FTXPiPKit.xcframework'
