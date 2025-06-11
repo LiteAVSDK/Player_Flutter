@@ -9,7 +9,7 @@ typedef TaskDetailFunc = Future Function();
 class TaskExecutors {
 
   bool _isTaskRunning = false;
-  final LinkedList<TaskItem> _taskList = LinkedList<TaskItem>();
+  final List<TaskItem> _taskList = [];
 
   Future addTask(TaskDetailFunc task) {
     Completer completer = Completer();
@@ -42,7 +42,7 @@ class TaskExecutors {
   }
 }
 
-class TaskItem extends LinkedListEntry<TaskItem> {
+class TaskItem {
   TaskDetailFunc function;
   TaskCallback taskCallback;
 

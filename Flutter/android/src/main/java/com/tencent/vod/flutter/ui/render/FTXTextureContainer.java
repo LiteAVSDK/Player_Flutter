@@ -8,6 +8,10 @@ import androidx.annotation.NonNull;
 
 import com.tencent.liteav.base.util.LiteavLog;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+
 public class FTXTextureContainer extends FrameLayout {
 
     private static final String TAG = "FTXTextureContainer";
@@ -26,9 +30,14 @@ public class FTXTextureContainer extends FrameLayout {
                 removeView((View) mTextureHolder);
                 mTextureHolder.destroyRender();
             } else {
+                List<WeakReference<CarrierViewObserver>> mOldObservers = new ArrayList<>();
                 if (null != mTextureHolder) {
                     removeView((View) mTextureHolder);
+                    mOldObservers.addAll(mTextureHolder.getViewObservers());
                     mTextureHolder.destroyRender();
+                }
+                for (WeakReference<CarrierViewObserver> ref : mOldObservers) {
+                    carrier.addViewObserver(ref.get());
                 }
                 LiteavLog.i(TAG, "start add new carrier:" + carrier + ",view:" + hashCode());
                 addView((View) carrier);

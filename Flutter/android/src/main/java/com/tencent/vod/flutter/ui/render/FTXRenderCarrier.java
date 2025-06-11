@@ -2,6 +2,9 @@ package com.tencent.vod.flutter.ui.render;
 
 import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
 
+import java.lang.ref.WeakReference;
+import java.util.List;
+
 public interface FTXRenderCarrier {
 
     void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost);
@@ -18,4 +21,11 @@ public interface FTXRenderCarrier {
 
     void destroyRender();
 
+    void addViewObserver(CarrierViewObserver observer);
+
+    void removeViewObserver(CarrierViewObserver observer);
+
+    void removeAllViewObserver();
+
+    List<WeakReference<CarrierViewObserver>> getViewObservers();
 }

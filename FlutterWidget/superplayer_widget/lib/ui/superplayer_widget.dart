@@ -67,7 +67,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   @override
   void initState() {
     super.initState();
-    // TXPipController.instance.exitAndReleaseCurrentPip();
+    TXPipController.instance.exitAndReleaseCurrentPip();
     _playController = widget._controller;
     _currentUIStatus = _playController._playerUIStatus;
     _applyRenderMode();
@@ -291,6 +291,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       setState(() {
         _currentUIStatus = SuperPlayerUIStatus.FULLSCREEN_MODE;
       });
+      if (_playController.playerType != SuperPlayerType.VOD) {
+        Future.delayed(Duration(milliseconds: 180), () async {
+          // reset render mode for live
+          await _playController.setPlayerView(-1);
+          await connectPlayerView();
+        });
+      }
     }, () async {
       _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
@@ -300,6 +307,13 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       setState(() {
         _currentUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
       });
+      if (_playController.playerType != SuperPlayerType.VOD) {
+        Future.delayed(Duration(milliseconds: 180), () async {
+          // reset render mode for live
+          await _playController.setPlayerView(-1);
+          await connectPlayerView();
+        });
+      }
     });
     WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.addObserver(this);
@@ -569,11 +583,9 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   }
 
   Widget _getPlayer() {
-    return InkWell(
+    return GestureDetector(
         onDoubleTap: _onDoubleTapVideo,
         onTap: _onSingleTapVideo,
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
         child: Container(
           decoration: BoxDecoration(color: Colors.black),
           child: TXPlayerVideo(viewKey: _videoKey, onRenderViewCreatedListener: _onPlayerViewCreated,),
