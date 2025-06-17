@@ -34,7 +34,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private int mViewHeight = 0;
     private final Object mLayoutLock = new Object();
     private FTXEGLRender mRender;
-    private final List<WeakReference<CarrierViewObserver>> mViewObservers = new ArrayList<>();
+    private final List<WeakReference<CarrierViewObserver>> mViewObservers = Collections.synchronizedList(new ArrayList<>());
 
     public FTXSurfaceView(Context context) {
         super(context);
