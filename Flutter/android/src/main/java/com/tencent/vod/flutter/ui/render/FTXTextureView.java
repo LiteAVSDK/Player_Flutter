@@ -19,6 +19,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FTXTextureView extends TextureView implements TextureView.SurfaceTextureListener, FTXRenderCarrier {
     private static final String TAG = "FTXTextureView";
