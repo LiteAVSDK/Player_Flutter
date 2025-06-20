@@ -60,4 +60,8 @@ enum SuperPlayerRenderMode {
   ADJUST_RESOLUTION
 }
 
+abstract class SPConstants {
+  static const VALID_SUBTITLE_INDEX = -1;
+}
+
 

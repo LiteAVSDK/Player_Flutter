@@ -13,6 +13,9 @@ rootProject.allprojects {
 }
 
 android {
+    buildFeatures {
+        buildConfig = true
+    }
     compileSdkVersion rootProject.ext.compileSdkVersion
     namespace="com.tencent.vod.flutter"
 

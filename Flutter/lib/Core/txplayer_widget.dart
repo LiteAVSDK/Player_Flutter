@@ -46,6 +46,7 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
 
   int _viewId = -1;
   Completer<int> _viewIdCompleter = Completer();
+  // for force rebuild
   Key _platformViewKey = UniqueKey();
 
   @override
@@ -69,22 +70,21 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return IgnorePointer(
         ignoring: true,
-        child: PlatformViewLink(
-            key: _platformViewKey,
-            surfaceFactory: (context, controller) {
-              return AndroidViewSurface(
-                controller: controller as AndroidViewController,
-                gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
-                hitTestBehavior: PlatformViewHitTestBehavior.opaque,
-              );
-            },
-            onCreatePlatformView: _onCreatePlatformAndroidView,
-            viewType: _kFTXPlayerRenderViewType),
+        child: AndroidView(
+          key: _platformViewKey,
+            onPlatformViewCreated: _onCreateAndroidView,
+            viewType: _kFTXPlayerRenderViewType,
+          layoutDirection: TextDirection.ltr,
+          creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
+          creationParamsCodec: const StandardMessageCodec(),
+
+        )
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return IgnorePointer(
         ignoring: true,
         child: UiKitView(
+            key: _platformViewKey,
             viewType: _kFTXPlayerRenderViewType,
             layoutDirection: TextDirection.ltr,
             creationParams: const {},
@@ -97,40 +97,13 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     }
   }
 
-  PlatformViewController _onCreatePlatformAndroidView(PlatformViewCreationParams params) {
+  void _onCreateAndroidView(int id) {
     if (_viewIdCompleter.isCompleted) {
       _viewIdCompleter = Completer();
     }
-    _viewId = params.id;
-    _viewIdCompleter.complete(params.id);
-    widget.onRenderViewCreatedListener?.call(params.id);
-    if (widget.renderViewType == FTXAndroidRenderViewType.DRM_SURFACE_VIEW) {
-      return PlatformViewsService.initSurfaceAndroidView(
-        id: params.id,
-        viewType: _kFTXPlayerRenderViewType,
-        layoutDirection: TextDirection.ltr,
-        creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
-        creationParamsCodec: const StandardMessageCodec(),
-        onFocus: () {
-          params.onFocusChanged(true);
-        },
-      )
-        ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
-        ..create();
-    } else {
-      return PlatformViewsService.initAndroidView(
-        id: params.id,
-        viewType: _kFTXPlayerRenderViewType,
-        layoutDirection: TextDirection.ltr,
-        creationParams: {_kFTXAndroidRenderTypeKey : widget.renderViewType.index},
-        creationParamsCodec: const StandardMessageCodec(),
-        onFocus: () {
-          params.onFocusChanged(true);
-        },
-      )
-        ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
-        ..create();
-    }
+    _viewId = id;
+    _viewIdCompleter.complete(id);
+    widget.onRenderViewCreatedListener?.call(id);
   }
 
   void _onCreateIOSView(int id) {

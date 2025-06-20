@@ -72,7 +72,7 @@ public class FTXRenderView implements PlatformView {
                     + ",new:" + player + ", view:" + hashCode());
             if (null != mBasePlayer) {
                 mBasePlayer.setRenderView(null);
-                mTextureView.removeAllViewObserver();
+                mTextureView.removeAllSurfaceListener();
                 clearTexture();
             }
             mBasePlayer = player;

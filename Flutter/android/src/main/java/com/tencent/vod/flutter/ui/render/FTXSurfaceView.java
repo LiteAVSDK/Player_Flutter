@@ -14,12 +14,10 @@ import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
 import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callback, FTXRenderCarrier {
+public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
     private static final String TAG = "FTXSurfaceView";
 
@@ -34,7 +32,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private int mViewHeight = 0;
     private final Object mLayoutLock = new Object();
     private FTXEGLRender mRender;
-    private final List<WeakReference<CarrierViewObserver>> mViewObservers = new ArrayList<>();
+    private final SurfaceViewInnerListener mSurfaceListenerDelegate = new SurfaceViewInnerListener(this);
 
     public FTXSurfaceView(Context context) {
         super(context);
@@ -42,10 +40,8 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void init() {
-        getHolder().addCallback(this);
-        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        mRender = new FTXEGLRender(1, 1);
+        getHolder().addCallback(mSurfaceListenerDelegate);
+        mRender = new FTXEGLRender(1080, 720);
     }
 
     @Override
@@ -66,7 +62,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 if (videoHeight >= 0) {
                     mVideoHeight = videoHeight;
                 }
-                mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
+                updateVideoRenderMode();
                 LiteavLog.i(TAG, "notifyVideoResolutionChanged updateSize, mVideoWidth:"
                         + mVideoWidth + ",mVideoHeight:" + mVideoHeight);
             }
@@ -78,29 +74,19 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         super.onDetachedFromWindow();
         LiteavLog.i(TAG, "target onDetachedFromWindow,view:" + hashCode());
         mRender.stopRender();
-        for (WeakReference<CarrierViewObserver> observer : mViewObservers) {
-            if (observer.get() != null) {
-                observer.get().onDetachWindow(this);
-            }
-        }
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         LiteavLog.i(TAG, "target onAttachedToWindow,view:" + hashCode());
-        for (WeakReference<CarrierViewObserver> observer : mViewObservers) {
-            if (observer.get() != null) {
-                observer.get().onAttachWindow(this);
-            }
-        }
     }
 
     @Override
     public void updateRenderMode(long renderMode) {
         if (mRenderMode != renderMode) {
             mRenderMode = renderMode;
-            layoutTextureRenderMode();
+            updateVideoRenderMode();
         }
     }
 
@@ -109,7 +95,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         updateRenderSizeIfNeed(viewWidth, viewHeight);
     }
 
-    public void layoutTextureRenderMode() {
+    public void updateVideoRenderMode() {
         if (mRender != null) {
             mRender.updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
         }
@@ -132,12 +118,10 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             connectPlayer(surfaceHost);
         }
         if (null != surfaceHost) {
-            final int videoWidth = surfaceHost.getVideoWidth();
-            final int videoHeight = surfaceHost.getVideoHeight();
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
-            mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
+            updateVideoRenderMode();
             LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
                     + mVideoHeight + ",renderMode:" + mRenderMode);
         }
@@ -180,7 +164,7 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             mRender.initOpengl(surface);
             mPlayer.setSurface(mRender.getInputSurface());
             mRender.startRender();
-            mPlayer.setSurface(mRender.getInputSurface());
+            LiteavLog.i(TAG, "updateHostSurface:" + surface);
         }
     }
 
@@ -201,60 +185,67 @@ public class FTXSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void destroyRender() {
         mRender.stopRender();
-        removeAllViewObserver();
     }
 
     @Override
-    public void addViewObserver(CarrierViewObserver observer) {
-        if (null != observer) {
-            mViewObservers.add(new WeakReference<>(observer));
+    public void reDrawVod() {
+        // surfaceView will detach view, so reDraw will invalid
+        if (null != mRender) {
+            mRender.refreshRender();
         }
     }
 
     @Override
-    public void removeViewObserver(CarrierViewObserver observer) {
-        int removeIndex = -1;
-        for (int i = 0; i < mViewObservers.size(); i++) {
-            WeakReference<CarrierViewObserver> observerWeakReference = mViewObservers.get(i);
-            if (observerWeakReference.get() == observer) {
-                removeIndex = i;
-                break;
+    public void addSurfaceTextureListener(FTXCarrierSurfaceListener listener) {
+        if (null != listener && !mSurfaceListenerDelegate.mExternalSurfaceListeners.contains(listener)) {
+            mSurfaceListenerDelegate.mExternalSurfaceListeners.add(listener);
+        }
+    }
+
+    @Override
+    public void removeSurfaceTextureListener(FTXCarrierSurfaceListener listener) {
+        if (null != listener) {
+            mSurfaceListenerDelegate.mExternalSurfaceListeners.remove(listener);
+        }
+    }
+
+    @Override
+    public void removeAllSurfaceListener() {
+        mSurfaceListenerDelegate.mExternalSurfaceListeners.clear();
+    }
+
+    private static class SurfaceViewInnerListener implements SurfaceHolder.Callback {
+
+        private final List<FTXCarrierSurfaceListener> mExternalSurfaceListeners = new CopyOnWriteArrayList<>();
+        private final FTXSurfaceView mContainer;
+
+        private SurfaceViewInnerListener(FTXSurfaceView container) {
+            this.mContainer = container;
+        }
+
+        @Override
+        public void surfaceCreated(@NonNull SurfaceHolder holder) {
+            LiteavLog.v(TAG, "onSurfaceTextureAvailable");
+            mContainer.applySurfaceConfig(holder.getSurface(), 0, 0);
+            mContainer.updateRenderSizeIfCan();
+            for (FTXCarrierSurfaceListener listener : mExternalSurfaceListeners) {
+                listener.onSurfaceTextureAvailable(mContainer.mSurface);
             }
         }
-        if (removeIndex >= 0) {
-            mViewObservers.remove(removeIndex);
+
+        @Override
+        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+            LiteavLog.v(TAG, "surfaceChanged");
+            mContainer.applySurfaceConfig(holder.getSurface(), width, height);
         }
-    }
 
-    @Override
-    public void removeAllViewObserver() {
-        mViewObservers.clear();
-    }
-
-    @Override
-    public List<WeakReference<CarrierViewObserver>> getViewObservers() {
-        return mViewObservers;
-    }
-
-    @Override
-    public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        LiteavLog.v(TAG, "surfaceCreated");
-        applySurfaceConfig(holder.getSurface(), 0, 0);
-        updateRenderSizeIfCan();
-    }
-
-    @Override
-    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-        LiteavLog.v(TAG, "surfaceChanged");
-        applySurfaceConfig(holder.getSurface(), width, height);
-    }
-
-    @Override
-    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        LiteavLog.v(TAG, "onSurfaceTextureDestroyed");
-        if (null != mSurface) {
-            mSurface.release();
+        @Override
+        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+            LiteavLog.v(TAG, "onSurfaceTextureDestroyed:" + mContainer.mSurface);
+            for (FTXCarrierSurfaceListener listener : mExternalSurfaceListeners) {
+                listener.onSurfaceTextureDestroyed(mContainer.mSurface);
+            }
+            mContainer.mSurface = null;
         }
-        mSurface = null;
     }
 }
