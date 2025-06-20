@@ -338,6 +338,10 @@ static const int uninitialized = -1;
     }
 }
 
+- (void)reDrawWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    // do nothing
+}
+
 - (void)setPlayerImageSprite:(NSString*)urlStr withImgArray:(NSArray*)imgStrArray {
     [self releaseImageSprite];
     _txImageSprite = [[TXImageSprite alloc] init];
