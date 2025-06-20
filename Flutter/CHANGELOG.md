@@ -1,4 +1,11 @@
 
+#### Version: 12.6.1 2025.06.20
+
+##### Features：
+
+- fix known issue
+- 
+
 #### Version: 12.6.0 2025.06.20
 
 ##### Features：
