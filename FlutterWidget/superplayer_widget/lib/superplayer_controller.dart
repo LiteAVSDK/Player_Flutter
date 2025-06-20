@@ -427,6 +427,11 @@ class SuperPlayerController {
           _vodPlayerController.deselectTrack(tempInfo.trackIndex);
         }
       }
+      // clear deselect subtitle
+      if (trackInfo.trackIndex == SPConstants.VALID_SUBTITLE_INDEX) {
+        currentSubtitleData = null;
+        _observer?.onSubtitleData(currentSubtitleData);
+      }
     }
   }
 
@@ -924,7 +929,7 @@ class FullScreenController {
   Future<void> forceSwitchOrientation(int orientationDirection) async {
     currentOrientation = orientationDirection;
     if (orientationDirection == TXVodPlayEvent.ORIENTATION_PORTRAIT_UP) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: SystemUiOverlay.values);
       await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       exitFullScreen();
     } else if (orientationDirection == TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT) {

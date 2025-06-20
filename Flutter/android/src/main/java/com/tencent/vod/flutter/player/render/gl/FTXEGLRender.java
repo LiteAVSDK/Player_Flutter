@@ -13,7 +13,6 @@ import android.view.Surface;
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.common.FTXPlayerConstants;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -24,6 +23,8 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
     private static final long FRAME_WAIT_TIME = 5000;
     private static final int FPS_DEFAULT = 30;
+    // min refresh count for obtain new img
+    private static final int RE_DRAW_COUNT = 50;
 
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
@@ -53,6 +54,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private int mFps;
     private float frameInterval = 0;
     private HandlerThread mDrawHandlerThread = new HandlerThread(TAG);
+    private Handler mDrawHandler = null;
     private boolean isReleased = false;
 
     public FTXEGLRender(int width, int height) {
@@ -75,11 +77,16 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         。或者暂停状态下 seek，seek 之后画面改变，纹理上的画面仍然是 seek 之前或者上一次 seek 的画面。
         所以这里使用独立线程主动拉取画面进行渲染，但是一直拉取画面，会导致发热情况严重，所以默认有 60帧率的限制。所以这块播放器默认帧率为 60帧。
          */
-//        mLock.lock();
-//        if (mStart) {
-//            mCondition.signalAll();
-//        }
-//        mLock.unlock();
+        if (mStart) {
+            mDrawHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mLock.lock();
+                    startDrawSurface();
+                    mLock.unlock();
+                }
+            });
+        }
     }
 
     private synchronized void startDrawSurface() {
@@ -95,16 +102,9 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             }
 
             mCurrentTime = System.currentTimeMillis();
-            final long time = mCurrentTime - mPreTime;
-            boolean isNotFirstFrame = mPreTime > 0;
-            if (time >= frameInterval) {
-                drawImage();
-                swapBuffers();
-                mPreTime = mCurrentTime;
-            } else if (isNotFirstFrame) {
-                final long waitTime = (long) (frameInterval - time);
-                mCondition.await(waitTime, TimeUnit.MILLISECONDS);
-            }
+            drawImage();
+            swapBuffers();
+            mPreTime = mCurrentTime;
             mSurfaceTexture.updateTexImage();
         } catch (Exception e) {
             LiteavLog.e(TAG, "startDrawSurface error: " + e);
@@ -347,28 +347,29 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
     public void startRender() {
         LiteavLog.i(TAG, "called start render");
-        mStart = true;
         if (mDrawHandlerThread.isAlive()) {
             LiteavLog.e(TAG, "old draw thread is alive, stop first");
             mDrawHandlerThread.quitSafely();
         }
         mDrawHandlerThread = new HandlerThread(TAG);
         mDrawHandlerThread.start();
-        Handler handler = new Handler(mDrawHandlerThread.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                while (mStart) {
+        mDrawHandler = new Handler(mDrawHandlerThread.getLooper());
+        mStart = true;
+    }
+
+    public void refreshRender() {
+        if (null != mDrawHandler) {
+            mDrawHandler.post(new Runnable() {
+                @Override
+                public void run() {
                     mLock.lock();
-                    try {
+                    for (int i = 0; i < RE_DRAW_COUNT; i++) {
                         startDrawSurface();
-                    } finally {
-                        mLock.unlock();
                     }
+                    mLock.unlock();
                 }
-                LiteavLog.e(TAG, "startDrawSurface thread is finished");
-            }
-        });
+            });
+        }
     }
 
     public synchronized void resumeRender() {

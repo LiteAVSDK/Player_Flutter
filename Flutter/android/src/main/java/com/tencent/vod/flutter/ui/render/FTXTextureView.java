@@ -15,12 +15,10 @@ import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
 import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class FTXTextureView extends TextureView implements TextureView.SurfaceTextureListener, FTXRenderCarrier {
+public class FTXTextureView extends TextureView implements FTXRenderCarrier {
     private static final String TAG = "FTXTextureView";
 
     private FTXPlayerRenderSurfaceHost mPlayer;
@@ -33,9 +31,9 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     private int mVideoHeight = 0;
     private int mViewWidth = 0;
     private int mViewHeight = 0;
-    private final Object mLayoutLock = new Object();
     private FTXEGLRender mRender;
-    private final List<WeakReference<CarrierViewObserver>> mViewObservers = new ArrayList<>();
+    private final Object mLayoutLock = new Object();
+    private final TextureViewInnerListener mSurfaceListenerDelegate = new TextureViewInnerListener(this);
 
     public FTXTextureView(@NonNull Context context) {
         super(context);
@@ -43,10 +41,8 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     }
 
     private void initTextureView() {
-        setSurfaceTextureListener(this);
-        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        mRender = new FTXEGLRender(1, 1);
+        setSurfaceTextureListener(mSurfaceListenerDelegate);
+        mRender = new FTXEGLRender(1080, 720);
     }
 
     @Override
@@ -67,7 +63,7 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
                 if (videoHeight >= 0) {
                     mVideoHeight = videoHeight;
                 }
-                mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
+                updateVideoRenderMode();
                 LiteavLog.i(TAG, "notifyVideoResolutionChanged updateSize, mVideoWidth:"
                         + mVideoWidth + ",mVideoHeight:" + mVideoHeight);
             }
@@ -78,7 +74,7 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     public void updateRenderMode(long renderMode) {
         if (mRenderMode != renderMode) {
             mRenderMode = renderMode;
-            layoutTextureRenderMode();
+            updateVideoRenderMode();
         }
     }
 
@@ -87,8 +83,12 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
         updateRenderSizeIfNeed(viewWidth, viewHeight);
     }
 
-    public void layoutTextureRenderMode() {
-        mRender.updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
+    public void updateVideoRenderMode() {
+        LiteavLog.i(TAG, "updateVideoSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
+                + mVideoHeight + ",renderMode:" + mRenderMode);
+        if (null != mRender) {
+            mRender.updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
+        }
     }
 
     @Override
@@ -108,14 +108,10 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
             connectPlayer(surfaceHost);
         }
         if (null != surfaceHost) {
-            final int videoWidth = surfaceHost.getVideoWidth();
-            final int videoHeight = surfaceHost.getVideoHeight();
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
-            mRender.updateSizeAndRenderMode(videoWidth, videoHeight, mRenderMode);
-            LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
-                    + mVideoHeight + ",renderMode:" + mRenderMode);
+            updateVideoRenderMode();
         }
     }
 
@@ -133,10 +129,11 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
         }
     }
 
+    @Deprecated
     @Override
     public void setSurfaceTextureListener(@Nullable SurfaceTextureListener listener) {
-        // bypass the video player's processing logic
-        if (listener instanceof FTXTextureView) {
+//        super.setSurfaceTextureListener(listener);
+        if (listener instanceof TextureViewInnerListener) {
             super.setSurfaceTextureListener(listener);
         }
     }
@@ -164,22 +161,12 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
         super.onDetachedFromWindow();
         LiteavLog.i(TAG, "target onDetachedFromWindow,view:" + hashCode());
         mRender.stopRender();
-        for (WeakReference<CarrierViewObserver> observer : mViewObservers) {
-            if (observer.get() != null) {
-                observer.get().onDetachWindow(this);
-            }
-        }
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         LiteavLog.i(TAG, "target onAttachedToWindow,view:" + hashCode());
-        for (WeakReference<CarrierViewObserver> observer : mViewObservers) {
-            if (observer.get() != null) {
-                observer.get().onAttachWindow(this);
-            }
-        }
     }
 
     @Override
@@ -190,10 +177,9 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
 
     private void updateHostSurface(Surface surface) {
         if (null != mPlayer) {
-            mRender.stopRender();
             mRender.initOpengl(surface);
-            mRender.startRender();
             mPlayer.setSurface(mRender.getInputSurface());
+            mRender.startRender();
         }
     }
 
@@ -213,66 +199,74 @@ public class FTXTextureView extends TextureView implements TextureView.SurfaceTe
     @Override
     public void destroyRender() {
         mRender.stopRender();
-        removeAllViewObserver();
+        setSurfaceTextureListener(null);
     }
 
     @Override
-    public void addViewObserver(CarrierViewObserver observer) {
-        if (null != observer) {
-            mViewObservers.add(new WeakReference<>(observer));
+    public void reDrawVod() {
+        if (null != mRender) {
+            mRender.refreshRender();
         }
     }
 
     @Override
-    public void removeViewObserver(CarrierViewObserver observer) {
-        int removeIndex = -1;
-        for (int i = 0; i < mViewObservers.size(); i++) {
-            WeakReference<CarrierViewObserver> observerWeakReference = mViewObservers.get(i);
-            if (observerWeakReference.get() == observer) {
-                removeIndex = i;
-                break;
+    public void addSurfaceTextureListener(FTXCarrierSurfaceListener listener) {
+        if (null != listener && !mSurfaceListenerDelegate.mExternalSurfaceListeners.contains(listener)) {
+            mSurfaceListenerDelegate.mExternalSurfaceListeners.add(listener);
+        }
+    }
+
+    @Override
+    public void removeSurfaceTextureListener(FTXCarrierSurfaceListener listener) {
+        if (null != listener) {
+            mSurfaceListenerDelegate.mExternalSurfaceListeners.remove(listener);
+        }
+    }
+
+    @Override
+    public void removeAllSurfaceListener() {
+        mSurfaceListenerDelegate.mExternalSurfaceListeners.clear();
+    }
+
+    private static class TextureViewInnerListener implements SurfaceTextureListener {
+
+        private final List<FTXCarrierSurfaceListener> mExternalSurfaceListeners = new CopyOnWriteArrayList<>();
+        private final FTXTextureView mContainer;
+
+        public TextureViewInnerListener(FTXTextureView container) {
+            mContainer = container;
+        }
+
+        @Override
+        public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, int width, int height) {
+            LiteavLog.v(TAG, "onSurfaceTextureAvailable");
+            mContainer.applySurfaceConfig(surfaceTexture, width, height);
+            mContainer.updateRenderSizeIfCan();
+            for (FTXCarrierSurfaceListener listener : mExternalSurfaceListeners) {
+                listener.onSurfaceTextureAvailable(mContainer.mSurface);
             }
         }
-        if (removeIndex >= 0) {
-            mViewObservers.remove(removeIndex);
+
+        @Override
+        public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
+            LiteavLog.v(TAG, "onSurfaceTextureSizeChanged");
+            mContainer.applySurfaceConfig(surface, width, height);
         }
-    }
 
-    @Override
-    public void removeAllViewObserver() {
-        mViewObservers.clear();
-    }
-
-    @Override
-    public List<WeakReference<CarrierViewObserver>> getViewObservers() {
-        return mViewObservers;
-    }
-
-    @Override
-    public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
-        LiteavLog.v(TAG, "onSurfaceTextureAvailable");
-        applySurfaceConfig(surface, width, height);
-        updateRenderSizeIfCan();
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
-        LiteavLog.v(TAG, "onSurfaceTextureSizeChanged");
-        applySurfaceConfig(surface, width, height);
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
-        LiteavLog.v(TAG, "onSurfaceTextureDestroyed");
-        if (null != mSurfaceTexture) {
-            mSurfaceTexture.release();
+        @Override
+        public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+            LiteavLog.v(TAG, "onSurfaceTextureDestroyed:" + mContainer.mSurface);
+            for (FTXCarrierSurfaceListener listener : mExternalSurfaceListeners) {
+                listener.onSurfaceTextureDestroyed(mContainer.mSurface);
+            }
+            mContainer.mSurface = null;
+            mContainer.mSurfaceTexture = null;
+            return false;
         }
-        mSurfaceTexture = null;
-        mSurface = null;
-        return false;
-    }
 
-    @Override
-    public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+        @Override
+        public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+
+        }
     }
 }

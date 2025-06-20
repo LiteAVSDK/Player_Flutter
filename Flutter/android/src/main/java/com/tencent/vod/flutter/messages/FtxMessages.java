@@ -4912,6 +4912,8 @@ public class FtxMessages {
 
     void setRenderMode(@NonNull Long renderMode);
 
+    void reDraw();
+
     /** The codec used by TXFlutterVodPlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
       return PigeonCodec.INSTANCE;
@@ -5900,6 +5902,27 @@ public class FtxMessages {
                 Long renderModeArg = (Long) args.get(0);
                 try {
                   api.setRenderMode(renderModeArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.reDraw" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.reDraw();
                   wrapped.add(0, null);
                 }
  catch (Throwable exception) {

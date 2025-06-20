@@ -2817,6 +2817,23 @@ void SetUpTXFlutterVodPlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMesse
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.reDraw", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(reDrawWithError:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(reDrawWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api reDrawWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 void SetUpTXFlutterLivePlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterLivePlayerApi> *api) {
   SetUpTXFlutterLivePlayerApiWithSuffix(binaryMessenger, api, @"");

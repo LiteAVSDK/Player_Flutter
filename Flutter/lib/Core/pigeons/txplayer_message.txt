@@ -670,6 +670,8 @@ abstract class TXFlutterVodPlayerApi {
   void setPlayerView(int renderViewId);
 
   void setRenderMode(int renderMode);
+
+  void reDraw();
 }
 
 @HostApi()

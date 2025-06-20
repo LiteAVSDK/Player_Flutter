@@ -1,5 +1,12 @@
 
-#### Version: 12.5.1 2025.05.29
+#### Version: 12.6.0 2025.06.20
+
+##### Features：
+
+- set Android TXLiteAVSDK_Player to 12.6.0.17772，tag：release_player_v12.6.0
+- set iOS TXLiteAVSDK_Player to 12.6.18866， tag：release_player_v12.6.0
+
+#### Version: 12.5.1 2025.06.18
 
 ##### Features：
 

@@ -300,11 +300,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
       _playController._updatePlayerUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoBottomKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
       _videoTitleKey.currentState?.updateUIStatus(SuperPlayerUIStatus.WINDOW_MODE);
-      hideControlView();
       // exit full screen
       setState(() {
         _currentUIStatus = SuperPlayerUIStatus.WINDOW_MODE;
       });
+      hideControlView();
       if (_playController.playerType != SuperPlayerType.VOD) {
         Future.delayed(Duration(milliseconds: 180), () async {
           // reset render mode for live
@@ -392,10 +392,15 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_isPlaying && _currentUIStatus != SuperPlayerUIStatus.PIP_MODE) {
+    if (_currentUIStatus != SuperPlayerUIStatus.PIP_MODE) {
       if (state == AppLifecycleState.resumed) {
         // The page does not update the status when it returns from the background, and directly resumes.
-        _playController.getCurrentController().resume();
+        if (_isPlaying) {
+          _playController.getCurrentController().resume();
+        }
+        if (_playController.playerType == SuperPlayerType.VOD) {
+          _playController._vodPlayerController.reDraw();
+        }
         checkBrightness();
         // If the screen orientation is changed from landscape to portrait after returning from the background,
         // switch to landscape mode based on the judgment made here.
@@ -433,16 +438,11 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
   Widget _getNoPaddingBody(BuildContext context) {
     bool isFullMode = _currentUIStatus == SuperPlayerUIStatus.FULLSCREEN_MODE;
     final Size screenSize = MediaQuery.of(context).size;
-    return OverflowBox(
-      alignment: Alignment.topCenter,
-      maxWidth: isFullMode ? double.infinity : null,
-      maxHeight: isFullMode ? double.infinity : null,
-      child: Center(
-        child: Container(
-          width: isFullMode ? screenSize.width : null,
-          height: isFullMode ? screenSize.height : null,
-          child: _getWidgetBody(),
-        ),
+    return Center(
+      child: Container(
+        width: isFullMode ? screenSize.width : null,
+        height: isFullMode ? screenSize.height : null,
+        child: _getWidgetBody(),
       ),
     );
   }
