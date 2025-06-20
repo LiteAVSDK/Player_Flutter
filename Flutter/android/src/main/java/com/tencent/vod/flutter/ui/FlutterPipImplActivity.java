@@ -190,7 +190,6 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
                 }
             }
         }
-        handleIntent(intent);
     }
 
 
@@ -237,7 +236,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
         } else {
             if (isInPictureInPictureMode) {
                 sendPipEvent(FTXEvent.EVENT_PIP_MODE_ALREADY_ENTER, null);
-                showComponent();
+                setUpPipVideo();
             } else {
                 handlePipExitEvent();
             }
@@ -464,7 +463,6 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
     }
 
     private void startPipVideo() {
-        attachRenderView(mVideoRenderView);
         startPlay();
     }
 
@@ -503,6 +501,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
         mPlayerHolder = null;
         pipPlayerHolder = null;
         isInPip = false;
+        attachRenderView(null);
         super.onDestroy();
     }
 
@@ -589,10 +588,12 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
      * 显示组件
      * 为了防止画中画启动一瞬间的黑屏，组件一开始为隐藏状态，只有进入画中画之后才会显示组件
      */
-    private void showComponent() {
+    private void setUpPipVideo() {
         mVideoRenderView.setVisibility(View.VISIBLE);
         mVideoProgress.setVisibility(View.VISIBLE);
         mPipContainer.setBackgroundColor(Color.parseColor("#33000000"));
+        attachRenderView(mVideoRenderView);
+        startPipVideo();
     }
 
     private void controlPipPlayStatus(boolean isPlaying) {

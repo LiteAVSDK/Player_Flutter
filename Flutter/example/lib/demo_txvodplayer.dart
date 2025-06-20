@@ -1,17 +1,19 @@
 // Copyright (c) 2022 Tencent. All rights reserved.
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:super_player/super_player.dart';
 import 'package:super_player_example/res/app_localizations.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
-import 'ui/demo_inputdialog.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'ui/demo_volume_slider.dart';
-import 'ui/demo_speed_slider.dart';
-import 'ui/demo_bitrate_checkbox.dart';
-import 'ui/demo_video_slider_view.dart';
+
 import 'common/demo_config.dart';
+import 'ui/demo_bitrate_checkbox.dart';
+import 'ui/demo_inputdialog.dart';
+import 'ui/demo_speed_slider.dart';
+import 'ui/demo_video_slider_view.dart';
+import 'ui/demo_volume_slider.dart';
 
 class DemoTXVodPlayer extends StatefulWidget {
   @override
@@ -75,7 +77,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
     await _controller.setLoop(true);
     await _controller.enableHardwareDecode(enableHardware);
     await _controller.setConfig(FTXVodPlayConfig());
-    await _controller.setStartTime(0);
     await _controller.setRenderMode(_renderMode);
     if (!isLicenseSuc.isCompleted) {
       SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
@@ -109,6 +110,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
         if (_isPlaying) {
           _controller.resume();
         }
+        _controller.reDraw();
         break;
       default:
         break;

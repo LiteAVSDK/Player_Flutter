@@ -32,7 +32,7 @@ class _SubtitleListState extends State<SubtitleListView> {
 
   List<TXTrackInfo>? _trackInfoList;
   TXTrackInfo? _currentTXTrackInfo;
-  final TXTrackInfo closeItem = TXTrackInfo(FSPLocal.current.txSubtitleTitleClose, -1, 0);
+  final TXTrackInfo closeItem = TXTrackInfo(FSPLocal.current.txSubtitleTitleClose, SPConstants.VALID_SUBTITLE_INDEX, 0);
 
   List<DropdownMenuItem<int>> _colorSettingList = [
     DropdownMenuItem(
