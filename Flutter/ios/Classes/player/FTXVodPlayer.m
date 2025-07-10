@@ -29,6 +29,7 @@ static const int uninitialized = -1;
 @property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
 @property (nonatomic, strong) FTXRenderView *curRenderView;
 @property (nonatomic, strong) UIView *txPipView;
+@property (nonatomic, assign) float cacheStartTime;
 
 @end
 /**
@@ -62,6 +63,7 @@ static const int uninitialized = -1;
         self.hasEnteredPipMode = NO;
         self.restoreUI = NO;
         self.renderViewFactory = renderViewFactory;
+        self.cacheStartTime = 0;
         SetUpTXFlutterVodPlayerApiWithSuffix([registrar messenger], self, [self.playerId stringValue]);
         self.vodFlutterApi = [[TXVodPlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onApplicationTerminateClick) name:UIApplicationWillTerminateNotification object:nil];
@@ -208,7 +210,11 @@ static const int uninitialized = -1;
 {
     if (_txVodPlayer != nil) {
         _isStoped = YES;
-        return [_txVodPlayer stopPlay];
+        BOOL result = [_txVodPlayer stopPlay];
+        if (self.cacheStartTime > 0) {
+            [self setStartTime:self.cacheStartTime];
+        }
+        return result;
     }
     [self releaseImageSprite];
     return NO;
@@ -294,6 +300,7 @@ static const int uninitialized = -1;
 - (void)setStartTime:(float)startTime
 {
     if (_txVodPlayer != nil) {
+        self.cacheStartTime = startTime;
         [_txVodPlayer setStartTime:startTime];
     }
 }
