@@ -24,7 +24,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private static final long FRAME_WAIT_TIME = 5000;
     private static final int FPS_DEFAULT = 30;
     // min refresh count for obtain new img
-    private static final int RE_DRAW_COUNT = 50;
+    private static final int RE_DRAW_COUNT = 30;
 
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
@@ -45,7 +45,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private int mHeight;
     private boolean mStart = false;
     private final Lock mLock = new ReentrantLock();
-    private final Condition mCondition = mLock.newCondition();
     private long mPreTime = 0;
     private long mCurrentTime;
     private long mRenderMode = FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER;
@@ -56,6 +55,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private HandlerThread mDrawHandlerThread = new HandlerThread(TAG);
     private Handler mDrawHandler = null;
     private boolean isReleased = false;
+    private boolean mIsFirstFrame = false;
 
     public FTXEGLRender(int width, int height) {
         this(width, height, FPS_DEFAULT);
@@ -81,9 +81,14 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             mDrawHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mLock.lock();
-                    startDrawSurface();
-                    mLock.unlock();
+                    if (!mIsFirstFrame) {
+                        mLock.lock();
+                        startDrawSurface();
+                        mLock.unlock();
+                    } else {
+                        mIsFirstFrame = false;
+                        refreshRender();
+                    }
                 }
             });
         }
@@ -102,10 +107,10 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             }
 
             mCurrentTime = System.currentTimeMillis();
+            mSurfaceTexture.updateTexImage();
             drawImage();
             swapBuffers();
             mPreTime = mCurrentTime;
-            mSurfaceTexture.updateTexImage();
         } catch (Exception e) {
             LiteavLog.e(TAG, "startDrawSurface error: " + e);
         } finally {
@@ -120,6 +125,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     public boolean initOpengl(Surface surface, boolean needClearOld) {
         LiteavLog.i(TAG, "initOpengl " + (null == surface ? "null" : ""));
         isReleased = false;
+        mIsFirstFrame = true;
         boolean bRet = true;
         do {
             saveCurrentEglEnvironment();
@@ -212,7 +218,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
                 EGL14.EGL_ALPHA_SIZE, 8,
                 EGL14.EGL_DEPTH_SIZE, 8,
                 EGL14.EGL_STENCIL_SIZE, 8,
-                EGL14.EGL_RENDERABLE_TYPE, 4,
+                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
                 EGL14.EGL_NONE
         };
 
@@ -285,29 +291,89 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     }
 
     private void saveCurrentEglEnvironment() {
-        mEGLSavedContext = EGL14.eglGetCurrentContext();
-        mEGLSavedDisplay = EGL14.eglGetCurrentDisplay();
-        mEGLSaveDrawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
-        mEGLSaveReadSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_READ);
+        try {
+            // 获取当前环境
+            mEGLSavedDisplay = EGL14.eglGetCurrentDisplay();
+            mEGLSavedContext = EGL14.eglGetCurrentContext();
+            mEGLSaveDrawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
+            mEGLSaveReadSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_READ);
+
+            // 检查有效性
+            if (mEGLSavedDisplay == EGL14.EGL_NO_DISPLAY || mEGLSavedContext == EGL14.EGL_NO_CONTEXT) {
+                LiteavLog.w(TAG, "Saving invalid EGL state");
+            }
+        } catch (Exception e) {
+            LiteavLog.e(TAG, "Save EGL error: " + e);
+            resetSavedEnvironment();
+        }
     }
 
-    private void restoreEglEnvironment() {
-        if (mEGLSavedDisplay != EGL14.EGL_NO_DISPLAY && mEGLSavedContext != EGL14.EGL_NO_CONTEXT
-                && !mEGLSavedContext.equals(mEGLContextEncoder)) {
-            if (!EGL14.eglMakeCurrent(mEGLSavedDisplay, mEGLSaveDrawSurface, mEGLSaveReadSurface, mEGLSavedContext)) {
-                LiteavLog.e(TAG, "restoreEglEnvironment eglMakeCurrent: error");
-            }
-
-        } else if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
-            if (!EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)) {
-                LiteavLog.e(TAG, "eglMakeCurrent unbind: error");
-            }
-        }
-
+    private void resetSavedEnvironment() {
         mEGLSavedDisplay = EGL14.EGL_NO_DISPLAY;
         mEGLSaveDrawSurface = EGL14.EGL_NO_SURFACE;
         mEGLSaveReadSurface = EGL14.EGL_NO_SURFACE;
         mEGLSavedContext = EGL14.EGL_NO_CONTEXT;
+    }
+
+    private void restoreEglEnvironment() {
+        try {
+            // 检查是否有效保存了EGL环境
+            if (mEGLSavedDisplay != EGL14.EGL_NO_DISPLAY
+                    && mEGLSavedContext != EGL14.EGL_NO_CONTEXT
+                    && mEGLSaveDrawSurface != EGL14.EGL_NO_SURFACE) {
+
+                // 检查当前环境是否已被更改
+                EGLDisplay currentDisplay = EGL14.eglGetCurrentDisplay();
+                EGLContext currentContext = EGL14.eglGetCurrentContext();
+                EGLSurface currentDrawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
+
+                // 仅在必要时才恢复环境
+                if (!mEGLSavedDisplay.equals(currentDisplay)
+                        || !mEGLSavedContext.equals(currentContext)
+                        || !mEGLSaveDrawSurface.equals(currentDrawSurface)) {
+
+                    // 安全恢复操作
+                    if (!EGL14.eglMakeCurrent(
+                            mEGLSavedDisplay,
+                            mEGLSaveDrawSurface,
+                            mEGLSaveReadSurface,
+                            mEGLSavedContext)) {
+
+                        int error = EGL14.eglGetError();
+                        LiteavLog.e(TAG, "Restore failed: EGL error 0x" + Integer.toHexString(error));
+
+                        // 恢复失败时的安全回退
+                        EGL14.eglMakeCurrent(
+                                mEGLSavedDisplay,
+                                EGL14.EGL_NO_SURFACE,
+                                EGL14.EGL_NO_SURFACE,
+                                EGL14.EGL_NO_CONTEXT
+                        );
+                    }
+                }
+            } else {
+                // 没有保存环境时的默认处理
+                LiteavLog.w(TAG, "No valid EGL state to restore");
+
+                // 确保解绑当前上下文
+                if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
+                    EGL14.eglMakeCurrent(
+                            mEGLDisplay,
+                            EGL14.EGL_NO_SURFACE,
+                            EGL14.EGL_NO_SURFACE,
+                            EGL14.EGL_NO_CONTEXT
+                    );
+                }
+            }
+        } catch (Exception e) {
+            LiteavLog.e(TAG, "Critical restore error: " + e);
+        } finally {
+            // 重置保存的环境状态
+            mEGLSavedDisplay = EGL14.EGL_NO_DISPLAY;
+            mEGLSaveDrawSurface = EGL14.EGL_NO_SURFACE;
+            mEGLSaveReadSurface = EGL14.EGL_NO_SURFACE;
+            mEGLSavedContext = EGL14.EGL_NO_CONTEXT;
+        }
     }
 
     private void releaseEgl() {

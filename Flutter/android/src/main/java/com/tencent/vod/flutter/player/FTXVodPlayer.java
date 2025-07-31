@@ -307,6 +307,9 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
 
     int startPlayerVodPlay(String url) {
         if (mVodPlayer != null) {
+            if (null != mCurRenderView) {
+                mCurRenderView.setPlayer(this);
+            }
             return mVodPlayer.startVodPlay(url);
         }
         return Uninitialized;
@@ -331,7 +334,6 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (isNeedClearLastImg && null != mCurRenderView) {
             LiteavLog.i(TAG, "stopPlay target clear last img, player:" + hashCode());
             mCurRenderView.clearTexture();
-            mCurRenderView.setPlayer(this);
         }
         return result;
     }

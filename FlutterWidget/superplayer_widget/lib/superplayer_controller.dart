@@ -145,7 +145,6 @@ class SuperPlayerController {
           }
           videoDuration = await _vodPlayerController.getDuration();
           currentDuration = await _vodPlayerController.getCurrentPlaybackTime();
-          List<TXTrackInfo> aaa = await _vodPlayerController.getAudioTrackInfo();
           _onSelectTrackInfoWhenPrepare();
           break;
         case TXVodPlayEvent.PLAY_EVT_PLAY_LOADING: // PLAY_EVT_PLAY_LOADING
