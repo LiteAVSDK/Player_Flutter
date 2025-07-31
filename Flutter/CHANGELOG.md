@@ -1,10 +1,22 @@
 
+
+#### Version: 12.6.2 2025.07.31
+
+##### Features：
+
+- set Android TXLiteAVSDK to 12.6.0.18891
+- set iOS TXLiteAVSDK to 12.6.18894
+- Fix the issue where the first frame is not displayed during pre-playback
+- Fix the issue where clearing the last frame is ineffective
+- fix known issue
+
+
 #### Version: 12.6.1 2025.06.20
 
 ##### Features：
 
 - fix known issue
-- 
+
 
 #### Version: 12.6.0 2025.06.20
 
