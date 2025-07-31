@@ -28,6 +28,8 @@ public class FTXTextureContainer extends FrameLayout {
                 mTextureHolder.removeAllSurfaceListener();
             } else {
                 LiteavLog.i(TAG, "start add new carrier:" + carrier + ",view:" + hashCode());
+                // remove old
+                removeView((View) mTextureHolder);
                 addView((View) carrier);
             }
             mTextureHolder = carrier;
