@@ -1,7 +1,5 @@
 package com.tencent.vod.flutter.tools;
 
-import android.text.TextUtils;
-
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXVodConstants;
 import com.tencent.rtmp.TXVodPlayConfig;

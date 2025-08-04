@@ -535,7 +535,8 @@ static const int uninitialized = -1;
     return [TXCommonUtil boolMsgWith:r];
 }
 
-- (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error { 
+- (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+    FTXLOGI(@"setPlayerView, renderViewId:%ld", renderViewId);
     FTXRenderView *renderView = [self.renderViewFactory findViewById:renderViewId];
     if (nil != renderView) {
         self.curRenderView = renderView;
