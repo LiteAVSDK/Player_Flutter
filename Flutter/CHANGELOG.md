@@ -1,5 +1,15 @@
 
 
+#### Version: 12.7.0 2025.08.04
+
+##### Features：
+
+- set Android TXLiteAVSDK to 12.7.0.19072
+- set iOS TXLiteAVSDK to 12.7.19272
+- Fix the issue of abnormal display when restoring picture-in-picture
+- fix known issue
+
+
 #### Version: 12.6.2 2025.07.31
 
 ##### Features：
