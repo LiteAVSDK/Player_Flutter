@@ -317,6 +317,9 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
 
     void startPlayerVodPlayWithParams(int appId, String fileId, String psign) {
         if (mVodPlayer != null) {
+            if (null != mCurRenderView) {
+                mCurRenderView.setPlayer(this);
+            }
             TXPlayInfoParams playInfoParams = new TXPlayInfoParams(appId, fileId, psign);
             mVodPlayer.startVodPlay(playInfoParams);
         }

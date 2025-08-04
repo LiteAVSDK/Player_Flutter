@@ -74,8 +74,6 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
       }
     });
 
-    await _controller.setLoop(true);
-    await _controller.enableHardwareDecode(enableHardware);
     await _controller.setConfig(FTXVodPlayConfig());
     await _controller.setRenderMode(_renderMode);
     if (!isLicenseSuc.isCompleted) {

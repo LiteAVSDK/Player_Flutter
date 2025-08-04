@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
@@ -319,10 +320,12 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
         }
         if (null != mPlayerHolder.getVodPlayer()) {
             mPlayerHolder.getVodPlayer().setSurface(null);
+            mPlayerHolder.getVodPlayer().setPlayerView((TXCloudVideoView) null);
             mPlayerHolder.getVodPlayer().setVodListener(null);
         }
         if (null != mPlayerHolder.getLivePlayer()) {
             mPlayerHolder.getLivePlayer().setRenderView((TextureView) null);
+            mPlayerHolder.getLivePlayer().setRenderView((SurfaceView) null);
             mPlayerHolder.getLivePlayer().setObserver(null);
         }
         mPlayerHolder.pause();
