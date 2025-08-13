@@ -6,6 +6,7 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
+import android.opengl.GLES30;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
@@ -13,7 +14,6 @@ import android.view.Surface;
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.common.FTXPlayerConstants;
 
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -209,7 +209,10 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             LiteavLog.e(TAG, "unable to initialize EGL10");
             return false;
         }
-
+        int[] maxSamples = new int[1];
+        GLES30.glGetIntegerv(GLES30.GL_MAX_SAMPLES, maxSamples, 0);
+        //noinspection ExtractMethodRecommender
+        final int samples = Math.min(4, maxSamples[0]);
         // Configure EGL for pbuffer and OpenGL ES 2.0, 24-bit RGB.
         int[] attribList = new int[]{
                 EGL14.EGL_RED_SIZE, 8,
@@ -217,8 +220,10 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
                 EGL14.EGL_BLUE_SIZE, 8,
                 EGL14.EGL_ALPHA_SIZE, 8,
                 EGL14.EGL_DEPTH_SIZE, 8,
-                EGL14.EGL_STENCIL_SIZE, 8,
                 EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+                EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
+                EGL14.EGL_SAMPLE_BUFFERS, 1,
+                EGL14.EGL_SAMPLES, samples,
                 EGL14.EGL_NONE
         };
 
@@ -232,7 +237,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         // Configure context for OpenGL ES 2.0.
         //6、创建 EglContext
         int[] attrib_list = new int[]{
-                EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
+                EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
                 EGL14.EGL_NONE
         };
 
@@ -463,9 +468,10 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         // unLock render thread
         mStart = false;
         saveCurrentEglEnvironment();
-        boolean contextCompare = mEGLContextEncoder.equals(mEGLSavedContext);
+        final boolean contextCompare = mEGLContextEncoder.equals(mEGLSavedContext);
         eglUninstall(isCompleteRelease);
         mDrawHandlerThread.quitSafely();
+        mDrawHandler = null;
 
         if (!contextCompare) {
             LiteavLog.d(TAG, "restoreEglEnvironment");
