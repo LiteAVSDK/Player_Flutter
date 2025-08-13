@@ -293,8 +293,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()
         ..playerId = _playerId);
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      await _livePlayerApi.enablePictureInPicture(BoolPlayerMsg()
-        ..value = false
+      await _livePlayerApi.exitPictureInPictureMode(PlayerMsg()
         ..playerId = _playerId);
     }
   }

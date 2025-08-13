@@ -1,7 +1,6 @@
 package com.tencent.vod.flutter.player.render.gl;
 
-import android.opengl.GLES20;
-import android.opengl.Matrix;
+import android.opengl.GLES30;
 
 import com.tencent.liteav.base.util.LiteavLog;
 
@@ -11,17 +10,6 @@ import java.nio.FloatBuffer;
 
 public class TXGlUtilVideo {
     public static final String TAG = "TXGlUtilVideo";
-
-    /**
-     * Identity matrix for general use.  Don't modify or life will get weird.
-     */
-    public static final float[] IDENTITY_MATRIX;
-
-    static {
-        IDENTITY_MATRIX = new float[16];
-        Matrix.setIdentityM(IDENTITY_MATRIX, 0);
-        //Matrix.scaleM(IDENTITY_MATRIX,0,0.5f,0.5f,1);
-    }
 
     private static final int SIZEOF_FLOAT = 4;
 
@@ -35,36 +23,36 @@ public class TXGlUtilVideo {
      * @return A handle to the program, or 0 on failure.
      */
     public static int createProgram(String vertexSource, String fragmentSource) {
-        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
+        int vertexShader = loadShader(GLES30.GL_VERTEX_SHADER, vertexSource);
         if (vertexShader == 0) {
             return 0;
         }
-        int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
+        int pixelShader = loadShader(GLES30.GL_FRAGMENT_SHADER, fragmentSource);
         if (pixelShader == 0) {
-            GLES20.glDeleteShader(vertexShader);
+            GLES30.glDeleteShader(vertexShader);
             return 0;
         }
 
-        int program = GLES20.glCreateProgram();
+        int program = GLES30.glCreateProgram();
         checkGlError("glCreateProgram");
         if (program == 0) {
             LiteavLog.e(TAG, "Could not create program");
         }
-        GLES20.glAttachShader(program, vertexShader);
+        GLES30.glAttachShader(program, vertexShader);
         checkGlError("glAttachShader");
-        GLES20.glAttachShader(program, pixelShader);
+        GLES30.glAttachShader(program, pixelShader);
         checkGlError("glAttachShader");
-        GLES20.glLinkProgram(program);
+        GLES30.glLinkProgram(program);
         int[] linkStatus = new int[1];
-        GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
-        if (linkStatus[0] != GLES20.GL_TRUE) {
+        GLES30.glGetProgramiv(program, GLES30.GL_LINK_STATUS, linkStatus, 0);
+        if (linkStatus[0] != GLES30.GL_TRUE) {
             LiteavLog.e(TAG, "Could not link program: ");
-            LiteavLog.e(TAG, GLES20.glGetProgramInfoLog(program));
-            GLES20.glDeleteProgram(program);
+            LiteavLog.e(TAG, GLES30.glGetProgramInfoLog(program));
+            GLES30.glDeleteProgram(program);
             program = 0;
         }
-        GLES20.glDeleteShader(vertexShader);
-        GLES20.glDeleteShader(pixelShader);
+        GLES30.glDeleteShader(vertexShader);
+        GLES30.glDeleteShader(pixelShader);
         return program;
     }
 
@@ -74,17 +62,17 @@ public class TXGlUtilVideo {
      * @return A handle to the shader, or 0 on failure.
      */
     public static int loadShader(int shaderType, String source) {
-        int shader = GLES20.glCreateShader(shaderType);
+        int shader = GLES30.glCreateShader(shaderType);
         checkGlError("glCreateShader type=" + shaderType);
-        GLES20.glShaderSource(shader, source);
-        GLES20.glCompileShader(shader);
+        GLES30.glShaderSource(shader, source);
+        GLES30.glCompileShader(shader);
         int[] compiled = new int[1];
-        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-        int error = GLES20.glGetError();
+        GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, compiled, 0);
+        int error = GLES30.glGetError();
         if (compiled[0] == 0) {
             LiteavLog.e(TAG, "Could not compile shader:" + shaderType + ",error:" + error);
-            LiteavLog.e(TAG, " " + GLES20.glGetShaderInfoLog(shader));
-            GLES20.glDeleteShader(shader);
+            LiteavLog.e(TAG, " " + GLES30.glGetShaderInfoLog(shader));
+            GLES30.glDeleteShader(shader);
             shader = 0;
         }
         return shader;
@@ -94,8 +82,8 @@ public class TXGlUtilVideo {
      * Checks to see if a GLES error has been raised.
      */
     public static void checkGlError(String op) {
-        int error = GLES20.glGetError();
-        if (error != GLES20.GL_NO_ERROR) {
+        int error = GLES30.glGetError();
+        if (error != GLES30.GL_NO_ERROR) {
             String msg = op + ": glError 0x" + Integer.toHexString(error);
             LiteavLog.e(TAG, msg);
             throw new RuntimeException(msg);

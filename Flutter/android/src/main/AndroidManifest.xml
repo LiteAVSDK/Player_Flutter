@@ -3,6 +3,9 @@
         xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <!-- for gl es 3.0 -->
+    <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
+
     <application>
         <activity
                 android:name="com.tencent.vod.flutter.ui.FlutterPipImplActivity"
