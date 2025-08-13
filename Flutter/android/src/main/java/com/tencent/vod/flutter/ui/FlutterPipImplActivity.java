@@ -445,20 +445,14 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
             if (!closeImmediately) {
                 mVideoRenderView.setVisibility(View.GONE);
                 mVideoProgress.setVisibility(View.GONE);
-                mMainHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        /*
-                        The PiP window can launch its own Activity. Therefore,
-                        we can initiate our own here. By executing the termination code during the launch,
-                         we can bring our own Activity back to the original AppTask and launch the original app.
-                         Subsequently, when we end the Picture-in-Picture page,
-                         it can display back to the original page.
-                         */
-                        moveCurActToFront();
-                        destroyPipAct();
-                    }
-                }, 800);
+                /*
+                    The PiP window can launch its own Activity. Therefore,
+                    we can initiate our own here. By executing the termination code during the launch,
+                     we can bring our own Activity back to the original AppTask and launch the original app.
+                     Subsequently, when we end the Picture-in-Picture page,
+                     it can display back to the original page.
+                */
+                moveCurActToFront();
             } else {
                 destroyPipAct();
             }

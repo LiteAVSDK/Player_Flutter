@@ -1,4 +1,12 @@
 
+#### Version: 12.7.1 2025.08.13
+
+##### Features：
+
+- Fix the issue where the Android screen has severe jagged edges in some cases.
+- Fix the issue where rendering failure errors occur when Android stops playback.
+- Fix the issue where Picture-in-Picture (PiP) restoration on Android sends an extra exit event.
+- Fix known issue
 
 #### Version: 12.7.0 2025.08.04
 
