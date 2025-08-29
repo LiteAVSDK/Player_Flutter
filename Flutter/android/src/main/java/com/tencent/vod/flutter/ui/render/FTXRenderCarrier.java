@@ -12,6 +12,8 @@ public interface FTXRenderCarrier {
 
     void notifyVideoResolutionChanged(int videoWidth, int videoHeight);
 
+    void notifyTextureRotation(float rotation);
+
     void updateRenderMode(long renderMode);
 
     void requestLayoutSizeByContainerSize(int viewWidth, int viewHeight);

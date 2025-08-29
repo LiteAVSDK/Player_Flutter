@@ -43,6 +43,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
     private int mWidth;
     private int mHeight;
+    private float mRotation = 0;
     private boolean mStart = false;
     private final Lock mLock = new ReentrantLock();
     private long mPreTime = 0;
@@ -165,6 +166,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         mTextureRender = new FTXTextureRender(mViewWidth, mViewHeight);
         mTextureRender.surfaceCreated();
         mTextureRender.updateSizeAndRenderMode(mWidth, mHeight, mRenderMode);
+        mTextureRender.setRotationAngle(mRotation);
         LiteavLog.d(TAG, "textureID=" + mTextureRender.getTextureID());
         if (null == mInputSurface || needClearOld) {
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureID());
@@ -181,6 +183,15 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         mRenderMode = renderMode;
         if (null != mTextureRender) {
             mTextureRender.updateSizeAndRenderMode(width, height, renderMode);
+        } else {
+            LiteavLog.w(TAG, "mTextureRender is null");
+        }
+    }
+
+    public void updateRotation(float rotation) {
+        mRotation = rotation;
+        if (null != mTextureRender) {
+            mTextureRender.setRotationAngle(rotation);
         } else {
             LiteavLog.w(TAG, "mTextureRender is null");
         }
@@ -303,10 +314,10 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             mEGLSaveDrawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
             mEGLSaveReadSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_READ);
 
-            // 检查有效性
-            if (mEGLSavedDisplay == EGL14.EGL_NO_DISPLAY || mEGLSavedContext == EGL14.EGL_NO_CONTEXT) {
-                LiteavLog.w(TAG, "Saving invalid EGL state");
-            }
+//            // 检查有效性
+//            if (mEGLSavedDisplay == EGL14.EGL_NO_DISPLAY || mEGLSavedContext == EGL14.EGL_NO_CONTEXT) {
+//                LiteavLog.w(TAG, "Saving invalid EGL state");
+//            }
         } catch (Exception e) {
             LiteavLog.e(TAG, "Save EGL error: " + e);
             resetSavedEnvironment();
@@ -357,10 +368,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
                     }
                 }
             } else {
-                // 没有保存环境时的默认处理
-                LiteavLog.w(TAG, "No valid EGL state to restore");
-
-                // 确保解绑当前上下文
                 if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
                     EGL14.eglMakeCurrent(
                             mEGLDisplay,
@@ -467,11 +474,17 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         LiteavLog.i(TAG, "stopRender");
         // unLock render thread
         mStart = false;
+        mRotation = 0;
+        if (null != mTextureRender) {
+            mTextureRender.setRotationAngle(0);
+        }
         saveCurrentEglEnvironment();
         final boolean contextCompare = mEGLContextEncoder.equals(mEGLSavedContext);
         eglUninstall(isCompleteRelease);
-        mDrawHandlerThread.quitSafely();
-        mDrawHandler = null;
+        if (null != mDrawHandlerThread) {
+            mDrawHandlerThread.quitSafely();
+            mDrawHandler = null;
+        }
 
         if (!contextCompare) {
             LiteavLog.d(TAG, "restoreEglEnvironment");

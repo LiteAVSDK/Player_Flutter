@@ -55,6 +55,7 @@ public class FTXTextureRender {
                     "}";
 
     private final float[] projectionMatrix = new float[16];
+    private final float[] rotationMatrix = new float[16];
 
     private int mVideoFragmentProgram;
     private int muMVPMatrixHandle;
@@ -67,6 +68,8 @@ public class FTXTextureRender {
     private long mRenderMode = FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER;
     private int mPortWidth;
     private int mPortHeight;
+
+    private float rotationAngle = 90;
 
     public FTXTextureRender(int width, int height) {
         mPortWidth = width;
@@ -172,6 +175,10 @@ public class FTXTextureRender {
         updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
     }
 
+    public void setRotationAngle(float angle) {
+        rotationAngle = angle;
+    }
+
     public void cleanDrawCache() {
         GLES30.glViewport(0, 0, mPortWidth, mPortHeight);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
@@ -186,6 +193,10 @@ public class FTXTextureRender {
         GLES30.glUseProgram(mVideoFragmentProgram);
 
         GLES30.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, projectionMatrix, 0);
+
+        // OpenGL rotates counterclockwise, here it needs to be modified to rotate clockwise
+        Matrix.setRotateM(rotationMatrix, 0, rotationAngle, 0, 0, -1);
+        GLES30.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, rotationMatrix, 0);
 
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
         GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);

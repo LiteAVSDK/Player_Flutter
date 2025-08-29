@@ -78,6 +78,12 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
         }
     }
 
+    protected void notifyTextureRotation(float rotation) {
+        if (null != mRenderCarrier) {
+            mRenderCarrier.notifyTextureRotation(rotation);
+        }
+    }
+
     @Override
     public FTXRenderCarrier getCurCarrier() {
         return mRenderCarrier;
