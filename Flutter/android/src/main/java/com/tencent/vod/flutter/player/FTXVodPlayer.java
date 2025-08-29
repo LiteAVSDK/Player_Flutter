@@ -84,6 +84,8 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     private final FTXRenderViewFactory mRenderViewFactory;
     private final Handler mUIHandler = new Handler(Looper.getMainLooper());
     private long mCurrentRenderMode = FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER;
+    private float mCurrentRotation = 0;
+    private TXVodPlayConfig mCurConfig = new TXVodPlayConfig();
     private final FTXPIPManager.PipCallback mPipCallback = new FTXPIPManager.PipCallback() {
         @Override
         public void onPipResult(TXPipResult result) {
@@ -152,6 +154,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             mVodPlayer.setPlayerView((TXCloudVideoView) null);
             mVodPlayer = null;
         }
+        mCurrentRotation = 0;
         mCurRenderView = null;
         TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
         releaseTXImageSprite();
@@ -190,6 +193,11 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
                         return;
                     }
                 }
+                long rotation = bundle.getLong(TXVodConstants.EVT_KEY_VIDEO_ROTATION);
+                if (mCurConfig.isAutoRotate()) {
+                    notifyTextureRotation(rotation);
+                }
+                mCurrentRotation = rotation;
                 break;
             case TXLiveConstants.PLAY_WARNING_HW_ACCELERATION_FAIL:
                 mHardwareDecodeFail = true;
@@ -273,6 +281,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             TXVodPlayConfig playConfig = new TXVodPlayConfig();
             FTXVersionAdapter.enableCustomSubtitle(playConfig, 0);
             FTXVersionAdapter.enableDrmLevel3(playConfig, true);
+            mCurConfig = playConfig;
             mVodPlayer.setConfig(playConfig);
             mVodPlayer.setVodSubtitleDataListener(new ITXVodPlayListener.ITXVodSubtitleDataListener() {
                 @Override
@@ -310,6 +319,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             if (null != mCurRenderView) {
                 mCurRenderView.setPlayer(this);
             }
+            mCurrentRotation = 0;
             return mVodPlayer.startVodPlay(url);
         }
         return Uninitialized;
@@ -434,6 +444,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             TXVodPlayConfig playConfig = FTXTransformation.transformToVodConfig(config);
             FTXVersionAdapter.enableCustomSubtitle(playConfig, 0);
             FTXVersionAdapter.enableDrmLevel3(playConfig, true);
+            mCurConfig = playConfig;
             mVodPlayer.setConfig(playConfig);
         }
     }
@@ -886,6 +897,11 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     @Override
     public long getPlayerRenderMode() {
         return mCurrentRenderMode;
+    }
+
+    @Override
+    public float getRotation() {
+        return mCurrentRotation;
     }
 
     @Override
