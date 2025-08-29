@@ -30,6 +30,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
     private int mVideoHeight = 0;
     private int mViewWidth = 0;
     private int mViewHeight = 0;
+    private float mRotation = 0;
     private final Object mLayoutLock = new Object();
     private FTXEGLRender mRender;
     private final SurfaceViewInnerListener mSurfaceListenerDelegate = new SurfaceViewInnerListener(this);
@@ -65,6 +66,16 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
                 updateVideoRenderMode();
                 LiteavLog.i(TAG, "notifyVideoResolutionChanged updateSize, mVideoWidth:"
                         + mVideoWidth + ",mVideoHeight:" + mVideoHeight);
+            }
+        }
+    }
+
+    @Override
+    public void notifyTextureRotation(float rotation) {
+        if (mRotation != rotation) {
+            mRotation = rotation;
+            if (null != mRender) {
+                mRender.updateRotation(rotation);
             }
         }
     }
@@ -121,9 +132,11 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
+            mRotation = surfaceHost.getRotation();
             updateVideoRenderMode();
+            notifyTextureRotation(mRotation);
             LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
-                    + mVideoHeight + ",renderMode:" + mRenderMode);
+                    + mVideoHeight + ",renderMode:" + mRenderMode + ",mRotation:" + mRotation);
         }
     }
 

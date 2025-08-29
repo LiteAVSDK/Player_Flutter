@@ -14,6 +14,8 @@ public interface FTXPlayerRenderSurfaceHost {
 
     long getPlayerRenderMode();
 
+    float getRotation();
+
     int getVideoWidth();
 
     int getVideoHeight();

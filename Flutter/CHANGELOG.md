@@ -1,4 +1,14 @@
 
+#### Version: 12.7.2 2025.08.29
+
+##### Features：
+
+- VOD supports the autoRotate configuration.
+- set Android TXLiteAVSDK to 12.7.0.19083
+- set iOS TXLiteAVSDK to 12.7.19324
+- Fix known issue
+
+
 #### Version: 12.7.1 2025.08.13
 
 ##### Features：
