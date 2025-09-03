@@ -1,4 +1,11 @@
 
+#### Version: 12.7.3 2025.09.03
+
+##### Features：
+
+- Fix the issue of invalid renderMode.
+
+
 #### Version: 12.7.2 2025.08.29
 
 ##### Features：
