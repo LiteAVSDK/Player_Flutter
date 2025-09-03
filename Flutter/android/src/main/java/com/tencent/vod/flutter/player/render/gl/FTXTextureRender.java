@@ -56,6 +56,7 @@ public class FTXTextureRender {
 
     private final float[] projectionMatrix = new float[16];
     private final float[] rotationMatrix = new float[16];
+    private final float[] mResultMatrix = new float[16];
 
     private int mVideoFragmentProgram;
     private int muMVPMatrixHandle;
@@ -69,7 +70,7 @@ public class FTXTextureRender {
     private int mPortWidth;
     private int mPortHeight;
 
-    private float rotationAngle = 90;
+    private float rotationAngle = 0;
 
     public FTXTextureRender(int width, int height) {
         mPortWidth = width;
@@ -159,7 +160,7 @@ public class FTXTextureRender {
                         + ",mHeight:" + mVideoHeight + ",viewWidth:" + mPortWidth + "，viewHeight:"
                         + mPortHeight + ",hashCode:" + hashCode());
             }
-            Matrix.orthoM(projectionMatrix, 0, left, right, bottom, top, -1f, 1f);
+            updateProjection(left, right, bottom, top);
         } else {
             LiteavLog.w(TAG, "updateSizeAndRenderMode failed, size maybe zero, mWidth:" + mVideoWidth
                     + ",mHeight:" + mVideoHeight + ",viewWidth:" + mPortWidth + "，viewHeight:"
@@ -175,8 +176,28 @@ public class FTXTextureRender {
         updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
     }
 
+    private void updateProjection(float left, float right, float bottom, float top) {
+        // reset
+        Matrix.setIdentityM(projectionMatrix, 0);
+        Matrix.orthoM(projectionMatrix, 0, left, right, bottom, top, -1f, 1f);
+        // merge
+        mergerMatrix();
+    }
+
     public void setRotationAngle(float angle) {
         rotationAngle = angle;
+        // reset
+        Matrix.setIdentityM(rotationMatrix, 0);
+        Matrix.setRotateM(rotationMatrix, 0, rotationAngle, 0, 0, -1);
+        // merge
+        mergerMatrix();
+    }
+
+    private void mergerMatrix() {
+        // reset
+        Matrix.setIdentityM(mResultMatrix, 0);
+        Matrix.multiplyMM(mResultMatrix, 0, rotationMatrix, 0, projectionMatrix, 0);
+        System.arraycopy(mResultMatrix, 0, projectionMatrix, 0, 16);
     }
 
     public void cleanDrawCache() {
@@ -192,11 +213,8 @@ public class FTXTextureRender {
         // video frame
         GLES30.glUseProgram(mVideoFragmentProgram);
 
-        GLES30.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, projectionMatrix, 0);
-
         // OpenGL rotates counterclockwise, here it needs to be modified to rotate clockwise
-        Matrix.setRotateM(rotationMatrix, 0, rotationAngle, 0, 0, -1);
-        GLES30.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, rotationMatrix, 0);
+        GLES30.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mResultMatrix, 0);
 
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
         GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
