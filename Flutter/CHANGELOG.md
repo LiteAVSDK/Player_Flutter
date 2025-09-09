@@ -1,4 +1,11 @@
 
+#### Version: 12.7.4 2025.09.09
+
+##### Features：
+
+- Fix the issue of restoration failure on some Android devices with PIP
+
+
 #### Version: 12.7.3 2025.09.03
 
 ##### Features：

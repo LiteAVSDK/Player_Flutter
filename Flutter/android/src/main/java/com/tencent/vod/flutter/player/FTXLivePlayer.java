@@ -159,7 +159,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     }
 
     int startPlayerLivePlay(String url) {
-        LiteavLog.d(TAG, "startLivePlay:");
+        LiteavLog.i(TAG, "startLivePlay:");
         if (null != mLivePlayer) {
             if (null != mCurRenderView) {
                 mCurRenderView.setPlayer(this);
@@ -177,6 +177,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
+        LiteavLog.i(TAG, "called stopPlay isNeedClearLastImg:" + isNeedClearLastImg);
         int result = Uninitialized;
         if (mLivePlayer != null) {
             mLastPlayEvent = -1;
@@ -201,6 +202,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     }
 
     void pausePlayer() {
+        LiteavLog.i(TAG, "called pausePlayer");
         if (mLivePlayer != null) {
             mLivePlayer.pauseVideo();
             mLivePlayer.pauseAudio();
