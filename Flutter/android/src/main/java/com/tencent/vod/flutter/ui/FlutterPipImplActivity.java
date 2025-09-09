@@ -330,8 +330,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
         }
         mPlayerHolder.pause();
         int codeEvent = mIsNeedToStop ? FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT : FTXEvent.EVENT_PIP_MODE_RESTORE_UI;
-        sendPipEvent(codeEvent, data);
-        exitPip(codeEvent == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT);
+        exitPip(codeEvent == FTXEvent.EVENT_PIP_MODE_ALREADY_EXIT, codeEvent, data);
     }
 
     @Override
@@ -433,7 +432,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
      *                         Close immediately without delay. Generally, set it to `true` to close picture-in-picture
      *                         mode and `false` to restore picture-in-picture mode.
      */
-    private void exitPip(boolean closeImmediately) {
+    private void exitPip(boolean closeImmediately, int codeEvent, Bundle data) {
         if (mIsPipFinishing) {
             return;
         }
@@ -445,16 +444,23 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
             if (!closeImmediately) {
                 mVideoRenderView.setVisibility(View.GONE);
                 mVideoProgress.setVisibility(View.GONE);
-                /*
-                    The PiP window can launch its own Activity. Therefore,
-                    we can initiate our own here. By executing the termination code during the launch,
-                     we can bring our own Activity back to the original AppTask and launch the original app.
-                     Subsequently, when we end the Picture-in-Picture page,
-                     it can display back to the original page.
-                */
-                moveCurActToFront();
+                mMainHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        /*
+                        The PiP window can launch its own Activity. Therefore,
+                        we can initiate our own here. By executing the termination code during the launch,
+                         we can bring our own Activity back to the original AppTask and launch the original app.
+                         Subsequently, when we end the Picture-in-Picture page,
+                         it can display back to the original page.
+                         */
+                        moveCurActToFront();
+                        sendPipEvent(codeEvent, data);
+                    }
+                }, 300);
             } else {
                 destroyPipAct();
+                sendPipEvent(codeEvent, data);
             }
         }
     }
