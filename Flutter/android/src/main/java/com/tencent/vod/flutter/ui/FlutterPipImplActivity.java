@@ -457,7 +457,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
                         moveCurActToFront();
                         sendPipEvent(codeEvent, data);
                     }
-                }, 300);
+                }, 500);
             } else {
                 destroyPipAct();
                 sendPipEvent(codeEvent, data);
