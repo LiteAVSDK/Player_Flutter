@@ -1,4 +1,13 @@
 
+#### Version: 12.8.0 2025.09.19
+
+##### Features：
+
+- set Android TXLiteAVSDK to 12.8.0.19279
+- set iOS TXLiteAVSDK to 12.8.19666
+- Fix known issue
+
+
 #### Version: 12.7.4 2025.09.09
 
 ##### Features：
