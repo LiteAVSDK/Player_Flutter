@@ -152,10 +152,14 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (mVodPlayer != null) {
             stopPlay(true);
             mVodPlayer.setPlayerView((TXCloudVideoView) null);
+            mVodPlayer.setSurface(null);
+            setRenderView(null);
             mVodPlayer = null;
         }
         mCurrentRotation = 0;
         mCurRenderView = null;
+        FtxMessages.TXFlutterVodPlayerApi.setUp(mFlutterPluginBinding.getBinaryMessenger(),
+                String.valueOf(getPlayerId()), null);
         TXFlutterEngineHolder.getInstance().removeAppLifeListener(mAppLifeListener);
         releaseTXImageSprite();
         if (null != mPipManager) {
