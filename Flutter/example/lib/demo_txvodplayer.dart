@@ -76,13 +76,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
 
     await _controller.setConfig(FTXVodPlayConfig());
     await _controller.setRenderMode(_renderMode);
-    if (!isLicenseSuc.isCompleted) {
-      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
-      await isLicenseSuc.future;
-      await _controller.startVodPlay(_url);
-    } else {
-      await _controller.startVodPlay(_url);
-    }
+    await _controller.startVodPlay(_url);
   }
 
   @override

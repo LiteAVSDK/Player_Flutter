@@ -65,14 +65,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
     });
 
     _controller.setRenderMode(FTXPlayerRenderMode.ADJUST_RESOLUTION);
-
-    if (!isLicenseSuc.isCompleted) {
-      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
-      await isLicenseSuc.future;
-      await _controller.startLivePlay(_url);
-    } else {
-      await _controller.startLivePlay(_url);
-    }
+    await _controller.startLivePlay(_url);
   }
 
   @override

@@ -8,8 +8,11 @@ int manualOrientationDirection = TXVodPlayEvent.ORIENTATION_LANDSCAPE_RIGHT;
 class SuperPlayerView extends StatefulWidget {
   final SuperPlayerController _controller;
   final SuperPlayerRenderMode renderMode;
+  LocalizationsDelegate<dynamic>? customLocalDelegate;
 
-  SuperPlayerView(this._controller, {Key? viewKey, this.renderMode = SuperPlayerRenderMode.ADJUST_RESOLUTION}) : super(key: viewKey);
+  SuperPlayerView(this._controller,
+      {Key? viewKey, this.renderMode = SuperPlayerRenderMode.ADJUST_RESOLUTION, this.customLocalDelegate})
+      : super(key: viewKey);
 
   @override
   State<StatefulWidget> createState() => SuperPlayerViewState();
@@ -437,9 +440,20 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(left: false, right: false, top: false, bottom: false, minimum: EdgeInsets.zero,
-          child: _getNoPaddingBody(context)),
+    return Localizations.override(
+      context: context,
+      delegates: [
+        widget.customLocalDelegate ?? SuperPlayerWidgetLocals.delegate
+      ],
+      child: Scaffold(
+        body: SafeArea(
+            left: false,
+            right: false,
+            top: false,
+            bottom: false,
+            minimum: EdgeInsets.zero,
+            child: _getNoPaddingBody(context)),
+      ),
     );
   }
 

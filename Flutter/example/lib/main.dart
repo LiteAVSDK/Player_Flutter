@@ -113,7 +113,6 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       localizationsDelegates: [
         AppLocalizationDelegate.delegate,
-        SuperPlayerWidgetLocals.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
