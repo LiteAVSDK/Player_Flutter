@@ -1,7 +1,7 @@
 package com.tencent.vod.flutter.player.render.gl;
 
 import android.opengl.GLES11Ext;
-import android.opengl.GLES30;
+import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.tencent.liteav.base.util.LiteavLog;
@@ -82,10 +82,10 @@ public class FTXTextureRender {
      */
     public void surfaceCreated() {
         mVideoFragmentProgram = TXGlUtilVideo.createProgram(VERTEX_SHADER, VIDEO_FRAGMENT_SHADER);
-        maPositionHandle = GLES30.glGetAttribLocation(mVideoFragmentProgram, "aPosition");
-        maTexCoordHandle = GLES30.glGetAttribLocation(mVideoFragmentProgram, "aTextureCoord");
-        muMVPMatrixHandle = GLES30.glGetUniformLocation(mVideoFragmentProgram, "uMVPMatrix");
-        maTextureHandle = GLES30.glGetUniformLocation(mVideoFragmentProgram, "sTexture");
+        maPositionHandle = GLES20.glGetAttribLocation(mVideoFragmentProgram, "aPosition");
+        maTexCoordHandle = GLES20.glGetAttribLocation(mVideoFragmentProgram, "aTextureCoord");
+        muMVPMatrixHandle = GLES20.glGetUniformLocation(mVideoFragmentProgram, "uMVPMatrix");
+        maTextureHandle = GLES20.glGetUniformLocation(mVideoFragmentProgram, "sTexture");
 
         textureID[0] = initTex();
     }
@@ -95,8 +95,8 @@ public class FTXTextureRender {
     }
 
     public void deleteTexture() {
-        GLES30.glDeleteProgram(mVideoFragmentProgram);
-        GLES30.glDeleteTextures(1, textureID, 0);
+        GLES20.glDeleteProgram(mVideoFragmentProgram);
+        GLES20.glDeleteTextures(1, textureID, 0);
     }
 
     /**
@@ -106,17 +106,17 @@ public class FTXTextureRender {
      */
     public int initTex() {
         int[] tex = new int[1];
-        GLES30.glGenTextures(1, tex, 0);
-        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, tex[0]);
-        GLES30.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
-        GLES30.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
-        GLES30.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
-        GLES30.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR);
+        GLES20.glGenTextures(1, tex, 0);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, tex[0]);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
         return tex[0];
     }
 
@@ -201,8 +201,8 @@ public class FTXTextureRender {
     }
 
     public void cleanDrawCache() {
-        GLES30.glViewport(0, 0, mPortWidth, mPortHeight);
-        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
+        GLES20.glViewport(0, 0, mPortWidth, mPortHeight);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
     }
 
     /**
@@ -211,30 +211,30 @@ public class FTXTextureRender {
     public void drawFrame() {
         cleanDrawCache();
         // video frame
-        GLES30.glUseProgram(mVideoFragmentProgram);
+        GLES20.glUseProgram(mVideoFragmentProgram);
 
         // OpenGL rotates counterclockwise, here it needs to be modified to rotate clockwise
-        GLES30.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mResultMatrix, 0);
+        GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mResultMatrix, 0);
 
-        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
-        GLES30.glUniform1i(maTextureHandle, 0);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
+        GLES20.glUniform1i(maTextureHandle, 0);
 
         // Enable the "aPosition" vertex attribute.
-        GLES30.glEnableVertexAttribArray(maPositionHandle);
+        GLES20.glEnableVertexAttribArray(maPositionHandle);
         // Connect vertexBuffer to "aPosition".
-        GLES30.glVertexAttribPointer(maPositionHandle, 3,
-                GLES30.GL_FLOAT, false, 3 * FLOAT_SIZE_BYTES, FULL_RECTANGLE_BUF);
+        GLES20.glVertexAttribPointer(maPositionHandle, 3,
+                GLES20.GL_FLOAT, false, 3 * FLOAT_SIZE_BYTES, FULL_RECTANGLE_BUF);
         // Enable the "aTextureCoord" vertex attribute.
-        GLES30.glEnableVertexAttribArray(maTexCoordHandle);
+        GLES20.glEnableVertexAttribArray(maTexCoordHandle);
         // Connect texBuffer to "aTextureCoord".
-        GLES30.glVertexAttribPointer(maTexCoordHandle, 4,
-                GLES30.GL_FLOAT, false, 4 * FLOAT_SIZE_BYTES, FULL_RECTANGLE_TEX_BUF);
+        GLES20.glVertexAttribPointer(maTexCoordHandle, 4,
+                GLES20.GL_FLOAT, false, 4 * FLOAT_SIZE_BYTES, FULL_RECTANGLE_TEX_BUF);
         // Draw the rect.
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         // Done -- disable vertex array, texture, and program.
-        GLES30.glDisableVertexAttribArray(maPositionHandle);
-        GLES30.glDisableVertexAttribArray(maTexCoordHandle);
-        GLES30.glUseProgram(0);
+        GLES20.glDisableVertexAttribArray(maPositionHandle);
+        GLES20.glDisableVertexAttribArray(maTexCoordHandle);
+        GLES20.glUseProgram(0);
     }
 }

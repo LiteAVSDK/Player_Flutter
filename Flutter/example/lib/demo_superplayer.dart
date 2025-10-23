@@ -299,14 +299,7 @@ class _DemoSuperPlayerState extends State<DemoSuperPlayer> with TXPipPlayerResto
   void playCurrentModel(SuperPlayerModel model, double startTime) async {
     currentVideoModel = model;
     await _controller.setStartTime(startTime);
-    // check license
-    if (!isLicenseSuc.isCompleted) {
-      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
-      await isLicenseSuc.future;
-      await _controller.playWithModelNeedLicence(model);
-    } else {
-      await _controller.playWithModelNeedLicence(model);
-    }
+    await _controller.playWithModelNeedLicence(model);
   }
 
   void playVideo(SuperPlayerModel model) {

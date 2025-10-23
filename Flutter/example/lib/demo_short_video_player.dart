@@ -30,21 +30,11 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
   void _loadData() async {
     // check license
     final ShortVideoDataLoader loader = ShortVideoDataLoader();
-    if (!isLicenseSuc.isCompleted) {
-      SuperPlayerPlugin.setGlobalLicense(LICENSE_URL, LICENSE_KEY);
-      await isLicenseSuc.future;
-      loader.getPageListDataOneByOneFunction((dataModels) {
-        setState(() {
-          superPlayerModelList = dataModels;
-        });
+    loader.getPageListDataOneByOneFunction((dataModels) {
+      setState(() {
+        superPlayerModelList = dataModels;
       });
-    } else {
-      loader.getPageListDataOneByOneFunction((dataModels) {
-        setState(() {
-          superPlayerModelList = dataModels;
-        });
-      });
-    }
+    });
   }
 
   @override

@@ -6,7 +6,6 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
-import android.opengl.GLES30;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
@@ -29,11 +28,12 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
     private Surface mInputSurface;
+    private Surface mOutPutSurface;
 
     private EGLDisplay mEGLDisplay = EGL14.EGL_NO_DISPLAY;
-    private EGLContext mEGLContext = EGL14.EGL_NO_CONTEXT;
+    private final EGLContext mEGLContext = EGL14.EGL_NO_CONTEXT;
     private EGLContext mEGLContextEncoder = EGL14.EGL_NO_CONTEXT;
-    private EGLSurface mEGLSurface = EGL14.EGL_NO_SURFACE;
+    private final EGLSurface mEGLSurface = EGL14.EGL_NO_SURFACE;
     private EGLSurface mEGLSurfaceEncoder = EGL14.EGL_NO_SURFACE;
 
     private EGLContext mEGLSavedContext = EGL14.EGL_NO_CONTEXT;
@@ -98,12 +98,14 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private synchronized void startDrawSurface() {
         try {
             if (!mStart) {
-                LiteavLog.e(TAG, "end....... ");
+                LiteavLog.e(TAG, "draw thread is dead");
                 return;
             }
             saveCurrentEglEnvironment();
             if (!makeCurrent(1)) {
-                LiteavLog.e(TAG, "makeCurrent error");
+                return;
+            }
+            if (!mOutPutSurface.isValid()) {
                 return;
             }
 
@@ -137,7 +139,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             }
 
             if (!makeCurrent(1)) {
-                LiteavLog.e(TAG, "makeCurrent error");
                 bRet = false;
                 break;
             }
@@ -211,30 +212,23 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private boolean eglSetup(Surface surface) {
         mEGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
         if (mEGLDisplay == EGL14.EGL_NO_DISPLAY) {
-            LiteavLog.e(TAG, "unable to get EGL10 display");
+            checkEglError("unable to get EGL10 display");
             return false;
         }
 
         int[] version = new int[2];
         if (!EGL14.eglInitialize(mEGLDisplay, version, 0, version, 1)) {
-            LiteavLog.e(TAG, "unable to initialize EGL10");
+            checkEglError("unable to initialize EGL10");
             return false;
         }
-        int[] maxSamples = new int[1];
-        GLES30.glGetIntegerv(GLES30.GL_MAX_SAMPLES, maxSamples, 0);
-        //noinspection ExtractMethodRecommender
-        final int samples = Math.min(4, maxSamples[0]);
         // Configure EGL for pbuffer and OpenGL ES 2.0, 24-bit RGB.
         int[] attribList = new int[]{
                 EGL14.EGL_RED_SIZE, 8,
                 EGL14.EGL_GREEN_SIZE, 8,
                 EGL14.EGL_BLUE_SIZE, 8,
                 EGL14.EGL_ALPHA_SIZE, 8,
-                EGL14.EGL_DEPTH_SIZE, 8,
                 EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
                 EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
-                EGL14.EGL_SAMPLE_BUFFERS, 1,
-                EGL14.EGL_SAMPLES, samples,
                 EGL14.EGL_NONE
         };
 
@@ -242,13 +236,13 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         EGLConfig[] eglConfigs = new EGLConfig[1];
         if (!EGL14.eglChooseConfig(mEGLDisplay, attribList, 0, eglConfigs, 0,
                 eglConfigs.length, numEglConfigs, 0)) {
-            LiteavLog.e(TAG, "eglChooseConfig error");
+            checkEglError("eglChooseConfig error");
             return false;
         }
         // Configure context for OpenGL ES 2.0.
         //6、创建 EglContext
         int[] attrib_list = new int[]{
-                EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
+                EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
                 EGL14.EGL_NONE
         };
 
@@ -271,6 +265,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             LiteavLog.e(TAG, "surface was null");
             return false;
         }
+        mOutPutSurface = surface;
         return true;
     }
 
@@ -279,6 +274,8 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         if ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
             LiteavLog.e(TAG, "checkEglError: " + msg + "error: " + error);
             return false;
+        } else {
+            LiteavLog.e(TAG, msg);
         }
 
         return true;
@@ -287,16 +284,15 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     public boolean makeCurrent(int index) {
         if (index == 0) {
             if (!EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext)) {
-                LiteavLog.e(TAG, "eglMakeCurrent failed");
+                checkEglError("makeCurrent");
                 return false;
             }
         } else {
             if (!EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurfaceEncoder, mEGLSurfaceEncoder, mEGLContextEncoder)) {
-                LiteavLog.e(TAG, "eglMakeCurrent failed");
+                checkEglError("makeCurrent");
                 return false;
             }
         }
-
         return true;
     }
 
@@ -313,11 +309,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             mEGLSavedContext = EGL14.eglGetCurrentContext();
             mEGLSaveDrawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
             mEGLSaveReadSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_READ);
-
-//            // 检查有效性
-//            if (mEGLSavedDisplay == EGL14.EGL_NO_DISPLAY || mEGLSavedContext == EGL14.EGL_NO_CONTEXT) {
-//                LiteavLog.w(TAG, "Saving invalid EGL state");
-//            }
         } catch (Exception e) {
             LiteavLog.e(TAG, "Save EGL error: " + e);
             resetSavedEnvironment();
