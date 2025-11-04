@@ -48,7 +48,7 @@ class SuperPlayerController {
   bool _needToResume = false;
   bool _needToPause = false;
   bool callResume = false;
-  bool _isMultiBitrateStream = false; // the flag playing multi-bitrate URLs flag
+  bool _isMultiBitrateStream = true; // the flag playing multi-bitrate URLs flag
   bool _changeHWAcceleration = false; // the flag before receiving the first keyframe after switching to hardware decoding
   bool _isOpenHWAcceleration = true;
   int _playerUIStatus = SuperPlayerUIStatus.WINDOW_MODE;

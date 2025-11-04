@@ -248,7 +248,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
         mEGLContextEncoder = EGL14.eglCreateContext(mEGLDisplay, eglConfigs[0], EGL14.EGL_NO_CONTEXT,
                 attrib_list, 0);
-        checkEglError("eglCreateContext");
+        checkEglError("eglCreateContext", false);
         if (mEGLContextEncoder == EGL14.EGL_NO_CONTEXT) {
             LiteavLog.e(TAG, "null context2");
             return false;
@@ -259,7 +259,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         };
         mEGLSurfaceEncoder = EGL14.eglCreateWindowSurface(mEGLDisplay, eglConfigs[0], surface,
                 surfaceAttribs2, 0);   //creates an EGL window surface and returns its handle
-        checkEglError("eglCreateWindowSurface");
+        checkEglError("eglCreateWindowSurface", false);
 
         if (mEGLSurfaceEncoder == EGL14.EGL_NO_SURFACE) {
             LiteavLog.e(TAG, "surface was null");
@@ -270,11 +270,15 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     }
 
     private boolean checkEglError(String msg) {
+        return checkEglError(msg, true);
+    }
+
+    private boolean checkEglError(String msg, boolean needPrintMsg) {
         int error = 0;
         if ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
             LiteavLog.e(TAG, "checkEglError: " + msg + "error: " + error);
             return false;
-        } else {
+        } else if (needPrintMsg) {
             LiteavLog.e(TAG, msg);
         }
 
@@ -298,7 +302,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
     public boolean swapBuffers() {
         boolean result = EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurfaceEncoder);
-        checkEglError("eglSwapBuffers");
+        checkEglError("eglSwapBuffers", false);
         return result;
     }
 

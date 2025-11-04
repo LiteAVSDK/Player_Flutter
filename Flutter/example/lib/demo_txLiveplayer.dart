@@ -10,7 +10,6 @@ import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'ui/demo_inputdialog.dart';
 import 'ui/demo_volume_slider.dart';
 import 'ui/demo_video_slider_view.dart';
-import 'common/demo_config.dart';
 
 class DemoTXLivePlayer extends StatefulWidget {
   @override
@@ -171,7 +170,7 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
                     _isPlaying = false;
                     _controller.pause();
                   }),
-                  _createItem(AppLocals.current.playerStopPlay, () {
+                  _createItem(AppLocals.current.playerStopPlay, () async {
                     _isStop = true;
                     _controller.stop(isNeedClear: true);
                   }),

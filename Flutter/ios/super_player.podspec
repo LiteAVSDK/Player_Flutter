@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version = '12.8.1'
+  s.version = '12.9.0'
   s.summary          = 'The super_player Flutter plugin is one of the sub-product SDKs of the audio/video terminal SDK (Tencent Cloud Video on Demand).'
   s.description      = <<-DESC
 player plugin.
@@ -26,7 +26,7 @@ player plugin.
   # Player_Premium SDK: s.dependency 'TXLiteAVSDK_Player_Premium'
   # Professional SDK:  s.dependency 'TXLiteAVSDK_Professional'
   # If you want to specify the SDK version（eg 11.6.15041), use:  s.dependency 'TXLiteAVSDK_Player','11.6.15041'
-  s.dependency 'TXLiteAVSDK_Player_Premium','12.8.19666'
+  s.dependency 'TXLiteAVSDK_Player_Premium','12.9.20063'
   # s.dependency 'FTXPiPKit'
   s.vendored_frameworks = [
     'localdep/FTXPiPKit.xcframework'

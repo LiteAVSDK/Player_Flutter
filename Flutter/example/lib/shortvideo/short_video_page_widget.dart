@@ -33,7 +33,7 @@ class _TXVodPlayerPageState extends State<ShortVideoPageWidget> {
   }
 
   _init() async {
-    _controller.setConfig(FTXVodPlayConfig());
+    await _controller.setConfig(FTXVodPlayConfig());
     LogUtils.i(
         TAG, " [init] ${widget.position.toString()} ${this.hashCode.toString()} ${_controller.hashCode.toString()}");
     _setPlayerListener();

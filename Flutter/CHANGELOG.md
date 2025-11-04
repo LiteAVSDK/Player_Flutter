@@ -1,3 +1,13 @@
+#### Version: 12.9.0 2025.11.13
+
+##### Features：
+
+- set Android TXLiteAVSDK to 12.9.0.19467
+- set iOS TXLiteAVSDK to 12.9.20063
+- Fix the issue where the live streaming player does not retain the last frame when playback stops.
+- Enable multi-bitrate by default for the player component.
+- Fix known issue
+
 
 #### Version: 12.8.1 2025.10.23
 

@@ -8,7 +8,6 @@ import 'package:super_player/super_player.dart';
 import 'package:super_player_example/res/app_localizations.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
 
-import 'common/demo_config.dart';
 import 'ui/demo_bitrate_checkbox.dart';
 import 'ui/demo_inputdialog.dart';
 import 'ui/demo_speed_slider.dart';
@@ -37,7 +36,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   bool _isPlaying = false;
   StreamSubscription? playEventSubscription;
   StreamSubscription? playNetEventSubscription;
-  FTXAndroidRenderViewType _renderType = FTXAndroidRenderViewType.TEXTURE_VIEW;
+  FTXAndroidRenderViewType _renderType = FTXAndroidRenderViewType.SURFACE_VIEW;
   FTXPlayerRenderMode _renderMode = FTXPlayerRenderMode.ADJUST_RESOLUTION;
 
   GlobalKey<VideoSliderViewState> progressSliderKey = GlobalKey();

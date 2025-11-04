@@ -44,15 +44,21 @@ public class FTXTextureRender {
                     "}\n";
 
     private static final String VIDEO_FRAGMENT_SHADER =
-            "#version 300 es\n" +
-                    "#extension GL_OES_EGL_image_external_essl3 : require\n" +
-                    "precision mediump float;\n" +
-                    "uniform samplerExternalOES sTexture;\n" +
-                    "in vec2 vTextureCoord;\n" +
-                    "out vec4 outColor;\n" +
-                    "void main() {\n" +
-                    "    outColor = texture(sTexture, vTextureCoord);\n" +
-                    "}";
+            "#version 300 es\n"
+                    + "#extension GL_OES_EGL_image_external_essl3 : require\n"
+                    + "precision mediump float;\n"
+                    + "uniform samplerExternalOES sTexture;\n"
+                    + "in vec2 vTextureCoord;\n"
+                    + "out vec4 outColor;\n"
+                    + "void main() {\n"
+                    + "    vec2 safeCoord = vTextureCoord;\n"
+                    + "    if (safeCoord.x > 0.99) {\n"
+                    + "        safeCoord.x = 0.99;\n"
+                    + "    }\n"
+                    + "    safeCoord.x = clamp(safeCoord.x, 0.001, 0.999);\n"
+                    + "    safeCoord.y = clamp(safeCoord.y, 0.001, 0.999);\n"
+                    + "    outColor = texture(sTexture, safeCoord);\n"
+                    + "}\n";
 
     private final float[] projectionMatrix = new float[16];
     private final float[] rotationMatrix = new float[16];
@@ -113,9 +119,9 @@ public class FTXTextureRender {
                 GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
                 GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
                 GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
                 GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
         return tex[0];
     }
@@ -197,7 +203,6 @@ public class FTXTextureRender {
         // reset
         Matrix.setIdentityM(mResultMatrix, 0);
         Matrix.multiplyMM(mResultMatrix, 0, rotationMatrix, 0, projectionMatrix, 0);
-        System.arraycopy(mResultMatrix, 0, projectionMatrix, 0, 16);
     }
 
     public void cleanDrawCache() {
