@@ -10,8 +10,6 @@ import 'package:superplayer_widget/demo_superplayer_lib.dart';
 import 'package:super_player_example/res/app_localizations.dart';
 import 'dart:ui';
 
-import 'common/demo_config.dart';
-
 /// flutter superplayer demo
 class DemoSuperPlayer extends StatefulWidget {
   Map? initParams = {};

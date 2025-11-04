@@ -182,6 +182,8 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         if (mLivePlayer != null) {
             mLastPlayEvent = -1;
             mIsPaused = false;
+            mLivePlayer.setProperty(V2TXLiveProperty.kV2ClearLastImage,
+                    isNeedClearLastImg);
             result =  mLivePlayer.stopPlay();
         }
         mUIHandler.removeCallbacksAndMessages(null);

@@ -29,7 +29,6 @@ static const int uninitialized = -1;
 @property (nonatomic, strong) TXVodPlayerFlutterAPI* vodFlutterApi;
 @property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
 @property (nonatomic, strong) FTXRenderView *curRenderView;
-@property (nonatomic, strong) UIView *txPipView;
 @property (nonatomic, assign) NSUInteger renderMode;
 @property (nonatomic, assign) float cacheStartTime;
 
@@ -124,7 +123,6 @@ static const int uninitialized = -1;
         _txVodPlayer = nil;
     }
 
-    self.txPipView = nil;
     self.curRenderView = nil;
     self.cacheStartTime = 0;
     
@@ -631,51 +629,10 @@ static const int uninitialized = -1;
     if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipRequestStart)]) {
         [self.delegate onPlayerPipRequestStart];
     }
-
-    UIViewController* flutterVC = [self getFlutterViewController];
-    [flutterVC.view addSubview:self.txPipView];
-    [_txVodPlayer setupVideoWidget:self.txPipView insertIndex:0];
+    
     [_txVodPlayer enterPictureInPicture];
     
     return NO_ERROR;
-}
-
-- (UIView *)txPipView {
-    if (!_txPipView) {
-        // Set the size to 1 pixel to ensure proper display in PIP.
-        _txPipView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1, 1)];
-        _txPipView.hidden = YES;
-    }
-    return _txPipView;
-}
-
-- (UIViewController *)getFlutterViewController {
-    UIWindow *window = nil;
-    if (@available(iOS 13.0, *)) {
-        NSSet<UIScene *> *connectedScenes = [UIApplication sharedApplication].connectedScenes;
-        for (UIScene *scene in connectedScenes) {
-            if ([scene isKindOfClass:[UIWindowScene class]]) {
-                UIWindowScene *windowScene = (UIWindowScene *)scene;
-                for (UIWindow *w in windowScene.windows) {
-                    if (w.isKeyWindow) {
-                        window = w;
-                        break;
-                    }
-                }
-                if (window != nil) {
-                    break;
-                }
-            }
-        }
-    } else {
-        for (UIWindow *w in [UIApplication sharedApplication].windows) {
-            if (w.isKeyWindow) {
-                window = w;
-                break;
-            }
-        }
-    }
-    return window.rootViewController;
 }
 
 #pragma mark - PIP delegate
@@ -695,21 +652,15 @@ static const int uninitialized = -1;
     
     if (pipState == TX_VOD_PLAYER_PIP_STATE_DID_STOP) {
         self.hasEnteredPipMode = NO;
-        if (self.restoreUI) {
-            self.restoreUI = NO;
-        } else {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
-                    [player exitPictureInPicture];
-                }
-                [self->_txPipView removeFromSuperview];
-                self->_txPipView = nil;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+                [player exitPictureInPicture];
+            }
 
-                if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
-                    [self.delegate onPlayerPipStateDidStop];
-                }
-            });
-        }
+            if (self.delegate && [self.delegate respondsToSelector:@selector(onPlayerPipStateDidStop)]) {
+                [self.delegate onPlayerPipStateDidStop];
+            }
+        });
     }
     
     if (pipState == TX_VOD_PLAYER_PIP_STATE_RESTORE_UI) {
