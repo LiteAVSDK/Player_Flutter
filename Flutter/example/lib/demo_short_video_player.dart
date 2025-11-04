@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:super_player/super_player.dart';
 import 'package:superplayer_widget/demo_superplayer_lib.dart';
-import 'common/demo_config.dart';
 import 'shortvideo/demo_short_video_lib.dart';
 
 class DemoShortVideoPlayer extends StatefulWidget {
@@ -28,7 +27,6 @@ class _DemoShortVideoPlayerState extends State<DemoShortVideoPlayer> with Widget
   }
 
   void _loadData() async {
-    // check license
     final ShortVideoDataLoader loader = ShortVideoDataLoader();
     loader.getPageListDataOneByOneFunction((dataModels) {
       setState(() {
