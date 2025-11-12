@@ -197,7 +197,6 @@ public class FTXTextureRender {
         // reset
         Matrix.setIdentityM(mResultMatrix, 0);
         Matrix.multiplyMM(mResultMatrix, 0, rotationMatrix, 0, projectionMatrix, 0);
-        System.arraycopy(mResultMatrix, 0, projectionMatrix, 0, 16);
     }
 
     public void cleanDrawCache() {
