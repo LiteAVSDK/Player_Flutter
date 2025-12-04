@@ -1,3 +1,16 @@
+
+#### Version: 12.9.1 2025.12.04
+
+##### Features：
+
+- set Android TXLiteAVSDK to 12.9.0.19478
+- set iOS TXLiteAVSDK to 12.9.20085
+- fix the issue where getDownloadInfo does not return isResourceBroken
+- when adjusting the volume of UI components, the iOS end no longer seizes the audio focus
+- fix some logical issues with UI components
+- Fix known issue
+
+
 #### Version: 12.9.0 2025.11.13
 
 ##### Features：

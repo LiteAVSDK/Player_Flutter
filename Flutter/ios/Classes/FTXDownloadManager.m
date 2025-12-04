@@ -199,6 +199,7 @@
         msg.playableDuration = @(info.playableDuration);
         msg.size = @(info.size);
         msg.downloadSize = @(info.downloadSize);
+        msg.isResourceBroken = @(info.isResourceBroken);
         if(nil != info.url && info.url.length > 0) {
             msg.url = info.url;
         }

@@ -42,8 +42,6 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 {
     // `showsVolumeSlider` needs to be set to YES.
     volumeView.showsVolumeSlider = YES;
-    // Get audio focus.
-    [audioSession setActive:true error:nil];
     [_volumeSlider setValue:value animated:NO];
     [_volumeSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
     [_volumeSlider sizeToFit];
@@ -51,8 +49,6 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 
 - (void)setVolumeUIVisible:(BOOL)volumeUIVisible
 {
-    // Get audio focus.
-    [audioSession setActive:true error:nil];
     volumeView.hidden = !volumeUIVisible;
 }
 

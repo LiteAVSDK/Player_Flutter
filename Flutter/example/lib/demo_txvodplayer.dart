@@ -26,7 +26,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
   int _volume = 100;
   List _supportedBitrates = [];
   int _curBitrateIndex = 0;
-  String _url = "http://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/48d0f1f9387702299774251236/adp.10.m3u8";
+  String _url = "https://1500005830.vod2.myqcloud.com/43843ec0vodtranscq1500005830/48d0f1f9387702299774251236/adp.10.m3u8";
   TXPlayInfoParams? _videoParams;
   int _appId = 0;
   String _fileId = "";

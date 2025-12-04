@@ -363,9 +363,9 @@ class SuperPlayerController {
     callResume = false;
     // Priority use URL to play
     if (videoModel.videoURL.isNotEmpty) {
-      _playWithUrl(videoModel);
+      await _playWithUrl(videoModel);
     } else if (videoModel.videoId != null && (videoModel.videoId!.fileId.isNotEmpty)) {
-      _playWithField(videoModel);
+      await _playWithField(videoModel);
     }
   }
 
@@ -373,6 +373,14 @@ class SuperPlayerController {
     _setVodListener();
     await _vodPlayerController.setToken(null);
     _updatePlayerType(SuperPlayerType.VOD);
+    await _vodPlayerController.setStartTime(startPos);
+    if (_playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
+      await _vodPlayerController.setAutoPlay(isAutoPlay: false);
+      _playAction = SuperPlayerModel.PLAY_ACTION_AUTO_PLAY;
+    } else if (_playAction == SuperPlayerModel.PLAY_ACTION_AUTO_PLAY ||
+        _playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {
+      await _vodPlayerController.setAutoPlay(isAutoPlay: true);
+    }
     if (_curViewId >=0) {
       setPlayerView(_curViewId);
     }
@@ -438,7 +446,7 @@ class SuperPlayerController {
     return await _vodPlayerController.getPlayableDuration();
   }
 
-  void _playWithUrl(SuperPlayerModel model) {
+  Future<void> _playWithUrl(SuperPlayerModel model) async {
     List<VideoQuality> videoQualities = [];
     VideoQuality? defaultVideoQuality;
     String? videoUrl;
@@ -540,7 +548,7 @@ class SuperPlayerController {
 
   /// Play live streaming
   /// 播放直播URL
-  void _playLiveURL(String url) async {
+  Future<void> _playLiveURL(String url) async {
     _currentPlayUrl = url;
     _setLiveListener();
     if (_curViewId >= 0) {
