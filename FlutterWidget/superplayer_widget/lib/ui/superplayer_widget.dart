@@ -700,7 +700,7 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
     int playAction = _playController.videoModel!.playAction;
     if (playerState == SuperPlayerState.LOADING && playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
       _playController.resume();
-    } else if (playerState == SuperPlayerState.INIT) {
+    } else if (playerState == SuperPlayerState.INIT || playerState == SuperPlayerState.START) {
       if (playAction == SuperPlayerModel.PLAY_ACTION_PRELOAD) {
         _playController.resume();
       } else if (playAction == SuperPlayerModel.PLAY_ACTION_MANUAL_PLAY) {

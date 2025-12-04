@@ -1,6 +1,6 @@
 name: superplayer_widget
 description: superplayer,base on vodplayer
-version: 12.9.0
+version: 12.9.1
 
 environment:
   sdk: '>=2.17.0 <4.0.0'
@@ -12,7 +12,7 @@ dependencies:
   # internationalization
   flutter_localizations:
     sdk: flutter
-  flutter_easyloading: ^3.0.5
+  flutter_easyloading: 3.0.5
 
   super_player:
     # When depending on this package from a real application you should use:
@@ -22,6 +22,10 @@ dependencies:
     # the parent directory to use the current plugin's version.
     path: ../../Flutter
 
+dependency_overrides:
+  # force override flutter_easyloading dep
+  flutter_spinkit: 5.1.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
