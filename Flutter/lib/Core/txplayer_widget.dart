@@ -120,6 +120,16 @@ class TXPlayerVideoState extends State<TXPlayerVideo> {
     return _viewId;
   }
 
+  Key getPlatformViewKey() {
+    return _platformViewKey;
+  }
+
+  void reCreatePlatformViewKey() {
+    setState(() {
+      _platformViewKey = UniqueKey();
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
