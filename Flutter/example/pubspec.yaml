@@ -16,7 +16,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_easyloading: ^3.0.5
+  flutter_easyloading: 3.0.5
 
   super_player:
     # When depending on this package from a real application you should use:
@@ -32,6 +32,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+
+dependency_overrides:
+  # force override flutter_easyloading dep
+  flutter_spinkit: 5.1.0
 
 dev_dependencies:
   flutter_test:

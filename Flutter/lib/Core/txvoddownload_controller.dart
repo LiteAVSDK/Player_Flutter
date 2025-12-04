@@ -219,6 +219,7 @@ class TXVodDownloadController implements TXDownloadFlutterAPI {
     mediaInfo.size = msg.size;
     mediaInfo.downloadSize = msg.downloadSize;
     mediaInfo.url = msg.url;
+    mediaInfo.isResourceBroken = msg.isResourceBroken;
     if (null != msg.appId) {
       TXVodDownloadDataSource dataSource = TXVodDownloadDataSource();
       dataSource.appId = msg.appId;

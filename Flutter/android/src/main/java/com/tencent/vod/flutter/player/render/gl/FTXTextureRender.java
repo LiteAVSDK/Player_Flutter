@@ -202,7 +202,7 @@ public class FTXTextureRender {
     private void mergerMatrix() {
         // reset
         Matrix.setIdentityM(mResultMatrix, 0);
-        Matrix.multiplyMM(mResultMatrix, 0, rotationMatrix, 0, projectionMatrix, 0);
+        Matrix.multiplyMM(mResultMatrix, 0, projectionMatrix, 0, rotationMatrix , 0);
     }
 
     public void cleanDrawCache() {
