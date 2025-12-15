@@ -33,31 +33,25 @@ public class FTXTextureRender {
             TXGlUtilVideo.createFloatBuffer(FULL_RECTANGLE_TEX_COORDS);
 
     private static final String VERTEX_SHADER =
-            "#version 300 es\n" +
-                    "uniform mat4 uMVPMatrix;\n" +
-                    "in vec4 aPosition;\n" +
-                    "in vec2 aTextureCoord;\n" +
-                    "out vec2 vTextureCoord;\n" +
+            "uniform mat4 uMVPMatrix;\n" +
+                    "attribute vec4 aPosition;\n" +
+                    "attribute vec2 aTextureCoord;\n" +
+                    "varying vec2 vTextureCoord;\n" +
                     "void main() {\n" +
                     "    gl_Position = uMVPMatrix * aPosition;\n" +
-                    "    vTextureCoord = aTextureCoord;\n" +
+                    "    vTextureCoord = aTextureCoord;\n" + // 核心修复：应用纹理矩阵
                     "}\n";
 
     private static final String VIDEO_FRAGMENT_SHADER =
-            "#version 300 es\n"
-                    + "#extension GL_OES_EGL_image_external_essl3 : require\n"
+            "#extension GL_OES_EGL_image_external : require\n"
                     + "precision mediump float;\n"
+                    + "varying vec2 vTextureCoord;\n"
                     + "uniform samplerExternalOES sTexture;\n"
-                    + "in vec2 vTextureCoord;\n"
-                    + "out vec4 outColor;\n"
                     + "void main() {\n"
                     + "    vec2 safeCoord = vTextureCoord;\n"
-                    + "    if (safeCoord.x > 0.99) {\n"
-                    + "        safeCoord.x = 0.99;\n"
-                    + "    }\n"
                     + "    safeCoord.x = clamp(safeCoord.x, 0.001, 0.999);\n"
                     + "    safeCoord.y = clamp(safeCoord.y, 0.001, 0.999);\n"
-                    + "    outColor = texture(sTexture, safeCoord);\n"
+                    + "    gl_FragColor = texture2D(sTexture, safeCoord);\n"
                     + "}\n";
 
     private final float[] projectionMatrix = new float[16];
@@ -199,7 +193,7 @@ public class FTXTextureRender {
         mergerMatrix();
     }
 
-    private void mergerMatrix() {
+    private synchronized void mergerMatrix() {
         // reset
         Matrix.setIdentityM(mResultMatrix, 0);
         Matrix.multiplyMM(mResultMatrix, 0, projectionMatrix, 0, rotationMatrix , 0);
@@ -213,7 +207,7 @@ public class FTXTextureRender {
     /**
      * Draws the external texture in SurfaceTexture onto the current EGL surface.
      */
-    public void drawFrame() {
+    public synchronized void drawFrame() {
         cleanDrawCache();
         // video frame
         GLES20.glUseProgram(mVideoFragmentProgram);

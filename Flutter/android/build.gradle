@@ -29,5 +29,4 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation rootProject.ext.liteavSdk
-    implementation rootProject.ext.compat
 }

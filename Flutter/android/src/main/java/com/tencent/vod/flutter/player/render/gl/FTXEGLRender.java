@@ -84,18 +84,18 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
                 public void run() {
                     if (!mIsFirstFrame) {
                         mLock.lock();
-                        startDrawSurface();
+                        startDrawSurface(true);
                         mLock.unlock();
                     } else {
                         mIsFirstFrame = false;
-                        refreshRender();
+                        refreshRender(true);
                     }
                 }
             });
         }
     }
 
-    private synchronized void startDrawSurface() {
+    private synchronized void startDrawSurface(boolean isNewFrame) {
         try {
             if (!mStart) {
                 LiteavLog.e(TAG, "draw thread is dead");
@@ -110,8 +110,16 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             }
 
             mCurrentTime = System.currentTimeMillis();
-            mSurfaceTexture.updateTexImage();
-            drawImage();
+
+            if (isNewFrame) {
+                try {
+                    mSurfaceTexture.updateTexImage();
+                } catch (Exception e) {
+                    LiteavLog.e(TAG, "updateTexImage failed: " + e.getMessage());
+                    return;
+                }
+            }
+            mTextureRender.drawFrame();
             swapBuffers();
             mPreTime = mCurrentTime;
         } catch (Exception e) {
@@ -119,10 +127,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         } finally {
             restoreEglEnvironment();
         }
-    }
-
-    public void drawImage() {
-        mTextureRender.drawFrame();
     }
 
     public boolean initOpengl(Surface surface, boolean needClearOld) {
@@ -431,13 +435,17 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     }
 
     public void refreshRender() {
+        refreshRender(false);
+    }
+
+    public void refreshRender(boolean isForcePullFrame) {
         if (null != mDrawHandler) {
             mDrawHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     mLock.lock();
                     for (int i = 0; i < RE_DRAW_COUNT; i++) {
-                        startDrawSurface();
+                        startDrawSurface(isForcePullFrame);
                     }
                     mLock.unlock();
                 }

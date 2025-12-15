@@ -20,7 +20,7 @@ public interface FTXRenderCarrier {
 
     void destroyRender();
 
-    void reDrawVod();
+    void reDrawVod(boolean isForcePullFrame);
 
     void addSurfaceTextureListener(FTXCarrierSurfaceListener listener);
 
