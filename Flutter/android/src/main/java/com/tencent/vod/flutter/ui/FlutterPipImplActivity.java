@@ -29,7 +29,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.ITXVodPlayListener;
@@ -41,6 +40,7 @@ import com.tencent.vod.flutter.FTXPIPManager.PipParams;
 import com.tencent.vod.flutter.R;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
+import com.tencent.vod.flutter.tools.FTXContextWrapper;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 
@@ -289,8 +289,7 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
     private void registerPipBroadcast() {
         if (!mIsRegisterReceiver) {
             IntentFilter pipIntentFilter = new IntentFilter(FTXEvent.ACTION_PIP_PLAY_CONTROL);
-            ContextCompat.registerReceiver(this, pipActionReceiver, pipIntentFilter,
-                    ContextCompat.RECEIVER_NOT_EXPORTED);
+            FTXContextWrapper.registerReceiverForNotExport(this, pipActionReceiver, pipIntentFilter);
             mIsRegisterReceiver = true;
         }
     }
