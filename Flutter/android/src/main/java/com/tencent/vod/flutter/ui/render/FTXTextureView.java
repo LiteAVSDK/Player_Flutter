@@ -122,9 +122,8 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
-            mRotation = surfaceHost.getRotation();
             updateVideoRenderMode();
-            notifyTextureRotation(mRotation);
+            notifyTextureRotation(surfaceHost.getRotation());
             LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
                     + mVideoHeight + ",renderMode:" + mRenderMode + ",mRotation:" + mRotation);
         }
