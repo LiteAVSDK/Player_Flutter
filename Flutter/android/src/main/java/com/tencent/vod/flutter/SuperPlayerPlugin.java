@@ -24,7 +24,6 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXLiveBase;
@@ -39,6 +38,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.PlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.StringMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterNativeAPI;
 import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAPI;
+import com.tencent.vod.flutter.tools.FTXContextWrapper;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.TXAndroid12BridgeService;
@@ -537,8 +537,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mVolumeBroadcastReceiver = new VolumeBroadcastReceiver(mPluginApi);
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
-        ContextCompat.registerReceiver(mFlutterPluginBinding.getApplicationContext(), mVolumeBroadcastReceiver, filter,
-                ContextCompat.RECEIVER_NOT_EXPORTED);
+        FTXContextWrapper.registerReceiverForNotExport(mFlutterPluginBinding.getApplicationContext(),
+                mVolumeBroadcastReceiver, filter);
     }
 
     public void enableBrightnessObserver(boolean enable) {
