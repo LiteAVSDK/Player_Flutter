@@ -2,6 +2,12 @@
 #import "FTXAudioManager.h"
 #import <Foundation/Foundation.h>
 
+@interface FTXAudioManager()
+
+@property(nonatomic, assign) BOOL isObserverRegistered;
+
+@end
+
 @implementation FTXAudioManager
     UISlider *_volumeSlider;
     MPVolumeView *volumeView;
@@ -16,6 +22,7 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
          CGRect frame    = CGRectMake(0, -100, 10, 0);
          volumeView = [[MPVolumeView alloc] initWithFrame:frame];
          volumeView.hidden = YES;
+         self.isObserverRegistered = NO;
          [volumeView sizeToFit];
          _volumeSlider = nil;
          // Start receiving remote control events.
@@ -59,6 +66,7 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 - (void)registerVolumeChangeListener:(id)observer
 {
     // destory volume observer
+    self.isObserverRegistered = YES;
     [audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
 }
 
@@ -66,8 +74,11 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 {
     // destory volume view
     [volumeView removeFromSuperview];
-    // destory volume observer
-    [audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
+    if (self.isObserverRegistered) {
+        self.isObserverRegistered = NO;
+        // destory volume observer
+        [audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
+    }
 }
 
 @end

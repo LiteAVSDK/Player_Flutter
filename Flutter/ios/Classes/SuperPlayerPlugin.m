@@ -19,6 +19,7 @@
 @property (nonatomic, strong) FTXAudioManager* audioManager;
 @property (nonatomic, strong) TXPluginFlutterAPI* pluginFlutterApi;
 @property (nonatomic, strong) TXPipFlutterAPI* pipFlutterApi;
+@property (nonatomic, assign) BOOL isRegistered;
 
 @end
 
@@ -40,13 +41,16 @@ SuperPlayerPlugin* instance;
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     FTXLOGV(@"called detachFromEngineForRegistrar");
-    if(nil != instance) {
-        [instance destory];
+    if (self.isRegistered) {
+        self.isRegistered = NO;
+        if(nil != instance) {
+            [instance destory];
+        }
+        if (nil != _fTXDownloadManager) {
+            [_fTXDownloadManager destroy];
+        }
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
     }
-    if (nil != _fTXDownloadManager) {
-        [_fTXDownloadManager destroy];
-    }
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (instancetype)initWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -72,6 +76,7 @@ SuperPlayerPlugin* instance;
                                                  selector:@selector(onDeviceOrientationChange:)
                                                      name:UIDeviceOrientationDidChangeNotification
                                                    object:nil];
+        self.isRegistered = YES;
     }
     return self;
 }
