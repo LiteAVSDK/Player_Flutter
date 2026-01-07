@@ -28,11 +28,9 @@
     int mCurrentOrientation;
 }
 
-SuperPlayerPlugin* instance;
-
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     FTXLOGV(@"called registerWithRegistrar");
-    instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
+    SuperPlayerPlugin* instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
     SetUpTXFlutterNativeAPI([registrar messenger], instance);
     SetUpTXFlutterSuperPlayerPluginAPI([registrar messenger], instance);
     [registrar addApplicationDelegate:instance];
@@ -43,12 +41,7 @@ SuperPlayerPlugin* instance;
     FTXLOGV(@"called detachFromEngineForRegistrar");
     if (self.isRegistered) {
         self.isRegistered = NO;
-        if(nil != instance) {
-            [instance destory];
-        }
-        if (nil != _fTXDownloadManager) {
-            [_fTXDownloadManager destroy];
-        }
+        [self destory];
         [[NSNotificationCenter defaultCenter] removeObserver:self];
     }
 }
@@ -91,6 +84,24 @@ SuperPlayerPlugin* instance;
 -(void) destory
 {
     [self.audioManager destory:self];
+    [self releaseAllPlayer];
+    if (nil != _fTXDownloadManager) {
+        [_fTXDownloadManager destroy];
+    }
+}
+
+-(void) releaseAllPlayer {
+    @synchronized (self) {
+        FTXLOGV(@"start releaseAllPlayer");
+        NSArray *allKeys = [self.players allKeys];
+        for (id key in allKeys) {
+            FTXBasePlayer *player = [self.players objectForKey:key];
+            if (player && [player respondsToSelector:@selector(destroy)]) {
+                [player destory];
+            }
+        }
+        [self.players removeAllObjects];
+    }
 }
 
 -(void) setSysBrightness:(NSNumber*)brightness {
@@ -139,19 +150,8 @@ SuperPlayerPlugin* instance;
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     FTXLOGV(@"called applicationWillTerminate");
-    for(id key in self.players) {
-        id player = self.players[key];
-        if([player respondsToSelector:@selector(notifyAppTerminate:)]) {
-            [player notifyAppTerminate:application];
-        }
-    }
-    if (nil != _fTXDownloadManager) {
-        [_fTXDownloadManager destroy];
-    }
+    [self destory];
 }
-
-
-
 
 #pragma mark - FTXVodPlayerDelegate
 

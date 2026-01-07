@@ -65,19 +65,23 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 
 - (void)registerVolumeChangeListener:(id)observer
 {
-    // destory volume observer
-    self.isObserverRegistered = YES;
-    [audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
+    @synchronized (self) {
+        // destory volume observer
+        self.isObserverRegistered = YES;
+        [audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
+    }
 }
 
 - (void)destory:(id)observer
 {
-    // destory volume view
-    [volumeView removeFromSuperview];
-    if (self.isObserverRegistered) {
-        self.isObserverRegistered = NO;
-        // destory volume observer
-        [audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
+    @synchronized (self) {
+        // destory volume view
+        [volumeView removeFromSuperview];
+        if (self.isObserverRegistered) {
+            self.isObserverRegistered = NO;
+            // destory volume observer
+            [audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
+        }
     }
 }
 

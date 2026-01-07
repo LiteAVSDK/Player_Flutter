@@ -7,5 +7,9 @@
 
 @interface SuperPlayerPlugin : NSObject<FlutterPlugin>
 
+-(void) releaseAllPlayer;
+
+-(void) destory;
+
 @end
 #endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_SUPERPLAYERPLUGIN_H_

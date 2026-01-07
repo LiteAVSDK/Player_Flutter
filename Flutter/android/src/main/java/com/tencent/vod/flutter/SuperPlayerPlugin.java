@@ -480,6 +480,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         unregisterReceiver();
         TXFlutterEngineHolder.getInstance().destroy(binding);
         TXLiveBase.setListener(null);
+        releaseAllPlayer();
         mFlutterPluginBinding = null;
     }
 
@@ -572,6 +573,18 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         } catch (Exception e) {
             LiteavLog.e(TAG, "unregisterReceiver failed", e);
         }
+    }
+
+    public synchronized void releaseAllPlayer() {
+        LiteavLog.i(TAG, "start releaseAllPlayer");
+        for (int i = 0; i < mPlayers.size(); i++) {
+            FTXBasePlayer player = mPlayers.valueAt(i);
+            if (null != player) {
+                LiteavLog.i(TAG, "releasePlayer start destroy player :" + player.getPlayerId());
+                player.destroy();
+            }
+        }
+        mPlayers.clear();
     }
 
     private static Map<String, Object> getParams(int event, Bundle bundle) {
