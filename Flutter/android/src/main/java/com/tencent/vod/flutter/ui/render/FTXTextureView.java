@@ -92,6 +92,13 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
     @Override
     public void requestLayoutSizeByContainerSize(int viewWidth, int viewHeight) {
         updateRenderSizeIfNeed(viewWidth, viewHeight);
+        // redraw when layout size changed
+        post(new Runnable() {
+            @Override
+            public void run() {
+                reDrawVod(false);
+            }
+        });
     }
 
     public void updateVideoRenderMode() {
@@ -122,9 +129,8 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
-            mRotation = surfaceHost.getRotation();
             updateVideoRenderMode();
-            notifyTextureRotation(mRotation);
+            notifyTextureRotation(surfaceHost.getRotation());
             LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
                     + mVideoHeight + ",renderMode:" + mRenderMode + ",mRotation:" + mRotation);
         }
@@ -218,9 +224,9 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
     }
 
     @Override
-    public void reDrawVod() {
+    public void reDrawVod(boolean isForcePullFrame) {
         if (null != mRender) {
-            mRender.refreshRender();
+            mRender.refreshRender(isForcePullFrame);
         }
     }
 

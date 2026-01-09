@@ -25,9 +25,90 @@ android {
     }
 }
 
+import java.util.regex.Pattern
+
+def getSubSpecFromPubspec() {
+    def allowedVersions = ['player', 'professional', 'premium', 'professional_premium']
+
+    // 定义候选路径列表，支持多种项目结构
+    def candidatePaths = []
+
+    // 首先尝试当前模块的父级目录（插件开发时）
+    candidatePaths.add(project.file("../pubspec.yaml"))
+
+    // 尝试宿主项目的根目录（作为依赖引入时）
+    candidatePaths.add(rootProject.file("../pubspec.yaml"))
+
+    def currentDir = project.projectDir
+    3.times {
+        candidatePaths.add(new File(currentDir, "pubspec.yaml"))
+        currentDir = currentDir.parentFile
+    }
+
+    def pubspecFile = null
+    candidatePaths.each { file ->
+        if (file?.exists() && !pubspecFile) {
+            pubspecFile = file
+            println("[SuperPlayer] found pubspec.yaml at: ${file.absolutePath}")
+        }
+    }
+
+    if (pubspecFile.exists()) {
+        def content = pubspecFile.text
+        // 2. 使用正则匹配 super_player 下的 sub_spec 值
+        // 匹配逻辑：找 super_player: 然后换行找 sub_spec: '值'
+        def pattern = Pattern.compile("super_player:\\s*\\n\\s*sub_spec:\\s*['\"]?(\\w+)['\"]?")
+        def matcher = pattern.matcher(content)
+
+        if (matcher.find()) {
+            def result = matcher.group(1)
+            println("[SuperPlayer] get liteavResult: ${result}")
+            if (result in allowedVersions) {
+                println("[SuperPlayer] valid subSpecVersion: ${result}")
+                return result
+            } else {
+                println("[SuperPlayer] warning: invalid subSpecVersion '${result}', allowed: ${allowedVersions.join(', ')}")
+                println("[SuperPlayer] fallback to default: professional")
+                return "professional"
+            }
+        } else {
+            println("[SuperPlayer] sub_spec not found\n: ${content}")
+        }
+    } else {
+        println("[SuperPlayer] pubspecFile not exists: ${pubspecFile}")
+    }
+    return "professional"
+}
+
+// 3. 在依赖中使用该值
+def subSpecVersion = getSubSpecFromPubspec()
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace="com.tencent.vod.flutter"
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation rootProject.ext.liteavSdk
+    // player / professional / premium / professional_premium
+    if (subSpecVersion == "player") {
+        implementation rootProject.ext.liteavPlayerSdk
+    } else if (subSpecVersion == "premium") {
+        implementation rootProject.ext.liteavPremiumSdk
+    } else if (subSpecVersion == "professional_premium") {
+        implementation rootProject.ext.liteavProPremiumSdk
+    } else {
+        implementation rootProject.ext.liteavProSdk
+    }
     implementation rootProject.ext.compat
 }

@@ -32,7 +32,36 @@
 
 ## 播放器分支说明
 
-pub 依赖默认为 Professional 版本的播放器，**如果需要依赖其他版本**，可以直接依赖我们的开源 [Github 仓库](https://github.com/LiteAVSDK/Player_Flutter)。
+pub 依赖默认为 Professional 版本的播放器，**如果需要依赖其他版本，可以参考下边[修改分支](#modify-branch)的说明**
+
+### 分支说明
+
+Flutter 播放器依赖 TXLiteAVSDK，此工程提供 3 个分支，请根据业务需要进行集成：
+
+[player](https://github.com/LiteAVSDK/Player_Flutter/tree/main)：依赖 TXLiteAVSDK_Player SDK，默认分支。
+
+[professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional)：依赖 TXLiteAVSDK_Professional SDK，如果项目中已经集成 TXLiteAVSDK_Professional SDK ，则需要集成此分支。
+
+[premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium)： 依赖 TXLiteAVSDK_Player_Premium SDK，包含外挂字幕、多音轨等增值功能，从 11.7 版本开始支持。
+
+[professional_premium]： 依赖 TXLiteAVSDK_Professional_Player_Premium SDK，包含全功能版本和播放器高级版本，在使用高级版播放器的同时，兼容全功能版本。
+
+### 修改分支 {#modify-branch}
+
+**分支默认为 professional ，如果需要修改分支，可以在自己的 `pubspec.yaml` 中，指定 sub_spec**，示例如下：
+
+```yaml
+super_player:
+  sub_spec: 'professional'
+  # player: The basic version of the player, supporting video-on-demand (VOD) and basic live streaming.
+  # professional: The full-featured version, typically used for integrating multiple Tencent plugins simultaneously.
+  # premium: The advanced version of the player, including premium player capabilities.
+  # professional_premium: Combines the full-featured version and the advanced player version, offering compatibility with the full-featured version while utilizing the advanced player features.
+```
+
+**目前支持的参数有 player / professional / premium / professional_premium**
+
+13.0 之前需要依赖 github 来修改分支
 
 **依赖方式如下**
 
@@ -44,16 +73,6 @@ super_player:
     ref: Player_Premium 
 # 可通过 ref 来指定需要的版本分支、提交和 release 版本
 ```
-
-### 分支说明
-
-Flutter 播放器依赖 TXLiteAVSDK，此工程提供 3 个分支，请根据业务需要进行集成：
-
-[main](https://github.com/LiteAVSDK/Player_Flutter/tree/main)：依赖 TXLiteAVSDK_Player SDK，默认分支。
-
-[Professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional)：依赖 TXLiteAVSDK_Professional SDK，如果项目中已经集成 TXLiteAVSDK_Professional SDK ，则需要集成此分支。
-
-[Player_Premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium)： 依赖 TXLiteAVSDK_Player_Premium SDK，包含外挂字幕、多音轨等增值功能，从 11.7 版本开始支持。
 
 ## Flutter播放器简介
 

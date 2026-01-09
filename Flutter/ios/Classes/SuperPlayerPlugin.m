@@ -22,6 +22,7 @@
 @property (nonatomic, strong) TXPluginFlutterAPI* pluginFlutterApi;
 @property (nonatomic, strong) TXPipFlutterAPI* pipFlutterApi;
 @property (nonatomic, strong) FTXRenderViewFactory* renderViewFactory;
+@property (nonatomic, assign) BOOL isRegistered;
 
 @end
 
@@ -30,11 +31,9 @@
     int mCurrentOrientation;
 }
 
-SuperPlayerPlugin* instance;
-
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     FTXLOGV(@"called registerWithRegistrar");
-    instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
+    SuperPlayerPlugin* instance = [[SuperPlayerPlugin alloc] initWithRegistrar:registrar];
     SetUpTXFlutterNativeAPI([registrar messenger], instance);
     SetUpTXFlutterSuperPlayerPluginAPI([registrar messenger], instance);
     [registrar addApplicationDelegate:instance];
@@ -43,13 +42,11 @@ SuperPlayerPlugin* instance;
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     FTXLOGV(@"called detachFromEngineForRegistrar");
-    if(nil != instance) {
-        [instance destory];
+    if (self.isRegistered) {
+        self.isRegistered = NO;
+        [self destory];
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
     }
-    if (nil != _fTXDownloadManager) {
-        [_fTXDownloadManager destroy];
-    }
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (instancetype)initWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -78,6 +75,7 @@ SuperPlayerPlugin* instance;
         // renderView
         self.renderViewFactory = [[FTXRenderViewFactory alloc] initWithBinaryMessenger:registrar.messenger];
         [registrar registerViewFactory:self.renderViewFactory withId:VIEW_TYPE_FTX_RENDER_VIEW];
+        self.isRegistered = YES;
     }
     return self;
 }
@@ -94,6 +92,24 @@ SuperPlayerPlugin* instance;
 -(void) destory
 {
     [self.audioManager destory:self];
+    [self releaseAllPlayer];
+    if (nil != _fTXDownloadManager) {
+        [_fTXDownloadManager destroy];
+    }
+}
+
+-(void) releaseAllPlayer {
+    @synchronized (self) {
+        FTXLOGV(@"start releaseAllPlayer");
+        NSArray *allKeys = [self.players allKeys];
+        for (id key in allKeys) {
+            FTXBasePlayer *player = [self.players objectForKey:key];
+            if (player && [player respondsToSelector:@selector(destroy)]) {
+                [player destory];
+            }
+        }
+        [self.players removeAllObjects];
+    }
 }
 
 -(void) setSysBrightness:(NSNumber*)brightness {
@@ -144,19 +160,8 @@ SuperPlayerPlugin* instance;
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     FTXLOGV(@"called applicationWillTerminate");
-    for(id key in self.players) {
-        id player = self.players[key];
-        if([player respondsToSelector:@selector(notifyAppTerminate:)]) {
-            [player notifyAppTerminate:application];
-        }
-    }
-    if (nil != _fTXDownloadManager) {
-        [_fTXDownloadManager destroy];
-    }
+    [self destory];
 }
-
-
-
 
 #pragma mark - FTXVodPlayerDelegate
 

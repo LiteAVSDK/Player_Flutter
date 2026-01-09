@@ -4,8 +4,9 @@ rootProject.ext {
     supportSdkVersion = "26.0.1"
     minSdkVersion = 19
     targetSdkVersion = 28
-    playerVersion = "12.9.1"
-    compat = "androidx.appcompat:appcompat:1.6.1"
+    playerVersion = "13.0.0"
+    compat = "androidx.appcompat:appcompat:1.0.0"
+    playerSDKVersion = "13.0.0.19676"
 
     /**
      Set the dependent LiteAV SDK type:
@@ -14,5 +15,8 @@ rootProject.ext {
      Professional SDK:  liteavSdk="com.tencent.liteav:LiteAVSDK_Professional:latest.release"
      If you want to specify the SDK version（eg 11.7.0.13946), use:  liteavSdk="com.tencent.liteav:LiteAVSDK_Player:11.7.0.13946"
      */
-    liteavSdk="com.tencent.liteav:LiteAVSDK_Player:12.9.0.19478"
+    liteavPlayerSdk="com.tencent.liteav:LiteAVSDK_Player:${playerSDKVersion}"
+    liteavProSdk="com.tencent.liteav:LiteAVSDK_Professional:${playerSDKVersion}"
+    liteavPremiumSdk="com.tencent.liteav:LiteAVSDK_Player_Premium:${playerSDKVersion}"
+    liteavProPremiumSdk="com.tencent.liteav:LiteAVSDK_Professional_Player_Premium:${playerSDKVersion}"
 }

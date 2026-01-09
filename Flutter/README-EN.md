@@ -32,7 +32,31 @@ This directory contains the Tencent Cloud Player SDK Flutter plugin and demo sou
 
 ## Player Branch Explanation
 
-The default pub dependency is the Professional version of the player. **If you need to depend on other versions,** you can directly rely on our open-source [GitHub repository](https://github.com/LiteAVSDK/Player_Flutter).
+The pub dependency defaults to the Professional version of the player. **If you need to depend on other versions, please refer to the instructions on [modifying the branch](#modify-branch).**
+
+### Branch Explanation
+
+The Flutter player depends on TXLiteAVSDK. This project provides 3 branches; please integrate according to your business needs:
+
+[player](https://github.com/LiteAVSDK/Player_Flutter/tree/main): Depends on TXLiteAVSDK_Player SDK, the default branch.
+
+[professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional): Depends on TXLiteAVSDK_Professional SDK. If your project has already integrated TXLiteAVSDK_Professional SDK, you need to integrate this branch.
+
+[premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium): Depends on TXLiteAVSDK_Player_Premium SDK, which includes value-added features such as external subtitles and multiple audio tracks, supported from version 11.7 onwards.
+
+[professional_premium]: Depends on the TXLiteAVSDK_Professional_Player_Premium SDK. Combines the full-featured version and the advanced player version, ensuring compatibility with the full-featured version while utilizing advanced player capabilities.
+
+### Modify the Branch {#modify-branch}
+
+**The default branch is professional. If you need to modify the branch, you can specify the sub_specin your own `pubspec.yaml`** Example:
+```yaml
+super_player:
+  sub_spec: 'professional'
+  # sub_spec argument: player / professional / premium / professional_premium
+```
+**Currently supported arguments are: player / professional / premium / professional_premium**
+
+Prior to version 13.0, it is necessary to rely on GitHub to modify branches.
 
 **Dependency method is as follows:**
 
@@ -44,16 +68,6 @@ super_player:
     ref: Player_Premium 
 # You can specify the required version branch, commit, and release version through ref
 ```
-
-### Branch Explanation
-
-The Flutter player depends on TXLiteAVSDK. This project provides 3 branches; please integrate according to your business needs:
-
-[main](https://github.com/LiteAVSDK/Player_Flutter/tree/main): Depends on TXLiteAVSDK_Player SDK, the default branch.
-
-[Professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional): Depends on TXLiteAVSDK_Professional SDK. If your project has already integrated TXLiteAVSDK_Professional SDK, you need to integrate this branch.
-
-[Player_Premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium): Depends on TXLiteAVSDK_Player_Premium SDK, which includes value-added features such as external subtitles and multiple audio tracks, supported from version 11.7 onwards.
 
 ## Introduction to Flutter Player
 

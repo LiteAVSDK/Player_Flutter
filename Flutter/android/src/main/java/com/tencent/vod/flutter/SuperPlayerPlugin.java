@@ -24,7 +24,6 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXLiveBase;
@@ -43,6 +42,7 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXFlutterSuperPlayerPluginAP
 import com.tencent.vod.flutter.player.FTXBasePlayer;
 import com.tencent.vod.flutter.player.FTXLivePlayer;
 import com.tencent.vod.flutter.player.FTXVodPlayer;
+import com.tencent.vod.flutter.tools.FTXContextWrapper;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.TXAndroid12BridgeService;
@@ -500,6 +500,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         unregisterReceiver();
         TXFlutterEngineHolder.getInstance().destroy(binding);
         TXLiveBase.setListener(null);
+        releaseAllPlayer();
         mFlutterPluginBinding = null;
     }
 
@@ -557,8 +558,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         mVolumeBroadcastReceiver = new VolumeBroadcastReceiver(mPluginApi);
         IntentFilter filter = new IntentFilter();
         filter.addAction(VOLUME_CHANGED_ACTION);
-        ContextCompat.registerReceiver(mFlutterPluginBinding.getApplicationContext(), mVolumeBroadcastReceiver, filter,
-                ContextCompat.RECEIVER_NOT_EXPORTED);
+        FTXContextWrapper.registerReceiverForNotExport(mFlutterPluginBinding.getApplicationContext(),
+                mVolumeBroadcastReceiver, filter);
     }
 
     public void enableBrightnessObserver(boolean enable) {
@@ -577,6 +578,18 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
                 mIsBrightnessObserverRegistered = false;
             }
         }
+    }
+
+    public synchronized void releaseAllPlayer() {
+        LiteavLog.i(TAG, "start releaseAllPlayer");
+        for (int i = 0; i < mPlayers.size(); i++) {
+            FTXBasePlayer player = mPlayers.valueAt(i);
+            if (null != player) {
+                LiteavLog.i(TAG, "releasePlayer start destroy player :" + player.getPlayerId());
+                player.destroy();
+            }
+        }
+        mPlayers.clear();
     }
 
     /**

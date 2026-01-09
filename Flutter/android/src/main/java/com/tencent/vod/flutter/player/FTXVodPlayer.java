@@ -268,7 +268,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     @Override
     public void reDraw() {
         if (mCurRenderView != null) {
-            mCurRenderView.getRenderView().reDrawVod();
+            mCurRenderView.getRenderView().reDrawVod(true);
         }
     }
 

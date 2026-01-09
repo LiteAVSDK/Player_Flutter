@@ -1,4 +1,16 @@
 
+#### Version: 13.0.0 2026.01.08
+
+##### Features：
+
+- set Android TXLiteAVSDK to 13.0.0.19676
+- set iOS TXLiteAVSDK to 13.0.20258
+- the integration method has been modified to a custom sub_spec approach, where the SDK is specified via the sub_spec method.
+- compatible with lower compilation versions on Android.
+- after the plugin is released, it will release all the players it currently holds.
+- fix known issue
+
+
 #### Version: 12.9.1 2025.12.04
 
 ##### Features：
