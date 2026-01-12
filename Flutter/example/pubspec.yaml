@@ -5,6 +5,13 @@ description: Demonstrates how to use the super_player plugin.
 # pub.dev using `pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
+super_player:
+  sub_spec: 'professional'
+  # player: The basic version of the player, supporting video-on-demand (VOD) and basic live streaming.
+  # professional: The full-featured version, typically used for integrating multiple Tencent plugins simultaneously.
+  # premium: The advanced version of the player, including premium player capabilities.
+  # professional_premium: Combines the full-featured version and the advanced player version, offering compatibility with the full-featured version while utilizing the advanced player features.
+
 environment:
   sdk: '>=2.17.0 <4.0.0'
   flutter: ">=3.0.0"

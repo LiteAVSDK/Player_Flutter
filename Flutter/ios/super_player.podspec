@@ -4,23 +4,25 @@
 
 require 'yaml'
 
+project_root = ENV['FLUTTER_APPLICATION_PATH']
+
+# 利用 CocoaPods 的 Config 实例找到 Podfile 所在的目录，宿主项目通常在 Podfile 的上一级
+if project_root.nil? && defined?(Pod::Config)
+  podfile_dir = Pod::Config.instance.project_root.to_s
+  project_root = File.expand_path('..', podfile_dir)
+end
+
+puts "[SuperPlayer] project_root: #{project_root}"
+pubspec_path = File.join(project_root, 'pubspec.yaml') if project_root
+
 sdk_version = '13.0.20258'
 sub_spec_version = 'professional'
 ALLOWED_VERSIONS = ['player', 'professional', 'premium', 'professional_premium']
 
-current_dir = __dir__
-pubspec_path = nil
-5.times do
-if File.exist?(File.join(current_dir, 'pubspec.yaml'))
-  pubspec_path = File.join(current_dir, 'pubspec.yaml')
-  break
-end
-current_dir = File.expand_path('..', current_dir)
-end
-
 puts "---------------- [SuperPlayer] ----------------"
 if File.exist?(pubspec_path)
   begin
+      puts "[SuperPlayer] path: #{pubspec_path}"
     pubspec = YAML.load_file(pubspec_path)
     if pubspec['super_player'] && pubspec['super_player']['sub_spec']
         parsed_version = pubspec['super_player']['sub_spec']
