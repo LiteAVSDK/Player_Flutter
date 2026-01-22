@@ -1,4 +1,14 @@
 
+#### Version: 13.0.1 2026.01.22
+
+##### Features：
+
+- set iOS TXLiteAVSDK to 13.0.20275
+- adds new interfaces related to TRTC stream transmission.
+- compatible with interface calls for Android 15 and above.
+- fix known issue
+
+
 #### Version: 13.0.0 2026.01.08
 
 ##### Features：

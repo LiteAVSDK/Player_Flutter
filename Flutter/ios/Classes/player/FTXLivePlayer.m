@@ -64,7 +64,7 @@ static const int uninitialized = -1;
         self.liveFlutterApi = [[TXLivePlayerFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger] messageChannelSuffix:[self.playerId stringValue]];
         [self createPlayer:onlyAudio];
     }
-    [self.livePlayer setProperty:kV2SetHeaders value:@"" ];
+    [self.livePlayer setProperty:@"setHeaders" value:@"" ];
     return self;
 }
 
@@ -354,10 +354,10 @@ static const int uninitialized = -1;
                                         maxTime:[msg.maxAutoAdjustCacheTime floatValue]];
             }
             if (msg.connectRetryCount) {
-                [self.livePlayer setProperty:kV2MaxNumberOfReconnection value:msg.connectRetryCount];
+                [self.livePlayer setProperty:@"maxNumberOfReconnection" value:msg.connectRetryCount];
             }
             if (msg.connectRetryInterval) {
-                [self.livePlayer setProperty:kV2SecondsBetweenReconnection value:msg.connectRetryInterval];
+                [self.livePlayer setProperty:@"secondsBetweenReconnection" value:msg.connectRetryInterval];
             }
         }
     }
@@ -472,7 +472,7 @@ static const int uninitialized = -1;
 
 - (nullable BoolMsg *)stopIsNeedClear:(nonnull BoolPlayerMsg *)isNeedClear error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     if (self.livePlayer) {
-        [self.livePlayer setProperty:kV2ClearLastImage value:@(isNeedClear.value.boolValue)];
+        [self.livePlayer setProperty:@"clearLastImage" value:@(isNeedClear.value.boolValue)];
     }
     BOOL r = [self stopPlay];
     return [TXCommonUtil boolMsgWith:r];

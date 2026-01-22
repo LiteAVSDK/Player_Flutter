@@ -12,11 +12,7 @@ public class FTXContextWrapper {
     public static void registerReceiverForNotExport(Context applicationContext, BroadcastReceiver receiver,
                                                     IntentFilter filter) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                applicationContext.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
-            } else {
-                applicationContext.registerReceiver(receiver, filter, 0x4);
-            }
+            applicationContext.registerReceiver(receiver, filter, 0x4);
         } else {
             applicationContext.registerReceiver(receiver, filter);
         }

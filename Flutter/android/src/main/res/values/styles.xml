@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- 取消界面转场动画使用-->
-    <style name="Theme" parent="android:Theme.Holo.NoActionBar">
-        <item name="android:windowAnimationStyle">@style/Animation</item>
+    <style name="FTXPlayerPipTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowAnimationStyle">@style/FTXPlayerPipThemeAnim</item>
         <item name="android:background">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -10,7 +10,7 @@
         <item name="android:windowEnterTransition" tools:targetApi="lollipop">@null</item>
         <item name="android:windowExitTransition" tools:targetApi="lollipop">@null</item>
     </style>
-    <style name="Animation">
+    <style name="FTXPlayerPipThemeAnim">
         <item name="android:activityOpenEnterAnimation">@null</item>
         <item name="android:activityOpenExitAnimation">@null</item>
         <item name="android:activityCloseEnterAnimation">@null</item>

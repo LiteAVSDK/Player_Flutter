@@ -23,12 +23,12 @@ import android.text.TextUtils;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.ITXVodPlayListener;
@@ -45,7 +45,7 @@ import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.tools.TXSimpleEventBus;
 
 
-public class FlutterPipImplActivity extends Activity implements ITXVodPlayListener,
+public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodPlayListener,
         ServiceConnection, TXSimpleEventBus.EventSubscriber {
 
     private static final String TAG = "FlutterPipImplActivity";
@@ -142,19 +142,20 @@ public class FlutterPipImplActivity extends Activity implements ITXVodPlayListen
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         mMainHandler = new Handler(getMainLooper());
         bindAndroid12BugServiceIfNeed();
         registerPipBroadcast();
         setContentView(R.layout.activity_flutter_pip_impl);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.TRANSPARENT);
-        } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        }
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            Window window = getWindow();
+//            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+////            window.setStatusBarColor(Color.TRANSPARENT);
+//        } else {
+//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//        }
         mVideoRenderView = findViewById(R.id.tv_video_container);
         mVideoProgress = findViewById(R.id.pb_video_progress);
         mPipContainer = findViewById(R.id.rl_pip_container);
