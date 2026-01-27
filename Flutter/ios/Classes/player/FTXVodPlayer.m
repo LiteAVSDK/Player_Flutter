@@ -340,6 +340,45 @@ static const int uninitialized = -1;
     // do nothing
 }
 
+- (void)enableTRTCIsEnabled:(BOOL)isEnabled error:(FlutterError * _Nullable __autoreleasing *)error {
+#if SDK_IS_PRO
+    if (nil != _txVodPlayer) {
+        if (isEnabled) {
+            NSObject *trtcCloud = [TRTCCloud sharedInstance];
+            [_txVodPlayer attachTRTC:trtcCloud];
+        } else {
+            [_txVodPlayer detachTRTC];
+        }
+    }
+#else
+    FTXLOGE(@"enableTRTC must use professional or professional_premium sdk");
+#endif
+}
+
+- (void)publishVideoWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer publishVideo];
+    }
+}
+
+- (void)publishAudioWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer publishAudio];
+    }
+}
+
+- (void)unpublishVideoWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer unpublishVideo];
+    }
+}
+
+- (void)unpublishAudioWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer unpublishAudio];
+    }
+}
+
 - (void)setPlayerImageSprite:(NSString*)urlStr withImgArray:(NSArray*)imgStrArray {
     [self releaseImageSprite];
     _txImageSprite = [[TXImageSprite alloc] init];

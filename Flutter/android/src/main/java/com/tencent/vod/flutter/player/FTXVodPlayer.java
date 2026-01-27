@@ -44,10 +44,14 @@ import com.tencent.vod.flutter.messages.FtxMessages.TXPlayInfoParamsPlayerMsg;
 import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 import com.tencent.vod.flutter.model.TXPipResult;
 import com.tencent.vod.flutter.model.TXPlayerHolder;
+import com.tencent.vod.flutter.player.render.FTXPixelFrame;
 import com.tencent.vod.flutter.player.render.FTXVodPlayerRenderHost;
+import com.tencent.vod.flutter.player.render.gl.FTRTCCloudClassInvoker;
+import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
 import com.tencent.vod.flutter.tools.FTXVersionAdapter;
 import com.tencent.vod.flutter.tools.TXCommonUtil;
 import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
+import com.tencent.vod.flutter.ui.render.FTXRenderCarrier;
 import com.tencent.vod.flutter.ui.render.FTXRenderView;
 import com.tencent.vod.flutter.ui.render.FTXRenderViewFactory;
 
@@ -76,6 +80,9 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     private TXImageSprite mTxImageSprite;
 
     private static final int Uninitialized = -101;
+    private FTRTCCloudClassInvoker mTRTCInvoker;
+    private boolean mIsStartPublishTRTC = false;
+    private FTXEGLRender.OnFrameCopyListener mFrameCopyListener;
     private boolean mEnableHardwareDecode = true;
     private boolean mHardwareDecodeFail = false;
     private final FTXPIPManager mPipManager;
@@ -270,6 +277,89 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (mCurRenderView != null) {
             mCurRenderView.getRenderView().reDrawVod(true);
         }
+    }
+
+    @Override
+    public void enableTRTC(@NonNull Boolean isEnabled) {
+        if (isEnabled) {
+            Object trtcCloud = getTRTCCloudInstance();
+            if (trtcCloud == null) {
+                LiteavLog.e(TAG, "enableTRTC failed: TRTCCloud class not found or sharedInstance failed,"
+                        + "please use professional sdk");
+                return;
+            }
+            mTRTCInvoker = new FTRTCCloudClassInvoker(trtcCloud);
+            mVodPlayer.attachTRTC(trtcCloud);
+            if (null != mRenderCarrier) {
+                handleTRTCObj(mRenderCarrier);
+            }
+        } else {
+            mVodPlayer.detachTRTC();
+            mTRTCInvoker = null;
+            mIsStartPublishTRTC = false;
+            mFrameCopyListener = null;
+            if (null != mRenderCarrier) {
+                mRenderCarrier.enableTRTCCloud(false, null);
+            }
+        }
+    }
+
+    private Object getTRTCCloudInstance() {
+        try {
+            Class<?> trtcCloudClass = Class.forName("com.tencent.trtc.TRTCCloud");
+            java.lang.reflect.Method sharedInstanceMethod = trtcCloudClass.getMethod("sharedInstance",
+                    android.content.Context.class);
+            return sharedInstanceMethod.invoke(null, mFlutterPluginBinding.getApplicationContext());
+        } catch (ClassNotFoundException e) {
+            LiteavLog.e(TAG, "TRTCCloud class not found: " + e.getMessage());
+        } catch (NoSuchMethodException e) {
+            LiteavLog.e(TAG, "TRTCCloud.sharedInstance method not found: " + e.getMessage());
+        } catch (Exception e) {
+            LiteavLog.e(TAG, "Failed to get TRTCCloud instance: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public void handleTRTCObj(FTXRenderCarrier carrier) {
+        if (null != carrier) {
+            carrier.enableTRTCCloud(true, mFrameCopyListener = new FTXEGLRender.OnFrameCopyListener() {
+                @Override
+                public void onFrameCopied(FTXPixelFrame frame) {
+                    if (null != mTRTCInvoker && mIsStartPublishTRTC) {
+                        mTRTCInvoker.sendCustomVideoData(frame);
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    public void publishVideo() {
+        mVodPlayer.publishVideo();
+        if (null != mTRTCInvoker) {
+            mTRTCInvoker.setTRTCCustomVideoCapture(true);
+        }
+        mIsStartPublishTRTC = true;
+    }
+
+    @Override
+    public void unpublishVideo() {
+        mVodPlayer.unpublishVideo();
+        if (null != mTRTCInvoker) {
+            mTRTCInvoker.setTRTCCustomVideoCapture(false);
+        }
+        mIsStartPublishTRTC = false;
+    }
+
+    @Override
+    public void publishAudio() {
+        mVodPlayer.publishAudio();
+    }
+
+    @Override
+    public void unpublishAudio() {
+        mVodPlayer.unpublishAudio();
     }
 
     protected long init(boolean onlyAudio) {

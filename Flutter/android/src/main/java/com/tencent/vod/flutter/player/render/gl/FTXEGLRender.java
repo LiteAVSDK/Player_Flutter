@@ -12,6 +12,8 @@ import android.view.Surface;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.common.FTXPlayerConstants;
+import com.tencent.vod.flutter.player.render.FTXPixelFrame;
+import com.tencent.vod.flutter.player.render.trtc.FVodTRTCHelper;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -57,6 +59,16 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private Handler mDrawHandler = null;
     private boolean isReleased = false;
     private boolean mIsFirstFrame = false;
+
+    private FVodTRTCHelper mTRTCHelper;
+    private boolean mEnableFrameCopy = false;
+    private OnFrameCopyListener mFrameCopyListener;
+    private FTXPixelFrame mCachedPixelFrame;  // 复用的帧对象，避免频繁创建
+
+    public interface OnFrameCopyListener {
+
+        void onFrameCopied(FTXPixelFrame frame);
+    }
 
     public FTXEGLRender(int width, int height) {
         this(width, height, FPS_DEFAULT);
@@ -119,9 +131,16 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
                     return;
                 }
             }
+
             mTextureRender.drawFrame();
             swapBuffers();
             mPreTime = mCurrentTime;
+
+            // 如果启用了帧复制，在绘制前复制一份纹理
+            if (mEnableFrameCopy) {
+                copyFrameForTRTC();
+            }
+
         } catch (Exception e) {
             LiteavLog.e(TAG, "startDrawSurface error: " + e);
         } finally {
@@ -489,6 +508,9 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             mDrawHandler = null;
         }
 
+        setEnableFrameCopy(false, null);
+        mCachedPixelFrame = null;
+
         if (!contextCompare) {
             LiteavLog.d(TAG, "restoreEglEnvironment");
             restoreEglEnvironment();
@@ -506,4 +528,69 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
     }
 
+    public void setEnableFrameCopy(boolean enable, OnFrameCopyListener listener) {
+        mEnableFrameCopy = enable;
+        mFrameCopyListener = listener;
+        if (!enable && mTRTCHelper != null) {
+            // 在 GL 线程中释放资源
+            if (mDrawHandler != null) {
+                mDrawHandler.post(() -> {
+                    if (mTRTCHelper != null) {
+                        saveCurrentEglEnvironment();
+                        if (makeCurrent(1)) {
+                            mTRTCHelper.release();
+                            mTRTCHelper = null;
+                        }
+                        restoreEglEnvironment();
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 复制当前帧用于 TRTC 推流
+     */
+    private void copyFrameForTRTC() {
+        if (!mEnableFrameCopy || mTextureRender == null) {
+            return;
+        }
+
+        int textureId = mTextureRender.getTextureID();
+        if (textureId <= 0) {
+            return;
+        }
+
+        if (mTRTCHelper == null) {
+            mTRTCHelper = new FVodTRTCHelper();
+        }
+
+        int copyWidth = mWidth;
+        int copyHeight = mHeight;
+        if (copyWidth <= 0 || copyHeight <= 0) {
+            return;
+        }
+
+        if (!mTRTCHelper.isInitialized()
+                || mTRTCHelper.getTextureWidth() != copyWidth
+                || mTRTCHelper.getTextureHeight() != copyHeight) {
+            if (!mTRTCHelper.init(copyWidth, copyHeight)) {
+                LiteavLog.e(TAG, "Failed to init TRTCHelper");
+                return;
+            }
+        }
+
+        int copyTextureId = mTRTCHelper.copyFrame(textureId);
+        if (copyTextureId > 0 && mFrameCopyListener != null) {
+            // 单线程模型使用成员变量
+            if (mCachedPixelFrame == null) {
+                mCachedPixelFrame = new FTXPixelFrame();
+            }
+            mCachedPixelFrame.setTextureId(copyTextureId);
+            mCachedPixelFrame.setWidth(copyWidth);
+            mCachedPixelFrame.setHeight(copyHeight);
+            mCachedPixelFrame.setGLContext(mEGLContextEncoder);
+            mFrameCopyListener.onFrameCopied(mCachedPixelFrame);
+        }
+    }
 }

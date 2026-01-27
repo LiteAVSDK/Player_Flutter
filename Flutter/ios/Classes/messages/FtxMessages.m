@@ -2834,6 +2834,93 @@ void SetUpTXFlutterVodPlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMesse
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.enableTRTC", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(enableTRTCIsEnabled:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(enableTRTCIsEnabled:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        BOOL arg_isEnabled = [GetNullableObjectAtIndex(args, 0) boolValue];
+        FlutterError *error;
+        [api enableTRTCIsEnabled:arg_isEnabled error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.publishVideo", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(publishVideoWithError:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(publishVideoWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api publishVideoWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.unpublishVideo", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(unpublishVideoWithError:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(unpublishVideoWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api unpublishVideoWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.publishAudio", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(publishAudioWithError:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(publishAudioWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api publishAudioWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.unpublishAudio", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(unpublishAudioWithError:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(unpublishAudioWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api unpublishAudioWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 void SetUpTXFlutterLivePlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterLivePlayerApi> *api) {
   SetUpTXFlutterLivePlayerApiWithSuffix(binaryMessenger, api, @"");

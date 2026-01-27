@@ -652,6 +652,36 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _vodPlayerApi.reDraw();
   }
 
+  Future<void> enableTRTC(bool isEnable) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.enableTRTC(isEnable);
+  }
+
+  Future<void> publishVideo() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.publishVideo();
+  }
+
+  Future<void> unpublishVideo() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.unpublishVideo();
+  }
+
+  Future<void> publishAudio() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.publishAudio();
+  }
+
+  Future<void> unpublishAudio() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _vodPlayerApi.unpublishAudio();
+  }
+
   /// release controller
   ///
   /// 释放controller

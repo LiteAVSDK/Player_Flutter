@@ -737,6 +737,11 @@ extern void SetUpTXFlutterNativeAPIWithSuffix(id<FlutterBinaryMessenger> binaryM
 - (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setRenderModeRenderMode:(NSInteger)renderMode error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)reDrawWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (void)enableTRTCIsEnabled:(BOOL)isEnabled error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)publishVideoWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (void)unpublishVideoWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (void)publishAudioWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (void)unpublishAudioWithError:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void SetUpTXFlutterVodPlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterVodPlayerApi> *_Nullable api);

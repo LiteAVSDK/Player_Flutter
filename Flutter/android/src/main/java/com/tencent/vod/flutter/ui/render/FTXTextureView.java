@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
+import com.tencent.vod.flutter.player.render.FTXVodPlayerRenderHost;
 import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
@@ -126,6 +127,9 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
             connectPlayer(surfaceHost);
         }
         if (null != surfaceHost) {
+            if (surfaceHost instanceof FTXVodPlayerRenderHost) {
+                ((FTXVodPlayerRenderHost) surfaceHost).handleTRTCObj(this);
+            }
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
@@ -247,6 +251,11 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
     @Override
     public void removeAllSurfaceListener() {
         mSurfaceListenerDelegate.mExternalSurfaceListeners.clear();
+    }
+
+    @Override
+    public void enableTRTCCloud(boolean enable, FTXEGLRender.OnFrameCopyListener listener) {
+        mRender.setEnableFrameCopy(enable, listener);
     }
 
     private static class TextureViewInnerListener implements SurfaceTextureListener {

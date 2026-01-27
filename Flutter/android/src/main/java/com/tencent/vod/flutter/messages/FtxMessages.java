@@ -4914,6 +4914,16 @@ public class FtxMessages {
 
     void reDraw();
 
+    void enableTRTC(@NonNull Boolean isEnabled);
+
+    void publishVideo();
+
+    void unpublishVideo();
+
+    void publishAudio();
+
+    void unpublishAudio();
+
     /** The codec used by TXFlutterVodPlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
       return PigeonCodec.INSTANCE;
@@ -5923,6 +5933,113 @@ public class FtxMessages {
                 ArrayList<Object> wrapped = new ArrayList<>();
                 try {
                   api.reDraw();
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.enableTRTC" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Boolean isEnabledArg = (Boolean) args.get(0);
+                try {
+                  api.enableTRTC(isEnabledArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.publishVideo" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.publishVideo();
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.unpublishVideo" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.unpublishVideo();
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.publishAudio" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.publishAudio();
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.unpublishAudio" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.unpublishAudio();
                   wrapped.add(0, null);
                 }
  catch (Throwable exception) {
