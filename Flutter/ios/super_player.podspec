@@ -64,28 +64,32 @@ player plugin.
   s.static_framework = true
   s.resources = ['Classes/TXResource/**/*']
 
-  s.default_subspec = sub_spec_version
+#   s.default_subspec = sub_spec_version
 
   # Set the dependent LiteAV SDK type:
   # Player SDK: s.dependency 'TXLiteAVSDK_Player'
   # Player_Premium SDK: s.dependency 'TXLiteAVSDK_Player_Premium'
   # Professional SDK:  s.dependency 'TXLiteAVSDK_Professional'
   # If you want to specify the SDK version（eg 11.6.15041), use:  s.dependency 'TXLiteAVSDK_Player','11.6.15041'
-   s.subspec 'player' do |ss|
-       ss.dependency 'TXLiteAVSDK_Player', sdk_version
-   end
-
-   s.subspec 'professional' do |ss|
-        ss.dependency 'TXLiteAVSDK_Professional', sdk_version
-   end
-
-    s.subspec 'premium' do |ss|
-          ss.dependency 'TXLiteAVSDK_Player_Premium', sdk_version
-    end
-
-   s.subspec 'professional_premium' do |ss|
-         ss.dependency 'TXLiteAVSDK_Professional_Player_Premium', sdk_version
-   end
+  s.dependency 'TXLiteAVSDK_Professional'
+#    s.subspec 'player' do |ss|
+#        ss.dependency 'TXLiteAVSDK_Player', sdk_version
+#    end
+#
+#    # 使用私有 podspec URL 的 professional 版本
+#    # 注意：需要在宿主项目的 Podfile 中添加：
+#    # pod 'TXLiteAVSDK_Professional', :podspec => 'https://liteav.sdk.qcloud.com/pod/liteavsdkspec/customer/TXLiteAVSDK_Professional_BEYOND_FUTURE_13.1.0.20460.podspec'
+#    s.subspec 'professional' do |ss|
+#         ss.dependency 'TXLiteAVSDK_Professional'
+#    end
+#
+#     s.subspec 'premium' do |ss|
+#           ss.dependency 'TXLiteAVSDK_Player_Premium', sdk_version
+#     end
+#
+#    s.subspec 'professional_premium' do |ss|
+#          ss.dependency 'TXLiteAVSDK_Professional_Player_Premium', sdk_version
+#    end
 
 #   s.dependency 'FTXPiPKit'
   s.vendored_frameworks = [

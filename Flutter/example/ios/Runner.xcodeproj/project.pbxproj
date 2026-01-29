@@ -16,6 +16,7 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B484F5A12C2BF0FF0066B1E9 /* TXVodPlayer.bundle in Resources */ = {isa = PBXBuildFile; fileRef = B4C561652C2BBC86005E98E7 /* TXVodPlayer.bundle */; };
+		B4F9E93A2F2B6C4D00BC3D37 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B4F9E9392F2B6C4D00BC3D37 /* CoreML.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -51,6 +52,7 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ABC66A68D7918BA4A5C38164 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		B4C561652C2BBC86005E98E7 /* TXVodPlayer.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = TXVodPlayer.bundle; sourceTree = "<group>"; };
+		B4F9E9392F2B6C4D00BC3D37 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4F9E93A2F2B6C4D00BC3D37 /* CoreML.framework in Frameworks */,
 				7FC238FBFE0578CE288477C9 /* libPods-Runner.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -68,6 +71,7 @@
 		397C01B3CB434F3267A96678 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B4F9E9392F2B6C4D00BC3D37 /* CoreML.framework */,
 				96D7F340E497F9104FD6A13F /* libPods-Runner.a */,
 			);
 			name = Frameworks;

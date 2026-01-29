@@ -16,7 +16,8 @@ rootProject.ext {
      If you want to specify the SDK version（eg 11.7.0.13946), use:  liteavSdk="com.tencent.liteav:LiteAVSDK_Player:11.7.0.13946"
      */
     liteavPlayerSdk="com.tencent.liteav:LiteAVSDK_Player:${playerSDKVersion}"
-    liteavProSdk="com.tencent.liteav:LiteAVSDK_Professional:${playerSDKVersion}"
+//    liteavProSdk="com.tencent.liteav:LiteAVSDK_Professional:${playerSDKVersion}"
+    liteavProSdk="com.tencent.liteav.customize:LiteAVSDK_Professional:13.1.0.19867"
     liteavPremiumSdk="com.tencent.liteav:LiteAVSDK_Player_Premium:${playerSDKVersion}"
     liteavProPremiumSdk="com.tencent.liteav:LiteAVSDK_Professional_Player_Premium:${playerSDKVersion}"
 }
