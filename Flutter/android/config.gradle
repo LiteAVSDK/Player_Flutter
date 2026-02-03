@@ -4,9 +4,9 @@ rootProject.ext {
     supportSdkVersion = "26.0.1"
     minSdkVersion = 19
     targetSdkVersion = 28
-    playerVersion = "13.0.1"
+    playerVersion = "13.1.0"
     compat = "androidx.appcompat:appcompat:1.0.0"
-    playerSDKVersion = "13.0.0.19676"
+    playerSDKVersion = "13.1.0.19861"
 
     /**
      Set the dependent LiteAV SDK type:

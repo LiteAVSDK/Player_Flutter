@@ -931,6 +931,44 @@ class FSteamInfo {
   }
 }
 
+class FTXLiveLocalRecordingParams {
+  String filePath;
+  int interval;
+
+  FTXLiveLocalRecordingParams({
+    required this.filePath,
+    this.interval = -1,
+  });
+
+  Map<String, Object> toJson() {
+    return {
+      'filePath': filePath,
+      'interval': interval,
+    };
+  }
+
+  factory FTXLiveLocalRecordingParams.fromJson(Map<String, dynamic> json) {
+    return FTXLiveLocalRecordingParams(
+      filePath: json['filePath'] as String,
+      interval: json['interval'] as int? ?? -1,
+    );
+  }
+}
+
+class FTXLiveListener {
+  FTXLiveLocalRecordBegin? recordBeginCallback;
+  FTXLiveLocalRecording? recordingCallback;
+  FTXLiveLocalRecordComplete? recordCompleteCallback;
+  FTXLiveSnapshotComplete? snapshotCompleteCallback;
+
+  FTXLiveListener({
+    this.recordBeginCallback,
+    this.recordingCallback,
+    this.recordCompleteCallback,
+    this.snapshotCompleteCallback,
+});
+}
+
 /// Player type.
 ///
 /// 播放器类型
@@ -976,3 +1014,8 @@ typedef FTXDownlodOnStateChangeListener = void Function(int event, TXVodDownload
 typedef FTXDownlodOnErrorListener = void Function(int errorCode, String errorMsg, TXVodDownloadMediaInfo info);
 
 typedef FTXLicenceLoadedListener = void Function(int result, String reason);
+
+typedef FTXLiveLocalRecordBegin = void Function(int code, String storagePath);
+typedef FTXLiveLocalRecording = void Function(int durationMs, String storagePath);
+typedef FTXLiveLocalRecordComplete = void Function(int code, String storagePath);
+typedef FTXLiveSnapshotComplete = void Function(Uint8List? imageBytes);

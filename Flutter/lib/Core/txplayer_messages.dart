@@ -3894,6 +3894,72 @@ class TXFlutterLivePlayerApi {
       return;
     }
   }
+
+  Future<void> startLocalRecording(Map<String, Object> localRecordingParams) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.startLocalRecording$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[localRecordingParams]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> stopLocalRecording() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.stopLocalRecording$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> snapshot() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.snapshot$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
 }
 
 class TXFlutterDownloadApi {
@@ -4396,6 +4462,14 @@ abstract class TXLivePlayerFlutterAPI {
 
   void onNetEvent(Map<String, Object> event);
 
+  void onLocalRecordBegin(int code, String storagePath);
+
+  void onLocalRecording(int durationMs, String storagePath);
+
+  void onLocalRecordComplete(int code, String storagePath);
+
+  void onSnapshotComplete(Uint8List? imageBytes);
+
   static void setUp(TXLivePlayerFlutterAPI? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
@@ -4439,6 +4513,113 @@ abstract class TXLivePlayerFlutterAPI {
               'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onNetEvent was null, expected non-null Map<String, Object>.');
           try {
             api.onNetEvent(arg_event!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordBegin$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordBegin was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final int? arg_code = (args[0] as int?);
+          assert(arg_code != null,
+              'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordBegin was null, expected non-null int.');
+          final String? arg_storagePath = (args[1] as String?);
+          assert(arg_storagePath != null,
+              'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordBegin was null, expected non-null String.');
+          try {
+            api.onLocalRecordBegin(arg_code!, arg_storagePath!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecording$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecording was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final int? arg_durationMs = (args[0] as int?);
+          assert(arg_durationMs != null,
+              'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecording was null, expected non-null int.');
+          final String? arg_storagePath = (args[1] as String?);
+          assert(arg_storagePath != null,
+              'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecording was null, expected non-null String.');
+          try {
+            api.onLocalRecording(arg_durationMs!, arg_storagePath!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordComplete$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordComplete was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final int? arg_code = (args[0] as int?);
+          assert(arg_code != null,
+              'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordComplete was null, expected non-null int.');
+          final String? arg_storagePath = (args[1] as String?);
+          assert(arg_storagePath != null,
+              'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordComplete was null, expected non-null String.');
+          try {
+            api.onLocalRecordComplete(arg_code!, arg_storagePath!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onSnapshotComplete$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onSnapshotComplete was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final Uint8List? arg_imageBytes = (args[0] as Uint8List?);
+          try {
+            api.onSnapshotComplete(arg_imageBytes);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

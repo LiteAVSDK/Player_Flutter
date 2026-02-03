@@ -63,6 +63,21 @@ class _DemoTXLivePlayerState extends State<DemoTXLivePlayer> with WidgetsBinding
       debugPrint("Playback status ${event!.name}");
     });
 
+    _controller.liveListener = FTXLiveListener(
+      recordBeginCallback: (code, path) {
+        debugPrint("liveListener: recordBeginCallback:$code,path:$path");
+      },
+      recordingCallback: (durationMs, path) {
+        debugPrint("liveListener: recordingCallback:$durationMs,path:$path");
+      },
+      recordCompleteCallback: (code, path) {
+        debugPrint("liveListener: recordCompleteCallback:$code,path:$path");
+      },
+      snapshotCompleteCallback: (img) {
+        debugPrint("liveListener: snapshotCompleteCallback:${img?.length}");
+      }
+    );
+
     _controller.setRenderMode(FTXPlayerRenderMode.ADJUST_RESOLUTION);
     await _controller.startLivePlay(_url);
   }

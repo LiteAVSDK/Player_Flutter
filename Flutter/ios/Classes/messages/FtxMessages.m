@@ -3400,6 +3400,59 @@ void SetUpTXFlutterLivePlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMess
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.startLocalRecording", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(startLocalRecordingLocalRecordingParams:error:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(startLocalRecordingLocalRecordingParams:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        NSDictionary<NSString *, id> *arg_localRecordingParams = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api startLocalRecordingLocalRecordingParams:arg_localRecordingParams error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.stopLocalRecording", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(stopLocalRecordingWithError:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(stopLocalRecordingWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api stopLocalRecordingWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.snapshot", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(snapshotWithError:)], @"TXFlutterLivePlayerApi api (%@) doesn't respond to @selector(snapshotWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api snapshotWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 void SetUpTXFlutterDownloadApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterDownloadApi> *api) {
   SetUpTXFlutterDownloadApiWithSuffix(binaryMessenger, api, @"");
@@ -3872,6 +3925,82 @@ void SetUpTXFlutterDownloadApiWithSuffix(id<FlutterBinaryMessenger> binaryMessen
       binaryMessenger:self.binaryMessenger
       codec:nullGetFtxMessagesCodec()];
   [channel sendMessage:@[arg_event ?: [NSNull null]] reply:^(NSArray<id> *reply) {
+    if (reply != nil) {
+      if (reply.count > 1) {
+        completion([FlutterError errorWithCode:reply[0] message:reply[1] details:reply[2]]);
+      } else {
+        completion(nil);
+      }
+    } else {
+      completion(createConnectionError(channelName));
+    } 
+  }];
+}
+- (void)onLocalRecordBeginCode:(NSInteger)arg_code storagePath:(NSString *)arg_storagePath completion:(void (^)(FlutterError *_Nullable))completion {
+  NSString *channelName = [NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordBegin", _messageChannelSuffix];
+  FlutterBasicMessageChannel *channel =
+    [FlutterBasicMessageChannel
+      messageChannelWithName:channelName
+      binaryMessenger:self.binaryMessenger
+      codec:nullGetFtxMessagesCodec()];
+  [channel sendMessage:@[@(arg_code), arg_storagePath ?: [NSNull null]] reply:^(NSArray<id> *reply) {
+    if (reply != nil) {
+      if (reply.count > 1) {
+        completion([FlutterError errorWithCode:reply[0] message:reply[1] details:reply[2]]);
+      } else {
+        completion(nil);
+      }
+    } else {
+      completion(createConnectionError(channelName));
+    } 
+  }];
+}
+- (void)onLocalRecordingDurationMs:(NSInteger)arg_durationMs storagePath:(NSString *)arg_storagePath completion:(void (^)(FlutterError *_Nullable))completion {
+  NSString *channelName = [NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecording", _messageChannelSuffix];
+  FlutterBasicMessageChannel *channel =
+    [FlutterBasicMessageChannel
+      messageChannelWithName:channelName
+      binaryMessenger:self.binaryMessenger
+      codec:nullGetFtxMessagesCodec()];
+  [channel sendMessage:@[@(arg_durationMs), arg_storagePath ?: [NSNull null]] reply:^(NSArray<id> *reply) {
+    if (reply != nil) {
+      if (reply.count > 1) {
+        completion([FlutterError errorWithCode:reply[0] message:reply[1] details:reply[2]]);
+      } else {
+        completion(nil);
+      }
+    } else {
+      completion(createConnectionError(channelName));
+    } 
+  }];
+}
+- (void)onLocalRecordCompleteCode:(NSInteger)arg_code storagePath:(NSString *)arg_storagePath completion:(void (^)(FlutterError *_Nullable))completion {
+  NSString *channelName = [NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordComplete", _messageChannelSuffix];
+  FlutterBasicMessageChannel *channel =
+    [FlutterBasicMessageChannel
+      messageChannelWithName:channelName
+      binaryMessenger:self.binaryMessenger
+      codec:nullGetFtxMessagesCodec()];
+  [channel sendMessage:@[@(arg_code), arg_storagePath ?: [NSNull null]] reply:^(NSArray<id> *reply) {
+    if (reply != nil) {
+      if (reply.count > 1) {
+        completion([FlutterError errorWithCode:reply[0] message:reply[1] details:reply[2]]);
+      } else {
+        completion(nil);
+      }
+    } else {
+      completion(createConnectionError(channelName));
+    } 
+  }];
+}
+- (void)onSnapshotCompleteImageBytes:(nullable FlutterStandardTypedData *)arg_imageBytes completion:(void (^)(FlutterError *_Nullable))completion {
+  NSString *channelName = [NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onSnapshotComplete", _messageChannelSuffix];
+  FlutterBasicMessageChannel *channel =
+    [FlutterBasicMessageChannel
+      messageChannelWithName:channelName
+      binaryMessenger:self.binaryMessenger
+      codec:nullGetFtxMessagesCodec()];
+  [channel sendMessage:@[arg_imageBytes ?: [NSNull null]] reply:^(NSArray<id> *reply) {
     if (reply != nil) {
       if (reply.count > 1) {
         completion([FlutterError errorWithCode:reply[0] message:reply[1] details:reply[2]]);

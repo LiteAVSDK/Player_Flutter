@@ -39,11 +39,14 @@ import com.tencent.vod.flutter.tools.TXFlutterEngineHolder;
 import com.tencent.vod.flutter.ui.render.FTXRenderView;
 import com.tencent.vod.flutter.ui.render.FTXRenderViewFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 
@@ -137,6 +140,9 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
             stopPlay(true);
             setRenderView(null);
             mLivePlayer = null;
+        }
+        if (null != mObserver && !mObserver.mSnapShortThreadMgr.isTerminated()) {
+            mObserver.mSnapShortThreadMgr.shutdown();
         }
         mCurRenderView = null;
         mUIHandler.removeCallbacksAndMessages(null);
@@ -484,6 +490,32 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         }
     }
 
+    @Override
+    public void startLocalRecording(@NonNull Map<String, Object> localRecordingParams) {
+        V2TXLiveDef.V2TXLiveLocalRecordingParams params = new V2TXLiveDef.V2TXLiveLocalRecordingParams();
+        if (localRecordingParams.containsKey("filePath")) {
+            params.filePath = (String) localRecordingParams.get("filePath");
+        }
+
+        if (localRecordingParams.containsKey("interval")) {
+            Object interval = localRecordingParams.get("interval");
+            if (interval instanceof Number) {
+                params.interval = ((Number) interval).intValue();
+            }
+        }
+        mLivePlayer.startLocalRecording(params);
+    }
+
+    @Override
+    public void stopLocalRecording() {
+        mLivePlayer.stopLocalRecording();
+    }
+
+    @Override
+    public void snapshot() {
+        mLivePlayer.snapshot();
+    }
+
     private void applyRenderMode() {
         if (null != mLivePlayer) {
             if (mCurrentRenderMode == FTXPlayerConstants.FTXRenderMode.ADJUST_RESOLUTION) {
@@ -529,6 +561,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
 
         private final FTXLivePlayer mLivePlayer;
         private final FtxMessages.TXLivePlayerFlutterAPI mLiveFlutterApi;
+        private final ExecutorService mSnapShortThreadMgr = Executors.newSingleThreadExecutor();
 
         public FTXV2LiveObserver(FTXLivePlayer livePlayer) {
             mLivePlayer = livePlayer;
@@ -648,6 +681,20 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         @Override
         public void onSnapshotComplete(V2TXLivePlayer player, Bitmap image) {
             super.onSnapshotComplete(player, image);
+            mSnapShortThreadMgr.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    byte[] imageBytes = stream.toByteArray();
+                    mLivePlayer.mUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLiveFlutterApi.onSnapshotComplete(imageBytes, FTXV2LiveObserver.this);
+                        }
+                    });
+                }
+            });
         }
 
         @Override
@@ -682,16 +729,19 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         @Override
         public void onLocalRecordBegin(V2TXLivePlayer player, int code, String storagePath) {
             super.onLocalRecordBegin(player, code, storagePath);
+            mLiveFlutterApi.onLocalRecordBegin((long) code, storagePath, this);
         }
 
         @Override
         public void onLocalRecording(V2TXLivePlayer player, long durationMs, String storagePath) {
             super.onLocalRecording(player, durationMs, storagePath);
+            mLiveFlutterApi.onLocalRecording(durationMs, storagePath, this);
         }
 
         @Override
         public void onLocalRecordComplete(V2TXLivePlayer player, int code, String storagePath) {
             super.onLocalRecordComplete(player, code, storagePath);
+            mLiveFlutterApi.onLocalRecordComplete((long) code, storagePath, this);
         }
 
         @Override

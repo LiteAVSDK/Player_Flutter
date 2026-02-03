@@ -759,6 +759,12 @@ abstract class TXFlutterLivePlayerApi {
   void setPlayerView(int renderViewId);
 
   void setRenderMode(int renderMode);
+
+  void startLocalRecording(Map<String, Object> localRecordingParams);
+
+  void stopLocalRecording();
+
+  void snapshot();
 }
 
 @HostApi()
@@ -840,4 +846,12 @@ abstract class TXLivePlayerFlutterAPI {
   void onPlayerEvent(Map<String, Object> event);
 
   void onNetEvent(Map<String, Object> event);
+
+  void onLocalRecordBegin(int code, String storagePath);
+
+  void onLocalRecording(int durationMs, String storagePath);
+
+  void onLocalRecordComplete(int code, String storagePath);
+
+  void onSnapshotComplete(Uint8List? imageBytes);
 }

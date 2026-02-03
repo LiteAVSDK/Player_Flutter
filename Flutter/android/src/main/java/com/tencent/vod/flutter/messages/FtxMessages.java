@@ -6137,6 +6137,12 @@ public class FtxMessages {
 
     void setRenderMode(@NonNull Long renderMode);
 
+    void startLocalRecording(@NonNull Map<String, Object> localRecordingParams);
+
+    void stopLocalRecording();
+
+    void snapshot();
+
     /** The codec used by TXFlutterLivePlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
       return PigeonCodec.INSTANCE;
@@ -6672,6 +6678,71 @@ public class FtxMessages {
                 Long renderModeArg = (Long) args.get(0);
                 try {
                   api.setRenderMode(renderModeArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.startLocalRecording" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Map<String, Object> localRecordingParamsArg = (Map<String, Object>) args.get(0);
+                try {
+                  api.startLocalRecording(localRecordingParamsArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.stopLocalRecording" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.stopLocalRecording();
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.super_player.TXFlutterLivePlayerApi.snapshot" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  api.snapshot();
                   wrapped.add(0, null);
                 }
  catch (Throwable exception) {
@@ -7242,6 +7313,86 @@ public class FtxMessages {
               binaryMessenger, channelName, getCodec());
       channel.send(
           new ArrayList<>(Collections.singletonList(eventArg)),
+          channelReply -> {
+            if (channelReply instanceof List) {
+              List<Object> listReply = (List<Object>) channelReply;
+              if (listReply.size() > 1) {
+                result.error(new FlutterError((String) listReply.get(0), (String) listReply.get(1), listReply.get(2)));
+              } else {
+                result.success();
+              }
+            }  else {
+              result.error(createConnectionError(channelName));
+            } 
+          });
+    }
+    public void onLocalRecordBegin(@NonNull Long codeArg, @NonNull String storagePathArg, @NonNull VoidResult result) {
+      final String channelName = "dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordBegin" + messageChannelSuffix;
+      BasicMessageChannel<Object> channel =
+          new BasicMessageChannel<>(
+              binaryMessenger, channelName, getCodec());
+      channel.send(
+          new ArrayList<>(Arrays.asList(codeArg, storagePathArg)),
+          channelReply -> {
+            if (channelReply instanceof List) {
+              List<Object> listReply = (List<Object>) channelReply;
+              if (listReply.size() > 1) {
+                result.error(new FlutterError((String) listReply.get(0), (String) listReply.get(1), listReply.get(2)));
+              } else {
+                result.success();
+              }
+            }  else {
+              result.error(createConnectionError(channelName));
+            } 
+          });
+    }
+    public void onLocalRecording(@NonNull Long durationMsArg, @NonNull String storagePathArg, @NonNull VoidResult result) {
+      final String channelName = "dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecording" + messageChannelSuffix;
+      BasicMessageChannel<Object> channel =
+          new BasicMessageChannel<>(
+              binaryMessenger, channelName, getCodec());
+      channel.send(
+          new ArrayList<>(Arrays.asList(durationMsArg, storagePathArg)),
+          channelReply -> {
+            if (channelReply instanceof List) {
+              List<Object> listReply = (List<Object>) channelReply;
+              if (listReply.size() > 1) {
+                result.error(new FlutterError((String) listReply.get(0), (String) listReply.get(1), listReply.get(2)));
+              } else {
+                result.success();
+              }
+            }  else {
+              result.error(createConnectionError(channelName));
+            } 
+          });
+    }
+    public void onLocalRecordComplete(@NonNull Long codeArg, @NonNull String storagePathArg, @NonNull VoidResult result) {
+      final String channelName = "dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onLocalRecordComplete" + messageChannelSuffix;
+      BasicMessageChannel<Object> channel =
+          new BasicMessageChannel<>(
+              binaryMessenger, channelName, getCodec());
+      channel.send(
+          new ArrayList<>(Arrays.asList(codeArg, storagePathArg)),
+          channelReply -> {
+            if (channelReply instanceof List) {
+              List<Object> listReply = (List<Object>) channelReply;
+              if (listReply.size() > 1) {
+                result.error(new FlutterError((String) listReply.get(0), (String) listReply.get(1), listReply.get(2)));
+              } else {
+                result.success();
+              }
+            }  else {
+              result.error(createConnectionError(channelName));
+            } 
+          });
+    }
+    public void onSnapshotComplete(@Nullable byte[] imageBytesArg, @NonNull VoidResult result) {
+      final String channelName = "dev.flutter.pigeon.super_player.TXLivePlayerFlutterAPI.onSnapshotComplete" + messageChannelSuffix;
+      BasicMessageChannel<Object> channel =
+          new BasicMessageChannel<>(
+              binaryMessenger, channelName, getCodec());
+      channel.send(
+          new ArrayList<>(Collections.singletonList(imageBytesArg)),
           channelReply -> {
             if (channelReply instanceof List) {
               List<Object> listReply = (List<Object>) channelReply;

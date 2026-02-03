@@ -38,15 +38,15 @@ pub 依赖默认为 Professional 版本的播放器，**如果需要依赖其他
 
 Flutter 播放器依赖 TXLiteAVSDK，此工程提供 3 个分支，请根据业务需要进行集成：
 
-[player](https://github.com/LiteAVSDK/Player_Flutter/tree/main)：依赖 TXLiteAVSDK_Player SDK，默认分支。
+**player**：依赖 TXLiteAVSDK_Player SDK，默认分支。
 
-[professional](https://github.com/LiteAVSDK/Player_Flutter/tree/Professional)：依赖 TXLiteAVSDK_Professional SDK，如果项目中已经集成 TXLiteAVSDK_Professional SDK ，则需要集成此分支。
+**professional**：依赖 TXLiteAVSDK_Professional SDK，如果项目中已经集成 TXLiteAVSDK_Professional SDK ，则需要集成此分支。
 
-[premium](https://github.com/LiteAVSDK/Player_Flutter/tree/Player_Premium)： 依赖 TXLiteAVSDK_Player_Premium SDK，包含外挂字幕、多音轨等增值功能，从 11.7 版本开始支持。
+**premium**： 依赖 TXLiteAVSDK_Player_Premium SDK，包含外挂字幕、多音轨等增值功能，从 11.7 版本开始支持。
 
-[professional_premium]： 依赖 TXLiteAVSDK_Professional_Player_Premium SDK，包含全功能版本和播放器高级版本，在使用高级版播放器的同时，兼容全功能版本。
+**professional_premium**： 依赖 TXLiteAVSDK_Professional_Player_Premium SDK，包含全功能版本和播放器高级版本，在使用高级版播放器的同时，兼容全功能版本。
 
-### 修改分支 {#modify-branch}
+### <a id="modify-branch">修改分支</a>
 
 **分支默认为 professional ，如果需要修改分支，可以在自己的 `pubspec.yaml` 中，指定 sub_spec**，示例如下：
 

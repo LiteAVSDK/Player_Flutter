@@ -564,6 +564,28 @@ static const int uninitialized = -1;
     }
 }
 
+- (void)startLocalRecordingLocalRecordingParams:(NSDictionary<NSString *,id> *)localRecordingParams error:(FlutterError * _Nullable __autoreleasing *)error {
+    V2TXLiveLocalRecordingParams *params = [[V2TXLiveLocalRecordingParams alloc] init];
+    
+    if (localRecordingParams[@"filePath"] && [localRecordingParams[@"filePath"] isKindOfClass:[NSString class]]) {
+        params.filePath = localRecordingParams[@"filePath"];
+    }
+    
+    if (localRecordingParams[@"interval"] && [localRecordingParams[@"interval"] isKindOfClass:[NSNumber class]]) {
+        params.interval = [localRecordingParams[@"interval"] intValue];
+    }
+    
+    [self.livePlayer startLocalRecording:params];
+}
+
+- (void)stopLocalRecordingWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    [self.livePlayer stopLocalRecording];
+}
+
+- (void)snapshotWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    [self.livePlayer snapshot];
+}
+
 
 #pragma mark - V2TXLivePlayerObserver
 
@@ -731,7 +753,24 @@ static const int uninitialized = -1;
  * @param image  已截取的视频画面。
  */
 - (void)onSnapshotComplete:(id<V2TXLivePlayer>)player image:(nullable TXImage *)image {
-    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+           NSData *imageData = nil;
+           if (image) {
+               imageData = UIImageJPEGRepresentation(image, 0.9);
+           }
+           
+           dispatch_async(dispatch_get_main_queue(), ^{
+               FlutterStandardTypedData *imageByteData = nil;
+               if (imageData) {
+                   imageByteData = [FlutterStandardTypedData typedDataWithBytes:imageData];
+               }
+               [self.liveFlutterApi onSnapshotCompleteImageBytes:imageByteData completion:^(FlutterError * _Nullable error) {
+                   if (nil != error) {
+                       FTXLOGE(@"callback message error:%@", error);
+                   }
+               }];
+           });
+       });
 }
 
 /**
@@ -827,7 +866,11 @@ static const int uninitialized = -1;
  * @param storagePath 录制的文件地址。
  */
 - (void)onLocalRecordBegin:(id<V2TXLivePlayer>)player errCode:(NSInteger)errCode storagePath:(NSString *)storagePath {
-    
+    [self.liveFlutterApi onLocalRecordBeginCode:errCode storagePath:storagePath completion:^(FlutterError * _Nullable error) {
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
+    }];
 }
 
 /**
@@ -840,7 +883,11 @@ static const int uninitialized = -1;
  * @param storagePath  录制的文件地址。
  */
 - (void)onLocalRecording:(id<V2TXLivePlayer>)player durationMs:(NSInteger)durationMs storagePath:(NSString *)storagePath {
-    
+    [self.liveFlutterApi onLocalRecordingDurationMs:durationMs storagePath:storagePath completion:^(FlutterError * _Nullable error) {
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
+    }];
 }
 
 /**
@@ -856,6 +903,11 @@ static const int uninitialized = -1;
  * @param storagePath 录制的文件地址。
  */
 - (void)onLocalRecordComplete:(id<V2TXLivePlayer>)player errCode:(NSInteger)errCode storagePath:(NSString *)storagePath {
+    [self.liveFlutterApi onLocalRecordCompleteCode:errCode storagePath:storagePath completion:^(FlutterError * _Nullable error) {
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
+    }];
 }
 
 #pragma mark - FTXLivePipDelegate

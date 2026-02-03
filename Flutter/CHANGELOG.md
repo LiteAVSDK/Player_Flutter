@@ -1,4 +1,14 @@
 
+#### Version: 13.1.0 2026.01.29
+
+##### Features：
+
+- set Android TXLiteAVSDK to 13.1.0.19861
+- set iOS TXLiteAVSDK to 13.1.20454
+- adds snapshot and local recording related interfaces and callbacks for live streaming.
+- fix known issue
+
+
 #### Version: 13.0.1 2026.01.22
 
 ##### Features：

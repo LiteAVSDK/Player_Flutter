@@ -39,8 +39,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   Stream<TXPlayerState?> get onPlayerState => _stateStreamController.stream;
   Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
 
-  @Deprecated("playerNetEvent will no longer return any events.")
   Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast => _netStatusStreamController.stream;
+
+  FTXLiveListener? liveListener;
 
   TXLivePlayerController({bool? onlyAudio})
       : _initPlayer = Completer() {
@@ -421,6 +422,24 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     await _livePlayerApi.setRenderMode(renderMode.index);
   }
 
+  Future<void> startLocalRecording(FTXLiveLocalRecordingParams params) async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _livePlayerApi.startLocalRecording(params.toJson());
+  }
+
+  Future<void> stopLocalRecording() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _livePlayerApi.stopLocalRecording();
+  }
+
+  Future<void> snapshot() async {
+    if (_isNeedDisposed) return;
+    await _initPlayer.future;
+    await _livePlayerApi.snapshot();
+  }
+
   /// Release `controller`.
   ///
   /// 释放controller
@@ -513,5 +532,25 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
         break;
     }
     _eventStreamController.add(map);
+  }
+
+  @override
+  void onLocalRecordBegin(int code, String storagePath) {
+    liveListener?.recordBeginCallback?.call(code, storagePath);
+  }
+
+  @override
+  void onLocalRecording(int durationMs, String storagePath) {
+    liveListener?.recordingCallback?.call(durationMs, storagePath);
+  }
+
+  @override
+  void onLocalRecordComplete(int code, String storagePath) {
+    liveListener?.recordCompleteCallback?.call(code, storagePath);
+  }
+
+  @override
+  void onSnapshotComplete(Uint8List? imageBytes) {
+    liveListener?.snapshotCompleteCallback?.call(imageBytes);
   }
 }

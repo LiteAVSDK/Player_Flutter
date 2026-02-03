@@ -54,6 +54,8 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
       final int code = event["event"];
       if (code == TXVodPlayEvent.PLAY_EVT_RCV_FIRST_I_FRAME) {
         EasyLoading.dismiss();
+        _controller.publishVideo();
+        _controller.publishAudio();
         _supportedBitrates = (await _controller.getSupportedBitrates())!;
       } else if (code== TXVodPlayEvent.PLAY_EVT_PLAY_PROGRESS) {
         _isPlaying = true;
@@ -75,6 +77,7 @@ class _DemoTXVodPlayerState extends State<DemoTXVodPlayer> with WidgetsBindingOb
 
     await _controller.setConfig(FTXVodPlayConfig());
     await _controller.setRenderMode(_renderMode);
+    await _controller.enableTRTC(true);
     await _controller.startVodPlay(_url);
   }
 
