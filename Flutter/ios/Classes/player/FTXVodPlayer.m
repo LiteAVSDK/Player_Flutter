@@ -1038,6 +1038,12 @@ static const int uninitialized = -1;
     }
 }
 
+- (void)setAutoPictureInPictureEnabledIsEnabled:(BOOL)isEnabled error:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer setAutoPictureInPictureEnabled:isEnabled];
+    }
+}
+
 - (void)setRenderView:(FTXTextureView*)renderView {
     if (nil != _txVodPlayer) {
         if (renderView != nil) {

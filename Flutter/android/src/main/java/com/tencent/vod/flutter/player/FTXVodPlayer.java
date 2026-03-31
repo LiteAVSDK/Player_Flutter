@@ -993,6 +993,11 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     }
 
     @Override
+    public void setAutoPictureInPictureEnabled(@NonNull Boolean isEnabled) {
+        LiteavLog.e(TAG, "setAutoPictureInPictureEnabled not implemented on android");
+    }
+
+    @Override
     public long getPlayerRenderMode() {
         return mCurrentRenderMode;
     }

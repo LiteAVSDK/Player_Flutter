@@ -742,6 +742,7 @@ extern void SetUpTXFlutterNativeAPIWithSuffix(id<FlutterBinaryMessenger> binaryM
 - (void)unpublishVideoWithError:(FlutterError *_Nullable *_Nonnull)error;
 - (void)publishAudioWithError:(FlutterError *_Nullable *_Nonnull)error;
 - (void)unpublishAudioWithError:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setAutoPictureInPictureEnabledIsEnabled:(BOOL)isEnabled error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void SetUpTXFlutterVodPlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterVodPlayerApi> *_Nullable api);
