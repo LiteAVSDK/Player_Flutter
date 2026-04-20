@@ -2,10 +2,11 @@
 #import "FTXAudioManager.h"
 #import <Foundation/Foundation.h>
 
-@implementation FTXAudioManager
+@implementation FTXAudioManager {
     UISlider *_volumeSlider;
-    MPVolumeView *volumeView;
-    AVAudioSession *audioSession;
+    MPVolumeView *_volumeView;
+    AVAudioSession *_audioSession;
+}
 
 NSString *const LOW_VERSION_NOTIFCATION_NAME = @"AVSystemController_SystemVolumeDidChangeNotification";
 NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
@@ -14,20 +15,20 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
  {
      if(self = [super init]) {
          CGRect frame    = CGRectMake(0, -100, 10, 0);
-         volumeView = [[MPVolumeView alloc] initWithFrame:frame];
-         volumeView.hidden = YES;
-         [volumeView sizeToFit];
+         _volumeView = [[MPVolumeView alloc] initWithFrame:frame];
+         _volumeView.hidden = YES;
+         [_volumeView sizeToFit];
          _volumeSlider = nil;
          // Start receiving remote control events.
          [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-         for (UIView *view in [volumeView subviews]) {
+         for (UIView *view in [_volumeView subviews]) {
              if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
                  _volumeSlider = (UISlider *)view;
                  break;
              }
          }
          
-         audioSession = [AVAudioSession sharedInstance];
+         _audioSession = [AVAudioSession sharedInstance];
      }
      return self;
  };
@@ -41,7 +42,7 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 - (void)setVolume:(CGFloat)value
 {
     // `showsVolumeSlider` needs to be set to YES.
-    volumeView.showsVolumeSlider = YES;
+    _volumeView.showsVolumeSlider = YES;
     [_volumeSlider setValue:value animated:NO];
     [_volumeSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
     [_volumeSlider sizeToFit];
@@ -49,21 +50,27 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
 
 - (void)setVolumeUIVisible:(BOOL)volumeUIVisible
 {
-    volumeView.hidden = !volumeUIVisible;
+    _volumeView.hidden = !volumeUIVisible;
 }
 
 - (void)registerVolumeChangeListener:(id)observer
 {
-    // destory volume observer
-    [audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
+    // register volume observer
+    [_audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
 }
 
 - (void)destory:(id)observer
 {
     // destory volume view
-    [volumeView removeFromSuperview];
+    [_volumeView removeFromSuperview];
+    _volumeView = nil;
     // destory volume observer
-    [audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
+    @try {
+        [_audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
+    } @catch (NSException *exception) {
+        // observer may have already been removed
+    }
+    _audioSession = nil;
 }
 
 @end

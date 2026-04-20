@@ -91,10 +91,14 @@
 
 -(void) destory
 {
-    [self.audioManager destory:self];
+    if (_audioManager) {
+        [_audioManager destory:self];
+        _audioManager = nil;
+    }
     [self releaseAllPlayer];
     if (nil != _fTXDownloadManager) {
         [_fTXDownloadManager destroy];
+        _fTXDownloadManager = nil;
     }
 }
 
