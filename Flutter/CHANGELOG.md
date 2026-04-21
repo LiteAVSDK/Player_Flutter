@@ -1,4 +1,10 @@
 
+#### Version: 13.2.1 2026.04.21
+
+##### Features：
+
+- fix known issue
+- 
 
 #### Version: 13.2.0 2026.04.20
 
