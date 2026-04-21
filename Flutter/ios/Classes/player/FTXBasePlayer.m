@@ -21,7 +21,7 @@ static atomic_int atomicId = 0;
 - (void)setRenderView:(FTXTextureView *)renderView {
 }
 
-- (void)destory
+- (void)destroy
 {
 
 }

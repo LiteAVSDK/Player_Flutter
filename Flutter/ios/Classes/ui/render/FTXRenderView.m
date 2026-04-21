@@ -46,6 +46,7 @@
 
 - (void)dealloc
 {
+    self.mBasePlayer = nil;
     FTXLOGW(@"render view is dealloc, id:%lld", self.mViewId);
 }
 

@@ -44,7 +44,7 @@
     FTXLOGV(@"called detachFromEngineForRegistrar");
     if (self.isRegistered) {
         self.isRegistered = NO;
-        [self destory];
+        [self destroy];
         [[NSNotificationCenter defaultCenter] removeObserver:self];
     }
 }
@@ -89,10 +89,10 @@
     }];
 }
 
--(void) destory
+-(void) destroy
 {
     if (_audioManager) {
-        [_audioManager destory:self];
+        [_audioManager destroy:self];
         _audioManager = nil;
     }
     [self releaseAllPlayer];
@@ -109,7 +109,7 @@
         for (id key in allKeys) {
             FTXBasePlayer *player = [self.players objectForKey:key];
             if (player && [player respondsToSelector:@selector(destroy)]) {
-                [player destory];
+                [player destroy];
             }
         }
         [self.players removeAllObjects];
@@ -136,7 +136,7 @@
     FTXBasePlayer *player = [_players objectForKey:playerId];
     if (player != nil) {
         FTXLOGI(@"releasePlayer start destroy player :%@", playerId);
-        [player destory];
+        [player destroy];
         [_players removeObjectForKey:playerId];
     }
 }
@@ -164,7 +164,7 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     FTXLOGV(@"called applicationWillTerminate");
-    [self destory];
+    [self destroy];
 }
 
 #pragma mark - FTXVodPlayerDelegate

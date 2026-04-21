@@ -14,6 +14,6 @@
 
 - (void)registerVolumeChangeListener:(_Nonnull id)observer;
 
-- (void)destory:(_Nonnull id)observer;
+- (void)destroy:(_Nonnull id)observer;
 
 @end

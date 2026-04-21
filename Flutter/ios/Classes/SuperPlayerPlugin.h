@@ -9,7 +9,7 @@
 
 -(void) releaseAllPlayer;
 
--(void) destory;
+-(void) destroy;
 
 @end
 #endif  // SUPERPLAYER_FLUTTER_IOS_CLASSES_SUPERPLAYERPLUGIN_H_
