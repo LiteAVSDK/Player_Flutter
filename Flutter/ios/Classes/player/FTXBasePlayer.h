@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)setRenderView:(nullable FTXTextureView*)renderView;
 
-- (void)destory;
+- (void)destroy;
 
 @end
 

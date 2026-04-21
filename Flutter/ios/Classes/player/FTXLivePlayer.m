@@ -68,9 +68,9 @@ static const int uninitialized = -1;
     return self;
 }
 
-- (void)destory
+- (void)destroy
 {
-    FTXLOGV(@"livePlayer start called destory");
+    FTXLOGV(@"livePlayer start called destroy");
     [self stopPlay];
     if (nil != self.livePlayer) {
         [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
@@ -78,6 +78,15 @@ static const int uninitialized = -1;
         [self.livePlayer setObserver:nil];
     }
     self.curRenderView = nil;
+    
+    if ([FTXPipController shareInstance].playerDelegate == self) {
+        [FTXPipController shareInstance].playerDelegate = nil;
+    }
+    if ([FTXPipController shareInstance].pipDelegate == self) {
+        [FTXPipController shareInstance].pipDelegate = nil;
+    }
+    
+    SetUpTXFlutterLivePlayerApiWithSuffix([_registrar messenger], nil, [self.playerId stringValue]);
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {

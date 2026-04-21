@@ -434,10 +434,22 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         if (mTextureRender != null) {
             mTextureRender.deleteTexture();
         }
+        
+        if (mTRTCHelper != null) {
+            mTRTCHelper.release();
+            mTRTCHelper = null;
+        }
+
         releaseEgl();
 
         if (needReleaseDecodeSurface && mInputSurface != null) {
             mInputSurface.release();
+            mInputSurface = null;
+        }
+        
+        if (mSurfaceTexture != null) {
+            mSurfaceTexture.release();
+            mSurfaceTexture = null;
         }
     }
 
@@ -508,7 +520,8 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             mDrawHandler = null;
         }
 
-        setEnableFrameCopy(false, null);
+        mEnableFrameCopy = false;
+        mFrameCopyListener = null;
         mCachedPixelFrame = null;
 
         if (!contextCompare) {
@@ -531,21 +544,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     public void setEnableFrameCopy(boolean enable, OnFrameCopyListener listener) {
         mEnableFrameCopy = enable;
         mFrameCopyListener = listener;
-        if (!enable && mTRTCHelper != null) {
-            // 在 GL 线程中释放资源
-            if (mDrawHandler != null) {
-                mDrawHandler.post(() -> {
-                    if (mTRTCHelper != null) {
-                        saveCurrentEglEnvironment();
-                        if (makeCurrent(1)) {
-                            mTRTCHelper.release();
-                            mTRTCHelper = null;
-                        }
-                        restoreEglEnvironment();
-                    }
-                });
-            }
-        }
     }
 
     /**

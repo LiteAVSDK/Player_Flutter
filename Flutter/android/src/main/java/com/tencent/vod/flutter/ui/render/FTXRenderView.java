@@ -101,6 +101,7 @@ public class FTXRenderView implements PlatformView {
     public void dispose() {
         mFactory.removeByViewId(mViewId);
         mContainer.setCarrier(null);
+        mBasePlayer = null;
         LiteavLog.i(TAG, "render view is dispose, id:" + mViewId + ", view:" + hashCode());
     }
 }

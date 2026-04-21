@@ -47,7 +47,7 @@ puts "-----------------------------------------------"
 
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version = '13.2.0'
+  s.version = '13.2.1'
   s.summary          = 'The super_player Flutter plugin is one of the sub-product SDKs of the audio/video terminal SDK (Tencent Cloud Video on Demand).'
   s.description      = <<-DESC
 player plugin.

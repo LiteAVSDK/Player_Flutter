@@ -98,6 +98,7 @@ static const int uninitialized = -1;
         FTXLOGW(@"vodPlayer is called delloc terminate");
         [self notifyPlayerTerminate];
     }
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)notifyPlayerTerminate {
@@ -113,9 +114,9 @@ static const int uninitialized = -1;
     _txVodPlayer = nil;
 }
 
-- (void)destory
+- (void)destroy
 {
-    FTXLOGV(@"vodPlayer start called destory");
+    FTXLOGV(@"vodPlayer start called destroy");
     [self stopPlay];
     if (nil != _txVodPlayer) {
         [self setRenderView:nil];
@@ -129,6 +130,8 @@ static const int uninitialized = -1;
     _hasEnteredPipMode = NO;
     _restoreUI = NO;
     [self releaseImageSprite];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    SetUpTXFlutterVodPlayerApiWithSuffix([_registrar messenger], nil, [self.playerId stringValue]);
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio

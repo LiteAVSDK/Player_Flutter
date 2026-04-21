@@ -59,12 +59,12 @@ NSString *const NOTIFCATION_NAME = @"SystemVolumeDidChange";
     [_audioSession addObserver:observer forKeyPath:@"outputVolume" options: NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld  context:nil];
 }
 
-- (void)destory:(id)observer
+- (void)destroy:(id)observer
 {
-    // destory volume view
+    // destroy volume view
     [_volumeView removeFromSuperview];
     _volumeView = nil;
-    // destory volume observer
+    // destroy volume observer
     @try {
         [_audioSession removeObserver:observer forKeyPath:@"outputVolume" context:nil];
     } @catch (NSException *exception) {

@@ -168,6 +168,8 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (null != mPipManager) {
             mPipManager.releaseCallback(getPlayerId());
         }
+        FtxMessages.TXFlutterVodPlayerApi.setUp(mFlutterPluginBinding.getBinaryMessenger(),
+                String.valueOf(getPlayerId()), null);
     }
 
     @Override
@@ -641,7 +643,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         if (null != mVodPlayer) {
             TXPlayerDrmBuilder builder = new TXPlayerDrmBuilder(params.getLicenseUrl(), params.getPlayUrl());
             if (!TextUtils.isEmpty(params.getDeviceCertificateUrl())) {
-                builder.setDeviceCertificateUrl(params.getDeviceCertificateUrl());
+                builder.setProvisionUrl(params.getDeviceCertificateUrl());
             }
             int result = mVodPlayer.startPlayDrm(builder);
             return TXCommonUtil.intMsgWith((long) result);
