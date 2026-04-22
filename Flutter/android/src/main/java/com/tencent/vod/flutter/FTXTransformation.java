@@ -31,8 +31,8 @@ public class FTXTransformation {
         if (null != configPlayerMsg.getConnectRetryCount()) {
             playConfig.setConnectRetryCount(configPlayerMsg.getConnectRetryCount().intValue());
         }
-        if (null != configPlayerMsg.getProgressInterval()) {
-            playConfig.setConnectRetryInterval(configPlayerMsg.getProgressInterval().intValue());
+        if (null != configPlayerMsg.getConnectRetryInterval()) {
+            playConfig.setConnectRetryInterval(configPlayerMsg.getConnectRetryInterval().intValue());
         }
         if (null != configPlayerMsg.getTimeout()) {
             playConfig.setTimeout(configPlayerMsg.getTimeout().intValue());
