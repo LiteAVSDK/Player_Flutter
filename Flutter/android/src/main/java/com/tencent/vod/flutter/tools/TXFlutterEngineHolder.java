@@ -28,6 +28,14 @@ public class TXFlutterEngineHolder {
     private final List<TXAppStatusListener> mListeners = new ArrayList<>();
     private boolean mIsEnterBack = false;
 
+    /**
+     * Reference count of callers that have invoked {@link #attachBindLife}. The underlying
+     * {@link Application.ActivityLifecycleCallbacks} is registered on 0->1 transition and
+     * unregistered on 1->0 transition. This makes the holder safe to share across multiple
+     * Flutter engines / plugin modules.
+     */
+    private int mBindRefCount = 0;
+
     private final List<WeakReference<Activity>> mActivityList = new ArrayList<>();
 
     public static TXFlutterEngineHolder getInstance() {
@@ -35,11 +43,12 @@ public class TXFlutterEngineHolder {
     }
 
     public void attachBindLife(FlutterPlugin.FlutterPluginBinding binding) {
-        if (mLifeCallback != null) {
-            LiteavLog.w(TAG, "TXFlutterEngineHolder is already attached");
+        if (null == binding) {
             return;
         }
-        if (null == binding) {
+        mBindRefCount++;
+        if (mLifeCallback != null) {
+            LiteavLog.i(TAG, "attachBindLife already attached, refCount=" + mBindRefCount);
             return;
         }
         mLifeCallback = new Application.ActivityLifecycleCallbacks() {
@@ -150,11 +159,17 @@ public class TXFlutterEngineHolder {
     }
 
     public void destroy(FlutterPlugin.FlutterPluginBinding binding) {
-        LiteavLog.i(TAG, "called engine holder destroy");
-        if (null == mLifeCallback) {
+        LiteavLog.i(TAG, "called engine holder destroy, refCount=" + mBindRefCount);
+        if (null == binding) {
             return;
         }
-        if (null == binding) {
+        if (mBindRefCount > 0) {
+            mBindRefCount--;
+        }
+        if (mBindRefCount > 0) {
+            return;
+        }
+        if (null == mLifeCallback) {
             return;
         }
         ((Application)binding.getApplicationContext()).unregisterActivityLifecycleCallbacks(mLifeCallback);
