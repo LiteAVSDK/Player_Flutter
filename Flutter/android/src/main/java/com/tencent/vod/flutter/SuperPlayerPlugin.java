@@ -19,7 +19,6 @@ import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
 import android.util.SparseArray;
-import android.view.OrientationEventListener;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -27,7 +26,6 @@ import androidx.annotation.NonNull;
 
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.rtmp.TXLiveBase;
-import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.rtmp.TXPlayerGlobalSetting;
 import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.messages.FtxMessages;
@@ -84,7 +82,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     private FTXAudioManager mTxAudioManager;
     private FTXPIPManager mTxPipManager;
 
-    private OrientationEventListener mOrientationManager;
     private int mCurrentOrientation = FTXEvent.ORIENTATION_PORTRAIT_UP;
     private boolean mIsBrightnessObserverRegistered = false;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
@@ -112,72 +109,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         }
     };
 
-    private final TXLiveBaseListener mSDKEvent = new TXLiveBaseListener() {
-        @Override
-        public void onLog(int level, String module, String liteavLog) {
-            super.onLog(level, module, liteavLog);
-//            mMainHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Bundle params = new Bundle();
-//                    params.putInt(FTXEvent.EVENT_LOG_LEVEL, level);
-//                    params.putString(FTXEvent.EVENT_LOG_MODULE, module);
-//                    params.putString(FTXEvent.EVENT_LOG_MSG, LiteavLog);
-//                    mEventSink.success(getParams(FTXEvent.EVENT_ON_LOG, params));
-//                }
-//            });
-
-            // this may be too busy, so currently do not throw on the Flutter side
-        }
-
-        @Override
-        public void onUpdateNetworkTime(int errCode, String errMsg) {
-            super.onUpdateNetworkTime(errCode, errMsg);
-//            mMainHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Bundle params = new Bundle();
-//                    params.putInt(FTXEvent.EVENT_ERR_CODE, errCode);
-//                    params.putString(FTXEvent.EVENT_ERR_MSG, errMsg);
-//                    mEventSink.success(getParams(FTXEvent.EVENT_ON_UPDATE_NETWORK_TIME, params));
-//                }
-//            });
-            // This will be opened in a subsequent version
-        }
-
-        @Override
-        public void onLicenceLoaded(int result, String reason) {
-            super.onLicenceLoaded(result, reason);
-            LiteavLog.v(TAG, "onLicenceLoaded,result:" + result + ",reason:" + reason);
-            mMainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Bundle params = new Bundle();
-                    params.putInt(FTXEvent.EVENT_RESULT, result);
-                    params.putString(FTXEvent.EVENT_REASON, reason);
-                    mPluginApi.onSDKListener(getParams(FTXEvent.EVENT_ON_LICENCE_LOADED, params),
-                            SuperPlayerPlugin.this);
-                }
-            });
-        }
-
-        @Override
-        public void onCustomHttpDNS(String hostName, List<String> ipList) {
-            super.onCustomHttpDNS(hostName, ipList);
-//            mMainHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Bundle params = new Bundle();
-//                    params.putString(FTXEvent.EVENT_HOST_NAME, hostName);
-//                    ArrayList<String> ipArrayList = new ArrayList<>(ipList);
-//                    params.putStringArrayList(FTXEvent.EVENT_IPS, ipArrayList);
-//                    mEventSink.success(getParams(FTXEvent.EVENT_ON_CUSTOM_HTTP_DNS, params));
-//                }
-//            });
-            // This will be opened in a subsequent version
-        }
-    };
-
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         LiteavLog.i(TAG, "onAttachedToEngine");
@@ -190,11 +121,49 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         TXFlutterNativeAPI.setUp(flutterPluginBinding.getBinaryMessenger(), this);
         mPluginApi = new FtxMessages.TXPluginFlutterAPI(flutterPluginBinding.getBinaryMessenger());
         mFlutterPluginBinding = flutterPluginBinding;
-        TXFlutterEngineHolder.getInstance().attachBindLife(flutterPluginBinding);
         // register download message channel
         mFTXDownloadManager = new FTXDownloadManager(mFlutterPluginBinding);
         registerReceiver();
-        TXLiveBase.setListener(mSDKEvent);
+        // Hand process-level hooks (TXLiveBase listener / ActivityLifecycle / orientation) to
+        // VodGlobalResource. It reference-counts across engines so only the first acquire wires
+        // up the global hooks and only the last release tears them down.
+        VodGlobalResource.getInstance().acquire(this, flutterPluginBinding);
+    }
+
+    // ------------- Global broadcast callbacks (invoked by VodGlobalResource) -------------
+
+    /** Forwards the process-level License-loaded event into this engine's Dart side. */
+    public void dispatchLicenceLoaded(final int result, final String reason) {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mPluginApi == null) {
+                    return;
+                }
+                Bundle params = new Bundle();
+                params.putInt(FTXEvent.EVENT_RESULT, result);
+                params.putString(FTXEvent.EVENT_REASON, reason);
+                mPluginApi.onSDKListener(getParams(FTXEvent.EVENT_ON_LICENCE_LOADED, params),
+                        SuperPlayerPlugin.this);
+            }
+        });
+    }
+
+    /** Forwards the process-level orientation change event into this engine's Dart side. */
+    public void dispatchOrientationChanged(final int orientation) {
+        mCurrentOrientation = orientation;
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mPluginApi == null) {
+                    return;
+                }
+                Bundle bundle = new Bundle();
+                bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientation);
+                mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle),
+                        SuperPlayerPlugin.this);
+            }
+        });
     }
 
     /******* native method call start *******/
@@ -324,7 +293,8 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     @NonNull
     @Override
     public BoolMsg startVideoOrientationService() {
-        boolean setResult = innerStartVideoOrientationService();
+        boolean setResult = VodGlobalResource.getInstance()
+                .startOrientationService(mFlutterPluginBinding.getApplicationContext());
         BoolMsg boolMsg = new BoolMsg();
         boolMsg.setValue(setResult);
         return boolMsg;
@@ -353,38 +323,6 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
 
     /******* native method call end *******/
 
-
-    private boolean innerStartVideoOrientationService() {
-        if (null == mFlutterPluginBinding) {
-            return false;
-        }
-        if (null == mOrientationManager) {
-            try {
-                mOrientationManager = new OrientationEventListener(mFlutterPluginBinding.getApplicationContext()) {
-                    @Override
-                    public void onOrientationChanged(int orientation) {
-                        if (isDeviceAutoRotateOn()) {
-                            LiteavLog.v(TAG, "onOrientationChanged:" + orientation);
-                            int orientationEvent = getOrientationEvent(orientation);
-                            if (orientationEvent != mCurrentOrientation) {
-                                LiteavLog.v(TAG, "orientationEvent changed:" + orientationEvent);
-                                mCurrentOrientation = orientationEvent;
-                                Bundle bundle = new Bundle();
-                                bundle.putInt(FTXEvent.EXTRA_NAME_ORIENTATION, orientationEvent);
-                                mPluginApi.onNativeEvent(getParams(FTXEvent.EVENT_ORIENTATION_CHANGED, bundle)
-                                        , SuperPlayerPlugin.this);
-                            }
-                        }
-                    }
-                };
-                mOrientationManager.enable();
-            } catch (Exception e) {
-                LiteavLog.e(TAG, "innerStartVideoOrientationService error", e);
-                return false;
-            }
-        }
-        return true;
-    }
 
     private int getOrientationEvent(int orientation) {
         int orientationEvent = mCurrentOrientation;
@@ -485,12 +423,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         LiteavLog.i(TAG, "onDetachedFromEngine");
         mFTXDownloadManager.destroy();
-        if (null != mOrientationManager) {
-            mOrientationManager.disable();
-        }
         if (null != mTxPipManager) {
-            mTxPipManager.releaseActivityListener();
+            // 先退出再断监听，保证 Dart 侧能收到 EVENT_PIP_MODE_ALREADY_EXIT
             mTxPipManager.exitCurrentPip();
+            mTxPipManager.releaseActivityListener();
         }
         // Close the solution to the problem of the picture-in-picture click restore
         // failure on some versions of Android 12.
@@ -498,9 +434,10 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
         Intent serviceIntent = new Intent(binding.getApplicationContext(), TXAndroid12BridgeService.class);
         binding.getApplicationContext().stopService(serviceIntent);
         unregisterReceiver();
-        TXFlutterEngineHolder.getInstance().destroy(binding);
-        TXLiveBase.setListener(null);
         releaseAllPlayer();
+        // Release global hooks last so that we are still reachable while we process our own
+        // teardown (in case something synchronous fires during release).
+        VodGlobalResource.getInstance().release(this, binding);
         mFlutterPluginBinding = null;
     }
 

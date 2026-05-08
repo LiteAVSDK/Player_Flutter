@@ -12,8 +12,9 @@
 #import "FTXLog.h"
 #import "FTXRenderViewFactory.h"
 #import "FTXPiPKit/FTXPipConstants.h"
+#import "VodGlobalResource.h"
 
-@interface SuperPlayerPlugin ()<FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, FlutterPlugin, TXLiveBaseDelegate>
+@interface SuperPlayerPlugin ()<FTXVodPlayerDelegate,TXFlutterSuperPlayerPluginAPI,TXFlutterNativeAPI, FlutterPlugin>
 
 @property (nonatomic, strong) NSObject<FlutterPluginRegistrar>* registrar;
 @property (nonatomic, strong) NSMutableDictionary *players;
@@ -37,7 +38,9 @@
     SetUpTXFlutterNativeAPI([registrar messenger], instance);
     SetUpTXFlutterSuperPlayerPluginAPI([registrar messenger], instance);
     [registrar addApplicationDelegate:instance];
-    [TXLiveBase sharedInstance].delegate = instance;
+    // Process-level hooks (TXLiveBase delegate / orientation) are managed by VodGlobalResource
+    // via acquire/release in initWithRegistrar:/destroy, so the single-delegate nature of
+    // [TXLiveBase sharedInstance].delegate no longer causes cross-engine conflicts.
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -66,16 +69,16 @@
         
         [self.audioManager registerVolumeChangeListener:self];
         _fTXDownloadManager = [[FTXDownloadManager alloc] initWithRegistrar:registrar];
-        // orientation
+        // orientation baseline; actual listener lives in VodGlobalResource and broadcasts to
+        // every engine via -dispatchOrientationChanged:.
         mCurrentOrientation = ORIENTATION_PORTRAIT_UP;
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(onDeviceOrientationChange:)
-                                                     name:UIDeviceOrientationDidChangeNotification
-                                                   object:nil];
         // renderView
         self.renderViewFactory = [[FTXRenderViewFactory alloc] initWithBinaryMessenger:registrar.messenger];
         [registrar registerViewFactory:self.renderViewFactory withId:VIEW_TYPE_FTX_RENDER_VIEW];
         self.isRegistered = YES;
+        // Hand process-level hooks to VodGlobalResource (single TXLiveBaseDelegate / shared
+        // orientation observer; fan-out to every attached engine).
+        [[VodGlobalResource sharedInstance] acquire:self];
     }
     return self;
 }
@@ -99,6 +102,16 @@
     if (nil != _fTXDownloadManager) {
         [_fTXDownloadManager destroy];
         _fTXDownloadManager = nil;
+    }
+    // Unregister from VodGlobalResource so the process-level hooks can be torn down when the
+    // last engine detaches.
+    [[VodGlobalResource sharedInstance] release:self];
+    // Unbind Pigeon API handlers so the binary messenger does not keep a strong reference to
+    // this plugin instance after the engine detaches. Paired with the SetUp*API(messenger,self)
+    // calls in +registerWithRegistrar:.
+    if (_registrar) {
+        SetUpTXFlutterNativeAPI([_registrar messenger], nil);
+        SetUpTXFlutterSuperPlayerPluginAPI([_registrar messenger], nil);
     }
 }
 
@@ -219,42 +232,18 @@
 
 #pragma mark - orientation
 
-- (void)onDeviceOrientationChange:(NSNotification *)notification {
-    // For iOS, there is no need to check whether the auto screen rotation/vertical screen lock switch is turned on.
-    // When the lock is turned on in iOS, the callback cannot be received by default.
-    UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
-    UIInterfaceOrientation interfaceOrientation = (UIInterfaceOrientation)orientation;
-    int tempOrientationCode = mCurrentOrientation;
-    switch (interfaceOrientation) {
-        case UIInterfaceOrientationPortrait:
-            // Battery bar on top.
-            tempOrientationCode = ORIENTATION_PORTRAIT_UP;
-            break;
-        case UIInterfaceOrientationLandscapeLeft:
-            // Battery bar on the left.
-            tempOrientationCode = ORIENTATION_LANDSCAPE_LEFT;
-            break;
-        case UIInterfaceOrientationPortraitUpsideDown:
-            // Battery bar on the bottom.
-            tempOrientationCode = ORIENTATION_PORTRAIT_DOWN;
-            break;
-        case UIInterfaceOrientationLandscapeRight:
-            // Battery bar on the right.
-            tempOrientationCode = ORIENTATION_LANDSCAPE_RIGHT;
-            break;
-        default:
-            break;
-    }
-    if(tempOrientationCode != mCurrentOrientation) {
-        mCurrentOrientation = tempOrientationCode;
-        [self.pluginFlutterApi onNativeEventEvent:@{
-            @"event" : @(EVENT_ORIENTATION_CHANGED),
-            EXTRA_NAME_ORIENTATION : @(tempOrientationCode)} completion:^(FlutterError * _Nullable error) {
-            if (nil != error) {
-                FTXLOGE(@"callback message error:%@", error);
-            }
-        }];
-    }
+// The orientation event listener has been migrated to VodGlobalResource, which fans out the
+// change into every attached SuperPlayerPlugin via -dispatchOrientationChanged:.
+- (void)dispatchOrientationChanged:(int)orientation {
+    if (orientation == mCurrentOrientation) return;
+    mCurrentOrientation = orientation;
+    [self.pluginFlutterApi onNativeEventEvent:@{
+        @"event" : @(EVENT_ORIENTATION_CHANGED),
+        EXTRA_NAME_ORIENTATION : @(orientation)} completion:^(FlutterError * _Nullable error) {
+        if (nil != error) {
+            FTXLOGE(@"callback message error:%@", error);
+        }
+    }];
 }
 
 #pragma mark - superPlayerPluginAPI
@@ -423,46 +412,21 @@
     return self.players;
 }
 
-#pragma mark TXLiveBaseDelegate
+#pragma mark - Global SDK event forwarding
 
-- (void)onLog:(NSString *)log LogLevel:(int)level WhichModule:(NSString *)module {
-//    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LOG withParams:@{
-//        @(EVENT_LOG_LEVEL) : @(level),
-//        @(EVENT_LOG_MODULE) : module,
-//        @(EVENT_LOG_MSG) : log
-//    }]];
-    // this may be too busy, so currently do not throw on the Flutter side
-}
-
-- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg {
-//    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_UPDATE_NETWORK_TIME withParams:@{
-//        @(EVENT_ERR_CODE) : @(errCode),
-//        @(EVENT_ERR_MSG) : errMsg,
-//    }]];
-    // This will be opened in a subsequent version
-}
-
-- (void)onLicenceLoaded:(int)result Reason:(NSString *)reason {
-    FTXLOGV(@"onLicenceLoaded,result:%d, reason:%@", result, reason);
-    __block int blockResult = result;
-    __block NSString* blockReason = reason;
-    __block NSDictionary *param = @{
-        @(EVENT_RESULT) : @(blockResult),
-        @(EVENT_REASON) : blockReason,
+// TXLiveBaseDelegate has been migrated to VodGlobalResource, which fans out the License-loaded
+// event into every attached SuperPlayerPlugin via -dispatchLicenceLoaded:reason:.
+- (void)dispatchLicenceLoaded:(int)result reason:(NSString *)reason {
+    FTXLOGV(@"dispatchLicenceLoaded,result:%d, reason:%@", result, reason);
+    NSDictionary *param = @{
+        @(EVENT_RESULT) : @(result),
+        @(EVENT_REASON) : reason ?: @"",
     };
     [self.pluginFlutterApi onSDKListenerEvent:[TXCommonUtil getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:param] completion:^(FlutterError * _Nullable error) {
         if (nil != error) {
             FTXLOGE(@"callback message error:%@", error);
         }
     }];
-}
-
-- (void)onCustomHttpDNS:(NSString *)hostName ipList:(NSMutableArray<NSString *> *)list {
-//    [_eventSink success:[SuperPlayerPlugin getParamsWithEvent:EVENT_ON_LICENCE_LOADED withParams:@{
-//        @(EVENT_HOST_NAME) : hostName,
-//        @(EVENT_IPS) : list,
-//    }]];
-    // This will be opened in a subsequent version
 }
 
 @end

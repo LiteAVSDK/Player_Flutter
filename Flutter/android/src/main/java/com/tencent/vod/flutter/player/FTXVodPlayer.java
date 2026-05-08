@@ -626,7 +626,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     @Override
     public BoolMsg startVodPlay(@NonNull StringPlayerMsg url) {
         String urlStr = url.getValue();
-        return TXCommonUtil.boolMsgWith(startPlayerVodPlay(urlStr) == 1);
+        return TXCommonUtil.boolMsgWith(startPlayerVodPlay(urlStr) == 0);
     }
 
     @Override

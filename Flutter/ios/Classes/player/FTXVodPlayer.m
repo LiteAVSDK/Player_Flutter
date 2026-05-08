@@ -909,7 +909,7 @@ static const int uninitialized = -1;
 
 - (nullable BoolMsg *)startVodPlayUrl:(nonnull StringPlayerMsg *)url error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     int r = [self startVodPlay:url.value];
-    return [TXCommonUtil boolMsgWith:r];
+    return [TXCommonUtil boolMsgWith:r == 0];
 }
 
 - (void)startVodPlayWithParamsParams:(nonnull TXPlayInfoParamsPlayerMsg *)params error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
