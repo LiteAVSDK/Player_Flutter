@@ -74,11 +74,9 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
 
     @Override
     public void notifyTextureRotation(float rotation) {
-        if (mRotation != rotation) {
-            mRotation = rotation;
-            if (null != mRender) {
-                mRender.updateRotation(rotation);
-            }
+        mRotation = rotation;
+        if (null != mRender) {
+            mRender.updateRotation(rotation);
         }
     }
 
@@ -279,8 +277,13 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
 
         @Override
         public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
-            LiteavLog.v(TAG, "onSurfaceTextureSizeChanged");
+            LiteavLog.v(TAG, "onSurfaceTextureSizeChanged " + width + "x" + height);
             mContainer.applySurfaceConfig(surface, width, height);
+            // resize is truly completed at this moment, sync viewport with real size and force redraw
+            if (null != mContainer.mRender) {
+                mContainer.mRender.setViewPortSize(width, height);
+            }
+            mContainer.reDrawVod(true);
         }
 
         @Override

@@ -314,10 +314,6 @@ class SuperPlayerViewState extends State<SuperPlayerView> with WidgetsBindingObs
           await _playController.setPlayerView(-1);
           await connectPlayerView();
         });
-      } else {
-        Future.delayed(Duration(milliseconds: 300), () async {
-          _playController._vodPlayerController.reDraw();
-        });
       }
     });
     WidgetsBinding.instance.removeObserver(this);

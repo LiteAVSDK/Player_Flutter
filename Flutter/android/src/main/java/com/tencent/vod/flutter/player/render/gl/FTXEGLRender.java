@@ -8,6 +8,7 @@ import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.view.Choreographer;
 import android.view.Surface;
 
 import com.tencent.liteav.base.util.LiteavLog;
@@ -24,8 +25,11 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
     private static final long FRAME_WAIT_TIME = 5000;
     private static final int FPS_DEFAULT = 30;
-    // min refresh count for obtain new img
-    private static final int RE_DRAW_COUNT = 30;
+    // 与硬件 VSync 对齐时，覆盖三缓冲翻转 + Surface 重建竞态窗口所需的最小帧数
+    private static final int REFRESH_FRAME_COUNT = 3;
+
+    // EGL_OPENGL_ES3_BIT_KHR 在 EGL14 中无公开常量，使用扩展定义值；用于优先选择 ES3 配置
+    private static final int EGL_OPENGL_ES3_BIT_KHR = 0x0040;
 
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
@@ -59,6 +63,35 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private Handler mDrawHandler = null;
     private boolean isReleased = false;
     private boolean mIsFirstFrame = false;
+
+    // 当前 EGLContext 实际使用的 GLES 主版本：3 = GLES 3.0；2 = GLES 2.0 fallback；0 = 未初始化
+    private volatile int mActiveGLESMajor = 0;
+
+    // 渲染线程上的 Choreographer，用于把刷新动作对齐到硬件 VSync 信号
+    private Choreographer mChoreographer;
+    // 剩余需要刷新的 VSync 帧数（仅在渲染线程读写，无需加锁）
+    private int mRefreshFramesLeft = 0;
+
+    /**
+     * 与硬件 VSync 信号对齐的自调度回调。
+     * 每收到一个 VSync 信号绘制一帧，绘制完后判断是否需要继续提交下一帧。
+     * 该回调全生命周期只创建一次，避免重复对象分配。
+     */
+    private final Choreographer.FrameCallback mRefreshFrameCallback = new Choreographer.FrameCallback() {
+        @Override
+        public void doFrame(long frameTimeNanos) {
+            mLock.lock();
+            try {
+                startDrawSurface(false);
+            } finally {
+                mLock.unlock();
+            }
+            mRefreshFramesLeft--;
+            if (mRefreshFramesLeft > 0 && mChoreographer != null) {
+                mChoreographer.postFrameCallback(this);
+            }
+        }
+    };
 
     private FVodTRTCHelper mTRTCHelper;
     private boolean mEnableFrameCopy = false;
@@ -221,15 +254,35 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
     }
 
-    public void setViewPortSize(int width, int height) {
-        mViewWidth = width;
-        mViewHeight = height;
-        if (null != mSurfaceTexture) {
-            mSurfaceTexture.setDefaultBufferSize(width, height);
+    public void setViewPortSize(final int width, final int height) {
+        // 渲染未启动时的 fallback：直接更新堆变量，后续 startRender 会使用该尺寸
+        if (null == mDrawHandler) {
+            mViewWidth = width;
+            mViewHeight = height;
+            if (null != mTextureRender) {
+                mTextureRender.setViewPortSize(width, height);
+            }
+            return;
         }
-        if (null != mTextureRender) {
-            mTextureRender.setViewPortSize(width, height);
-        }
+        // 切到渲染线程串行执行，避免与 drawFrame 发生数据竞争导致的画面几何错位
+        mDrawHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mLock.lock();
+                try {
+                    mViewWidth = width;
+                    mViewHeight = height;
+                    if (null != mSurfaceTexture) {
+                        mSurfaceTexture.setDefaultBufferSize(width, height);
+                    }
+                    if (null != mTextureRender) {
+                        mTextureRender.setViewPortSize(width, height);
+                    }
+                } finally {
+                    mLock.unlock();
+                }
+            }
+        });
     }
 
     private boolean eglSetup(Surface surface) {
@@ -244,43 +297,45 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             checkEglError("unable to initialize EGL10");
             return false;
         }
-        // Configure EGL for pbuffer and OpenGL ES 2.0, 24-bit RGB.
-        int[] attribList = new int[]{
-                EGL14.EGL_RED_SIZE, 8,
-                EGL14.EGL_GREEN_SIZE, 8,
-                EGL14.EGL_BLUE_SIZE, 8,
-                EGL14.EGL_ALPHA_SIZE, 8,
-                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
-                EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
-                EGL14.EGL_NONE
-        };
 
-        int[] numEglConfigs = new int[1];
-        EGLConfig[] eglConfigs = new EGLConfig[1];
-        if (!EGL14.eglChooseConfig(mEGLDisplay, attribList, 0, eglConfigs, 0,
-                eglConfigs.length, numEglConfigs, 0)) {
-            checkEglError("eglChooseConfig error");
-            return false;
+        // Try GLES 3.0 first, fall back to GLES 2.0 if the device GPU/driver does not support it.
+        // GLES3 context is required as a foundation for HDR10 rendering (10bit framebuffer / BT2020).
+        EGLConfig pickedConfig = null;
+        EGLContext pickedContext = EGL14.EGL_NO_CONTEXT;
+        EGLConfig configEs3 = chooseEGLConfig(EGL_OPENGL_ES3_BIT_KHR);
+        if (configEs3 != null) {
+            EGLContext ctx = tryCreateContext(configEs3, 3);
+            if (ctx != EGL14.EGL_NO_CONTEXT) {
+                pickedConfig = configEs3;
+                pickedContext = ctx;
+                mActiveGLESMajor = 3;
+                LiteavLog.i(TAG, "EGLContext created with GLES 3.0");
+            }
         }
-        // Configure context for OpenGL ES 2.0.
-        //6、创建 EglContext
-        int[] attrib_list = new int[]{
-                EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
-                EGL14.EGL_NONE
-        };
-
-        mEGLContextEncoder = EGL14.eglCreateContext(mEGLDisplay, eglConfigs[0], EGL14.EGL_NO_CONTEXT,
-                attrib_list, 0);
-        checkEglError("eglCreateContext", false);
-        if (mEGLContextEncoder == EGL14.EGL_NO_CONTEXT) {
-            LiteavLog.e(TAG, "null context2");
-            return false;
+        if (pickedContext == EGL14.EGL_NO_CONTEXT) {
+            // clear any error code left by the failed ES3 attempt
+            EGL14.eglGetError();
+            EGLConfig configEs2 = chooseEGLConfig(EGL14.EGL_OPENGL_ES2_BIT);
+            if (configEs2 == null) {
+                checkEglError("eglChooseConfig error");
+                return false;
+            }
+            EGLContext ctx = tryCreateContext(configEs2, 2);
+            if (ctx == EGL14.EGL_NO_CONTEXT) {
+                LiteavLog.e(TAG, "create GLES2 context failed");
+                return false;
+            }
+            pickedConfig = configEs2;
+            pickedContext = ctx;
+            mActiveGLESMajor = 2;
+            LiteavLog.i(TAG, "EGLContext created with GLES 2.0 (fallback)");
         }
+        mEGLContextEncoder = pickedContext;
 
         int[] surfaceAttribs2 = {
                 EGL14.EGL_NONE
         };
-        mEGLSurfaceEncoder = EGL14.eglCreateWindowSurface(mEGLDisplay, eglConfigs[0], surface,
+        mEGLSurfaceEncoder = EGL14.eglCreateWindowSurface(mEGLDisplay, pickedConfig, surface,
                 surfaceAttribs2, 0);   //creates an EGL window surface and returns its handle
         checkEglError("eglCreateWindowSurface", false);
 
@@ -290,6 +345,58 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
         mOutPutSurface = surface;
         return true;
+    }
+
+    /**
+     * Choose an EGLConfig with RGBA8888 + window surface and the requested renderable type bit.
+     * Returns null on failure (error code is cleared internally so callers can retry safely).
+     */
+    private EGLConfig chooseEGLConfig(int renderableType) {
+        int[] attribList = new int[]{
+                EGL14.EGL_RED_SIZE, 8,
+                EGL14.EGL_GREEN_SIZE, 8,
+                EGL14.EGL_BLUE_SIZE, 8,
+                EGL14.EGL_ALPHA_SIZE, 8,
+                EGL14.EGL_RENDERABLE_TYPE, renderableType,
+                EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
+                EGL14.EGL_NONE
+        };
+        EGLConfig[] configs = new EGLConfig[1];
+        int[] num = new int[1];
+        boolean ok = EGL14.eglChooseConfig(mEGLDisplay, attribList, 0,
+                configs, 0, configs.length, num, 0);
+        if (!ok || num[0] <= 0 || configs[0] == null) {
+            // clear error code, do not pollute subsequent checkEglError
+            EGL14.eglGetError();
+            return null;
+        }
+        return configs[0];
+    }
+
+    /**
+     * Attempt to create an EGLContext with the given GLES major version.
+     * Returns EGL14.EGL_NO_CONTEXT on failure (with error code cleared).
+     */
+    private EGLContext tryCreateContext(EGLConfig config, int glesMajor) {
+        int[] attribList = {
+                EGL14.EGL_CONTEXT_CLIENT_VERSION, glesMajor,
+                EGL14.EGL_NONE
+        };
+        EGLContext ctx = EGL14.eglCreateContext(mEGLDisplay, config,
+                EGL14.EGL_NO_CONTEXT, attribList, 0);
+        if (ctx == EGL14.EGL_NO_CONTEXT) {
+            // clear error code, fallback path will retry with a different version
+            EGL14.eglGetError();
+        }
+        return ctx;
+    }
+
+    /**
+     * Whether the current EGLContext was created with GLES 3.0 capability.
+     * Should only be queried after initOpengl() has been called.
+     */
+    public boolean isGLES3Available() {
+        return mActiveGLESMajor >= 3;
     }
 
     private boolean checkEglError(String msg) {
@@ -424,6 +531,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         mEGLDisplay = EGL14.EGL_NO_DISPLAY;
         mEGLSurfaceEncoder = EGL14.EGL_NO_SURFACE;
         mEGLContextEncoder = EGL14.EGL_NO_CONTEXT;
+        mActiveGLESMajor = 0;
     }
 
     private void eglUninstall(boolean needReleaseDecodeSurface) {
@@ -463,25 +571,46 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         mDrawHandlerThread.start();
         mDrawHandler = new Handler(mDrawHandlerThread.getLooper());
         mStart = true;
+
+        // 在渲染线程上初始化 Choreographer，使 VSync 回调直接派发到本线程，零线程切换
+        mDrawHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mChoreographer = Choreographer.getInstance();
+            }
+        });
     }
 
     public void refreshRender() {
         refreshRender(false);
     }
 
-    public void refreshRender(boolean isForcePullFrame) {
-        if (null != mDrawHandler) {
-            mDrawHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    mLock.lock();
-                    for (int i = 0; i < RE_DRAW_COUNT; i++) {
-                        startDrawSurface(isForcePullFrame);
-                    }
-                    mLock.unlock();
-                }
-            });
+    public void refreshRender(final boolean isForcePullFrame) {
+        if (null == mDrawHandler) {
+            return;
         }
+        mDrawHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // 强制拉帧：立即同步执行一次 updateTexImage，保证首帧/seek 后画面及时更新
+                if (isForcePullFrame) {
+                    mLock.lock();
+                    try {
+                        startDrawSurface(true);
+                    } finally {
+                        mLock.unlock();
+                    }
+                }
+
+                // 防抖：序列进行中则只续命剩余帧数，回调实例永远只有一个
+                boolean needSchedule = (mRefreshFramesLeft <= 0);
+                mRefreshFramesLeft = REFRESH_FRAME_COUNT;
+
+                if (needSchedule && mChoreographer != null) {
+                    mChoreographer.postFrameCallback(mRefreshFrameCallback);
+                }
+            }
+        });
     }
 
     public synchronized void resumeRender() {
@@ -508,6 +637,11 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         LiteavLog.i(TAG, "stopRender");
         // unLock render thread
         mStart = false;
+        mRefreshFramesLeft = 0;
+        if (mChoreographer != null) {
+            mChoreographer.removeFrameCallback(mRefreshFrameCallback);
+            mChoreographer = null;
+        }
         mRotation = 0;
         if (null != mTextureRender) {
             mTextureRender.setRotationAngle(0);
