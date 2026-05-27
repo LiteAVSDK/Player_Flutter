@@ -1,4 +1,13 @@
 
+
+#### Version: 13.3.1 2026.05.29
+
+##### Features：
+
+- support HDR on Android
+- fix known issue
+
+
 #### Version: 13.3.0 2026.05.08
 
 ##### Features：

@@ -28,8 +28,13 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     // 与硬件 VSync 对齐时，覆盖三缓冲翻转 + Surface 重建竞态窗口所需的最小帧数
     private static final int REFRESH_FRAME_COUNT = 3;
 
-    // EGL_OPENGL_ES3_BIT_KHR 在 EGL14 中无公开常量，使用扩展定义值；用于优先选择 ES3 配置
+    // EGL_OPENGL_ES3_BIT_KHR, not exposed by EGL14
     private static final int EGL_OPENGL_ES3_BIT_KHR = 0x0040;
+
+    // EGL_EXT_gl_colorspace_bt2020_pq constants, not exposed by EGL14
+    private static final int EGL_GL_COLORSPACE_KHR           = 0x309D;
+    private static final int EGL_GL_COLORSPACE_BT2020_PQ_EXT = 0x3340;
+    private static final String EGL_EXT_BT2020_PQ_NAME       = "EGL_EXT_gl_colorspace_bt2020_pq";
 
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
@@ -64,8 +69,11 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     private boolean isReleased = false;
     private boolean mIsFirstFrame = false;
 
-    // 当前 EGLContext 实际使用的 GLES 主版本：3 = GLES 3.0；2 = GLES 2.0 fallback；0 = 未初始化
+    // 3 = ES3, 2 = ES2, 0 = uninitialized
     private volatile int mActiveGLESMajor = 0;
+
+    private volatile boolean mDisplayHdr10Supported = false;
+    private volatile boolean mHdrActuallyOn = false;
 
     // 渲染线程上的 Choreographer，用于把刷新动作对齐到硬件 VSync 信号
     private Choreographer mChoreographer;
@@ -254,6 +262,15 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
     }
 
+    /** Must be called before {@link #initOpengl(Surface)}. */
+    public void setDisplayHdr10Supported(boolean supported) {
+        mDisplayHdr10Supported = supported;
+    }
+
+    public boolean isHdrActuallyOn() {
+        return mHdrActuallyOn;
+    }
+
     public void setViewPortSize(final int width, final int height) {
         // 渲染未启动时的 fallback：直接更新堆变量，后续 startRender 会使用该尺寸
         if (null == mDrawHandler) {
@@ -298,8 +315,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             return false;
         }
 
-        // Try GLES 3.0 first, fall back to GLES 2.0 if the device GPU/driver does not support it.
-        // GLES3 context is required as a foundation for HDR10 rendering (10bit framebuffer / BT2020).
+        // Try GLES 3.0 first, fall back to GLES 2.0.
         EGLConfig pickedConfig = null;
         EGLContext pickedContext = EGL14.EGL_NO_CONTEXT;
         EGLConfig configEs3 = chooseEGLConfig(EGL_OPENGL_ES3_BIT_KHR);
@@ -313,7 +329,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             }
         }
         if (pickedContext == EGL14.EGL_NO_CONTEXT) {
-            // clear any error code left by the failed ES3 attempt
             EGL14.eglGetError();
             EGLConfig configEs2 = chooseEGLConfig(EGL14.EGL_OPENGL_ES2_BIT);
             if (configEs2 == null) {
@@ -332,6 +347,28 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
         mEGLContextEncoder = pickedContext;
 
+        // HDR10 requires panel + GPU + GLES3.
+        boolean tryHdr = mActiveGLESMajor >= 3
+                && mDisplayHdr10Supported
+                && hasEglBt2020PqExtension();
+        if (tryHdr) {
+            int[] hdrAttribs = {
+                    EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_BT2020_PQ_EXT,
+                    EGL14.EGL_NONE
+            };
+            EGLSurface hdrSurface = EGL14.eglCreateWindowSurface(mEGLDisplay, pickedConfig, surface,
+                    hdrAttribs, 0);
+            if (hdrSurface != null && hdrSurface != EGL14.EGL_NO_SURFACE) {
+                mEGLSurfaceEncoder = hdrSurface;
+                mHdrActuallyOn = true;
+                mOutPutSurface = surface;
+                LiteavLog.i(TAG, "HDR10 window surface created (BT2020 PQ)");
+                return true;
+            }
+            EGL14.eglGetError();
+            LiteavLog.w(TAG, "HDR window surface creation failed, fallback to SDR");
+        }
+
         int[] surfaceAttribs2 = {
                 EGL14.EGL_NONE
         };
@@ -343,14 +380,16 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             LiteavLog.e(TAG, "surface was null");
             return false;
         }
+        mHdrActuallyOn = false;
         mOutPutSurface = surface;
         return true;
     }
 
-    /**
-     * Choose an EGLConfig with RGBA8888 + window surface and the requested renderable type bit.
-     * Returns null on failure (error code is cleared internally so callers can retry safely).
-     */
+    private boolean hasEglBt2020PqExtension() {
+        String exts = EGL14.eglQueryString(mEGLDisplay, EGL14.EGL_EXTENSIONS);
+        return exts != null && exts.contains(EGL_EXT_BT2020_PQ_NAME);
+    }
+
     private EGLConfig chooseEGLConfig(int renderableType) {
         int[] attribList = new int[]{
                 EGL14.EGL_RED_SIZE, 8,
@@ -366,17 +405,12 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         boolean ok = EGL14.eglChooseConfig(mEGLDisplay, attribList, 0,
                 configs, 0, configs.length, num, 0);
         if (!ok || num[0] <= 0 || configs[0] == null) {
-            // clear error code, do not pollute subsequent checkEglError
             EGL14.eglGetError();
             return null;
         }
         return configs[0];
     }
 
-    /**
-     * Attempt to create an EGLContext with the given GLES major version.
-     * Returns EGL14.EGL_NO_CONTEXT on failure (with error code cleared).
-     */
     private EGLContext tryCreateContext(EGLConfig config, int glesMajor) {
         int[] attribList = {
                 EGL14.EGL_CONTEXT_CLIENT_VERSION, glesMajor,
@@ -385,16 +419,11 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         EGLContext ctx = EGL14.eglCreateContext(mEGLDisplay, config,
                 EGL14.EGL_NO_CONTEXT, attribList, 0);
         if (ctx == EGL14.EGL_NO_CONTEXT) {
-            // clear error code, fallback path will retry with a different version
             EGL14.eglGetError();
         }
         return ctx;
     }
 
-    /**
-     * Whether the current EGLContext was created with GLES 3.0 capability.
-     * Should only be queried after initOpengl() has been called.
-     */
     public boolean isGLES3Available() {
         return mActiveGLESMajor >= 3;
     }
@@ -532,6 +561,7 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         mEGLSurfaceEncoder = EGL14.EGL_NO_SURFACE;
         mEGLContextEncoder = EGL14.EGL_NO_CONTEXT;
         mActiveGLESMajor = 0;
+        mHdrActuallyOn = false;
     }
 
     private void eglUninstall(boolean needReleaseDecodeSurface) {

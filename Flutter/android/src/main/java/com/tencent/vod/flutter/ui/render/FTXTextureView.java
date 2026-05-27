@@ -45,6 +45,7 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
     private void initTextureView() {
         setSurfaceTextureListener(mSurfaceListenerDelegate);
         mRender = new FTXEGLRender(1080, 720);
+        // HDR not supported on TextureView.
     }
 
     @Override

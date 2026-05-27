@@ -13,6 +13,7 @@ import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
 import com.tencent.vod.flutter.player.render.FTXVodPlayerRenderHost;
 import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
+import com.tencent.vod.flutter.player.render.gl.FTXHdrCapability;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
 import java.util.List;
@@ -44,6 +45,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
     private void init() {
         getHolder().addCallback(mSurfaceListenerDelegate);
         mRender = new FTXEGLRender(1080, 720);
+        mRender.setDisplayHdr10Supported(FTXHdrCapability.isDisplayHdr10(getContext()));
     }
 
     @Override
