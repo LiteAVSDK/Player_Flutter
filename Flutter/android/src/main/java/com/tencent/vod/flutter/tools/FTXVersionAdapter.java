@@ -28,6 +28,11 @@ public class FTXVersionAdapter {
         if (null == config) {
             config = new TXVodPlayConfig();
         }
+        // 用户已主动设置过 ExtInfoMap，视为接管 DRM 配置，跳过
+        Map<String, Object> existingExtInfo = config.getExtInfoMap();
+        if (existingExtInfo != null && !existingExtInfo.isEmpty()) {
+            return;
+        }
         Map<String, Object> extInfo = safeGetExtInfo(config);
         String customKeyName = getVodKeyValue("VOD_USE_DRM_L3");
         if (null != customKeyName) {

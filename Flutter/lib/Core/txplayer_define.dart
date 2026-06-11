@@ -3,6 +3,7 @@ part of SuperPlayer;
 
 const _kFTXPlayerRenderViewType = "FTXRenderViewType";
 const _kFTXAndroidRenderTypeKey = "renderViewType";
+const _kFTXAndroidSurfacePassThroughKey = "androidSurfacePassThrough";
 
 class TXPlayerValue {
   final TXPlayerState state;

@@ -24,10 +24,12 @@ public class FTXRenderView implements PlatformView {
     private final Context mContext;
     private final FTXTextureContainer mContainer;
     private final int mRenderType;
+    private final boolean mSurfacePassThrough;
     private FTXRenderViewFactory mFactory;
 
     public FTXRenderView(@NonNull Context context, int id, @Nullable Map<String, Object> creationParams,
                          FTXRenderViewFactory factory) {
+        boolean passThrough = false;
         if (null != creationParams) {
             Object renderTypeObj = creationParams.get(FTXEvent.RENDER_TYPE_KEY);
             if (renderTypeObj instanceof Integer) {
@@ -35,9 +37,14 @@ public class FTXRenderView implements PlatformView {
             } else {
                 mRenderType = FTXEvent.ViewType.TEXTURE_TYPE;
             }
+            Object passObj = creationParams.get(FTXEvent.SURFACE_PASS_THROUGH_KEY);
+            if (passObj instanceof Boolean) {
+                passThrough = (boolean) passObj;
+            }
         } else {
             mRenderType = FTXEvent.ViewType.TEXTURE_TYPE;
         }
+        mSurfacePassThrough = passThrough;
         mFactory = factory;
         mContext = context;
         mContainer = new FTXTextureContainer(context);
@@ -55,9 +62,10 @@ public class FTXRenderView implements PlatformView {
     private void resetRenderView() {
         if (mRenderType == FTXEvent.ViewType.TEXTURE_TYPE) {
             mTextureView = new FTXTextureView(mContext);
-        } else if (mRenderType == FTXEvent.ViewType.SURFACE_TYPE
-                || mRenderType == FTXEvent.ViewType.DRM_SURFACE_TYPE) {
-            mTextureView = new FTXSurfaceView(mContext);
+        } else if (mRenderType == FTXEvent.ViewType.SURFACE_TYPE) {
+            mTextureView = new FTXSurfaceView(mContext, mSurfacePassThrough);
+        } else if (mRenderType == FTXEvent.ViewType.DRM_SURFACE_TYPE) {
+            mTextureView = new FTXSurfaceView(mContext, true);
         } else {
             LiteavLog.e(TAG, "unknown view type :" + mRenderType + ", use default type TEXTURE_TYPE");
             mTextureView = new FTXTextureView(mContext);

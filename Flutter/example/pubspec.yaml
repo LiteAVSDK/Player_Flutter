@@ -13,8 +13,8 @@ super_player:
   # professional_premium: Combines the full-featured version and the advanced player version, offering compatibility with the full-featured version while utilizing the advanced player features.
 
 environment:
-  sdk: '>=2.17.0 <4.0.0'
-  flutter: ">=3.0.0"
+  sdk: '>=3.5.0 <4.0.0'
+  flutter: ">=3.24.0"
 
 dependencies:
   # internationalization

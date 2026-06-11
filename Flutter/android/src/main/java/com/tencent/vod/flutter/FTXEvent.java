@@ -17,6 +17,7 @@ public class FTXEvent {
 
     public static final String FTX_RENDER_VIEW = "FTXRenderViewType";
     public static final String RENDER_TYPE_KEY = "renderViewType";
+    public static final String SURFACE_PASS_THROUGH_KEY = "androidSurfacePassThrough";
 
     /*
     Volume change.

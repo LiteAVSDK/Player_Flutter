@@ -1,10 +1,12 @@
 package com.tencent.vod.flutter.ui.render;
 
 import android.content.Context;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 
@@ -13,19 +15,19 @@ import com.tencent.vod.flutter.common.FTXPlayerConstants;
 import com.tencent.vod.flutter.player.render.FTXPlayerRenderSurfaceHost;
 import com.tencent.vod.flutter.player.render.FTXVodPlayerRenderHost;
 import com.tencent.vod.flutter.player.render.gl.FTXEGLRender;
-import com.tencent.vod.flutter.player.render.gl.FTXHdrCapability;
 import com.tencent.vod.flutter.player.render.gl.GLSurfaceTools;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/** SurfaceView 渲染载体：OES（默认）/ Pass-through 直连两条管线，构造时确定。 */
 public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
     private static final String TAG = "FTXSurfaceView";
 
     private FTXPlayerRenderSurfaceHost mPlayer;
     private Surface mSurface;
-    private  final GLSurfaceTools mGlSurfaceTools = new GLSurfaceTools();
+    private final GLSurfaceTools mGlSurfaceTools = new GLSurfaceTools();
     private long mRenderMode = FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER;
 
     private int mVideoWidth = 0;
@@ -34,23 +36,28 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
     private int mViewHeight = 0;
     private float mRotation = 0;
     private final Object mLayoutLock = new Object();
+
+    private final boolean mPassThrough;
     private FTXEGLRender mRender;
+
     private final SurfaceViewInnerListener mSurfaceListenerDelegate = new SurfaceViewInnerListener(this);
 
     public FTXSurfaceView(Context context) {
+        this(context, false);
+    }
+
+    public FTXSurfaceView(Context context, boolean forcePassThrough) {
         super(context);
+        this.mPassThrough = forcePassThrough;
         init();
     }
 
     private void init() {
         getHolder().addCallback(mSurfaceListenerDelegate);
-        mRender = new FTXEGLRender(1080, 720);
-        mRender.setDisplayHdr10Supported(FTXHdrCapability.isDisplayHdr10(getContext()));
     }
 
     @Override
     public void clearLastImg() {
-        LiteavLog.i(TAG, "start clearLastImg, view:" + hashCode());
         if (null != mSurface) {
             mGlSurfaceTools.clearSurface(mSurface);
         }
@@ -66,17 +73,22 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
                 if (videoHeight >= 0) {
                     mVideoHeight = videoHeight;
                 }
-                updateVideoRenderMode();
-                LiteavLog.i(TAG, "notifyVideoResolutionChanged updateSize, mVideoWidth:"
-                        + mVideoWidth + ",mVideoHeight:" + mVideoHeight);
+                if (mPassThrough) {
+                    applyLayoutParams();
+                } else {
+                    updateVideoRenderModeOnRender();
+                }
             }
         }
     }
 
     @Override
     public void notifyTextureRotation(float rotation) {
+        if (mRotation == rotation) {
+            return;
+        }
         mRotation = rotation;
-        if (null != mRender) {
+        if (!mPassThrough && null != mRender) {
             mRender.updateRotation(rotation);
         }
     }
@@ -84,37 +96,44 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        LiteavLog.i(TAG, "target onDetachedFromWindow,view:" + hashCode());
-        mRender.stopRender();
+        if (!mPassThrough && null != mRender) {
+            mRender.stopRender();
+        }
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        LiteavLog.i(TAG, "target onAttachedToWindow,view:" + hashCode());
     }
 
     @Override
     public void updateRenderMode(long renderMode) {
         if (mRenderMode != renderMode) {
             mRenderMode = renderMode;
-            updateVideoRenderMode();
+            if (mPassThrough) {
+                applyLayoutParams();
+            } else {
+                updateVideoRenderModeOnRender();
+            }
         }
     }
 
     @Override
     public void requestLayoutSizeByContainerSize(int viewWidth, int viewHeight) {
-        updateRenderSizeIfNeed(viewWidth, viewHeight);
-        // redraw when layout size changed
-        post(new Runnable() {
-            @Override
-            public void run() {
-                reDrawVod(false);
-            }
-        });
+        if (mPassThrough) {
+            updateContainerSizeIfNeed(viewWidth, viewHeight);
+        } else {
+            updateRenderSizeIfNeed(viewWidth, viewHeight);
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    reDrawVod(false);
+                }
+            });
+        }
     }
 
-    public void updateVideoRenderMode() {
+    private void updateVideoRenderModeOnRender() {
         if (mRender != null) {
             mRender.updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
         }
@@ -122,20 +141,31 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
     @Override
     public void bindPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
-        LiteavLog.i(TAG, "called bindPlayer " + surfaceHost + ", view:" + FTXSurfaceView.this.hashCode());
+        LiteavLog.i(TAG, "bindPlayer");
+        if (null != surfaceHost && null == mPlayer) {
+            if (!mPassThrough && null == mRender) {
+                mRender = new FTXEGLRender(1080, 720);
+            }
+        }
+
         if (mPlayer == surfaceHost) {
-            if (null != mPlayer) {
-                surfaceHost.setSurface(mRender.getInputSurface());
-                updateRenderSizeIfCan();
-                LiteavLog.w(TAG, "bindPlayer interrupt ,player: " + surfaceHost + " is equal before, view:"
-                        + hashCode());
+            if (mPassThrough) {
+                if (null != mPlayer && null != mSurface && mSurface.isValid()) {
+                    surfaceHost.setSurface(mSurface);
+                }
             } else {
-                mRender.stopRender();
+                if (null != mPlayer) {
+                    surfaceHost.setSurface(mRender.getInputSurface());
+                    updateRenderSizeIfCan();
+                } else {
+                    mRender.stopRender();
+                }
             }
         } else {
             mPlayer = surfaceHost;
             connectPlayer(surfaceHost);
         }
+
         if (null != surfaceHost) {
             if (surfaceHost instanceof FTXVodPlayerRenderHost) {
                 ((FTXVodPlayerRenderHost) surfaceHost).handleTRTCObj(this);
@@ -143,27 +173,40 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
             mRenderMode = surfaceHost.getPlayerRenderMode();
             mVideoWidth = surfaceHost.getVideoWidth();
             mVideoHeight = surfaceHost.getVideoHeight();
-            updateVideoRenderMode();
-            notifyTextureRotation(surfaceHost.getRotation());
-            LiteavLog.i(TAG, "updateSize, mVideoWidth:" + mVideoWidth + ",mVideoHeight:"
-                    + mVideoHeight + ",renderMode:" + mRenderMode + ",mRotation:" + mRotation);
-        }
-    }
-
-    private void connectPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
-        if (null != mSurface && null != surfaceHost) {
-            LiteavLog.i(TAG, "bindPlayer suc,player: " + surfaceHost + ", view:"
-                    + hashCode());
-            if (mSurface.isValid()) {
-                updateHostSurface(mSurface);
-                updateRenderSizeIfCan();
+            mRotation = surfaceHost.getRotation();
+            if (mPassThrough) {
+                applyLayoutParams();
             } else {
-                LiteavLog.w(TAG, "bindPlayer interrupt ,mSurface: " + mSurface + " is inValid, view:"
-                        + this.hashCode());
+                updateVideoRenderModeOnRender();
+                if (null != mRender) {
+                    mRender.updateRotation(mRotation);
+                }
             }
         }
     }
 
+    private void connectPlayer(FTXPlayerRenderSurfaceHost surfaceHost) {
+        if (null == mSurface || null == surfaceHost) {
+            return;
+        }
+        if (mPassThrough) {
+            if (mSurface.isValid()) {
+                updateHostSurface(mSurface);
+                updateContainerSizeIfCan();
+            } else {
+                LiteavLog.w(TAG, "invalid surface");
+            }
+        } else {
+            if (mSurface.isValid()) {
+                updateHostSurface(mSurface);
+                updateRenderSizeIfCan();
+            } else {
+                LiteavLog.w(TAG, "invalid surface");
+            }
+        }
+    }
+
+    /** OES 视口尺寸同步 */
     private void updateRenderSizeIfCan() {
         if (null != mRender && null != getParent()) {
             ViewGroup viewGroup = (ViewGroup) getParent();
@@ -177,17 +220,40 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
         if (mViewWidth != width || mViewHeight != height) {
             mViewWidth = width;
             mViewHeight = height;
-            LiteavLog.i(TAG, "updateRenderSizeIfNeed, width:" + width + ",height:" + height);
-            mRender.setViewPortSize(width, height);
+            if (null != mRender) {
+                mRender.setViewPortSize(width, height);
+            }
+        }
+    }
+
+    /** Pass-through 容器尺寸同步 */
+    private void updateContainerSizeIfCan() {
+        if (null != getParent()) {
+            ViewGroup viewGroup = (ViewGroup) getParent();
+            updateContainerSizeIfNeed(viewGroup.getWidth(), viewGroup.getHeight());
+        }
+    }
+
+    private void updateContainerSizeIfNeed(int width, int height) {
+        if (mViewWidth != width || mViewHeight != height) {
+            mViewWidth = width;
+            mViewHeight = height;
+            applyLayoutParams();
         }
     }
 
     private void updateHostSurface(Surface surface) {
-        if (null != mPlayer) {
+        if (null == mPlayer) {
+            return;
+        }
+        if (mPassThrough) {
+            if (null != surface) {
+                mPlayer.setSurface(surface);
+            }
+        } else {
             mRender.initOpengl(surface);
             mPlayer.setSurface(mRender.getInputSurface());
             mRender.startRender();
-            LiteavLog.i(TAG, "updateHostSurface:" + surface);
         }
     }
 
@@ -197,23 +263,24 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
     private void updateSurfaceTexture(Surface surface) {
         if (mSurface != surface) {
-            LiteavLog.v(TAG, "surfaceTexture is updated:" + surface);
             mSurface = surface;
-            // surfaceView must clear img when created, or it will show flutter ui img
-            mGlSurfaceTools.clearSurface(surface);
             updateHostSurface(surface);
+            if (mPassThrough) {
+                applyLayoutParams();
+            }
         }
     }
 
     @Override
     public void destroyRender() {
-        mRender.stopRender();
+        if (!mPassThrough && null != mRender) {
+            mRender.stopRender();
+        }
     }
 
     @Override
     public void reDrawVod(boolean isForcePullFrame) {
-        // surfaceView will detach view, so reDraw will invalid
-        if (null != mRender) {
+        if (!mPassThrough && null != mRender) {
             mRender.refreshRender(isForcePullFrame);
         }
     }
@@ -239,8 +306,71 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
     @Override
     public void enableTRTCCloud(boolean enable, FTXEGLRender.OnFrameCopyListener listener) {
-        mRender.setEnableFrameCopy(enable, listener);
+        if (mPassThrough) {
+            return;
+        }
+        if (null != mRender) {
+            mRender.setEnableFrameCopy(enable, listener);
+        }
     }
+
+    // ===================== Pass-through layout =====================
+
+    private void applyLayoutParams() {
+        if (!mPassThrough) {
+            return;
+        }
+        post(new Runnable() {
+            @Override
+            public void run() {
+                applyLayoutParamsInternal();
+            }
+        });
+    }
+
+    private void applyLayoutParamsInternal() {
+        if (mVideoWidth <= 0 || mVideoHeight <= 0 || mViewWidth <= 0 || mViewHeight <= 0) {
+            return;
+        }
+        float videoRatio = (float) mVideoWidth / mVideoHeight;
+        float containerRatio = (float) mViewWidth / mViewHeight;
+
+        int targetW = mViewWidth;
+        int targetH = mViewHeight;
+
+        if (mRenderMode == FTXPlayerConstants.FTXRenderMode.ADJUST_RESOLUTION) {
+            if (videoRatio > containerRatio) {
+                targetH = (int) (mViewWidth / videoRatio);
+            } else {
+                targetW = (int) (mViewHeight * videoRatio);
+            }
+        } else if (mRenderMode == FTXPlayerConstants.FTXRenderMode.FULL_FILL_CONTAINER) {
+            if (videoRatio > containerRatio) {
+                targetW = (int) (mViewHeight * videoRatio);
+            } else {
+                targetH = (int) (mViewWidth / videoRatio);
+            }
+        }
+
+        ViewGroup.LayoutParams lp = getLayoutParams();
+        if (lp instanceof FrameLayout.LayoutParams) {
+            FrameLayout.LayoutParams flp = (FrameLayout.LayoutParams) lp;
+            if (flp.width != targetW || flp.height != targetH) {
+                flp.width = targetW;
+                flp.height = targetH;
+                flp.gravity = Gravity.CENTER;
+                setLayoutParams(flp);
+            }
+        } else if (lp != null) {
+            if (lp.width != targetW || lp.height != targetH) {
+                lp.width = targetW;
+                lp.height = targetH;
+                setLayoutParams(lp);
+            }
+        }
+    }
+
+    // ===================== SurfaceHolder.Callback =====================
 
     private static class SurfaceViewInnerListener implements SurfaceHolder.Callback {
 
@@ -253,9 +383,12 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
         @Override
         public void surfaceCreated(@NonNull SurfaceHolder holder) {
-            LiteavLog.v(TAG, "onSurfaceTextureAvailable");
             mContainer.applySurfaceConfig(holder.getSurface(), 0, 0);
-            mContainer.updateRenderSizeIfCan();
+            if (mContainer.mPassThrough) {
+                mContainer.updateContainerSizeIfCan();
+            } else {
+                mContainer.updateRenderSizeIfCan();
+            }
             for (FTXCarrierSurfaceListener listener : mExternalSurfaceListeners) {
                 listener.onSurfaceTextureAvailable(mContainer.mSurface);
             }
@@ -263,20 +396,32 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
 
         @Override
         public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-            LiteavLog.v(TAG, "surfaceChanged " + width + "x" + height);
             mContainer.applySurfaceConfig(holder.getSurface(), width, height);
-            // resize is truly completed at this moment, sync viewport with real size and force redraw
-            if (null != mContainer.mRender) {
-                mContainer.mRender.setViewPortSize(width, height);
+            if (mContainer.mPassThrough) {
+                mContainer.applyLayoutParams();
+            } else {
+                if (null != mContainer.mRender) {
+                    mContainer.mRender.setViewPortSize(width, height);
+                }
+                mContainer.reDrawVod(true);
             }
-            mContainer.reDrawVod(true);
         }
 
         @Override
         public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-            LiteavLog.v(TAG, "onSurfaceTextureDestroyed:" + mContainer.mSurface);
+            LiteavLog.i(TAG, "surfaceDestroyed");
+            final Surface destroyed = mContainer.mSurface;
+            if (mContainer.mPassThrough) {
+                if (null != mContainer.mPlayer) {
+                    mContainer.mPlayer.setSurface(null);
+                }
+            } else {
+                if (null != mContainer.mRender) {
+                    mContainer.mRender.stopRender();
+                }
+            }
             for (FTXCarrierSurfaceListener listener : mExternalSurfaceListeners) {
-                listener.onSurfaceTextureDestroyed(mContainer.mSurface);
+                listener.onSurfaceTextureDestroyed(destroyed);
             }
             mContainer.mSurface = null;
         }

@@ -31,11 +31,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
     // EGL_OPENGL_ES3_BIT_KHR, not exposed by EGL14
     private static final int EGL_OPENGL_ES3_BIT_KHR = 0x0040;
 
-    // EGL_EXT_gl_colorspace_bt2020_pq constants, not exposed by EGL14
-    private static final int EGL_GL_COLORSPACE_KHR           = 0x309D;
-    private static final int EGL_GL_COLORSPACE_BT2020_PQ_EXT = 0x3340;
-    private static final String EGL_EXT_BT2020_PQ_NAME       = "EGL_EXT_gl_colorspace_bt2020_pq";
-
     private SurfaceTexture mSurfaceTexture;
     private FTXTextureRender mTextureRender;
     private Surface mInputSurface;
@@ -71,9 +66,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
 
     // 3 = ES3, 2 = ES2, 0 = uninitialized
     private volatile int mActiveGLESMajor = 0;
-
-    private volatile boolean mDisplayHdr10Supported = false;
-    private volatile boolean mHdrActuallyOn = false;
 
     // 渲染线程上的 Choreographer，用于把刷新动作对齐到硬件 VSync 信号
     private Choreographer mChoreographer;
@@ -262,15 +254,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
     }
 
-    /** Must be called before {@link #initOpengl(Surface)}. */
-    public void setDisplayHdr10Supported(boolean supported) {
-        mDisplayHdr10Supported = supported;
-    }
-
-    public boolean isHdrActuallyOn() {
-        return mHdrActuallyOn;
-    }
-
     public void setViewPortSize(final int width, final int height) {
         // 渲染未启动时的 fallback：直接更新堆变量，后续 startRender 会使用该尺寸
         if (null == mDrawHandler) {
@@ -347,28 +330,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         }
         mEGLContextEncoder = pickedContext;
 
-        // HDR10 requires panel + GPU + GLES3.
-        boolean tryHdr = mActiveGLESMajor >= 3
-                && mDisplayHdr10Supported
-                && hasEglBt2020PqExtension();
-        if (tryHdr) {
-            int[] hdrAttribs = {
-                    EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_BT2020_PQ_EXT,
-                    EGL14.EGL_NONE
-            };
-            EGLSurface hdrSurface = EGL14.eglCreateWindowSurface(mEGLDisplay, pickedConfig, surface,
-                    hdrAttribs, 0);
-            if (hdrSurface != null && hdrSurface != EGL14.EGL_NO_SURFACE) {
-                mEGLSurfaceEncoder = hdrSurface;
-                mHdrActuallyOn = true;
-                mOutPutSurface = surface;
-                LiteavLog.i(TAG, "HDR10 window surface created (BT2020 PQ)");
-                return true;
-            }
-            EGL14.eglGetError();
-            LiteavLog.w(TAG, "HDR window surface creation failed, fallback to SDR");
-        }
-
         int[] surfaceAttribs2 = {
                 EGL14.EGL_NONE
         };
@@ -380,14 +341,8 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
             LiteavLog.e(TAG, "surface was null");
             return false;
         }
-        mHdrActuallyOn = false;
         mOutPutSurface = surface;
         return true;
-    }
-
-    private boolean hasEglBt2020PqExtension() {
-        String exts = EGL14.eglQueryString(mEGLDisplay, EGL14.EGL_EXTENSIONS);
-        return exts != null && exts.contains(EGL_EXT_BT2020_PQ_NAME);
     }
 
     private EGLConfig chooseEGLConfig(int renderableType) {
@@ -561,7 +516,6 @@ public class FTXEGLRender implements SurfaceTexture.OnFrameAvailableListener {
         mEGLSurfaceEncoder = EGL14.EGL_NO_SURFACE;
         mEGLContextEncoder = EGL14.EGL_NO_CONTEXT;
         mActiveGLESMajor = 0;
-        mHdrActuallyOn = false;
     }
 
     private void eglUninstall(boolean needReleaseDecodeSurface) {
