@@ -1,10 +1,11 @@
 
 
-#### Version: 13.3.1 2026.05.29
+#### Version: 13.3.1 2026.06.16
 
 ##### Features：
 
 - support HDR on Android
+- bump minimum supported Flutter version to 3.27.4
 - fix known issue
 
 
