@@ -76,13 +76,16 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 
 - (void)onApplicationTerminateClick {
     _isTerminate = YES;
-    _textureRegistry = nil;
+    // 先切断解码回调，避免投递到已失效的 textureRegistry
+    if (nil != _txVodPlayer) {
+        _txVodPlayer.videoProcessDelegate = nil;
+    }
     [self stopPlay];
     if (nil != _txVodPlayer) {
         [_txVodPlayer removeVideoWidget];
         _txVodPlayer = nil;
-        _txVodPlayer.videoProcessDelegate = nil;
     }
+    _textureRegistry = nil;
     _textureId = -1;
 }
 
@@ -108,8 +111,8 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         [_txVodPlayer removeVideoWidget];
     }
     _isTerminate = YES;
-    _textureRegistry = nil;
     [self stopPlay];
+    _textureRegistry = nil;
     _textureId = -1;
     _txVodPlayer = nil;
 }
@@ -117,6 +120,11 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
 - (void)destory
 {
     FTXLOGV(@"vodPlayer start called destory");
+    // 先切断解码回调，避免 unregister 后仍访问 registry
+    if (nil != _txVodPlayer) {
+        _txVodPlayer.videoProcessDelegate = nil;
+    }
+    _isTerminate = YES;
     [self stopPlay];
     if (nil != _txVodPlayer) {
         [_txVodPlayer removeVideoWidget];
@@ -129,9 +137,9 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
     
     if (_textureId >= 0 && _textureRegistry) {
         [_textureRegistry unregisterTexture:_textureId];
-        _textureId = -1;
-        _textureRegistry = nil;
     }
+    _textureId = -1;
+    _textureRegistry = nil;
     CVPixelBufferRef old = _latestPixelBuffer;
     while (!atomic_compare_exchange_strong_explicit(&_latestPixelBuffer, &old, nil, memory_order_release, memory_order_relaxed)) {
         old = _latestPixelBuffer;
@@ -504,9 +512,18 @@ static const int CODE_ON_RECEIVE_FIRST_FRAME   = 2003;
         if (old && old != pixelBuffer) {
             CFRelease(old);
         }
-        if (!_isTerminate && !_isStoped && _textureRegistry && _textureId >= 0) {
-            [_textureRegistry textureFrameAvailable:_textureId];
-        }
+        // 必须在 platform thread 调用，避免 engine 销毁时与 PlatformView 析构 race
+        __weak __typeof(self) weakSelf = self;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            __strong __typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) { return; }
+            if (strongSelf->_isTerminate || strongSelf->_isStoped) { return; }
+            NSObject<FlutterTextureRegistry> *registry = strongSelf->_textureRegistry;
+            int64_t tid = strongSelf->_textureId;
+            if (registry && tid >= 0) {
+                [registry textureFrameAvailable:tid];
+            }
+        });
     }
     
     return NO;
