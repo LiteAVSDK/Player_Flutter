@@ -51,8 +51,10 @@ public abstract class FTXLivePlayerRenderHost extends FTXBasePlayer implements F
             }
         } else {
             LiteavLog.i(TAG, "setRenderView met a null textureView, player:" + hashCode());
-            livePlayer.setRenderView((TextureView) null);
-            livePlayer.setRenderView((SurfaceView) null);
+            if (null != livePlayer) {
+                livePlayer.setRenderView((TextureView) null);
+                livePlayer.setRenderView((SurfaceView) null);
+            }
         }
     }
 

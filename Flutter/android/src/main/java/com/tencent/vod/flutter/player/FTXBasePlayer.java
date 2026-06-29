@@ -5,6 +5,7 @@ package com.tencent.vod.flutter.player;
 import com.tencent.liteav.base.util.LiteavLog;
 import com.tencent.vod.flutter.ui.render.FTXRenderView;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -13,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class FTXBasePlayer {
     private static final AtomicInteger mAtomicId = new AtomicInteger(0);
     private final int mPlayerId;
+    private final AtomicBoolean mDestroyed = new AtomicBoolean(false);
 
     public int getPlayerId() {
         return mPlayerId;
@@ -20,6 +22,14 @@ public abstract class FTXBasePlayer {
 
     public FTXBasePlayer() {
         mPlayerId = mAtomicId.incrementAndGet();
+    }
+
+    public boolean isDestroyed() {
+        return mDestroyed.get();
+    }
+
+    protected boolean markDestroyedIfNeeded() {
+        return mDestroyed.compareAndSet(false, true);
     }
 
     public void destroy() {

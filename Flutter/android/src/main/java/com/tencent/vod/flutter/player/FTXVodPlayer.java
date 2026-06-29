@@ -156,9 +156,14 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
 
     @Override
     public void destroy() {
+        if (!markDestroyedIfNeeded()) {
+            LiteavLog.w(TAG, "vodPlayer destroy ignored, already destroyed, playerId:" + getPlayerId());
+            return;
+        }
         if (mVodPlayer != null) {
             stopPlay(true);
             mVodPlayer.setPlayerView((TXCloudVideoView) null);
+            setRenderView(null);
             mVodPlayer = null;
         }
         mCurrentRotation = 0;

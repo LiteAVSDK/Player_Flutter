@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (nonnull FTXTextureView*)getRenderView;
 
+- (void)teardown;
+
 @end
 
 NS_ASSUME_NONNULL_END

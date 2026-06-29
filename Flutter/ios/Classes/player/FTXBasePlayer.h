@@ -15,6 +15,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property(atomic, readonly) NSNumber *playerId;
 @property(nonatomic, strong, nullable) id<FTXRenderControl> renderControl;
 
+@property(atomic, readonly) BOOL isDestroyed;
+
+- (BOOL)markDestroyedIfNeeded;
+
 - (void)setRenderView:(nullable FTXTextureView*)renderView;
 
 - (void)destroy;

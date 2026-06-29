@@ -106,6 +106,10 @@
     // Unregister from VodGlobalResource so the process-level hooks can be torn down when the
     // last engine detaches.
     [[VodGlobalResource sharedInstance] release:self];
+    if (_renderViewFactory) {
+        [_renderViewFactory teardownAllViews];
+        _renderViewFactory = nil;
+    }
     // Unbind Pigeon API handlers so the binary messenger does not keep a strong reference to
     // this plugin instance after the engine detaches. Paired with the SetUp*API(messenger,self)
     // calls in +registerWithRegistrar:.

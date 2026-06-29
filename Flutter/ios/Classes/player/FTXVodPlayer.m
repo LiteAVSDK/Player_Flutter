@@ -77,61 +77,80 @@ static const int uninitialized = -1;
 
 - (void)onApplicationTerminateClick {
     _isTerminate = YES;
-    [self stopPlay];
-    if (nil != _txVodPlayer) {
-        [self setRenderView:nil];
-        _txVodPlayer = nil;
-        _txVodPlayer.videoProcessDelegate = nil;
-    }
+    [self destroy];
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {
-    if (!_isTerminate) {
-        FTXLOGW(@"vodPlayer is called _isTerminate terminate");
-        [self notifyPlayerTerminate];
+    if (!_isTerminate && !self.isDestroyed) {
+        FTXLOGW(@"vodPlayer is called notifyAppTerminate terminate");
+        _isTerminate = YES;
+        [self destroy];
     }
 }
 
 - (void)dealloc
 {
-    if (!_isTerminate) {
-        FTXLOGW(@"vodPlayer is called delloc terminate");
-        [self notifyPlayerTerminate];
+    if (!_isTerminate && !self.isDestroyed) {
+        FTXLOGW(@"vodPlayer is called dealloc terminate");
+        [self performDestroyOnCurrentThread];
     }
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"vodPlayer notifyPlayerTerminate");
-    if (nil != _txVodPlayer) {
-        [_txVodPlayer removeVideoWidget];
-        [self setRenderView:nil];
-        _txVodPlayer.vodDelegate = nil;
-    }
-    self.curRenderView = nil;
     _isTerminate = YES;
-    [self stopPlay];
-    _txVodPlayer = nil;
+    [self destroy];
 }
 
 - (void)destroy
 {
     FTXLOGV(@"vodPlayer start called destroy");
+    if (![self markDestroyedIfNeeded]) {
+        FTXLOGW(@"vodPlayer destroy: already destroyed, skip");
+        return;
+    }
+    if ([NSThread isMainThread]) {
+        [self performDestroyOnMainThread];
+    } else {
+        __weak typeof(self) weakSelf = self;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [weakSelf performDestroyOnMainThread];
+        });
+    }
+}
+
+- (void)performDestroyOnMainThread {
     [self stopPlay];
     if (nil != _txVodPlayer) {
-        [self setRenderView:nil];
         [_txVodPlayer removeVideoWidget];
+        self.renderControl = nil;
+        _txVodPlayer.vodDelegate = nil;
+        _txVodPlayer.videoProcessDelegate = nil;
         _txVodPlayer = nil;
     }
-
     self.curRenderView = nil;
     self.cacheStartTime = 0;
-    
     _hasEnteredPipMode = NO;
     _restoreUI = NO;
     [self releaseImageSprite];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    SetUpTXFlutterVodPlayerApiWithSuffix([_registrar messenger], nil, [self.playerId stringValue]);
+    if (_registrar) {
+        SetUpTXFlutterVodPlayerApiWithSuffix([_registrar messenger], nil, [self.playerId stringValue]);
+    }
+}
+
+- (void)performDestroyOnCurrentThread {
+    if (![self markDestroyedIfNeeded]) {
+        return;
+    }
+    if (nil != _txVodPlayer) {
+        _txVodPlayer.vodDelegate = nil;
+        _txVodPlayer.videoProcessDelegate = nil;
+        _txVodPlayer = nil;
+    }
+    self.curRenderView = nil;
+    [self releaseImageSprite];
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
@@ -1030,6 +1049,10 @@ static const int uninitialized = -1;
 
 - (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     FTXLOGI(@"setPlayerView, renderViewId:%ld", renderViewId);
+    if (self.isDestroyed) {
+        FTXLOGW(@"vodPlayer setPlayerView called after destroyed, ignore");
+        return;
+    }
     FTXRenderView *renderView = [self.renderViewFactory findViewById:renderViewId];
     if (nil != renderView) {
         self.curRenderView = renderView;
@@ -1042,6 +1065,10 @@ static const int uninitialized = -1;
 }
 
 - (void)setRenderView:(FTXTextureView*)renderView {
+    if (self.isDestroyed) {
+        FTXLOGW(@"vodPlayer setRenderView called after destroyed, ignore");
+        return;
+    }
     if (nil != _txVodPlayer) {
         if (renderView != nil) {
             [_txVodPlayer setupVideoWidget:renderView insertIndex:0];

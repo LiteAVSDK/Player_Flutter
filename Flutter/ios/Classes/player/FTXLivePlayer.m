@@ -71,11 +71,30 @@ static const int uninitialized = -1;
 - (void)destroy
 {
     FTXLOGV(@"livePlayer start called destroy");
+    if (![self markDestroyedIfNeeded]) {
+        FTXLOGW(@"livePlayer destroy: already destroyed, skip");
+        return;
+    }
+    if ([NSThread isMainThread]) {
+        [self performDestroyOnMainThread];
+    } else {
+        __weak typeof(self) weakSelf = self;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [weakSelf performDestroyOnMainThread];
+        });
+    }
+}
+
+- (void)performDestroyOnMainThread {
     [self stopPlay];
     if (nil != self.livePlayer) {
-        [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
-        [self setRenderView:nil];
+        [self.livePlayer enableObserveVideoFrame:NO
+                                      pixelFormat:V2TXLivePixelFormatBGRA32
+                                       bufferType:V2TXLiveBufferTypePixelBuffer];
+        [self.livePlayer setRenderView:nil];
+        self.renderControl = nil;
         [self.livePlayer setObserver:nil];
+        self.livePlayer = nil;
     }
     self.curRenderView = nil;
     
@@ -86,35 +105,42 @@ static const int uninitialized = -1;
         [FTXPipController shareInstance].pipDelegate = nil;
     }
     
-    SetUpTXFlutterLivePlayerApiWithSuffix([_registrar messenger], nil, [self.playerId stringValue]);
+    if (_registrar) {
+        SetUpTXFlutterLivePlayerApiWithSuffix([_registrar messenger], nil, [self.playerId stringValue]);
+    }
+}
+
+- (void)performDestroyOnCurrentThread {
+    if (![self markDestroyedIfNeeded]) {
+        return;
+    }
+    if (nil != self.livePlayer) {
+        [self.livePlayer setObserver:nil];
+        self.livePlayer = nil;
+    }
+    self.curRenderView = nil;
 }
 
 - (void)notifyAppTerminate:(UIApplication *)application {
-    if (!_isTerminate) {
+    if (!_isTerminate && !self.isDestroyed) {
         FTXLOGW(@"livePlayer is called notifyAppTerminate terminate");
-        [self notifyPlayerTerminate];
+        _isTerminate = YES;
+        [self destroy];
     }
 }
 
 - (void)dealloc
 {
-    if (!_isTerminate) {
-        FTXLOGW(@"livePlayer is called delloc terminate");
-        [self notifyPlayerTerminate];
+    if (!_isTerminate && !self.isDestroyed) {
+        FTXLOGW(@"livePlayer is called dealloc terminate");
+        [self performDestroyOnCurrentThread];
     }
 }
 
 - (void)notifyPlayerTerminate {
     FTXLOGW(@"livePlayer notifyPlayerTerminate");
-    if (nil != self.livePlayer) {
-        [self.livePlayer enableObserveVideoFrame:NO pixelFormat:V2TXLivePixelFormatBGRA32 bufferType:V2TXLiveBufferTypePixelBuffer];
-        [self setRenderView:nil];
-        [self.livePlayer setObserver:nil];
-    }
-    self.curRenderView = nil;
     _isTerminate = YES;
-    [self stopPlay];
-    self.livePlayer = nil;
+    [self destroy];
 }
 
 - (void)setupPlayerWithBool:(BOOL)onlyAudio
@@ -546,6 +572,10 @@ static const int uninitialized = -1;
 
 - (void)setPlayerViewRenderViewId:(NSInteger)renderViewId error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     FTXLOGI(@"setPlayerView, renderViewId:%ld", renderViewId);
+    if (self.isDestroyed) {
+        FTXLOGW(@"livePlayer setPlayerView called after destroyed, ignore");
+        return;
+    }
     FTXRenderView *renderView = [self.renderViewFactory findViewById:renderViewId];
     if (nil != renderView) {
         self.curRenderView = renderView;
@@ -558,6 +588,10 @@ static const int uninitialized = -1;
 }
 
 - (void)setRenderView:(FTXTextureView *)renderView {
+    if (self.isDestroyed) {
+        FTXLOGW(@"livePlayer setRenderView called after destroyed, ignore");
+        return;
+    }
     if (nil != self.livePlayer) {
         if (nil != renderView) {
             [self.livePlayer setRenderView:renderView];

@@ -30,4 +30,16 @@
     return [self.viewToPlatformViewMap objectForKey:@(viewId)];
 }
 
+- (void)teardownAllViews {
+    NSArray *allKeys = [[self.viewToPlatformViewMap keyEnumerator] allObjects];
+    for (NSNumber *key in allKeys) {
+        FTXRenderView *view = [self.viewToPlatformViewMap objectForKey:key];
+        if (view != nil) {
+            [view teardown];
+        }
+    }
+    [self.viewToPlatformViewMap removeAllObjects];
+    self.binaryMessenger = nil;
+}
+
 @end

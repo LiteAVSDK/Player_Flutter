@@ -136,6 +136,10 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
 
     @Override
     public void destroy() {
+        if (!markDestroyedIfNeeded()) {
+            LiteavLog.w(TAG, "livePlayer destroy ignored, already destroyed, playerId:" + getPlayerId());
+            return;
+        }
         if (mLivePlayer != null) {
             stopPlay(true);
             setRenderView(null);

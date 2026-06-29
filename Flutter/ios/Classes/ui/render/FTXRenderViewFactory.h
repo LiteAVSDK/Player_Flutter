@@ -14,6 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (FTXRenderView*)findViewById:(NSUInteger)viewId;
 
+- (void)teardownAllViews;
+
 @end
 
 NS_ASSUME_NONNULL_END
