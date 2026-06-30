@@ -2921,6 +2921,25 @@ void SetUpTXFlutterVodPlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMesse
       [channel setMessageHandler:nil];
     }
   }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.setAutoPictureInPictureEnabled", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:nullGetFtxMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setAutoPictureInPictureEnabledIsEnabled:error:)], @"TXFlutterVodPlayerApi api (%@) doesn't respond to @selector(setAutoPictureInPictureEnabledIsEnabled:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        BOOL arg_isEnabled = [GetNullableObjectAtIndex(args, 0) boolValue];
+        FlutterError *error;
+        [api setAutoPictureInPictureEnabledIsEnabled:arg_isEnabled error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
 }
 void SetUpTXFlutterLivePlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterLivePlayerApi> *api) {
   SetUpTXFlutterLivePlayerApiWithSuffix(binaryMessenger, api, @"");

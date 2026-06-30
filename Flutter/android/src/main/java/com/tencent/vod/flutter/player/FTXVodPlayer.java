@@ -1000,6 +1000,11 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     }
 
     @Override
+    public void setAutoPictureInPictureEnabled(@NonNull Boolean isEnabled) {
+        // iOS-only, no-op on Android
+    }
+
+    @Override
     public long getPlayerRenderMode() {
         return mCurrentRenderMode;
     }

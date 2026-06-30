@@ -682,6 +682,19 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _vodPlayerApi.unpublishAudio();
   }
 
+  ///
+  /// only valid on iOS
+  ///
+  Future<void> setAutoPictureInPictureEnabled(bool isEnabled) async {
+    if (_isNeedDisposed) return;
+    if (!Platform.isIOS) {
+      LogUtils.w(kTag, "setAutoPictureInPictureEnabled is iOS-only, ignored");
+      return;
+    }
+    await _initPlayer.future;
+    await _vodPlayerApi.setAutoPictureInPictureEnabled(isEnabled);
+  }
+
   /// release controller
   ///
   /// 释放controller

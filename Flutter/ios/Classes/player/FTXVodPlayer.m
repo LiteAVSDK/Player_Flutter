@@ -1064,6 +1064,12 @@ static const int uninitialized = -1;
     }
 }
 
+- (void)setAutoPictureInPictureEnabledIsEnabled:(BOOL)isEnabled error:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer setAutoPictureInPictureEnabled:isEnabled];
+    }
+}
+
 - (void)setRenderView:(FTXTextureView*)renderView {
     if (self.isDestroyed) {
         FTXLOGW(@"vodPlayer setRenderView called after destroyed, ignore");

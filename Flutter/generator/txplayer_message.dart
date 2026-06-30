@@ -682,6 +682,8 @@ abstract class TXFlutterVodPlayerApi {
   void publishAudio();
 
   void unpublishAudio();
+
+  void setAutoPictureInPictureEnabled(bool isEnabled);
 }
 
 @HostApi()
