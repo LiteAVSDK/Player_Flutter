@@ -1,5 +1,15 @@
 
 
+#### Version: 13.4.0 2026.07.07
+
+##### Features：
+
+- set Android TXLiteAVSDK to 13.4.0.20472
+- set iOS TXLiteAVSDK to 13.4.21062
+- add setAutoPictureInPictureEnabled for auto Picture-in-Picture on iOS VOD
+- fix known issue
+
+
 #### Version: 13.3.1 2026.06.16
 
 ##### Features：
