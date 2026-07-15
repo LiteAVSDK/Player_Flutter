@@ -137,6 +137,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                 msg.setQuality((long) dataSource.getQuality());
                 msg.setToken(dataSource.getToken());
             }
+            msg.setEncryptedMp4Level((long) mediaInfo.getEncryptedLevel());
             msg.setSpeed((long) mediaInfo.getSpeed());
             msg.setIsResourceBroken(mediaInfo.isResourceBroken());
         }
@@ -174,10 +175,11 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
             bundle.putInt("quality", dataSource.getQuality());
             bundle.putString("token", dataSource.getToken());
         }
-        bundle.putInt("speed", mediaInfo.getSpeed());
-        bundle.putBoolean("isResourceBroken", mediaInfo.isResourceBroken());
-        return bundle;
-    }
+    bundle.putInt("speed", mediaInfo.getSpeed());
+    bundle.putBoolean("isResourceBroken", mediaInfo.isResourceBroken());
+    bundle.putInt("encryptedMp4Level", mediaInfo.getEncryptedLevel());
+    return bundle;
+  }
 
     private TXVodDownloadMediaInfo parseMediaInfoFromInfo(Integer quality, String url, Integer appId,
                                                           String fileId, String userName) {
@@ -286,8 +288,15 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         long preferredResolution = msg.getPreferredResolution() != null ? msg.getPreferredResolution() : 0;
         final TXVodPreloadManager downloadManager =
                 TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
-        final int retTaskID = downloadManager.startPreload(playUrl, preloadSizeMB, preferredResolution,
-                new ITXVodPreloadListener() {
+        TXPlayInfoParams txPlayInfoParams = new TXPlayInfoParams(playUrl);
+        int encryptedMp4Level = msg.getEncryptedMp4Level() != null ? msg.getEncryptedMp4Level().intValue() : 0;
+        txPlayInfoParams.setEncryptedMp4Level(encryptedMp4Level);
+        final int retTaskID = downloadManager.startPreload(txPlayInfoParams, preloadSizeMB, preferredResolution,
+                new ITXVodFilePreloadListener() {
+                    @Override
+                    public void onStart(int taskID, String fileId, String url, Bundle bundle) {
+                    }
+
                     @Override
                     public void onComplete(int taskID, String url) {
                         onPreLoadCompleteEvent(taskID, url);
@@ -298,6 +307,7 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                         onPreLoadErrorEvent(-1, taskID, url, code, msg);
                     }
                 });
+        onPreLoadStartEvent(-1, retTaskID, playUrl, playUrl, new Bundle());
         IntMsg res = new IntMsg();
         res.setValue((long) retTaskID);
         return res;
@@ -316,10 +326,12 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
                     int appId = msg.getAppId() != null ? msg.getAppId().intValue() : 0;
                     txPlayInfoParams = new TXPlayInfoParams(appId, msg.getFileId(), msg.getPSign());
                 }
-                if (msg.getHttpHeader() != null) {
-                    txPlayInfoParams.setHeaders(msg.getHttpHeader());
-                }
-                final TXVodPreloadManager downloadManager =
+            if (msg.getHttpHeader() != null) {
+                txPlayInfoParams.setHeaders(msg.getHttpHeader());
+            }
+            int encryptedMp4Level = msg.getEncryptedMp4Level() != null ? msg.getEncryptedMp4Level().intValue() : 0;
+            txPlayInfoParams.setEncryptedMp4Level(encryptedMp4Level);
+            final TXVodPreloadManager downloadManager =
                         TXVodPreloadManager.getInstance(mFlutterPluginBinding.getApplicationContext());
                 float preloadSizeMB = msg.getPreloadSizeMB() != null ? msg.getPreloadSizeMB().floatValue() : 0;
                 final long tmpTaskId = msg.getTmpPreloadTaskId() != null ? msg.getTmpPreloadTaskId() : -1;
@@ -369,13 +381,17 @@ public class FTXDownloadManager implements ITXVodDownloadListener, TXFlutterDown
         String fileId = msg.getFileId();
         String pSign = msg.getPSign();
         String userName = msg.getUserName();
-        if (!TextUtils.isEmpty(videoUrl)) {
-            TXVodDownloadManager.getInstance().startDownloadUrl(videoUrl, userName);
-        } else if (null != appId && null != fileId) {
-            TXVodDownloadDataSource dataSource =
-                    new TXVodDownloadDataSource(appId, fileId, optQuality(quality), pSign, userName);
-            TXVodDownloadManager.getInstance().startDownload(dataSource);
-        }
+    int encryptedMp4Level = msg.getEncryptedMp4Level() != null ? msg.getEncryptedMp4Level().intValue() : 0;
+    if (!TextUtils.isEmpty(videoUrl)) {
+        TXVodDownloadDataSource dataSource =
+                new TXVodDownloadDataSource(videoUrl, optQuality(quality));
+        dataSource.setEncryptedLevel(encryptedMp4Level);
+        TXVodDownloadManager.getInstance().startDownload(dataSource);
+    } else if (null != appId && null != fileId) {
+        TXVodDownloadDataSource dataSource =
+                new TXVodDownloadDataSource(appId, fileId, optQuality(quality), pSign, userName);
+        TXVodDownloadManager.getInstance().startDownload(dataSource);
+    }
     }
 
     @Override

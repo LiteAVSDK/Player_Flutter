@@ -555,6 +555,7 @@ class TXVodDownloadMediaMsg {
     this.token,
     this.speed,
     this.isResourceBroken,
+    this.encryptedMp4Level,
   });
 
   /// 缓存地址
@@ -608,6 +609,9 @@ class TXVodDownloadMediaMsg {
   /// 资源是否已损坏, 如：资源被删除了
   bool? isResourceBroken;
 
+  /// mp4加密等级
+  int? encryptedMp4Level;
+
   Object encode() {
     return <Object?>[
       playPath,
@@ -626,6 +630,7 @@ class TXVodDownloadMediaMsg {
       token,
       speed,
       isResourceBroken,
+      encryptedMp4Level,
     ];
   }
 
@@ -648,6 +653,7 @@ class TXVodDownloadMediaMsg {
       token: result[13] as String?,
       speed: result[14] as int?,
       isResourceBroken: result[15] as bool?,
+      encryptedMp4Level: result[16] as int?,
     );
   }
 }
@@ -830,6 +836,7 @@ class PreLoadMsg {
     this.playUrl,
     this.preloadSizeMB,
     this.preferredResolution,
+    this.encryptedMp4Level,
   });
 
   String? playUrl;
@@ -838,11 +845,14 @@ class PreLoadMsg {
 
   int? preferredResolution;
 
+  int? encryptedMp4Level;
+
   Object encode() {
     return <Object?>[
       playUrl,
       preloadSizeMB,
       preferredResolution,
+      encryptedMp4Level,
     ];
   }
 
@@ -852,6 +862,7 @@ class PreLoadMsg {
       playUrl: result[0] as String?,
       preloadSizeMB: result[1] as double?,
       preferredResolution: result[2] as int?,
+      encryptedMp4Level: result[3] as int?,
     );
   }
 }
@@ -866,6 +877,7 @@ class PreLoadInfoMsg {
     this.preferredResolution,
     this.tmpPreloadTaskId,
     this.httpHeader,
+    this.encryptedMp4Level,
   });
 
   int? appId;
@@ -884,6 +896,8 @@ class PreLoadInfoMsg {
 
   Map<String?, String?>? httpHeader;
 
+  int? encryptedMp4Level;
+
   Object encode() {
     return <Object?>[
       appId,
@@ -894,6 +908,7 @@ class PreLoadInfoMsg {
       preferredResolution,
       tmpPreloadTaskId,
       httpHeader,
+      encryptedMp4Level,
     ];
   }
 
@@ -908,6 +923,7 @@ class PreLoadInfoMsg {
       preferredResolution: result[5] as int?,
       tmpPreloadTaskId: result[6] as int?,
       httpHeader: (result[7] as Map<Object?, Object?>?)?.cast<String?, String?>(),
+      encryptedMp4Level: result[8] as int?,
     );
   }
 }
