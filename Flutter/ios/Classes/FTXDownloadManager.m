@@ -37,13 +37,14 @@
 
 - (instancetype)initWithRegistrar:(id<FlutterPluginRegistrar>)registrar
 {
-    if (self = [self init]) {
-        SetUpTXFlutterDownloadApi([registrar messenger], self);
-        self.mPreloadQueue = dispatch_queue_create([@"cloud.tencent.com.preload" UTF8String], NULL);
-        self.delegateArray = [[NSMutableArray alloc] init];
-        self.isInitDownloadListener = NO;
-        self.downloadFlutterApi = [[TXDownloadFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger]];
-    }
+        if (self = [self init]) {
+            SetUpTXFlutterDownloadApi([registrar messenger], self);
+            self.mPreloadQueue = dispatch_queue_create([@"cloud.tencent.com.preload" UTF8String], NULL);
+            self.delegateArray = [[NSMutableArray alloc] init];
+            self.isInitDownloadListener = NO;
+            self.downloadFlutterApi = [[TXDownloadFlutterAPI alloc] initWithBinaryMessenger:[registrar messenger]];
+            FTXLOGI(@"[FTXDownloadManager] encryptedMp4Level not implemented on iOS: sandbox protected");
+        }
     return self;
 }
 
@@ -309,6 +310,7 @@
     [[TXVodDownloadManager shareInstance] setHeaders:headers.map];
 }
 
+/// encryptedMp4Level unsupported on iOS (sandbox protected).
 - (void)startDownloadMsg:(nonnull TXVodDownloadMediaMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     [self initDownloadListenerIfNeed];
     if(nil != msg.url && ![msg.url isEqual:[NSNull null]]) {
@@ -328,6 +330,7 @@
     }
 }
 
+/// encryptedMp4Level unsupported on iOS (sandbox protected).
 - (nullable IntMsg *)startPreLoadMsg:(nonnull PreLoadMsg *)msg error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
     float preloadSizeMB = [msg.preloadSizeMB floatValue];
     int preferredResolution = [msg.preferredResolution intValue];
@@ -348,6 +351,7 @@
     [[TXVodPreloadManager sharedManager] stopPreload:msg.value.intValue];
 }
 
+/// encryptedMp4Level unsupported on iOS (sandbox protected).
 - (void)startPreLoadByParamsMsg:(PreLoadInfoMsg *)msg error:(FlutterError * _Nullable __autoreleasing *)error {
     dispatch_async(self.mPreloadQueue, ^{
         BOOL isUrlPreload = msg.playUrl != nil && [msg.playUrl isKindOfClass:[NSString class]] && msg.playUrl.length > 0;

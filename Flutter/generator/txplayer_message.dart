@@ -243,6 +243,8 @@ class TXVodDownloadMediaMsg {
   int? speed;
   /// 资源是否已损坏, 如：资源被删除了
   bool? isResourceBroken;
+  /// mp4加密等级
+  int? encryptedMp4Level;
 }
 
 class TXDownloadListMsg {
@@ -282,6 +284,7 @@ class PreLoadMsg {
   String? playUrl;
   double? preloadSizeMB;
   int? preferredResolution;
+  int? encryptedMp4Level;
 }
 
 class PreLoadInfoMsg {
@@ -293,6 +296,7 @@ class PreLoadInfoMsg {
   int? preferredResolution;
   int? tmpPreloadTaskId;
   Map<String?, String?>? httpHeader;
+  int? encryptedMp4Level;
 }
 
 class MapMsg {

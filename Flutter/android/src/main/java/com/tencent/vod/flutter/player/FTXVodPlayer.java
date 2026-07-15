@@ -175,6 +175,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         }
         FtxMessages.TXFlutterVodPlayerApi.setUp(mFlutterPluginBinding.getBinaryMessenger(),
                 String.valueOf(getPlayerId()), null);
+        mUIHandler.removeCallbacksAndMessages(null);
     }
 
     @Override

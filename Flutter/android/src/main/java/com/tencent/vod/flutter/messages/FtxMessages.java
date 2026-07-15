@@ -2081,24 +2081,35 @@ public class FtxMessages {
       return isResourceBroken;
     }
 
-    public void setIsResourceBroken(@Nullable Boolean setterArg) {
-      this.isResourceBroken = setterArg;
-    }
+  public void setIsResourceBroken(@Nullable Boolean setterArg) {
+    this.isResourceBroken = setterArg;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) { return true; }
-      if (o == null || getClass() != o.getClass()) { return false; }
-      TXVodDownloadMediaMsg that = (TXVodDownloadMediaMsg) o;
-      return Objects.equals(playPath, that.playPath) && Objects.equals(progress, that.progress) && Objects.equals(downloadState, that.downloadState) && Objects.equals(userName, that.userName) && Objects.equals(duration, that.duration) && Objects.equals(playableDuration, that.playableDuration) && Objects.equals(size, that.size) && Objects.equals(downloadSize, that.downloadSize) && Objects.equals(url, that.url) && Objects.equals(appId, that.appId) && Objects.equals(fileId, that.fileId) && Objects.equals(pSign, that.pSign) && Objects.equals(quality, that.quality) && Objects.equals(token, that.token) && Objects.equals(speed, that.speed) && Objects.equals(isResourceBroken, that.isResourceBroken);
-    }
+  /** mp4加密等级 */
+  private @Nullable Long encryptedMp4Level;
+
+  public @Nullable Long getEncryptedMp4Level() {
+    return encryptedMp4Level;
+  }
+
+  public void setEncryptedMp4Level(@Nullable Long setterArg) {
+    this.encryptedMp4Level = setterArg;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    TXVodDownloadMediaMsg that = (TXVodDownloadMediaMsg) o;
+    return Objects.equals(playPath, that.playPath) && Objects.equals(progress, that.progress) && Objects.equals(downloadState, that.downloadState) && Objects.equals(userName, that.userName) && Objects.equals(duration, that.duration) && Objects.equals(playableDuration, that.playableDuration) && Objects.equals(size, that.size) && Objects.equals(downloadSize, that.downloadSize) && Objects.equals(url, that.url) && Objects.equals(appId, that.appId) && Objects.equals(fileId, that.fileId) && Objects.equals(pSign, that.pSign) && Objects.equals(quality, that.quality) && Objects.equals(token, that.token) && Objects.equals(speed, that.speed) && Objects.equals(isResourceBroken, that.isResourceBroken) && Objects.equals(encryptedMp4Level, that.encryptedMp4Level);
+  }
 
     @Override
     public int hashCode() {
-      return Objects.hash(playPath, progress, downloadState, userName, duration, playableDuration, size, downloadSize, url, appId, fileId, pSign, quality, token, speed, isResourceBroken);
-    }
+    return Objects.hash(playPath, progress, downloadState, userName, duration, playableDuration, size, downloadSize, url, appId, fileId, pSign, quality, token, speed, isResourceBroken, encryptedMp4Level);
+  }
 
-    public static final class Builder {
+  public static final class Builder {
 
       private @Nullable String playPath;
 
@@ -2222,37 +2233,46 @@ public class FtxMessages {
 
       private @Nullable Boolean isResourceBroken;
 
-      @CanIgnoreReturnValue
-      public @NonNull Builder setIsResourceBroken(@Nullable Boolean setterArg) {
-        this.isResourceBroken = setterArg;
-        return this;
-      }
+    @CanIgnoreReturnValue
+    public @NonNull Builder setIsResourceBroken(@Nullable Boolean setterArg) {
+      this.isResourceBroken = setterArg;
+      return this;
+    }
 
-      public @NonNull TXVodDownloadMediaMsg build() {
-        TXVodDownloadMediaMsg pigeonReturn = new TXVodDownloadMediaMsg();
-        pigeonReturn.setPlayPath(playPath);
-        pigeonReturn.setProgress(progress);
-        pigeonReturn.setDownloadState(downloadState);
-        pigeonReturn.setUserName(userName);
-        pigeonReturn.setDuration(duration);
-        pigeonReturn.setPlayableDuration(playableDuration);
-        pigeonReturn.setSize(size);
-        pigeonReturn.setDownloadSize(downloadSize);
-        pigeonReturn.setUrl(url);
-        pigeonReturn.setAppId(appId);
-        pigeonReturn.setFileId(fileId);
-        pigeonReturn.setPSign(pSign);
-        pigeonReturn.setQuality(quality);
-        pigeonReturn.setToken(token);
-        pigeonReturn.setSpeed(speed);
-        pigeonReturn.setIsResourceBroken(isResourceBroken);
-        return pigeonReturn;
-      }
+    private @Nullable Long encryptedMp4Level;
+
+    @CanIgnoreReturnValue
+    public @NonNull Builder setEncryptedMp4Level(@Nullable Long setterArg) {
+      this.encryptedMp4Level = setterArg;
+      return this;
+    }
+
+    public @NonNull TXVodDownloadMediaMsg build() {
+      TXVodDownloadMediaMsg pigeonReturn = new TXVodDownloadMediaMsg();
+      pigeonReturn.setPlayPath(playPath);
+      pigeonReturn.setProgress(progress);
+      pigeonReturn.setDownloadState(downloadState);
+      pigeonReturn.setUserName(userName);
+      pigeonReturn.setDuration(duration);
+      pigeonReturn.setPlayableDuration(playableDuration);
+      pigeonReturn.setSize(size);
+      pigeonReturn.setDownloadSize(downloadSize);
+      pigeonReturn.setUrl(url);
+      pigeonReturn.setAppId(appId);
+      pigeonReturn.setFileId(fileId);
+      pigeonReturn.setPSign(pSign);
+      pigeonReturn.setQuality(quality);
+      pigeonReturn.setToken(token);
+      pigeonReturn.setSpeed(speed);
+      pigeonReturn.setIsResourceBroken(isResourceBroken);
+      pigeonReturn.setEncryptedMp4Level(encryptedMp4Level);
+      return pigeonReturn;
+    }
     }
 
     @NonNull
     ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<>(16);
+      ArrayList<Object> toListResult = new ArrayList<>(17);
       toListResult.add(playPath);
       toListResult.add(progress);
       toListResult.add(downloadState);
@@ -2269,6 +2289,7 @@ public class FtxMessages {
       toListResult.add(token);
       toListResult.add(speed);
       toListResult.add(isResourceBroken);
+      toListResult.add(encryptedMp4Level);
       return toListResult;
     }
 
@@ -2306,6 +2327,8 @@ public class FtxMessages {
       pigeonResult.setSpeed((Long) speed);
       Object isResourceBroken = pigeonVar_list.get(15);
       pigeonResult.setIsResourceBroken((Boolean) isResourceBroken);
+      Object encryptedMp4Level = pigeonVar_list.get(16);
+      pigeonResult.setEncryptedMp4Level((Long) encryptedMp4Level);
       return pigeonResult;
     }
   }
@@ -2818,22 +2841,32 @@ public class FtxMessages {
       return preferredResolution;
     }
 
-    public void setPreferredResolution(@Nullable Long setterArg) {
-      this.preferredResolution = setterArg;
-    }
+  public void setPreferredResolution(@Nullable Long setterArg) {
+    this.preferredResolution = setterArg;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) { return true; }
-      if (o == null || getClass() != o.getClass()) { return false; }
-      PreLoadMsg that = (PreLoadMsg) o;
-      return Objects.equals(playUrl, that.playUrl) && Objects.equals(preloadSizeMB, that.preloadSizeMB) && Objects.equals(preferredResolution, that.preferredResolution);
-    }
+  private @Nullable Long encryptedMp4Level;
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(playUrl, preloadSizeMB, preferredResolution);
-    }
+  public @Nullable Long getEncryptedMp4Level() {
+    return encryptedMp4Level;
+  }
+
+  public void setEncryptedMp4Level(@Nullable Long setterArg) {
+    this.encryptedMp4Level = setterArg;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    PreLoadMsg that = (PreLoadMsg) o;
+    return Objects.equals(playUrl, that.playUrl) && Objects.equals(preloadSizeMB, that.preloadSizeMB) && Objects.equals(preferredResolution, that.preferredResolution) && Objects.equals(encryptedMp4Level, that.encryptedMp4Level);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(playUrl, preloadSizeMB, preferredResolution, encryptedMp4Level);
+  }
 
     public static final class Builder {
 
@@ -2855,40 +2888,52 @@ public class FtxMessages {
 
       private @Nullable Long preferredResolution;
 
-      @CanIgnoreReturnValue
-      public @NonNull Builder setPreferredResolution(@Nullable Long setterArg) {
-        this.preferredResolution = setterArg;
-        return this;
-      }
-
-      public @NonNull PreLoadMsg build() {
-        PreLoadMsg pigeonReturn = new PreLoadMsg();
-        pigeonReturn.setPlayUrl(playUrl);
-        pigeonReturn.setPreloadSizeMB(preloadSizeMB);
-        pigeonReturn.setPreferredResolution(preferredResolution);
-        return pigeonReturn;
-      }
+    @CanIgnoreReturnValue
+    public @NonNull Builder setPreferredResolution(@Nullable Long setterArg) {
+      this.preferredResolution = setterArg;
+      return this;
     }
 
-    @NonNull
-    ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<>(3);
-      toListResult.add(playUrl);
-      toListResult.add(preloadSizeMB);
-      toListResult.add(preferredResolution);
-      return toListResult;
+    private @Nullable Long encryptedMp4Level;
+
+    @CanIgnoreReturnValue
+    public @NonNull Builder setEncryptedMp4Level(@Nullable Long setterArg) {
+      this.encryptedMp4Level = setterArg;
+      return this;
     }
 
-    static @NonNull PreLoadMsg fromList(@NonNull ArrayList<Object> pigeonVar_list) {
-      PreLoadMsg pigeonResult = new PreLoadMsg();
-      Object playUrl = pigeonVar_list.get(0);
-      pigeonResult.setPlayUrl((String) playUrl);
-      Object preloadSizeMB = pigeonVar_list.get(1);
-      pigeonResult.setPreloadSizeMB((Double) preloadSizeMB);
-      Object preferredResolution = pigeonVar_list.get(2);
-      pigeonResult.setPreferredResolution((Long) preferredResolution);
-      return pigeonResult;
+    public @NonNull PreLoadMsg build() {
+      PreLoadMsg pigeonReturn = new PreLoadMsg();
+      pigeonReturn.setPlayUrl(playUrl);
+      pigeonReturn.setPreloadSizeMB(preloadSizeMB);
+      pigeonReturn.setPreferredResolution(preferredResolution);
+      pigeonReturn.setEncryptedMp4Level(encryptedMp4Level);
+      return pigeonReturn;
     }
+  }
+
+  @NonNull
+  ArrayList<Object> toList() {
+    ArrayList<Object> toListResult = new ArrayList<>(4);
+    toListResult.add(playUrl);
+    toListResult.add(preloadSizeMB);
+    toListResult.add(preferredResolution);
+    toListResult.add(encryptedMp4Level);
+    return toListResult;
+  }
+
+  static @NonNull PreLoadMsg fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+    PreLoadMsg pigeonResult = new PreLoadMsg();
+    Object playUrl = pigeonVar_list.get(0);
+    pigeonResult.setPlayUrl((String) playUrl);
+    Object preloadSizeMB = pigeonVar_list.get(1);
+    pigeonResult.setPreloadSizeMB((Double) preloadSizeMB);
+    Object preferredResolution = pigeonVar_list.get(2);
+    pigeonResult.setPreferredResolution((Long) preferredResolution);
+    Object encryptedMp4Level = pigeonVar_list.get(3);
+    pigeonResult.setEncryptedMp4Level((Long) encryptedMp4Level);
+    return pigeonResult;
+  }
   }
 
   /** Generated class from Pigeon that represents data sent in messages. */
@@ -2969,22 +3014,32 @@ public class FtxMessages {
       return httpHeader;
     }
 
-    public void setHttpHeader(@Nullable Map<String, String> setterArg) {
-      this.httpHeader = setterArg;
-    }
+  public void setHttpHeader(@Nullable Map<String, String> setterArg) {
+    this.httpHeader = setterArg;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) { return true; }
-      if (o == null || getClass() != o.getClass()) { return false; }
-      PreLoadInfoMsg that = (PreLoadInfoMsg) o;
-      return Objects.equals(appId, that.appId) && Objects.equals(fileId, that.fileId) && Objects.equals(pSign, that.pSign) && Objects.equals(playUrl, that.playUrl) && Objects.equals(preloadSizeMB, that.preloadSizeMB) && Objects.equals(preferredResolution, that.preferredResolution) && Objects.equals(tmpPreloadTaskId, that.tmpPreloadTaskId) && Objects.equals(httpHeader, that.httpHeader);
-    }
+  private @Nullable Long encryptedMp4Level;
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(appId, fileId, pSign, playUrl, preloadSizeMB, preferredResolution, tmpPreloadTaskId, httpHeader);
-    }
+  public @Nullable Long getEncryptedMp4Level() {
+    return encryptedMp4Level;
+  }
+
+  public void setEncryptedMp4Level(@Nullable Long setterArg) {
+    this.encryptedMp4Level = setterArg;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    PreLoadInfoMsg that = (PreLoadInfoMsg) o;
+    return Objects.equals(appId, that.appId) && Objects.equals(fileId, that.fileId) && Objects.equals(pSign, that.pSign) && Objects.equals(playUrl, that.playUrl) && Objects.equals(preloadSizeMB, that.preloadSizeMB) && Objects.equals(preferredResolution, that.preferredResolution) && Objects.equals(tmpPreloadTaskId, that.tmpPreloadTaskId) && Objects.equals(httpHeader, that.httpHeader) && Objects.equals(encryptedMp4Level, that.encryptedMp4Level);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(appId, fileId, pSign, playUrl, preloadSizeMB, preferredResolution, tmpPreloadTaskId, httpHeader, encryptedMp4Level);
+  }
 
     public static final class Builder {
 
@@ -3046,39 +3101,49 @@ public class FtxMessages {
 
       private @Nullable Map<String, String> httpHeader;
 
-      @CanIgnoreReturnValue
-      public @NonNull Builder setHttpHeader(@Nullable Map<String, String> setterArg) {
-        this.httpHeader = setterArg;
-        return this;
-      }
-
-      public @NonNull PreLoadInfoMsg build() {
-        PreLoadInfoMsg pigeonReturn = new PreLoadInfoMsg();
-        pigeonReturn.setAppId(appId);
-        pigeonReturn.setFileId(fileId);
-        pigeonReturn.setPSign(pSign);
-        pigeonReturn.setPlayUrl(playUrl);
-        pigeonReturn.setPreloadSizeMB(preloadSizeMB);
-        pigeonReturn.setPreferredResolution(preferredResolution);
-        pigeonReturn.setTmpPreloadTaskId(tmpPreloadTaskId);
-        pigeonReturn.setHttpHeader(httpHeader);
-        return pigeonReturn;
-      }
+    @CanIgnoreReturnValue
+    public @NonNull Builder setHttpHeader(@Nullable Map<String, String> setterArg) {
+      this.httpHeader = setterArg;
+      return this;
     }
 
-    @NonNull
-    ArrayList<Object> toList() {
-      ArrayList<Object> toListResult = new ArrayList<>(8);
-      toListResult.add(appId);
-      toListResult.add(fileId);
-      toListResult.add(pSign);
-      toListResult.add(playUrl);
-      toListResult.add(preloadSizeMB);
-      toListResult.add(preferredResolution);
-      toListResult.add(tmpPreloadTaskId);
-      toListResult.add(httpHeader);
-      return toListResult;
+    private @Nullable Long encryptedMp4Level;
+
+    @CanIgnoreReturnValue
+    public @NonNull Builder setEncryptedMp4Level(@Nullable Long setterArg) {
+      this.encryptedMp4Level = setterArg;
+      return this;
     }
+
+    public @NonNull PreLoadInfoMsg build() {
+      PreLoadInfoMsg pigeonReturn = new PreLoadInfoMsg();
+      pigeonReturn.setAppId(appId);
+      pigeonReturn.setFileId(fileId);
+      pigeonReturn.setPSign(pSign);
+      pigeonReturn.setPlayUrl(playUrl);
+      pigeonReturn.setPreloadSizeMB(preloadSizeMB);
+      pigeonReturn.setPreferredResolution(preferredResolution);
+      pigeonReturn.setTmpPreloadTaskId(tmpPreloadTaskId);
+      pigeonReturn.setHttpHeader(httpHeader);
+      pigeonReturn.setEncryptedMp4Level(encryptedMp4Level);
+      return pigeonReturn;
+    }
+  }
+
+  @NonNull
+  ArrayList<Object> toList() {
+    ArrayList<Object> toListResult = new ArrayList<>(9);
+    toListResult.add(appId);
+    toListResult.add(fileId);
+    toListResult.add(pSign);
+    toListResult.add(playUrl);
+    toListResult.add(preloadSizeMB);
+    toListResult.add(preferredResolution);
+    toListResult.add(tmpPreloadTaskId);
+    toListResult.add(httpHeader);
+    toListResult.add(encryptedMp4Level);
+    return toListResult;
+  }
 
     static @NonNull PreLoadInfoMsg fromList(@NonNull ArrayList<Object> pigeonVar_list) {
       PreLoadInfoMsg pigeonResult = new PreLoadInfoMsg();
@@ -3098,6 +3163,8 @@ public class FtxMessages {
       pigeonResult.setTmpPreloadTaskId((Long) tmpPreloadTaskId);
       Object httpHeader = pigeonVar_list.get(7);
       pigeonResult.setHttpHeader((Map<String, String>) httpHeader);
+      Object encryptedMp4Level = pigeonVar_list.get(8);
+      pigeonResult.setEncryptedMp4Level((Long) encryptedMp4Level);
       return pigeonResult;
     }
   }
