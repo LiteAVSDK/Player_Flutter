@@ -61,14 +61,14 @@ public class FTXRenderView implements PlatformView {
 
     private void resetRenderView() {
         if (mRenderType == FTXEvent.ViewType.TEXTURE_TYPE) {
-            mTextureView = new FTXTextureView(mContext);
+            mTextureView = new FTXTextureView(mContext, mSurfacePassThrough);
         } else if (mRenderType == FTXEvent.ViewType.SURFACE_TYPE) {
             mTextureView = new FTXSurfaceView(mContext, mSurfacePassThrough);
         } else if (mRenderType == FTXEvent.ViewType.DRM_SURFACE_TYPE) {
             mTextureView = new FTXSurfaceView(mContext, true);
         } else {
             LiteavLog.e(TAG, "unknown view type :" + mRenderType + ", use default type TEXTURE_TYPE");
-            mTextureView = new FTXTextureView(mContext);
+            mTextureView = new FTXTextureView(mContext, mSurfacePassThrough);
         }
         mContainer.setCarrier(mTextureView);
     }

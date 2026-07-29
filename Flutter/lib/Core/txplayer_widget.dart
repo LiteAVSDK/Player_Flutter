@@ -8,8 +8,8 @@ class TXPlayerVideo extends StatefulWidget {
   final FTXAndroidRenderViewType renderViewType;
   final FTXOnRenderViewCreatedListener? onRenderViewCreatedListener;
 
-  /// 仅在 [androidRenderType] 为 [FTXAndroidRenderViewType.SURFACE_VIEW] 时生效。
-  /// 开启后画面直接由 SDK 输出到 SurfaceView，不过中间 OES 渲染，性能更好但不支持旋转/镜像。
+  /// When enabled, video is rendered directly by the SDK, bypassing the OES pipeline for better performance.
+  /// SurfaceView passthrough does not support rotation/mirror; TextureView passthrough supports rotation via Matrix.
   final bool androidSurfacePassThrough;
 
   ///

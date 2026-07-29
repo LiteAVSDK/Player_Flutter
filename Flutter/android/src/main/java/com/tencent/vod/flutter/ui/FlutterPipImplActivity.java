@@ -80,7 +80,8 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
     private boolean mIsPipFinishing = false;
     private TXPlayerHolder mPlayerHolder;
 
-    // PiP playback recovery state machine: NORMAL → NEED_RECOVER (on error/end) → RECOVERING (on restart) → NORMAL (on PLAY_BEGIN)
+    // PiP playback recovery FSM:
+    // NORMAL → NEED_RECOVER (on error/end) → RECOVERING (on restart) → NORMAL (on PLAY_BEGIN)
     private enum PipPlaybackState { NORMAL, NEED_RECOVER, RECOVERING }
 
     private PipPlaybackState mPipState = PipPlaybackState.NORMAL;
