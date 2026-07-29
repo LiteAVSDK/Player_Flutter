@@ -79,7 +79,12 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
     private Handler mMainHandler;
     private boolean mIsPipFinishing = false;
     private TXPlayerHolder mPlayerHolder;
-    private boolean mIsPlayEnd = false;
+
+    // PiP playback recovery state machine: NORMAL → NEED_RECOVER (on error/end) → RECOVERING (on restart) → NORMAL (on PLAY_BEGIN)
+    private enum PipPlaybackState { NORMAL, NEED_RECOVER, RECOVERING }
+
+    private PipPlaybackState mPipState = PipPlaybackState.NORMAL;
+    private float mRecoveryPosition = 0;
 
     private final BroadcastReceiver pipActionReceiver = new BroadcastReceiver() {
         @Override
@@ -148,14 +153,6 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
         bindAndroid12BugServiceIfNeed();
         registerPipBroadcast();
         setContentView(R.layout.activity_flutter_pip_impl);
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Window window = getWindow();
-//            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-////            window.setStatusBarColor(Color.TRANSPARENT);
-//        } else {
-//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//        }
         mVideoRenderView = findViewById(R.id.tv_video_container);
         mVideoProgress = findViewById(R.id.pb_video_progress);
         mPipContainer = findViewById(R.id.rl_pip_container);
@@ -306,7 +303,7 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
         TXPipResult pipResult = new TXPipResult();
         pipResult.setPlaying(mPlayerHolder.isPlaying());
         if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
-            if (mIsPlayEnd) {
+            if (mRecoveryPosition == 0f && mPipState == PipPlaybackState.NEED_RECOVER) {
                 pipResult.setPlayTime(0F);
             } else {
                 Float currentPlayTime = mPlayerHolder.getVodPlayer().getCurrentPlaybackTime();
@@ -545,9 +542,16 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
     }
 
     private void handleResumeOrPause() {
-        boolean dstPlaying = !mPlayerHolder.isPlaying();
+        boolean currentlyPlaying = mPlayerHolder.isPlaying();
+        boolean dstPlaying = !currentlyPlaying;
         if (dstPlaying) {
-            mPlayerHolder.resume();
+            if (mPipState == PipPlaybackState.NEED_RECOVER) {
+                // restart for recovery
+                mPipState = PipPlaybackState.RECOVERING;
+                mPlayerHolder.restart();
+            } else {
+                mPlayerHolder.resume();
+            }
         } else {
             mPlayerHolder.pause();
         }
@@ -555,6 +559,9 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
     }
 
     private void handleResumeOrPause(boolean playingStatus) {
+        if (null == mCurrentParams) {
+            return;
+        }
         mCurrentParams.setIsPlaying(playingStatus);
         updatePip(mCurrentParams);
     }
@@ -609,25 +616,36 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
     @Override
     public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
         if (VERSION.SDK_INT >= VERSION_CODES.N && isInPictureInPictureMode()) {
-            if (null != mCurrentParams) {
-                if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
-                    // When playback is complete, automatically set the playback button to play.
-                    mCurrentParams.setIsPlaying(false);
-                    updatePip(mCurrentParams);
-                } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
-                    // When playback starts, automatically set the playback button to pause.
-                    mCurrentParams.setIsPlaying(true);
-                    updatePip(mCurrentParams);
+            if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
+                switch (mPipState) {
+                    case RECOVERING:
+                        // seek to recovery pos
+                        if (mRecoveryPosition > 0) {
+                            mPlayerHolder.seek(mRecoveryPosition);
+                        }
+                        mPipState = PipPlaybackState.NORMAL;
+                        break;
+                    case NEED_RECOVER:
+                        // external playback, skip seek
+                        mPipState = PipPlaybackState.NORMAL;
+                        break;
+                    default: // NORMAL
+                        break;
                 }
-            }
-            if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
-                // When playback is complete, automatically set the playback button to play.
-                mIsPlayEnd = true;
-                controlPipPlayStatus(false);
-            } else if (event == TXLiveConstants.PLAY_EVT_PLAY_BEGIN) {
-                // When playback starts, automatically set the playback button to pause.
-                mIsPlayEnd = false;
                 controlPipPlayStatus(true);
+            } else if (event == TXLiveConstants.PLAY_EVT_PLAY_END) {
+                // play ended
+                mPipState = PipPlaybackState.NEED_RECOVER;
+                mRecoveryPosition = 0f;
+                controlPipPlayStatus(false);
+            } else if (event < 0) {
+                if (mPipState == PipPlaybackState.NORMAL) {
+                    // record pos on first error
+                    mRecoveryPosition = mPlayerHolder.getCurrentPlaybackTime();
+                }
+                mPipState = PipPlaybackState.NEED_RECOVER;
+                controlPipPlayStatus(false);
+                LiteavLog.i(TAG, "onPlayEvent error:" + event + ", state=" + mPipState);
             } else if (event == TXLiveConstants.PLAY_EVT_PLAY_PROGRESS) {
                 int progress = bundle.getInt(TXLiveConstants.EVT_PLAY_PROGRESS_MS);
                 int duration = bundle.getInt(TXLiveConstants.EVT_PLAY_DURATION_MS);

@@ -1,5 +1,17 @@
 
 
+#### Version: 13.4.1 2026.07.29
+
+##### Features：
+
+- set Android TXLiteAVSDK to 13.4.0.20477
+- set iOS TXLiteAVSDK to 13.4.21067
+- add encryptedMp4Level support for preload & download on Android
+- align Android PIP behavior with iOS
+- emit VOD_PLAY_EVT_PLAY_PAUSE event on Android pause, aligning with iOS SDK behavior
+- fix known issue
+
+
 #### Version: 13.4.0 2026.07.07
 
 ##### Features：

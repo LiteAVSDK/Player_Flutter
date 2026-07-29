@@ -424,6 +424,9 @@ abstract class TXVodPlayEvent {
   /// Select track complete
   /// 切换轨道完成
   static const VOD_PLAY_EVT_SELECT_TRACK_COMPLETE  = 2020;
+  /// Playback paused
+  /// 播放暂停
+  static const VOD_PLAY_EVT_PLAY_PAUSE = 2022;
   /// Switched media track index
   /// 切换的媒体轨道index
   static const EVT_KEY_SELECT_TRACK_INDEX    = "EVT_KEY_SELECT_TRACK_INDEX";

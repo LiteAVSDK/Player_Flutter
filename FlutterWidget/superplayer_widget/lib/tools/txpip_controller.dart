@@ -51,8 +51,7 @@ class TXPipController {
         } else {
           Navigator.of(context).pop();
         }
-      } else if ((Platform.isIOS && eventCode == TXVodPlayEvent.EVENT_IOS_PIP_MODE_WILL_EXIT) ||
-          (Platform.isAndroid && eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT)) {
+      } else if (eventCode == TXVodPlayEvent.EVENT_PIP_MODE_ALREADY_EXIT) {
         _playerData?.isEnterPip = false;
         /**
          * if you do not intend to continue reusing this vod player.

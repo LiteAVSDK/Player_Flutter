@@ -3,64 +3,92 @@ package com.tencent.vod.flutter.model;
 import com.tencent.live2.V2TXLivePlayer;
 import com.tencent.rtmp.TXVodPlayer;
 import com.tencent.vod.flutter.FTXEvent;
+import com.tencent.vod.flutter.player.FTXVodPlayer;
+import com.tencent.vod.flutter.player.FTXLivePlayer;
 
 public class TXPlayerHolder {
 
-    private TXVodPlayer mVodPlayer;
-    private V2TXLivePlayer mLivePlayer;
+    private final FTXVodPlayer mFTXVodPlayer;
+    private final FTXLivePlayer mFTXLivePlayer;
     private final int mPlayerType;
-    private boolean mPlayingStatus;
-    private boolean mIsPlayingWhenCreated = false;
+    private final boolean mIsPlayingWhenCreated;
 
-    public TXPlayerHolder(TXVodPlayer vodPlayer) {
-        mVodPlayer = vodPlayer;
-        mPlayingStatus = vodPlayer.isPlaying();
-        mIsPlayingWhenCreated = mPlayingStatus;
+    public TXPlayerHolder(FTXVodPlayer ftxVodPlayer) {
+        mFTXVodPlayer = ftxVodPlayer;
+        mFTXLivePlayer = null;
+        mIsPlayingWhenCreated = ftxVodPlayer.isPlayerPlaying();
         mPlayerType = FTXEvent.PLAYER_VOD;
     }
 
-    public TXPlayerHolder(V2TXLivePlayer livePlayer, boolean initPauseStatus) {
-        mLivePlayer = livePlayer;
-        mPlayingStatus = !initPauseStatus;
-        mIsPlayingWhenCreated = mPlayingStatus;
+    public TXPlayerHolder(FTXLivePlayer ftxLivePlayer, boolean initPauseStatus) {
+        mFTXVodPlayer = null;
+        mFTXLivePlayer = ftxLivePlayer;
+        mIsPlayingWhenCreated = !initPauseStatus;
         mPlayerType = FTXEvent.PLAYER_LIVE;
     }
 
+    // for PIP view bind/unbind
     public TXVodPlayer getVodPlayer() {
-        return mVodPlayer;
+        if (mFTXVodPlayer != null) {
+            return mFTXVodPlayer.getVodPlayer();
+        }
+        return null;
     }
 
+    // for PIP view bind/unbind
     public V2TXLivePlayer getLivePlayer() {
-        return mLivePlayer;
+        if (mFTXLivePlayer != null) {
+            return mFTXLivePlayer.getLivePlayer();
+        }
+        return null;
     }
 
     public boolean isPlayingWhenCreate() {
         return mIsPlayingWhenCreated;
     }
 
+    // real SDK state
     public boolean isPlaying() {
-        return mPlayingStatus;
+        if (mFTXVodPlayer != null) {
+            return mFTXVodPlayer.isPlayerPlaying();
+        } else if (mFTXLivePlayer != null) {
+            return mFTXLivePlayer.isPlayerPlaying();
+        }
+        return false;
     }
 
     public void pause() {
-        if (null != mVodPlayer) {
-            mVodPlayer.pause();
-            mPlayingStatus = false;
-        } else if (null != mLivePlayer) {
-            mLivePlayer.pauseAudio();
-            mLivePlayer.pauseVideo();
-            mPlayingStatus = false;
+        if (mFTXVodPlayer != null) {
+            mFTXVodPlayer.playerPause(true);
+        } else if (mFTXLivePlayer != null) {
+            mFTXLivePlayer.pausePlayer(true);
         }
     }
 
     public void resume() {
-        if (null != mVodPlayer) {
-            mVodPlayer.resume();
-            mPlayingStatus = true;
-        } else if (null != mLivePlayer) {
-            mLivePlayer.resumeAudio();
-            mLivePlayer.resumeVideo();
-            mPlayingStatus = true;
+        if (mFTXVodPlayer != null) {
+            mFTXVodPlayer.playerResume();
+        } else if (mFTXLivePlayer != null) {
+            mFTXLivePlayer.resumePlayer();
+        }
+    }
+
+    public void seek(float pos) {
+        if (mFTXVodPlayer != null) {
+            mFTXVodPlayer.seekPlayer(pos);
+        }
+    }
+
+    public float getCurrentPlaybackTime() {
+        if (mFTXVodPlayer != null) {
+            return mFTXVodPlayer.getPlayerCurrentPlaybackTime();
+        }
+        return 0;
+    }
+
+    public void restart() {
+        if (mFTXVodPlayer != null) {
+            mFTXVodPlayer.restart();
         }
     }
 

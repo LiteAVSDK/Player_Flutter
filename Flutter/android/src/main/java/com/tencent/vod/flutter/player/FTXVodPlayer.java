@@ -85,6 +85,10 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     private FTXEGLRender.OnFrameCopyListener mFrameCopyListener;
     private boolean mEnableHardwareDecode = true;
     private boolean mHardwareDecodeFail = false;
+
+    // Cached playback params for restart recovery (e.g., switchRender)
+    private final PlayParams mLastPlayParams = new PlayParams();
+
     private final FTXPIPManager mPipManager;
     private boolean mNeedPipResume = false;
     private final FtxMessages.TXVodPlayerFlutterAPI mVodFlutterApi;
@@ -418,6 +422,8 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
                 mCurRenderView.setPlayer(this);
             }
             mCurrentRotation = 0;
+            mLastPlayParams.type = PlayParams.TYPE_URL;
+            mLastPlayParams.url = url;
             return mVodPlayer.startVodPlay(url);
         }
         return Uninitialized;
@@ -428,6 +434,10 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
             if (null != mCurRenderView) {
                 mCurRenderView.setPlayer(this);
             }
+            mLastPlayParams.type = PlayParams.TYPE_FILEID;
+            mLastPlayParams.appId = appId;
+            mLastPlayParams.fileId = fileId;
+            mLastPlayParams.psign = psign;
             TXPlayInfoParams playInfoParams = new TXPlayInfoParams(appId, fileId, psign);
             mVodPlayer.startVodPlay(playInfoParams);
         }
@@ -449,25 +459,58 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         return result;
     }
 
-    boolean isPlayerPlaying() {
+    public boolean isPlayerPlaying() {
         if (mVodPlayer != null) {
             return mVodPlayer.isPlaying();
         }
         return false;
     }
 
-    void playerPause() {
+    public void playerPause(boolean skipPipNotify) {
         if (mVodPlayer != null) {
             mVodPlayer.pause();
-            if (mPipManager.isInPipMode()) {
+            // VOD_PLAY_EVT_PLAY_PAUSE = 2022, aligned with iOS SDK behavior
+            mVodFlutterApi.onPlayerEvent(TXCommonUtil.getParams(2022, null),
+                    FTXVodPlayer.this);
+            if (!skipPipNotify && mPipManager.isInPipMode()) {
                 mPipManager.notifyCurrentPipPlayerPlayState(getPlayerId(), isPlayerPlaying());
             }
         }
     }
 
-    void playerResume() {
+    public void playerResume() {
         if (mVodPlayer != null) {
             mVodPlayer.resume();
+        }
+    }
+
+    public void restart() {
+        if (mVodPlayer == null) {
+            return;
+        }
+        mVodPlayer.stopPlay(false);
+        switch (mLastPlayParams.type) {
+            case PlayParams.TYPE_URL:
+                if (!TextUtils.isEmpty(mLastPlayParams.url)) {
+                    mVodPlayer.startVodPlay(mLastPlayParams.url);
+                }
+                break;
+            case PlayParams.TYPE_FILEID:
+                TXPlayInfoParams params = new TXPlayInfoParams(mLastPlayParams.appId,
+                        mLastPlayParams.fileId, mLastPlayParams.psign);
+                mVodPlayer.startVodPlay(params);
+                break;
+            case PlayParams.TYPE_DRM:
+                TXPlayerDrmBuilder builder = new TXPlayerDrmBuilder(mLastPlayParams.drmLicenseUrl,
+                        mLastPlayParams.drmPlayUrl);
+                if (!TextUtils.isEmpty(mLastPlayParams.drmCertificateUrl)) {
+                    builder.setProvisionUrl(mLastPlayParams.drmCertificateUrl);
+                }
+                mVodPlayer.startPlayDrm(builder);
+                break;
+            default:
+                LiteavLog.w(TAG, "restart: unknown type=" + mLastPlayParams.type);
+                break;
         }
     }
 
@@ -525,7 +568,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         }
     }
 
-    void seekPlayer(float progress) {
+    public void seekPlayer(float progress) {
         if (mVodPlayer != null) {
             mVodPlayer.seek(progress);
         }
@@ -547,7 +590,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         }
     }
 
-    float getPlayerCurrentPlaybackTime() {
+    public float getPlayerCurrentPlaybackTime() {
         if (mVodPlayer != null) {
             return mVodPlayer.getCurrentPlaybackTime();
         }
@@ -647,6 +690,10 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     @Override
     public IntMsg startPlayDrm(@NonNull FtxMessages.TXPlayerDrmMsg params) {
         if (null != mVodPlayer) {
+            mLastPlayParams.type = PlayParams.TYPE_DRM;
+            mLastPlayParams.drmLicenseUrl = params.getLicenseUrl();
+            mLastPlayParams.drmPlayUrl = params.getPlayUrl();
+            mLastPlayParams.drmCertificateUrl = params.getDeviceCertificateUrl();
             TXPlayerDrmBuilder builder = new TXPlayerDrmBuilder(params.getLicenseUrl(), params.getPlayUrl());
             if (!TextUtils.isEmpty(params.getDeviceCertificateUrl())) {
                 builder.setProvisionUrl(params.getDeviceCertificateUrl());
@@ -679,7 +726,7 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
 
     @Override
     public void pause(@NonNull PlayerMsg playerMsg) {
-        playerPause();
+        playerPause(false);
     }
 
     @Override
@@ -850,10 +897,10 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         int pipResult = FTXEvent.ERROR_PIP_MISS_PLAYER;
         if (null != mVodPlayer) {
             pipParams.setRadio(mVodPlayer.getWidth(), mVodPlayer.getHeight());
-            pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(mVodPlayer));
+            pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(this));
             // After successful startup, pause the current interface video.
             if (pipResult == FTXEvent.NO_ERROR) {
-                playerPause();
+                playerPause(false);
             }
         }
         return TXCommonUtil.intMsgWith((long) pipResult);
@@ -1042,7 +1089,22 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     }
 
     @Override
-    protected TXVodPlayer getVodPlayer() {
+    public TXVodPlayer getVodPlayer() {
         return mVodPlayer;
+    }
+
+    private static class PlayParams {
+        static final int TYPE_NONE = 0;
+        static final int TYPE_URL = 1;
+        static final int TYPE_FILEID = 2;
+        static final int TYPE_DRM = 3;
+        int type = TYPE_NONE;
+        String url;
+        int appId;
+        String fileId;
+        String psign;
+        String drmLicenseUrl;
+        String drmPlayUrl;
+        String drmCertificateUrl;
     }
 }

@@ -209,26 +209,26 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
         return result;
     }
 
-    boolean isPlayerPlaying() {
+    public boolean isPlayerPlaying() {
         if (mLivePlayer != null) {
             return !mIsPaused;
         }
         return false;
     }
 
-    void pausePlayer() {
+    public void pausePlayer(boolean skipPipNotify) {
         LiteavLog.i(TAG, "called pausePlayer");
         if (mLivePlayer != null) {
             mLivePlayer.pauseVideo();
             mLivePlayer.pauseAudio();
             mIsPaused = true;
-            if (mPipManager.isInPipMode()) {
+            if (!skipPipNotify && mPipManager.isInPipMode()) {
                 mPipManager.notifyCurrentPipPlayerPlayState(getPlayerId(), isPlayerPlaying());
             }
         }
     }
 
-    void resumePlayer() {
+    public void resumePlayer() {
         if (mLivePlayer != null) {
             mLivePlayer.resumeVideo();
             if (!mIsMute) {
@@ -330,7 +330,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
 
     @Override
     public void pause(@NonNull PlayerMsg playerMsg) {
-        pausePlayer();
+        pausePlayer(false);
     }
 
     @Override
@@ -403,10 +403,10 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
             } else {
                 LiteavLog.e(TAG, "miss video size when enter PIP");
             }
-            pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(mLivePlayer, mIsPaused));
+            pipResult = mPipManager.enterPip(pipParams, new TXPlayerHolder(this, mIsPaused));
             // After the startup is successful, pause the video on the current interface.
             if (pipResult == FTXEvent.NO_ERROR) {
-                pausePlayer();
+                pausePlayer(false);
             }
         }
         return TXCommonUtil.intMsgWith((long) pipResult);
@@ -558,7 +558,7 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     }
 
     @Override
-    protected V2TXLivePlayer getLivePlayer() {
+    public V2TXLivePlayer getLivePlayer() {
         return mLivePlayer;
     }
 
