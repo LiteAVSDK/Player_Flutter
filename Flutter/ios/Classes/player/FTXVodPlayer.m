@@ -1059,11 +1059,11 @@ static const int uninitialized = -1;
                     }
                 }];
             } else {
-                [self.vodFlutterApi onSnapshotCompleteImageBytes:nil completion:nil];
+                [self.vodFlutterApi onSnapshotCompleteImageBytes:nil completion:^(FlutterError * _Nullable err) {}];
             }
         }];
     } else {
-        [self.vodFlutterApi onSnapshotCompleteImageBytes:nil completion:nil];
+        [self.vodFlutterApi onSnapshotCompleteImageBytes:nil completion:^(FlutterError * _Nullable err) {}];
     }
 }
 
