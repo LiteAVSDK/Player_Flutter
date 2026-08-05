@@ -999,6 +999,11 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
         LiteavLog.e(TAG, "setAutoPictureInPictureEnabled not implemented on android");
     }
 
+    // OES texture can't access draw buffer, not supported on Android
+    @Override
+    public void snapshot() {
+    }
+
     @Override
     public long getPlayerRenderMode() {
         return mCurrentRenderMode;

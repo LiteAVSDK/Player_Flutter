@@ -3308,6 +3308,28 @@ class TXFlutterVodPlayerApi {
       return;
     }
   }
+
+  Future<void> snapshot() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.super_player.TXFlutterVodPlayerApi.snapshot$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
 }
 
 class TXFlutterLivePlayerApi {
@@ -4422,6 +4444,8 @@ abstract class TXVodPlayerFlutterAPI {
 
   void onNetEvent(Map<String, Object> event);
 
+  void onSnapshotComplete(Uint8List? imageBytes);
+
   static void setUp(TXVodPlayerFlutterAPI? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
@@ -4465,6 +4489,29 @@ abstract class TXVodPlayerFlutterAPI {
               'Argument for dev.flutter.pigeon.super_player.TXVodPlayerFlutterAPI.onNetEvent was null, expected non-null Map<String, Object>.');
           try {
             api.onNetEvent(arg_event!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.super_player.TXVodPlayerFlutterAPI.onSnapshotComplete$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.super_player.TXVodPlayerFlutterAPI.onSnapshotComplete was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final Uint8List? arg_imageBytes = (args[0] as Uint8List?);
+          try {
+            api.onSnapshotComplete(arg_imageBytes);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

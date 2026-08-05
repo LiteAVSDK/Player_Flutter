@@ -33,6 +33,7 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   final StreamController<TXPlayerState?> _stateStreamController = StreamController.broadcast();
   final StreamController<Map<dynamic, dynamic>> _eventStreamController = StreamController.broadcast();
   final StreamController<Map<dynamic, dynamic>> _netStatusStreamController = StreamController.broadcast();
+  Completer<Uint8List?>? _snapshotCompleter;
 
   /// Playback State Listener
   ///
@@ -691,6 +692,23 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
     await _vodPlayerApi.setAutoPictureInPictureEnabled(isEnabled);
   }
 
+  /// Take a snapshot of the current video frame (iOS only).
+  Future<Uint8List?> snapshot() async {
+    if (_isNeedDisposed) return null;
+    await _initPlayer.future;
+    final completer = Completer<Uint8List?>();
+    _snapshotCompleter = completer;
+    try {
+      await _vodPlayerApi.snapshot();
+    } catch (e) {
+      _snapshotCompleter = null;
+      if (!completer.isCompleted) {
+        completer.complete(null);
+      }
+    }
+    return completer.future;
+  }
+
   /// release controller
   ///
   /// 释放controller
@@ -718,6 +736,12 @@ class TXVodPlayerController extends ChangeNotifier implements ValueListenable<TX
   void onNetEvent(Map event) {
     final Map<dynamic, dynamic> map = event;
     _netStatusStreamController.add(map);
+  }
+
+  @override
+  void onSnapshotComplete(Uint8List? imageBytes) {
+    _snapshotCompleter?.complete(imageBytes);
+    _snapshotCompleter = null;
   }
 
   /// event type:

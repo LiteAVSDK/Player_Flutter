@@ -1047,6 +1047,26 @@ static const int uninitialized = -1;
     }
 }
 
+- (void)snapshotWithError:(FlutterError * _Nullable __autoreleasing *)error {
+    if (nil != _txVodPlayer) {
+        [_txVodPlayer snapshot:^(UIImage *image) {
+            if (image) {
+                NSData *imageData = UIImagePNGRepresentation(image);
+                FlutterStandardTypedData *imageBytes = [FlutterStandardTypedData typedDataWithBytes:imageData];
+                [self.vodFlutterApi onSnapshotCompleteImageBytes:imageBytes completion:^(FlutterError * _Nullable err) {
+                    if (err) {
+                        FTXLOGE(@"snapshot callback error:%@", err);
+                    }
+                }];
+            } else {
+                [self.vodFlutterApi onSnapshotCompleteImageBytes:nil completion:nil];
+            }
+        }];
+    } else {
+        [self.vodFlutterApi onSnapshotCompleteImageBytes:nil completion:nil];
+    }
+}
+
 - (void)setRenderView:(FTXTextureView*)renderView {
     if (nil != _txVodPlayer) {
         if (renderView != nil) {

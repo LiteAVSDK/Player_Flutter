@@ -684,6 +684,8 @@ abstract class TXFlutterVodPlayerApi {
   void unpublishAudio();
 
   void setAutoPictureInPictureEnabled(bool isEnabled);
+
+  void snapshot();
 }
 
 @HostApi()
@@ -840,6 +842,8 @@ abstract class TXVodPlayerFlutterAPI {
   void onPlayerEvent(Map<String, Object> event);
 
   void onNetEvent(Map<String, Object> event);
+
+  void onSnapshotComplete(Uint8List? imageBytes);
 }
 
 @FlutterApi()

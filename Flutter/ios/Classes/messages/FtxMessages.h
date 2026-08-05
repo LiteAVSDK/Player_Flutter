@@ -743,6 +743,7 @@ extern void SetUpTXFlutterNativeAPIWithSuffix(id<FlutterBinaryMessenger> binaryM
 - (void)publishAudioWithError:(FlutterError *_Nullable *_Nonnull)error;
 - (void)unpublishAudioWithError:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setAutoPictureInPictureEnabledIsEnabled:(BOOL)isEnabled error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)snapshotWithError:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void SetUpTXFlutterVodPlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<TXFlutterVodPlayerApi> *_Nullable api);
@@ -903,6 +904,7 @@ extern void SetUpTXFlutterDownloadApiWithSuffix(id<FlutterBinaryMessenger> binar
 - (instancetype)initWithBinaryMessenger:(id<FlutterBinaryMessenger>)binaryMessenger messageChannelSuffix:(nullable NSString *)messageChannelSuffix;
 - (void)onPlayerEventEvent:(NSDictionary<NSString *, id> *)event completion:(void (^)(FlutterError *_Nullable))completion;
 - (void)onNetEventEvent:(NSDictionary<NSString *, id> *)event completion:(void (^)(FlutterError *_Nullable))completion;
+- (void)onSnapshotCompleteImageBytes:(nullable FlutterStandardTypedData *)imageBytes completion:(void (^)(FlutterError *_Nullable))completion;
 @end
 
 
