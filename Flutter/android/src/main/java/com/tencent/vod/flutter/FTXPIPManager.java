@@ -302,6 +302,14 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
         private final boolean mIsNeedPlayControl;
         private boolean mIsPlaying = false;
         private float mCurrentPlayTime = 0;
+        /**
+         * Android PiP aspect ratio constraints defined by the framework.
+         * The ratio must satisfy: 1/2.39 ≤ w/h ≤ 2.39
+         * @see android.app.PictureInPictureParams
+         */
+        private static final float PIP_MIN_ASPECT_RATIO = 0.418410f;
+        private static final float PIP_MAX_ASPECT_RATIO = 2.390000f;
+
         private int mViewWith = 16;
         private int mViewHeight = 9;
 
@@ -393,8 +401,23 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
         }
 
         public void setRadio(int width, int height) {
-            mViewWith = width;
-            mViewHeight = height;
+            if (width <= 0 || height <= 0) {
+                LiteavLog.w(TAG, "setRadio: invalid video size, keep default");
+                return;
+            }
+            float ratio = (float) width / height;
+            if (ratio < PIP_MIN_ASPECT_RATIO) {
+                LiteavLog.w(TAG, "setRadio: narrow aspect " + ratio + ", clamped");
+                mViewHeight = height;
+                mViewWith = Math.max(1, (int) Math.ceil(height * PIP_MIN_ASPECT_RATIO));
+            } else if (ratio > PIP_MAX_ASPECT_RATIO) {
+                LiteavLog.w(TAG, "setRadio: wide aspect " + ratio + ", clamped");
+                mViewWith = width;
+                mViewHeight = Math.max(1, (int) Math.ceil(width / PIP_MAX_ASPECT_RATIO));
+            } else {
+                mViewWith = width;
+                mViewHeight = height;
+            }
         }
 
         public int geiRadioWith() {
