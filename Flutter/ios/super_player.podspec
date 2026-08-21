@@ -6,7 +6,6 @@ require 'yaml'
 
 project_root = ENV['FLUTTER_APPLICATION_PATH']
 
-# 利用 CocoaPods 的 Config 实例找到 Podfile 所在的目录，宿主项目通常在 Podfile 的上一级
 if project_root.nil? && defined?(Pod::Config)
   podfile_dir = Pod::Config.instance.project_root.to_s
   project_root = File.expand_path('..', podfile_dir)
@@ -15,14 +14,40 @@ end
 puts "[SuperPlayer] project_root: #{project_root}"
 pubspec_path = File.join(project_root, 'pubspec.yaml') if project_root
 
-sdk_version = '13.4.21067'
-sub_spec_version = 'professional'
 ALLOWED_VERSIONS = ['player', 'professional', 'premium', 'professional_premium']
 
+# Default underlying SDK version when used standalone.
+sdk_version = '13.4.21067'
+
+sub_spec_version = nil
+
+# Follow tencent_rtc_sdk when the host integrates it: bare default subspec + versionless deps,
+# series/version are then decided by rtc_sdk's targeted subspec dependency.
+# NOTE: top-level def does not work here (podspec is eval'ed inside module Pod).
+integrated_with_rtc = begin
+  result = false
+  if project_root && ENV['USE_LOCAL_LITEAV_SDK'] != 'TRUE'
+    lock_path = File.join(project_root, 'pubspec.lock')
+    if File.exist?(lock_path)
+      result = true if File.read(lock_path).match?(/^  tencent_rtc_sdk:$/)
+    end
+    unless result
+      yaml_path = File.join(project_root, 'pubspec.yaml')
+      result = true if File.exist?(yaml_path) && File.read(yaml_path).match?(/^dependencies:\s*$.*?^  tencent_rtc_sdk:/m)
+    end
+  end
+  result
+end
+puts "[SuperPlayer] integrated with tencent_rtc_sdk: #{integrated_with_rtc}"
+
 puts "---------------- [SuperPlayer] ----------------"
-if File.exist?(pubspec_path)
+if integrated_with_rtc
+  # bare has no underlying dep; series/version come from rtc_sdk's targeted subspec dependency.
+  sub_spec_version = 'bare'
+  puts "[SuperPlayer] default_subspec = bare (series decided by tencent_rtc_sdk)"
+elsif sub_spec_version.nil? && pubspec_path && File.exist?(pubspec_path)
   begin
-      puts "[SuperPlayer] path: #{pubspec_path}"
+    puts "[SuperPlayer] path: #{pubspec_path}"
     pubspec = YAML.load_file(pubspec_path)
     if pubspec['super_player'] && pubspec['super_player']['sub_spec']
         parsed_version = pubspec['super_player']['sub_spec']
@@ -40,9 +65,11 @@ if File.exist?(pubspec_path)
   rescue => e
     puts "[SuperPlayer] YAML parsed error: #{e.message}"
   end
-else
+elsif sub_spec_version.nil?
   puts "[SuperPlayer] warning: pubspec.yaml not found (path: #{pubspec_path})"
 end
+sub_spec_version ||= 'professional'
+puts "[SuperPlayer] final sub_spec: #{sub_spec_version}, sdk_version: #{sdk_version}"
 puts "-----------------------------------------------"
 
 Pod::Spec.new do |s|
@@ -66,25 +93,26 @@ player plugin.
 
   s.default_subspec = sub_spec_version
 
-  # Set the dependent LiteAV SDK type:
-  # Player SDK: s.dependency 'TXLiteAVSDK_Player'
-  # Player_Premium SDK: s.dependency 'TXLiteAVSDK_Player_Premium'
-  # Professional SDK:  s.dependency 'TXLiteAVSDK_Professional'
-  # If you want to specify the SDK version（eg 11.6.15041), use:  s.dependency 'TXLiteAVSDK_Player','11.6.15041'
+  # versionless when tencent_rtc_sdk integrated (intersection resolves to rtc_sdk's constraint).
+
+  # Empty default subspec used when rtc_sdk is integrated; series comes from rtc_sdk.
+   s.subspec 'bare' do |ss|
+   end
+
    s.subspec 'player' do |ss|
-       ss.dependency 'TXLiteAVSDK_Player', sdk_version
+       integrated_with_rtc ? ss.dependency('TXLiteAVSDK_Player') : ss.dependency('TXLiteAVSDK_Player', sdk_version)
    end
 
    s.subspec 'professional' do |ss|
-        ss.dependency 'TXLiteAVSDK_Professional', sdk_version
+       integrated_with_rtc ? ss.dependency('TXLiteAVSDK_Professional') : ss.dependency('TXLiteAVSDK_Professional', sdk_version)
    end
 
     s.subspec 'premium' do |ss|
-          ss.dependency 'TXLiteAVSDK_Player_Premium', sdk_version
+       integrated_with_rtc ? ss.dependency('TXLiteAVSDK_Player_Premium') : ss.dependency('TXLiteAVSDK_Player_Premium', sdk_version)
     end
 
    s.subspec 'professional_premium' do |ss|
-         ss.dependency 'TXLiteAVSDK_Professional_Player_Premium', sdk_version
+       integrated_with_rtc ? ss.dependency('TXLiteAVSDK_Professional_Player_Premium') : ss.dependency('TXLiteAVSDK_Professional_Player_Premium', sdk_version)
    end
 
 #   s.dependency 'FTXPiPKit'

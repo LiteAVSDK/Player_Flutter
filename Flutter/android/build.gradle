@@ -23,6 +23,11 @@ android {
         buildConfigField("String", "FLUTTER_PLAYER_VERSION", "\"${rootProject.ext.playerVersion}\"")
         minSdkVersion rootProject.ext.minSdkVersion
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 import java.util.regex.Pattern
@@ -30,7 +35,7 @@ import java.util.regex.Pattern
 def getSubSpecFromPubspec() {
     def allowedVersions = ['player', 'professional', 'premium', 'professional_premium']
 
-    // rootProject.projectDir 通常是 [HostApp]/android/
+    // rootProject.projectDir is usually [HostApp]/android/
     def hostProjectRoot = rootProject.projectDir.parentFile
     def pubspecFile = new File(hostProjectRoot, "pubspec.yaml")
 
@@ -61,34 +66,48 @@ def getSubSpecFromPubspec() {
     return "professional"
 }
 
+// LiteAVSDK series -> Maven module name
+def liteavSubSpecModules = [
+    player: "LiteAVSDK_Player",
+    professional: "LiteAVSDK_Professional",
+    premium: "LiteAVSDK_Player_Premium",
+    professional_premium: "LiteAVSDK_Professional_Player_Premium",
+]
+
+// sub_spec from host pubspec (super_player node), fallback to professional
 def subSpecVersion = getSubSpecFromPubspec()
-
-android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    namespace="com.tencent.vod.flutter"
-
-    defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+if (!liteavSubSpecModules.containsKey(subSpecVersion)) {
+    println("[SuperPlayer] warning: invalid sub_spec '${subSpecVersion}', allowed: ${liteavSubSpecModules.keySet().join(', ')}")
+    subSpecVersion = "professional"
 }
+println("[SuperPlayer] resolved sub_spec: ${subSpecVersion}")
 
+// default version from config.gradle; overridden below when tencent_rtc_sdk is integrated
+def liteavSdkVersion = rootProject.ext.playerSDKVersion
+println("[SuperPlayer] default liteavSdkVersion: ${liteavSdkVersion}")
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    // player / professional / premium / professional_premium
-    if (subSpecVersion == "player") {
-        implementation rootProject.ext.liteavPlayerSdk
-    } else if (subSpecVersion == "premium") {
-        implementation rootProject.ext.liteavPremiumSdk
-    } else if (subSpecVersion == "professional_premium") {
-        implementation rootProject.ext.liteavProPremiumSdk
-    } else {
-        implementation rootProject.ext.liteavProSdk
-    }
+    // series from sub_spec, version from config.gradle default; both follow rtc_sdk via the strategy below when integrated
+    implementation "com.tencent.liteav:${liteavSubSpecModules[subSpecVersion]}:${liteavSdkVersion}"
     implementation rootProject.ext.compat
+}
+
+// Follow tencent_rtc_sdk (series + version) when integrated. Registered on rootProject so the host app graph is covered too.
+rootProject.allprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            def liteavMainModules = ["LiteAVSDK_Player", "LiteAVSDK_Professional",
+                                     "LiteAVSDK_Player_Premium", "LiteAVSDK_Professional_Player_Premium"]
+            if (details.requested.group == "com.tencent.liteav" && details.requested.name in liteavMainModules) {
+                def rtcModule = rootProject.ext.find("rtcSdkLiteavSdkModule")
+                def rtcVersion = rootProject.ext.find("rtcSdkLiteavSdkVersion")
+                if (rtcModule != null && rtcModule in liteavMainModules && rtcVersion ==~ /\d+\.\d+\.\d+\.\d+/) {
+                    details.useTarget("com.tencent.liteav:${rtcModule}:${rtcVersion}")
+                } else if (rtcVersion ==~ /\d+\.\d+\.\d+\.\d+/) {
+                    details.useVersion(rtcVersion)
+                }
+            }
+        }
+    }
 }
