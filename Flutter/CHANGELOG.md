@@ -1,5 +1,14 @@
 
 
+#### Version: 13.4.2 2026.08.24
+
+##### Features：
+
+- support passthrough rendering on TextureView (Android)
+- clamp PiP aspect ratio to prevent crash on extreme video dimensions (Android)
+- fix known issue
+
+
 #### Version: 13.4.1 2026.07.29
 
 ##### Features：
