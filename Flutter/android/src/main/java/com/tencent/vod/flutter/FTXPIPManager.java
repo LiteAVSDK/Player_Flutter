@@ -292,6 +292,14 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
 
     public static class PipParams implements Parcelable {
 
+        /**
+         * Android PiP aspect ratio constraints defined by the framework.
+         * The ratio must satisfy: 1/2.39 ≤ w/h ≤ 2.39
+         * @see android.app.PictureInPictureParams
+         */
+        private static final float PIP_MIN_ASPECT_RATIO = 0.418410f;
+        private static final float PIP_MAX_ASPECT_RATIO = 2.390000f;
+
         private final String mPlayBackAssetPath;
         private final String mPlayResumeAssetPath;
         private final String mPlayPauseAssetPath;
@@ -302,13 +310,6 @@ public class FTXPIPManager implements TXSimpleEventBus.EventSubscriber, FtxMessa
         private final boolean mIsNeedPlayControl;
         private boolean mIsPlaying = false;
         private float mCurrentPlayTime = 0;
-        /**
-         * Android PiP aspect ratio constraints defined by the framework.
-         * The ratio must satisfy: 1/2.39 ≤ w/h ≤ 2.39
-         * @see android.app.PictureInPictureParams
-         */
-        private static final float PIP_MIN_ASPECT_RATIO = 0.418410f;
-        private static final float PIP_MAX_ASPECT_RATIO = 2.390000f;
 
         private int mViewWith = 16;
         private int mViewHeight = 9;
