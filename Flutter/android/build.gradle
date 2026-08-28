@@ -27,56 +27,159 @@ android {
 
 import java.util.regex.Pattern
 
-def getSubSpecFromPubspec() {
-    def allowedVersions = ['player', 'professional', 'premium', 'professional_premium']
+// 定位宿主 pubspec.yaml：环境变量 > gradle属性 > 向上逐级 > 向下受限查找（混合工程 / add-to-app）
+def locateHostPubspec() {
+    def candidates = new LinkedHashSet<File>()
 
-    // rootProject.projectDir 通常是 [HostApp]/android/
-    def hostProjectRoot = rootProject.projectDir.parentFile
-    def pubspecFile = new File(hostProjectRoot, "pubspec.yaml")
+    // 1) 环境变量（与 iOS 对齐；gradle 直连 / IDE 构建时可用）
+    def envRoot = System.getenv("FLUTTER_APPLICATION_PATH")
+    if (envRoot) {
+        candidates << new File(envRoot, "pubspec.yaml")
+    }
 
-    println("[SuperPlayer] Target Host Pubspec: ${pubspecFile.absolutePath}")
+    // 2) 显式 gradle 属性 flutterProjectRoot（宿主 -PflutterProjectRoot= 或 gradle.properties）
+    def propRoot = rootProject.findProperty("flutterProjectRoot")
+    if (propRoot) {
+        candidates << new File(propRoot.toString(), "pubspec.yaml")
+    }
 
-    if (pubspecFile.exists()) {
-        def content = pubspecFile.text
-        def pattern = Pattern.compile("super_player:\\s*\\n\\s*sub_spec:\\s*['\"]?(\\w+)['\"]?")
-        def matcher = pattern.matcher(content)
+    // 3) rootProject.projectDir 及其祖先（覆盖标准 [host]/android）
+    def dir = rootProject.projectDir
+    for (int i = 0; i < 6 && dir != null; i++) {
+        candidates << new File(dir, "pubspec.yaml")
+        dir = dir.parentFile
+    }
 
-        if (matcher.find()) {
-            def result = matcher.group(1)
-            println("[SuperPlayer] get liteavResult: ${result}")
-            if (result in allowedVersions) {
-                println("[SuperPlayer] valid subSpecVersion: ${result}")
-                return result
-            } else {
-                println("[SuperPlayer] warning: invalid subSpecVersion '${result}', allowed: ${allowedVersions.join(', ')}")
-                println("[SuperPlayer] fallback to default: professional")
-                return "professional"
+    for (f in candidates) {
+        if (f.exists()) {
+            println("[SuperPlayer] host pubspec found: ${f.absolutePath}")
+            return f
+        }
+    }
+
+    // 4) 向下受限查找：仓库根下同时含 pubspec.yaml 与 .flutter-plugins-dependencies 的目录（混合工程 / add-to-app）
+    def childDirs = new ArrayList<File>()
+    collectHostDirs(rootProject.projectDir.parentFile, 0, childDirs)
+    childDirs.sort { a, b -> a.absolutePath.length() <=> b.absolutePath.length() }
+    for (d in childDirs) {
+        def f = new File(d, "pubspec.yaml")
+        if (f.exists()) {
+            println("[SuperPlayer] host pubspec found (child): ${f.absolutePath}")
+            return f
+        }
+    }
+    return null
+}
+
+def collectHostDirs(File dir, int depth, List out) {
+    if (depth > 4 || dir == null || !dir.exists()) return
+    def skip = ['.git', '.idea', '.dart_tool', 'build', '.pub-cache', 'node_modules', '.cxx', 'ios', 'Pods', 'app', 'android'] as Set
+    def children = dir.listFiles()
+    if (children == null) return
+    for (f in children) {
+        if (f.directory && !skip.contains(f.name)) {
+            if (new File(f, 'pubspec.yaml').exists() && new File(f, '.flutter-plugins-dependencies').exists()) {
+                out << f
             }
+            collectHostDirs(f, depth + 1, out)
+        }
+    }
+}
+
+// 从 pubspec 解析 super_player.sub_spec，找不到返回 null
+def parseSubSpecFromPubspec(File pubspecFile) {
+    def content = pubspecFile.text
+    def pattern = Pattern.compile("super_player:\\s*\\n\\s*sub_spec:\\s*['\"]?(\\w+)['\"]?")
+    def matcher = pattern.matcher(content)
+    if (matcher.find()) {
+        return matcher.group(1)
+    }
+    return null
+}
+
+// 解析 sub_spec：环境变量 > gradle属性 > pubspec 节点 > 默认 professional
+def resolveSubSpec() {
+    def allowedSubSpecs = ['player', 'professional', 'premium', 'professional_premium']
+
+    def env = System.getenv("LITEAV_SDK_SUB_SPEC")
+    if (env) {
+        println("[SuperPlayer] LITEAV_SDK_SUB_SPEC (env): ${env}")
+        if (env in allowedSubSpecs) {
+            return env
+        }
+        println("[SuperPlayer] warning: invalid LITEAV_SDK_SUB_SPEC '${env}', allowed: ${allowedSubSpecs.join(', ')}")
+    }
+
+    def prop = rootProject.findProperty("liteavSdkSubSpec")
+    if (prop) {
+        println("[SuperPlayer] liteavSdkSubSpec (property): ${prop}")
+        if (prop.toString() in allowedSubSpecs) {
+            return prop.toString()
+        }
+        println("[SuperPlayer] warning: invalid liteavSdkSubSpec '${prop}', allowed: ${allowedSubSpecs.join(', ')}")
+    }
+
+    def pubspecFile = locateHostPubspec()
+    if (pubspecFile != null) {
+        def result = parseSubSpecFromPubspec(pubspecFile)
+        if (result != null) {
+            println("[SuperPlayer] sub_spec from pubspec: ${result}")
+            if (result in allowedSubSpecs) {
+                return result
+            }
+            println("[SuperPlayer] warning: invalid sub_spec '${result}', allowed: ${allowedSubSpecs.join(', ')}")
         } else {
-            println("[SuperPlayer] sub_spec not found\n: ${content}")
+            println("[SuperPlayer] sub_spec not found in pubspec")
         }
     } else {
-        println("[SuperPlayer] pubspecFile not exists: ${pubspecFile}")
+        println("[SuperPlayer] pubspecFile not found; fallback to default: professional")
     }
+
     return "professional"
 }
 
-def subSpecVersion = getSubSpecFromPubspec()
+// 解析 liteav SDK 版本：环境变量 > gradle属性 > config.gradle 默认
+def resolveLiteavSdkVersion() {
+    def fallback = rootProject.ext.playerSDKVersion
 
-android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    namespace="com.tencent.vod.flutter"
-
-    defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
+    def env = System.getenv("LITEAV_SDK_VERSION")
+    if (env) {
+        println("[SuperPlayer] LITEAV_SDK_VERSION (env): ${env}")
+        if (env ==~ /\d+\.\d+\.\d+\.\d+/) {
+            return env
+        }
+        println("[SuperPlayer] warning: invalid LITEAV_SDK_VERSION '${env}' (expect x.x.x.x), ignored")
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+    def prop = rootProject.findProperty("liteavSdkVersion")
+    if (prop) {
+        println("[SuperPlayer] liteavSdkVersion (property): ${prop}")
+        if (prop.toString() ==~ /\d+\.\d+\.\d+\.\d+/) {
+            return prop.toString()
+        }
+        println("[SuperPlayer] warning: invalid liteavSdkVersion '${prop}' (expect x.x.x.x), ignored")
     }
+
+    return fallback
 }
 
+// LiteAVSDK series -> Maven module name
+def liteavSubSpecModules = [
+    player: "LiteAVSDK_Player",
+    professional: "LiteAVSDK_Professional",
+    premium: "LiteAVSDK_Player_Premium",
+    professional_premium: "LiteAVSDK_Professional_Player_Premium",
+]
+
+def subSpecVersion = resolveSubSpec()
+if (!liteavSubSpecModules.containsKey(subSpecVersion)) {
+    println("[SuperPlayer] warning: invalid sub_spec '${subSpecVersion}', allowed: ${liteavSubSpecModules.keySet().join(', ')}")
+    subSpecVersion = "professional"
+}
+println("[SuperPlayer] resolved sub_spec: ${subSpecVersion}")
+
+def liteavSdkVersion = resolveLiteavSdkVersion()
+println("[SuperPlayer] resolved liteavSdkVersion: ${liteavSdkVersion}")
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
