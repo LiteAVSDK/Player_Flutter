@@ -4,20 +4,104 @@
 
 require 'yaml'
 
-project_root = ENV['FLUTTER_APPLICATION_PATH']
+ALLOWED_VERSIONS = ['player', 'professional', 'premium', 'professional_premium']
 
-if project_root.nil? && defined?(Pod::Config)
-  podfile_dir = Pod::Config.instance.project_root.to_s
-  project_root = File.expand_path('..', podfile_dir)
+# Default underlying SDK version when used standalone; overridable via LITEAV_SDK_VERSION (x.x.x).
+sdk_version = ENV['LITEAV_SDK_VERSION'] || '13.4.21067'
+unless sdk_version =~ /^\d+\.\d+\.\d+$/
+  puts "[SuperPlayer] warning: invalid LITEAV_SDK_VERSION '#{sdk_version}' (expect x.x.x), fallback to default"
+  sdk_version = '13.4.21067'
+end
+
+env_sub_spec = ENV['LITEAV_SDK_SUB_SPEC']
+if env_sub_spec && !ALLOWED_VERSIONS.include?(env_sub_spec)
+  puts "[SuperPlayer] warning: invalid LITEAV_SDK_SUB_SPEC '#{env_sub_spec}', allowed: #{ALLOWED_VERSIONS.join(', ')}"
+  env_sub_spec = nil
+end
+
+# Locate host pubspec.yaml. Priority:
+#   1. FLUTTER_APPLICATION_PATH env (flutter tool / CI)
+#   2. flutter_application_path declared in host Podfile (add-to-app standard)
+#   3. walk up from the Podfile directory (standard single-app)
+#   4. walk down: a child dir that has both pubspec.yaml and ios/ (mixed project)
+project_root = nil
+pubspec_path = nil
+
+if ENV['FLUTTER_APPLICATION_PATH']
+  candidate = File.join(ENV['FLUTTER_APPLICATION_PATH'], 'pubspec.yaml')
+  if File.exist?(candidate)
+    project_root = ENV['FLUTTER_APPLICATION_PATH']
+    pubspec_path = candidate
+    puts "[SuperPlayer] host pubspec found (FLUTTER_APPLICATION_PATH): #{pubspec_path}"
+  end
+end
+
+if pubspec_path.nil? && defined?(Pod::Config)
+  podfile = Pod::Config.instance.podfile
+  podfile_path = (podfile.defined_in_file.to_s rescue nil) if podfile.respond_to?(:defined_in_file)
+  if podfile_path && File.exist?(podfile_path)
+    content = File.read(podfile_path) rescue nil
+    if content && (m = content.match(/flutter_application_path\s*=\s*['"]([^'"]+)['"]/))
+      base = File.dirname(podfile_path)
+      candidate = File.expand_path(File.join(m[1], 'pubspec.yaml'), base)
+      if File.exist?(candidate)
+        project_root = File.dirname(candidate)
+        pubspec_path = candidate
+        puts "[SuperPlayer] host pubspec found (Podfile flutter_application_path): #{pubspec_path}"
+      end
+    end
+  end
+end
+
+if pubspec_path.nil? && defined?(Pod::Config)
+  dir = Pod::Config.instance.project_root.to_s
+  6.times do
+    candidate = File.join(dir, 'pubspec.yaml')
+    if File.exist?(candidate)
+      project_root = dir
+      pubspec_path = candidate
+      puts "[SuperPlayer] host pubspec found (ancestor): #{pubspec_path}"
+      break
+    end
+    parent = File.dirname(dir)
+    break if parent == dir
+    dir = parent
+  end
+end
+
+if pubspec_path.nil? && defined?(Pod::Config)
+  roots = [File.expand_path('..', Pod::Config.instance.project_root.to_s)]
+  skip = ['.git', '.idea', '.dart_tool', 'build', 'node_modules', 'Pods', '.pub-cache', 'android', 'ios']
+  depth = 0
+  while depth < 4 && !roots.empty? && pubspec_path.nil?
+    next_roots = []
+    roots.each do |d|
+      children = begin
+        Dir.children(d)
+      rescue
+        next
+      end
+      children.each do |name|
+        full = File.join(d, name)
+        next unless File.directory?(full)
+        next if skip.include?(name)
+        if File.exist?(File.join(full, 'pubspec.yaml')) && File.exist?(File.join(full, '.flutter-plugins-dependencies'))
+          project_root = full
+          pubspec_path = File.join(full, 'pubspec.yaml')
+          puts "[SuperPlayer] host pubspec found (child): #{pubspec_path}"
+          break
+        end
+        next_roots << full
+      end
+      break if pubspec_path
+    end
+    roots = next_roots
+    depth += 1
+  end
 end
 
 puts "[SuperPlayer] project_root: #{project_root}"
-pubspec_path = File.join(project_root, 'pubspec.yaml') if project_root
-
-ALLOWED_VERSIONS = ['player', 'professional', 'premium', 'professional_premium']
-
-# Default underlying SDK version when used standalone.
-sdk_version = '13.4.21067'
+puts "[SuperPlayer] warning: pubspec.yaml not found" if pubspec_path.nil?
 
 sub_spec_version = nil
 
@@ -45,6 +129,9 @@ if integrated_with_rtc
   # bare has no underlying dep; series/version come from rtc_sdk's targeted subspec dependency.
   sub_spec_version = 'bare'
   puts "[SuperPlayer] default_subspec = bare (series decided by tencent_rtc_sdk)"
+elsif env_sub_spec
+  sub_spec_version = env_sub_spec
+  puts "[SuperPlayer] sub_spec from LITEAV_SDK_SUB_SPEC: #{sub_spec_version}"
 elsif sub_spec_version.nil? && pubspec_path && File.exist?(pubspec_path)
   begin
     puts "[SuperPlayer] path: #{pubspec_path}"
