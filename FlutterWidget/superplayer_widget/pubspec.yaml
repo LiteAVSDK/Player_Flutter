@@ -1,10 +1,10 @@
 name: superplayer_widget
 description: superplayer,base on vodplayer
-version: 13.4.2
+version: 13.4.3
 
 environment:
-  sdk: '>=3.6.0 <4.0.0'
-  flutter: ">=3.27.4"
+  sdk: '>=2.18.0 <4.0.0'
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:

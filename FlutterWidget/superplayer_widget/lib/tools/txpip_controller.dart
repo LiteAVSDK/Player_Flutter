@@ -114,7 +114,7 @@ class TXPipController {
   }
 }
 
-mixin class TXPipPlayerRestorePage {
+mixin TXPipPlayerRestorePage {
   /// This method will be called when it is necessary to save the relevant elements of the picture-in-picture interface.
   /// 当需要保存画中画界面相关元素的时候，会回调该方法
   void onNeedSavePipPageState(Map<String, dynamic> params) {}
