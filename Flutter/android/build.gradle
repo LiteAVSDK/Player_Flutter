@@ -202,10 +202,8 @@ rootProject.allprojects {
             if (details.requested.group == "com.tencent.liteav" && details.requested.name in liteavMainModules) {
                 def rtcModule = rootProject.ext.find("rtcSdkLiteavSdkModule")
                 def rtcVersion = rootProject.ext.find("rtcSdkLiteavSdkVersion")
-                if (rtcModule != null && rtcModule in liteavMainModules && rtcVersion ==~ /\d+\.\d+\.\d+\.\d+/) {
+                if (rtcModule != null && rtcVersion != null) {
                     details.useTarget("com.tencent.liteav:${rtcModule}:${rtcVersion}")
-                } else if (rtcVersion ==~ /\d+\.\d+\.\d+\.\d+/) {
-                    details.useVersion(rtcVersion)
                 }
             }
         }
