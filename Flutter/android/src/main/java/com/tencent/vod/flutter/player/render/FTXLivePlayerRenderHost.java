@@ -18,6 +18,7 @@ public abstract class FTXLivePlayerRenderHost extends FTXBasePlayer implements F
 
     private static final String TAG = "FTXLivePlayerRenderHost";
     protected FTXRenderView mCurRenderView;
+    protected FTXRenderCarrier mRenderCarrier;
 
     @Override
     public void setUpPlayerView(FTXRenderView renderView) {
@@ -43,14 +44,17 @@ public abstract class FTXLivePlayerRenderHost extends FTXBasePlayer implements F
             if (textureView instanceof TextureView) {
                 livePlayer.setRenderView((TextureView) textureView);
                 textureView.addSurfaceTextureListener(this);
+                mRenderCarrier = textureView;
             } else if (textureView instanceof SurfaceView) {
                 livePlayer.setRenderView((SurfaceView) textureView);
                 textureView.addSurfaceTextureListener(this);
+                mRenderCarrier = textureView;
             } else {
                 LiteavLog.e(TAG, "setRenderView met a unImpl renderView, view obj:" + textureView);
             }
         } else {
             LiteavLog.i(TAG, "setRenderView met a null textureView, player:" + hashCode());
+            mRenderCarrier = null;
             if (null != livePlayer) {
                 livePlayer.setRenderView((TextureView) null);
                 livePlayer.setRenderView((SurfaceView) null);
@@ -68,6 +72,11 @@ public abstract class FTXLivePlayerRenderHost extends FTXBasePlayer implements F
     @Override
     public boolean onSurfaceTextureDestroyed(Surface surface) {
         return false;
+    }
+
+    @Override
+    public boolean isUsingRenderCarrier(FTXRenderCarrier carrier) {
+        return mRenderCarrier == carrier;
     }
 
     protected abstract V2TXLivePlayer getLivePlayer();

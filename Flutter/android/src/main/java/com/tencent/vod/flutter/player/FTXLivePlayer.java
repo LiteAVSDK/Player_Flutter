@@ -17,6 +17,7 @@ import com.tencent.live2.impl.V2TXLivePlayerImpl;
 import com.tencent.live2.impl.V2TXLiveProperty;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
+import com.tencent.rtmp.ui.TXCloudVideoView;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.FTXPIPManager;
 import com.tencent.vod.flutter.common.FTXPlayerConstants;
@@ -555,6 +556,16 @@ public class FTXLivePlayer extends FTXLivePlayerRenderHost implements TXFlutterL
     @Override
     public void error(@NonNull Throwable error) {
         LiteavLog.e(TAG, "callback message error:" + error);
+    }
+
+    public void bindPipView(TXCloudVideoView videoView) {
+        if (null != mRenderCarrier) {
+            mRenderCarrier.removeSurfaceTextureListener(this);
+            mRenderCarrier = null;
+        }
+        if (null != mLivePlayer) {
+            mLivePlayer.setRenderView(videoView);
+        }
     }
 
     @Override

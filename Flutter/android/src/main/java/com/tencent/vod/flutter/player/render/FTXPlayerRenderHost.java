@@ -11,4 +11,6 @@ public interface FTXPlayerRenderHost {
 
     void setRenderView(FTXRenderCarrier textureView);
 
+    boolean isUsingRenderCarrier(FTXRenderCarrier carrier);
+
 }

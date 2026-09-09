@@ -89,6 +89,11 @@ public abstract class FTXVodPlayerRenderHost extends FTXBasePlayer implements FT
         return mRenderCarrier;
     }
 
+    @Override
+    public boolean isUsingRenderCarrier(FTXRenderCarrier carrier) {
+        return mRenderCarrier == carrier;
+    }
+
     protected abstract TXVodPlayer getVodPlayer();
 
     public abstract void handleTRTCObj(FTXRenderCarrier carrier);

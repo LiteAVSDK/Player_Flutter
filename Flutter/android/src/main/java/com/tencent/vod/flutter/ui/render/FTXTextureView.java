@@ -1,7 +1,6 @@
 package com.tencent.vod.flutter.ui.render;
 
 import android.content.Context;
-import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.view.Gravity;
 import android.view.Surface;
@@ -97,16 +96,13 @@ public class FTXTextureView extends TextureView implements FTXRenderCarrier {
         }
         mRotation = rotation;
         if (mPassThrough) {
-            applyTextureRotation(rotation);
+            // MediaCodec 直连 surface 时，rotation 已由内核通过 rotation-degrees 处理，
+            // 此处不再 setTransform（否则双重旋转）。
+            // 内核上报的 width/height 已是显示宽高（含 rotation 交换），
+            // rotation 变化时 width/height 会随之变化，由 notifyTextureResolution 触发重排。
         } else if (null != mRender) {
             mRender.updateRotation(rotation);
         }
-    }
-
-    private void applyTextureRotation(float rotation) {
-        Matrix matrix = new Matrix();
-        matrix.setRotate(rotation, getWidth() / 2f, getHeight() / 2f);
-        setTransform(matrix);
     }
 
     @Override

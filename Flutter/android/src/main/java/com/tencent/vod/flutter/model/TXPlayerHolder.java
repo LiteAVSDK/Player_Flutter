@@ -2,6 +2,7 @@ package com.tencent.vod.flutter.model;
 
 import com.tencent.live2.V2TXLivePlayer;
 import com.tencent.rtmp.TXVodPlayer;
+import com.tencent.rtmp.ui.TXCloudVideoView;
 import com.tencent.vod.flutter.FTXEvent;
 import com.tencent.vod.flutter.player.FTXVodPlayer;
 import com.tencent.vod.flutter.player.FTXLivePlayer;
@@ -41,6 +42,15 @@ public class TXPlayerHolder {
             return mFTXLivePlayer.getLivePlayer();
         }
         return null;
+    }
+
+    // for PIP view bind/unbind
+    public void bindPipView(TXCloudVideoView videoView) {
+        if (mFTXVodPlayer != null) {
+            mFTXVodPlayer.bindPipView(videoView);
+        } else if (mFTXLivePlayer != null) {
+            mFTXLivePlayer.bindPipView(videoView);
+        }
     }
 
     public boolean isPlayingWhenCreate() {

@@ -76,7 +76,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
                 if (mPassThrough) {
                     applyLayoutParams();
                 } else {
-                    updateVideoRenderModeOnRender();
+                    updateVideoRenderMode();
                 }
             }
         }
@@ -91,6 +91,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
         if (!mPassThrough && null != mRender) {
             mRender.updateRotation(rotation);
         }
+        // pass-through 下 SurfaceView 是独立 Surface，不支持 Matrix 旋转，无需处理
     }
 
     @Override
@@ -113,7 +114,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
             if (mPassThrough) {
                 applyLayoutParams();
             } else {
-                updateVideoRenderModeOnRender();
+                updateVideoRenderMode();
             }
         }
     }
@@ -133,7 +134,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
         }
     }
 
-    private void updateVideoRenderModeOnRender() {
+    private void updateVideoRenderMode() {
         if (mRender != null) {
             mRender.updateSizeAndRenderMode(mVideoWidth, mVideoHeight, mRenderMode);
         }
@@ -177,7 +178,7 @@ public class FTXSurfaceView extends SurfaceView implements FTXRenderCarrier {
             if (mPassThrough) {
                 applyLayoutParams();
             } else {
-                updateVideoRenderModeOnRender();
+                updateVideoRenderMode();
                 if (null != mRender) {
                     mRender.updateRotation(mRotation);
                 }

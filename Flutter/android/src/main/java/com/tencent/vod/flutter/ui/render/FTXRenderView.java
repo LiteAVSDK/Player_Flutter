@@ -108,7 +108,7 @@ public class FTXRenderView implements PlatformView {
     @Override
     public void dispose() {
         mFactory.removeByViewId(mViewId);
-        if (null != mBasePlayer) {
+        if (null != mBasePlayer && mBasePlayer.isUsingRenderCarrier(mTextureView)) {
             mBasePlayer.setRenderView(null);
         }
         mContainer.setCarrier(null);

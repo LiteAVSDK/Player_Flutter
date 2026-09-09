@@ -186,6 +186,9 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     public void onPlayEvent(TXVodPlayer txVodPlayer, int event, Bundle bundle) {
         switch (event) {
             case TXLiveConstants.PLAY_EVT_CHANGE_RESOLUTION:
+                // 直连渲染(pass-through)下 MediaCodec 直连 surface，内核无法做平铺适配；
+                // 中途分辨率/旋转变化时必须同步更新渲染载体宽高，否则画面会被挤压
+                notifyTextureResolution(txVodPlayer.getWidth(), txVodPlayer.getHeight());
                 String evtParam3 = bundle.getString("EVT_PARAM3");
                 if (!TextUtils.isEmpty(evtParam3)) {
                     String[] array = evtParam3.split(",");
@@ -222,9 +225,8 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
                 mHardwareDecodeFail = true;
                 break;
             case TXLiveConstants.PLAY_EVT_VOD_PLAY_PREPARED:
-                int resolutionWidth = txVodPlayer.getWidth();
-                int resolutionHeight = txVodPlayer.getHeight();
-                notifyTextureResolution(resolutionWidth, resolutionHeight);
+                // 分辨率变化已由 PLAY_EVT_CHANGE_RESOLUTION(2009) 统一处理，
+                // 起播首次分辨率必然触发 2009，此处无需重复更新渲染宽高。
                 break;
             case TXVodConstants.VOD_PLAY_EVT_SEEK_COMPLETE:
                 reDraw();
@@ -1086,6 +1088,16 @@ public class FTXVodPlayer extends FTXVodPlayerRenderHost implements ITXVodPlayLi
     @Override
     public void error(@NonNull Throwable error) {
         LiteavLog.e(TAG, "callback message error:" + error);
+    }
+
+    public void bindPipView(TXCloudVideoView videoView) {
+        if (null != mRenderCarrier) {
+            mRenderCarrier.bindPlayer(null);
+            mRenderCarrier = null;
+        }
+        if (null != mVodPlayer) {
+            mVodPlayer.setPlayerView(videoView);
+        }
     }
 
     @Override

@@ -517,13 +517,7 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
 
     private void attachRenderView(TXCloudVideoView videoView) {
         if (null != mPlayerHolder) {
-            if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_VOD) {
-                mPlayerHolder.getVodPlayer().setPlayerView(videoView);
-            } else if (mPlayerHolder.getPlayerType() == FTXEvent.PLAYER_LIVE) {
-                mPlayerHolder.getLivePlayer().setRenderView(videoView);
-            } else {
-                LiteavLog.e(TAG, "unknown player type:" + mPlayerHolder.getPlayerType());
-            }
+            mPlayerHolder.bindPipView(videoView);
         } else {
             LiteavLog.e(TAG, "pip video model is null");
         }
