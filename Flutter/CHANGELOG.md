@@ -1,5 +1,14 @@
 
 
+#### Version: 13.5.0 2026.09.10
+
+##### Features：
+
+- set Android TXLiteAVSDK to 13.5.0.20670
+- set iOS TXLiteAVSDK to 13.5.21355
+- fix known issue
+
+
 #### Version: 13.4.2 2026.08.24
 
 ##### Features：
