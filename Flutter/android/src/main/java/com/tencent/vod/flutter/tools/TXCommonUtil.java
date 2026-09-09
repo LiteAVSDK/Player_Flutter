@@ -21,7 +21,6 @@ import com.tencent.vod.flutter.messages.FtxMessages.UInt8ListMsg;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Common utility class.
@@ -94,31 +93,36 @@ public class TXCommonUtil {
         if (event != 0) {
             param.put(FTXEvent.EVT_KEY_PLAYER_EVENT, event);
         }
-
-        if (bundle != null && !bundle.isEmpty()) {
-            Set<String> keySet = bundle.keySet();
-            for (String key : keySet) {
-                Object val = bundle.get(key);
-                if (null != val) {
-                    param.put(key, val);
-                }
-            }
-        }
-
+        putBundleToMap(param, bundle);
         return param;
     }
 
     public static Map<String, Object> transToMap(Bundle bundle) {
         Map<String, Object> param = new HashMap<>();
-        if (bundle != null && !bundle.isEmpty()) {
-            Set<String> keySet = bundle.keySet();
-            for (String key : keySet) {
-                Object val = bundle.get(key);
-                param.put(key, val);
+        putBundleToMap(param, bundle);
+        return param;
+    }
+
+    /**
+     * 将 Bundle 的内容写入目标 Map，并对嵌套 Bundle 递归转换为 Map。
+     * 避免把 Bundle 对象直接放入结果，导致 Flutter StandardMessageCodec 编码时抛
+     * IllegalArgumentException（Unsupported value: Bundle）。
+     */
+    private static void putBundleToMap(Map<String, Object> target, Bundle bundle) {
+        if (bundle == null || bundle.isEmpty()) {
+            return;
+        }
+        for (String key : bundle.keySet()) {
+            Object val = bundle.get(key);
+            if (val == null) {
+                continue;
+            }
+            if (val instanceof Bundle) {
+                target.put(key, transToMap((Bundle) val));
+            } else {
+                target.put(key, val);
             }
         }
-
-        return param;
     }
 
     public static int getDownloadEventByState(int mediaInfoDownloadState) {

@@ -49,10 +49,8 @@ import com.tencent.vod.flutter.ui.render.FTXRenderViewFactory;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -545,18 +543,7 @@ public class SuperPlayerPlugin implements FlutterPlugin, ActivityAware,
     }
 
     private static Map<String, Object> getParams(int event, Bundle bundle) {
-        Map<String, Object> param = new HashMap<>();
-        if (event != 0) {
-            param.put("event", event);
-        }
-        if (bundle != null && !bundle.isEmpty()) {
-            Set<String> keySet = bundle.keySet();
-            for (String key : keySet) {
-                Object val = bundle.get(key);
-                param.put(key, val);
-            }
-        }
-        return param;
+        return TXCommonUtil.getParams(event, bundle);
     }
 
     @Override
