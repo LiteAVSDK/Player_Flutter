@@ -57,7 +57,6 @@ def locateHostPubspec() {
 
     for (f in candidates) {
         if (f.exists()) {
-            println("[SuperPlayer] host pubspec found: ${f.absolutePath}")
             return f
         }
     }
@@ -69,7 +68,6 @@ def locateHostPubspec() {
     for (d in childDirs) {
         def f = new File(d, "pubspec.yaml")
         if (f.exists()) {
-            println("[SuperPlayer] host pubspec found (child): ${f.absolutePath}")
             return f
         }
     }
@@ -108,38 +106,29 @@ def resolveSubSpec() {
 
     def env = System.getenv("LITEAV_SDK_SUB_SPEC")
     if (env) {
-        println("[SuperPlayer] LITEAV_SDK_SUB_SPEC (env): ${env}")
         if (env in allowedSubSpecs) {
             return env
         }
-        println("[SuperPlayer] warning: invalid LITEAV_SDK_SUB_SPEC '${env}', allowed: ${allowedSubSpecs.join(', ')}")
     }
 
     def prop = rootProject.findProperty("liteavSdkSubSpec")
     if (prop) {
-        println("[SuperPlayer] liteavSdkSubSpec (property): ${prop}")
         if (prop.toString() in allowedSubSpecs) {
             return prop.toString()
         }
-        println("[SuperPlayer] warning: invalid liteavSdkSubSpec '${prop}', allowed: ${allowedSubSpecs.join(', ')}")
     }
 
     def pubspecFile = locateHostPubspec()
     if (pubspecFile != null) {
         def result = parseSubSpecFromPubspec(pubspecFile)
         if (result != null) {
-            println("[SuperPlayer] sub_spec from pubspec: ${result}")
             if (result in allowedSubSpecs) {
                 return result
             }
-            println("[SuperPlayer] warning: invalid sub_spec '${result}', allowed: ${allowedSubSpecs.join(', ')}")
-        } else {
-            println("[SuperPlayer] sub_spec not found in pubspec")
         }
-    } else {
-        println("[SuperPlayer] pubspecFile not found; fallback to default: professional")
     }
 
+    println("[SuperPlayer] sub_spec not specified, use default: professional")
     return "professional"
 }
 
@@ -149,22 +138,19 @@ def resolveLiteavSdkVersion() {
 
     def env = System.getenv("LITEAV_SDK_VERSION")
     if (env) {
-        println("[SuperPlayer] LITEAV_SDK_VERSION (env): ${env}")
         if (env ==~ /\d+\.\d+\.\d+\.\d+/) {
             return env
         }
-        println("[SuperPlayer] warning: invalid LITEAV_SDK_VERSION '${env}' (expect x.x.x.x), ignored")
     }
 
     def prop = rootProject.findProperty("liteavSdkVersion")
     if (prop) {
-        println("[SuperPlayer] liteavSdkVersion (property): ${prop}")
         if (prop.toString() ==~ /\d+\.\d+\.\d+\.\d+/) {
             return prop.toString()
         }
-        println("[SuperPlayer] warning: invalid liteavSdkVersion '${prop}' (expect x.x.x.x), ignored")
     }
 
+    println("[SuperPlayer] liteavSdkVersion not specified, use default: ${fallback}")
     return fallback
 }
 
@@ -178,13 +164,11 @@ def liteavSubSpecModules = [
 
 def subSpecVersion = resolveSubSpec()
 if (!liteavSubSpecModules.containsKey(subSpecVersion)) {
-    println("[SuperPlayer] warning: invalid sub_spec '${subSpecVersion}', allowed: ${liteavSubSpecModules.keySet().join(', ')}")
     subSpecVersion = "professional"
 }
-println("[SuperPlayer] resolved sub_spec: ${subSpecVersion}")
 
 def liteavSdkVersion = resolveLiteavSdkVersion()
-println("[SuperPlayer] resolved liteavSdkVersion: ${liteavSdkVersion}")
+println("[SuperPlayer] sub_spec: ${subSpecVersion}, liteavSdkVersion: ${liteavSdkVersion}")
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

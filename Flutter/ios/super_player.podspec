@@ -9,13 +9,12 @@ ALLOWED_VERSIONS = ['player', 'professional', 'premium', 'professional_premium']
 # Default underlying SDK version when used standalone; overridable via LITEAV_SDK_VERSION (x.x.x).
 sdk_version = ENV['LITEAV_SDK_VERSION'] || '13.5.21355'
 unless sdk_version =~ /^\d+\.\d+\.\d+$/
-  puts "[SuperPlayer] warning: invalid LITEAV_SDK_VERSION '#{sdk_version}' (expect x.x.x), fallback to default"
   sdk_version = '13.5.21355'
 end
+puts "[SuperPlayer] sdk_version not specified, use default: #{sdk_version}" if ENV['LITEAV_SDK_VERSION'].nil?
 
 env_sub_spec = ENV['LITEAV_SDK_SUB_SPEC']
 if env_sub_spec && !ALLOWED_VERSIONS.include?(env_sub_spec)
-  puts "[SuperPlayer] warning: invalid LITEAV_SDK_SUB_SPEC '#{env_sub_spec}', allowed: #{ALLOWED_VERSIONS.join(', ')}"
   env_sub_spec = nil
 end
 
@@ -32,7 +31,6 @@ if ENV['FLUTTER_APPLICATION_PATH']
   if File.exist?(candidate)
     project_root = ENV['FLUTTER_APPLICATION_PATH']
     pubspec_path = candidate
-    puts "[SuperPlayer] host pubspec found (FLUTTER_APPLICATION_PATH): #{pubspec_path}"
   end
 end
 
@@ -47,7 +45,6 @@ if pubspec_path.nil? && defined?(Pod::Config)
       if File.exist?(candidate)
         project_root = File.dirname(candidate)
         pubspec_path = candidate
-        puts "[SuperPlayer] host pubspec found (Podfile flutter_application_path): #{pubspec_path}"
       end
     end
   end
@@ -60,7 +57,6 @@ if pubspec_path.nil? && defined?(Pod::Config)
     if File.exist?(candidate)
       project_root = dir
       pubspec_path = candidate
-      puts "[SuperPlayer] host pubspec found (ancestor): #{pubspec_path}"
       break
     end
     parent = File.dirname(dir)
@@ -88,7 +84,6 @@ if pubspec_path.nil? && defined?(Pod::Config)
         if File.exist?(File.join(full, 'pubspec.yaml')) && File.exist?(File.join(full, '.flutter-plugins-dependencies'))
           project_root = full
           pubspec_path = File.join(full, 'pubspec.yaml')
-          puts "[SuperPlayer] host pubspec found (child): #{pubspec_path}"
           break
         end
         next_roots << full
@@ -99,9 +94,6 @@ if pubspec_path.nil? && defined?(Pod::Config)
     depth += 1
   end
 end
-
-puts "[SuperPlayer] project_root: #{project_root}"
-puts "[SuperPlayer] warning: pubspec.yaml not found" if pubspec_path.nil?
 
 sub_spec_version = nil
 
@@ -122,42 +114,28 @@ integrated_with_rtc = begin
   end
   result
 end
-puts "[SuperPlayer] integrated with tencent_rtc_sdk: #{integrated_with_rtc}"
-
-puts "---------------- [SuperPlayer] ----------------"
 if integrated_with_rtc
   # bare has no underlying dep; series/version come from rtc_sdk's targeted subspec dependency.
   sub_spec_version = 'bare'
-  puts "[SuperPlayer] default_subspec = bare (series decided by tencent_rtc_sdk)"
 elsif env_sub_spec
   sub_spec_version = env_sub_spec
-  puts "[SuperPlayer] sub_spec from LITEAV_SDK_SUB_SPEC: #{sub_spec_version}"
 elsif sub_spec_version.nil? && pubspec_path && File.exist?(pubspec_path)
   begin
-    puts "[SuperPlayer] path: #{pubspec_path}"
     pubspec = YAML.load_file(pubspec_path)
     if pubspec['super_player'] && pubspec['super_player']['sub_spec']
         parsed_version = pubspec['super_player']['sub_spec']
         if ALLOWED_VERSIONS.include?(parsed_version)
             sub_spec_version = parsed_version
-            puts "[SuperPlayer] parsed success: #{sub_spec_version}"
           else
             sub_spec_version = 'professional'
-            puts "[SuperPlayer] warning: invalid sub_spec '#{parsed_version}', allowed: #{ALLOWED_VERSIONS.join(', ')}"
-            puts "[SuperPlayer] fallback to default: #{sub_spec_version}"
         end
-    else
-      puts "[SuperPlayer] sub_spec not found，use default"
     end
-  rescue => e
-    puts "[SuperPlayer] YAML parsed error: #{e.message}"
+  rescue
   end
-elsif sub_spec_version.nil?
-  puts "[SuperPlayer] warning: pubspec.yaml not found (path: #{pubspec_path})"
 end
+puts "[SuperPlayer] sub_spec not specified, use default: professional" if sub_spec_version.nil?
 sub_spec_version ||= 'professional'
-puts "[SuperPlayer] final sub_spec: #{sub_spec_version}, sdk_version: #{sdk_version}"
-puts "-----------------------------------------------"
+puts "[SuperPlayer] sub_spec: #{sub_spec_version}, sdk_version: #{sdk_version}"
 
 Pod::Spec.new do |s|
   s.name             = 'super_player'
