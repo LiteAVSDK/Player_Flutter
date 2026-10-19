@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
@@ -150,6 +151,13 @@ public class FlutterPipImplActivity extends AppCompatActivity implements ITXVodP
     protected void onCreate(Bundle savedInstanceState) {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+        // Android 8.0 (API 26) 限制：translucent Activity 不能固定方向，否则抛
+        // "Only fullscreen opaque activities can request orientation"。
+        // 本 Activity 使用 translucent 主题（避免 PiP 启动黑屏），故 8.0 上跳过锁定竖屏；
+        // 8.1 已修复该限制、7.x 无此限制，其余版本照常锁定 portrait，保持原行为。
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
         mMainHandler = new Handler(getMainLooper());
         bindAndroid12BugServiceIfNeed();
         registerPipBroadcast();

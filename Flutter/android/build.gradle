@@ -183,11 +183,13 @@ rootProject.allprojects {
         resolutionStrategy.eachDependency { details ->
             def liteavMainModules = ["LiteAVSDK_Player", "LiteAVSDK_Professional",
                                      "LiteAVSDK_Player_Premium", "LiteAVSDK_Professional_Player_Premium"]
-            if (details.requested.group == "com.tencent.liteav" && details.requested.name in liteavMainModules) {
+            def rtcGroupId = rootProject.ext.find("rtcSdkLiteavSdkGroupId")
+            def targetGroupId = rtcGroupId != null ? rtcGroupId : "com.tencent.liteav"
+            if ((details.requested.group == "com.tencent.liteav" || details.requested.group == targetGroupId) && details.requested.name in liteavMainModules) {
                 def rtcModule = rootProject.ext.find("rtcSdkLiteavSdkModule")
                 def rtcVersion = rootProject.ext.find("rtcSdkLiteavSdkVersion")
                 if (rtcModule != null && rtcVersion != null) {
-                    details.useTarget("com.tencent.liteav:${rtcModule}:${rtcVersion}")
+                    details.useTarget("${targetGroupId}:${rtcModule}:${rtcVersion}")
                 }
             }
         }

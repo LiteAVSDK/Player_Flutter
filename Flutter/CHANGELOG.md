@@ -1,5 +1,13 @@
 
 
+#### Version: 13.5.1 2026.10.20
+
+##### Features：
+
+- fix PiP crash on Android 8.0 (API 26) when requesting orientation on a translucent activity
+- fix known issue
+
+
 #### Version: 13.5.0 2026.09.10
 
 ##### Features：
