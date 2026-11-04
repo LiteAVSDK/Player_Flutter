@@ -7,9 +7,9 @@ require 'yaml'
 ALLOWED_VERSIONS = ['player', 'professional', 'premium', 'professional_premium']
 
 # Default underlying SDK version when used standalone; overridable via LITEAV_SDK_VERSION (x.x.x).
-sdk_version = ENV['LITEAV_SDK_VERSION'] || '13.5.21355'
+sdk_version = ENV['LITEAV_SDK_VERSION'] || '13.6.21648'
 unless sdk_version =~ /^\d+\.\d+\.\d+$/
-  sdk_version = '13.5.21355'
+  sdk_version = '13.6.21648'
 end
 puts "[SuperPlayer] sdk_version not specified, use default: #{sdk_version}" if ENV['LITEAV_SDK_VERSION'].nil?
 
@@ -139,7 +139,7 @@ puts "[SuperPlayer] sub_spec: #{sub_spec_version}, sdk_version: #{sdk_version}"
 
 Pod::Spec.new do |s|
   s.name             = 'super_player'
-  s.version = '13.5.1'
+  s.version = '13.6.0'
   s.summary          = 'The super_player Flutter plugin is one of the sub-product SDKs of the audio/video terminal SDK (Tencent Cloud Video on Demand).'
   s.description      = <<-DESC
 player plugin.

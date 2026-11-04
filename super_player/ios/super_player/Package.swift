@@ -113,13 +113,16 @@ let subSpec = rtcIntegrated
         ?? subSpecFromHostPubspec()
         ?? "professional")
 
-// 系列 -> 底层 liteav SPM 包（URL / 包名 / product 名 / 默认版本）。
-// 各系列发布节奏不同，默认版本需分别指定。
+// 系列 -> 底层 liteav SPM 包（URL / 包名 / product 名 / 默认版本 / 依赖方式）。
+// professional 用 tag（需与 trtc_flutter 做约束交集）；其余系列仅 super_player 使用，
+// 且各仓库 tag 发布节奏不同步，用 revision 锁定 main 分支的具体 commit，
+// 避免旧版本插件漂移到新 SDK。
 struct LiteavPkg {
     let url: String
     let name: String
     let product: String
     let defaultVersion: String
+    let revision: String?   // 非 nil：用 revision 锁定 commit；nil：用 from: tag
 }
 
 let liteav: LiteavPkg
@@ -129,35 +132,48 @@ case "player":
         url: "https://github.com/Tencent-RTC/Player_SwiftPM.git",
         name: "Player_SwiftPM",
         product: "Player_SwiftPM",
-        defaultVersion: "13.4.21062")
+        defaultVersion: "13.6.21648",
+        revision: "9ee2f1a2772289b7e91f5f9ef7f4c999450d5fb4")
 case "premium":
     liteav = LiteavPkg(
         url: "https://github.com/Tencent-RTC/Player_Premium_SwiftPM.git",
         name: "Player_Premium_SwiftPM",
         product: "Player_Premium_SwiftPM",
-        defaultVersion: "13.4.21062")
+        defaultVersion: "13.6.21648",
+        revision: "f8eecc15d6bfd4f3392af952900b7b77bbb081cd")
 case "professional_premium":
     liteav = LiteavPkg(
         url: "https://github.com/Tencent-RTC/Professional_Player_Premium_SwiftPM.git",
         name: "Professional_Player_Premium_SwiftPM",
         product: "Professional_Player_Premium_SwiftPM",
-        defaultVersion: "13.4.21062")
+        defaultVersion: "13.6.21648",
+        revision: "d77061aea6a7355af1fc92a7cbad5768c8e67c2f")
 default: // professional
     liteav = LiteavPkg(
         url: "https://github.com/Tencent-RTC/Professional_SwiftPM.git",
         name: "Professional_SwiftPM",
         product: "Professional_SwiftPM",
-        defaultVersion: "13.5.21355")
+        defaultVersion: "13.6.21648",
+        revision: nil)
 }
 
 // 版本：
-//   - 集成 tencent_rtc_sdk 时：固定 professional 的 13.5 起跳（from: 范围），
+//   - 集成 tencent_rtc_sdk 时：固定 professional 的 13.6 起跳（from: 范围），
 //     由 SwiftPM 约束交集跟随 rtc_sdk 的精确版本。
 //   - 否则：LITEAV_SDK_VERSION 可覆盖，回落系列默认版本。
 let sdkVersionString = rtcIntegrated
-    ? "13.5.21355"
+    ? "13.6.21648"
     : (env["LITEAV_SDK_VERSION"] ?? liteav.defaultVersion)
-let sdkVersion = Version(sdkVersionString) ?? Version(13, 5, 21355)
+let sdkVersion = Version(sdkVersionString) ?? Version(13, 6, 21648)
+
+// professional 用 tag（from:，参与 trtc_flutter 约束交集）；
+// 其余系列用 revision 锁定 main 分支的具体 commit。
+let liteavDependency: Package.Dependency
+if let rev = liteav.revision {
+    liteavDependency = .package(url: liteav.url, revision: rev)
+} else {
+    liteavDependency = .package(url: liteav.url, from: sdkVersion)
+}
 
 let package = Package(
     name: "super_player",
@@ -167,7 +183,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
-        .package(url: liteav.url, from: sdkVersion)
+        liteavDependency
     ],
     targets: [
         .target(
