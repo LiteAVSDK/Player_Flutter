@@ -1,2 +1,22 @@
-./CI
-./lib/Core/pigeons
+# 内部脚本与生成物
+CI
+lib/Core/pigeons
+
+# 构建产物
+build
+**/build
+**/.dart_tool
+**/ios/Flutter/ephemeral
+**/ios/Pods
+**/android/.cxx
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# 本地/IDE 配置
+local.properties
+super_player.iml
+.idea
+**/.idea
+
+# 锁文件
+**/pubspec.lock

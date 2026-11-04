@@ -34,14 +34,14 @@ public class FTXTextureRender {
             TXGlUtilVideo.createFloatBuffer(FULL_RECTANGLE_TEX_COORDS);
 
     private static final String VERTEX_SHADER =
-            "uniform mat4 uMVPMatrix;\n" +
-                    "attribute vec4 aPosition;\n" +
-                    "attribute vec2 aTextureCoord;\n" +
-                    "varying vec2 vTextureCoord;\n" +
-                    "void main() {\n" +
-                    "    gl_Position = uMVPMatrix * aPosition;\n" +
-                    "    vTextureCoord = aTextureCoord;\n" + // 核心修复：应用纹理矩阵
-                    "}\n";
+            "uniform mat4 uMVPMatrix;\n"
+                    + "attribute vec4 aPosition;\n"
+                    + "attribute vec2 aTextureCoord;\n"
+                    + "varying vec2 vTextureCoord;\n"
+                    + "void main() {\n"
+                    + "    gl_Position = uMVPMatrix * aPosition;\n"
+                    + "    vTextureCoord = aTextureCoord;\n" // 核心修复：应用纹理矩阵
+                    + "}\n";
 
     private static final String VIDEO_FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n"
