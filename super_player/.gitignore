@@ -1,0 +1,13 @@
+.idea/
+.dart_tool/
+.packages
+pubspec.lock
+# Swift Package Manager 构建产物
+build/
+**/ios/Flutter/ephemeral/
+**/ios/build/
+**/ios/Runner.xcworkspace/xcshareddata/swiftpm/
+**/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+**/android/app/.cxx/
+.swiftpm/
+.codebuddy/

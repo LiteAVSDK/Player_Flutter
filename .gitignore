@@ -1,0 +1,8 @@
+.idea/
+.DS_Store
+localDps/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/pubspec.lock
+.codebuddy/

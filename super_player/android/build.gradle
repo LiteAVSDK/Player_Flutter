@@ -1,0 +1,199 @@
+plugins {
+    id "com.android.library"
+}
+apply from:'config.gradle'
+group 'com.tencent.vod.flutter'
+version rootProject.ext.playerVersion
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+android {
+    buildFeatures {
+        buildConfig = true
+    }
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace="com.tencent.vod.flutter"
+
+    defaultConfig {
+        buildConfigField("String", "FLUTTER_PLAYER_VERSION", "\"${rootProject.ext.playerVersion}\"")
+        minSdkVersion rootProject.ext.minSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+import java.util.regex.Pattern
+
+// 定位宿主 pubspec.yaml：环境变量 > gradle属性 > 向上逐级 > 向下受限查找（混合工程 / add-to-app）
+def locateHostPubspec() {
+    def candidates = new LinkedHashSet<File>()
+
+    // 1) 环境变量（与 iOS 对齐；gradle 直连 / IDE 构建时可用）
+    def envRoot = System.getenv("FLUTTER_APPLICATION_PATH")
+    if (envRoot) {
+        candidates << new File(envRoot, "pubspec.yaml")
+    }
+
+    // 2) 显式 gradle 属性 flutterProjectRoot（宿主 -PflutterProjectRoot= 或 gradle.properties）
+    def propRoot = rootProject.findProperty("flutterProjectRoot")
+    if (propRoot) {
+        candidates << new File(propRoot.toString(), "pubspec.yaml")
+    }
+
+    // 3) rootProject.projectDir 及其祖先（覆盖标准 [host]/android）
+    def dir = rootProject.projectDir
+    for (int i = 0; i < 6 && dir != null; i++) {
+        candidates << new File(dir, "pubspec.yaml")
+        dir = dir.parentFile
+    }
+
+    for (f in candidates) {
+        if (f.exists()) {
+            return f
+        }
+    }
+
+    // 4) 向下受限查找：仓库根下同时含 pubspec.yaml 与 .flutter-plugins-dependencies 的目录（混合工程 / add-to-app）
+    def childDirs = new ArrayList<File>()
+    collectHostDirs(rootProject.projectDir.parentFile, 0, childDirs)
+    childDirs.sort { a, b -> a.absolutePath.length() <=> b.absolutePath.length() }
+    for (d in childDirs) {
+        def f = new File(d, "pubspec.yaml")
+        if (f.exists()) {
+            return f
+        }
+    }
+    return null
+}
+
+def collectHostDirs(File dir, int depth, List out) {
+    if (depth > 4 || dir == null || !dir.exists()) return
+    def skip = ['.git', '.idea', '.dart_tool', 'build', '.pub-cache', 'node_modules', '.cxx', 'ios', 'Pods', 'app', 'android'] as Set
+    def children = dir.listFiles()
+    if (children == null) return
+    for (f in children) {
+        if (f.directory && !skip.contains(f.name)) {
+            if (new File(f, 'pubspec.yaml').exists() && new File(f, '.flutter-plugins-dependencies').exists()) {
+                out << f
+            }
+            collectHostDirs(f, depth + 1, out)
+        }
+    }
+}
+
+// 从 pubspec 解析 super_player.sub_spec，找不到返回 null
+def parseSubSpecFromPubspec(File pubspecFile) {
+    def content = pubspecFile.text
+    def pattern = Pattern.compile("super_player:\\s*\\n\\s*sub_spec:\\s*['\"]?(\\w+)['\"]?")
+    def matcher = pattern.matcher(content)
+    if (matcher.find()) {
+        return matcher.group(1)
+    }
+    return null
+}
+
+// 解析 sub_spec：环境变量 > gradle属性 > pubspec 节点 > 默认 professional
+def resolveSubSpec() {
+    def allowedSubSpecs = ['player', 'professional', 'premium', 'professional_premium']
+
+    def env = System.getenv("LITEAV_SDK_SUB_SPEC")
+    if (env) {
+        if (env in allowedSubSpecs) {
+            return env
+        }
+    }
+
+    def prop = rootProject.findProperty("liteavSdkSubSpec")
+    if (prop) {
+        if (prop.toString() in allowedSubSpecs) {
+            return prop.toString()
+        }
+    }
+
+    def pubspecFile = locateHostPubspec()
+    if (pubspecFile != null) {
+        def result = parseSubSpecFromPubspec(pubspecFile)
+        if (result != null) {
+            if (result in allowedSubSpecs) {
+                return result
+            }
+        }
+    }
+
+    println("[SuperPlayer] sub_spec not specified, use default: professional")
+    return "professional"
+}
+
+// 解析 liteav SDK 版本：环境变量 > gradle属性 > config.gradle 默认
+def resolveLiteavSdkVersion() {
+    def fallback = rootProject.ext.playerSDKVersion
+
+    def env = System.getenv("LITEAV_SDK_VERSION")
+    if (env) {
+        if (env ==~ /\d+\.\d+\.\d+\.\d+/) {
+            return env
+        }
+    }
+
+    def prop = rootProject.findProperty("liteavSdkVersion")
+    if (prop) {
+        if (prop.toString() ==~ /\d+\.\d+\.\d+\.\d+/) {
+            return prop.toString()
+        }
+    }
+
+    println("[SuperPlayer] liteavSdkVersion not specified, use default: ${fallback}")
+    return fallback
+}
+
+// LiteAVSDK series -> Maven module name
+def liteavSubSpecModules = [
+    player: "LiteAVSDK_Player",
+    professional: "LiteAVSDK_Professional",
+    premium: "LiteAVSDK_Player_Premium",
+    professional_premium: "LiteAVSDK_Professional_Player_Premium",
+]
+
+def subSpecVersion = resolveSubSpec()
+if (!liteavSubSpecModules.containsKey(subSpecVersion)) {
+    subSpecVersion = "professional"
+}
+
+def liteavSdkVersion = resolveLiteavSdkVersion()
+println("[SuperPlayer] sub_spec: ${subSpecVersion}, liteavSdkVersion: ${liteavSdkVersion}")
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // series from sub_spec, version from config.gradle default; both follow rtc_sdk via the strategy below when integrated
+    implementation "com.tencent.liteav:${liteavSubSpecModules[subSpecVersion]}:${liteavSdkVersion}"
+    implementation rootProject.ext.compat
+}
+
+// Follow tencent_rtc_sdk (series + version) when integrated. Registered on rootProject so the host app graph is covered too.
+rootProject.allprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            def liteavMainModules = ["LiteAVSDK_Player", "LiteAVSDK_Professional",
+                                     "LiteAVSDK_Player_Premium", "LiteAVSDK_Professional_Player_Premium"]
+            def rtcGroupId = rootProject.ext.find("rtcSdkLiteavSdkGroupId")
+            def targetGroupId = rtcGroupId != null ? rtcGroupId : "com.tencent.liteav"
+            if ((details.requested.group == "com.tencent.liteav" || details.requested.group == targetGroupId) && details.requested.name in liteavMainModules) {
+                def rtcModule = rootProject.ext.find("rtcSdkLiteavSdkModule")
+                def rtcVersion = rootProject.ext.find("rtcSdkLiteavSdkVersion")
+                if (rtcModule != null && rtcVersion != null) {
+                    def target = "${targetGroupId}:${rtcModule}:${rtcVersion}"
+                    println("[SuperPlayer] follow rtc_sdk: ${details.requested.group}:${details.requested.name}:${details.requested.version} -> ${target}")
+                    details.useTarget(target)
+                }
+            }
+        }
+    }
+}

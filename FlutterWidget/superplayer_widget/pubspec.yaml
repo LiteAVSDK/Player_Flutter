@@ -20,7 +20,7 @@ dependencies:
     # See https://dart.dev/tools/pub/dependencies#version-constraints
     # The example app is bundled with the plugin so we use a path dependency on
     # the parent directory to use the current plugin's version.
-    path: ../../Flutter
+    path: ../../super_player
 
 dependency_overrides:
   # force override flutter_easyloading dep
