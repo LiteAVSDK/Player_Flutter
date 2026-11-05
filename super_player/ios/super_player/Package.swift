@@ -175,21 +175,26 @@ if let rev = liteav.revision {
     liteavDependency = .package(url: liteav.url, from: sdkVersion)
 }
 
+let flutterFrameworkAvailable = FileManager.default.fileExists(atPath: "../FlutterFramework/Package.swift")
+
+var packageDependencies: [Package.Dependency] = [liteavDependency]
+var flutterTargetDependency: [Target.Dependency] = []
+if flutterFrameworkAvailable {
+    packageDependencies.append(.package(name: "FlutterFramework", path: "../FlutterFramework"))
+    flutterTargetDependency.append(.product(name: "FlutterFramework", package: "FlutterFramework"))
+}
+
 let package = Package(
     name: "super_player",
     platforms: [.iOS(.v12)],
     products: [
         .library(name: "super-player", targets: ["super_player"])
     ],
-    dependencies: [
-        .package(name: "FlutterFramework", path: "../FlutterFramework"),
-        liteavDependency
-    ],
+    dependencies: packageDependencies,
     targets: [
         .target(
             name: "super_player",
-            dependencies: [
-                .product(name: "FlutterFramework", package: "FlutterFramework"),
+            dependencies: flutterTargetDependency + [
                 .product(name: liteav.product, package: liteav.name),
                 .target(name: "FTXPiPKit"),
             ],

@@ -1,5 +1,12 @@
 
 
+#### Version: 13.6.1 2026.11.05
+
+##### Features：
+
+- fix known issue
+
+
 #### Version: 13.6.0 2026.11.04
 
 ##### Features：
@@ -71,7 +78,7 @@
 
 ##### Features：
 
-- improve compatibility in multi-engine mode
+- improve compatibility in multi-engine mode 
 - set Android TXLiteAVSDK to 13.3.0.20247
 - set iOS TXLiteAVSDK to 13.3.20845
 - fix known issue
@@ -574,7 +581,7 @@
 
 - set Android TXLiteAVSDK_Player to 10.4.0.11164，tag：release_player_v1.0.4
 - set iOS TXLiteAVSDK_Player to 10.4.11617， tag：release_player_v1.0.4
--
+- 
 
 #### Version: 1.0.3  2022.07.13
 
