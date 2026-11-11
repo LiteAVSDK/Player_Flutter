@@ -228,7 +228,8 @@ NS_ASSUME_NONNULL_BEGIN
     quality:(nullable NSNumber *)quality
     token:(nullable NSString *)token
     speed:(nullable NSNumber *)speed
-    isResourceBroken:(nullable NSNumber *)isResourceBroken;
+    isResourceBroken:(nullable NSNumber *)isResourceBroken
+    encryptedMp4Level:(nullable NSNumber *)encryptedMp4Level;
 /// 缓存地址
 @property(nonatomic, copy, nullable) NSString * playPath;
 /// 下载进度
@@ -264,6 +265,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong, nullable) NSNumber * speed;
 /// 资源是否已损坏, 如：资源被删除了
 @property(nonatomic, strong, nullable) NSNumber * isResourceBroken;
+/// mp4加密等级
+@property(nonatomic, strong, nullable) NSNumber * encryptedMp4Level;
 @end
 
 @interface TXDownloadListMsg : NSObject

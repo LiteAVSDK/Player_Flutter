@@ -1,5 +1,12 @@
 
 
+#### Version: 13.6.2 2026.11.11
+
+##### Features：
+
+- fix iOS download crash (RangeError) caused by TXVodDownloadMediaMsg missing encryptedMp4Level field
+
+
 #### Version: 13.6.1 2026.11.05
 
 ##### Features：

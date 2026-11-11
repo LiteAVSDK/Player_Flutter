@@ -666,7 +666,8 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
     quality:(nullable NSNumber *)quality
     token:(nullable NSString *)token
     speed:(nullable NSNumber *)speed
-    isResourceBroken:(nullable NSNumber *)isResourceBroken {
+    isResourceBroken:(nullable NSNumber *)isResourceBroken
+    encryptedMp4Level:(nullable NSNumber *)encryptedMp4Level {
   TXVodDownloadMediaMsg* pigeonResult = [[TXVodDownloadMediaMsg alloc] init];
   pigeonResult.playPath = playPath;
   pigeonResult.progress = progress;
@@ -684,6 +685,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
   pigeonResult.token = token;
   pigeonResult.speed = speed;
   pigeonResult.isResourceBroken = isResourceBroken;
+  pigeonResult.encryptedMp4Level = encryptedMp4Level;
   return pigeonResult;
 }
 + (TXVodDownloadMediaMsg *)fromList:(NSArray<id> *)list {
@@ -704,6 +706,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
   pigeonResult.token = GetNullableObjectAtIndex(list, 13);
   pigeonResult.speed = GetNullableObjectAtIndex(list, 14);
   pigeonResult.isResourceBroken = GetNullableObjectAtIndex(list, 15);
+  pigeonResult.encryptedMp4Level = GetNullableObjectAtIndex(list, 16);
   return pigeonResult;
 }
 + (nullable TXVodDownloadMediaMsg *)nullableFromList:(NSArray<id> *)list {
@@ -727,6 +730,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
     self.token ?: [NSNull null],
     self.speed ?: [NSNull null],
     self.isResourceBroken ?: [NSNull null],
+    self.encryptedMp4Level ?: [NSNull null],
   ];
 }
 @end
